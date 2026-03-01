@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { db } from '../firebase';
+import { db } from '../supabase';
 import {
   collection,
   query,
@@ -9,7 +9,7 @@ import {
   onSnapshot,
   addDoc,
   serverTimestamp,
-} from 'firebase/firestore';
+} from 'supabase/database';
 
 const BACKEND_URL = 'https://whats-upp-production.up.railway.app';
 

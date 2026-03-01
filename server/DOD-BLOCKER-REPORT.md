@@ -15,8 +15,8 @@
 - QR generation verified (18/18 accounts)
 - Multi-account support confirmed
 - All critical bugs fixed
-- Firebase integration ready
-- Firestore persistence implemented
+- Supabase integration ready
+- Database persistence implemented
 
 ### What's Blocking ❌
 
@@ -38,7 +38,7 @@ Attempted methods:
 1. ❌ legacy hosting API - requires LEGACY_TOKEN (not available)
 2. ❌ legacy hosting CLI - requires `legacy hosting login` (interactive)
 3. ❌ legacy hosting.json in root - legacy hosting ignores without manual trigger
-4. ❌ exec_preview - Firebase init timeout
+4. ❌ exec_preview - Supabase init timeout
 5. ❌ Local server - port conflicts and process management issues
 
 **Conclusion:** legacy hosting requires ONE manual configuration step in dashboard.
@@ -65,7 +65,7 @@ GOOGLE_APPLICATION_CREDENTIALS_JSON=<paste JSON from command below>
 Get JSON:
 
 ```bash
-cat /workspaces/Aplicatie-SuperpartyByAi/.github/secrets-backup/firebase-service-account.json
+cat /workspaces/Aplicatie-SuperpartyByAi/.github/secrets-backup/supabase-service-account.json
 ```
 
 ### Step 3: Deploy

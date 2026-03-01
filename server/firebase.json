@@ -1,12 +1,12 @@
 {
   "hosting": {
     "public": "superparty_flutter/build/web",
-    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "ignore": ["supabase.json", "**/.*", "**/node_modules/**"],
     "rewrites": [{ "source": "**", "destination": "/index.html" }]
   },
-  "firestore": {
-    "rules": "firestore.rules",
-    "indexes": "firestore.indexes.json"
+  "database": {
+    "rules": "database.rules",
+    "indexes": "database.indexes.json"
   },
   "functions": {
     "source": "functions",
@@ -20,7 +20,7 @@
       "host": "127.0.0.1",
       "port": 9098
     },
-    "firestore": {
+    "database": {
       "host": "127.0.0.1",
       "port": 8082
     },

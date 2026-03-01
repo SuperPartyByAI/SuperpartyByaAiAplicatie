@@ -50,7 +50,7 @@ Updated CREATE success message:
 "Eveniment creat și adăugat în Evenimente."
 ```
 
-### 2. Firestore Rules: `firestore.rules`
+### 2. Database Rules: `database.rules`
 
 #### Evenimente Collection
 ```javascript
@@ -93,7 +93,7 @@ match /userEventQuota/{userId} {
 ### 3. Flutter: Event Display
 
 #### Events Page (`evenimente_screen.dart`)
-- **Already implemented**: Uses real-time Stream from Firestore
+- **Already implemented**: Uses real-time Stream from Database
 - **Query**: `where('isArchived', '==', false)`
 - **Updates**: Automatic real-time updates when new events are created
 
@@ -127,9 +127,9 @@ Automated scripts for Windows users:
 #### ForceUpdate Config Error
 **Problem**: `FormatException: Missing required field: min_version`
 
-**Root Cause**: Firestore document used `latest_version` and `latest_build_number`, but model expected `min_version` and `min_build_number`
+**Root Cause**: Database document used `latest_version` and `latest_build_number`, but model expected `min_version` and `min_build_number`
 
-**Solution**: Updated `AppVersionConfig.fromFirestore()` to support both naming conventions:
+**Solution**: Updated `AppVersionConfig.fromDatabase()` to support both naming conventions:
 ```dart
 final minVersion = data['min_version'] ?? data['latest_version'];
 final minBuildNumber = data['min_build_number'] ?? data['latest_build_number'];
@@ -161,7 +161,7 @@ final minBuildNumber = data['min_build_number'] ?? data['latest_build_number'];
 - [ ] **Employee override**: Employee can update/archive any event
 - [ ] **Idempotency**: Same clientRequestId + uid returns existing event
 
-### Firestore Rules Testing
+### Database Rules Testing
 - [ ] **Read events**: Authenticated user can read all non-archived events
 - [ ] **Create event**: Authenticated user can create event with correct fields
 - [ ] **Create validation**: Blocked if createdBy != auth.uid
@@ -190,9 +190,9 @@ final minBuildNumber = data['min_build_number'] ?? data['latest_build_number'];
 
 ## Deployment Steps
 
-### 1. Deploy Firestore Rules
+### 1. Deploy Database Rules
 ```bash
-firebase deploy --only firestore:rules
+supabase deploy --only database:rules
 ```
 
 ### 2. Deploy Cloud Functions
@@ -200,20 +200,20 @@ firebase deploy --only firestore:rules
 cd functions
 npm install  # If dependencies changed
 cd ..
-firebase deploy --only functions:chatEventOps
+supabase deploy --only functions:chatEventOps
 ```
 
 ### 3. Verify Deployment
 ```bash
 # Check function logs
-firebase functions:log --only chatEventOps
+supabase functions:log --only chatEventOps
 
 # Test with authenticated user (non-employee)
 # Use AI Chat to create an event
 ```
 
 ### 4. Monitor
-- Check Firestore for new events created by regular users
+- Check Database for new events created by regular users
 - Monitor `userEventQuota` collection for rate limiting
 - Check function execution logs for errors
 
@@ -255,7 +255,7 @@ firebase functions:log --only chatEventOps
 ### Rate Limiting
 - **Purpose**: Prevent spam/abuse from regular users
 - **Limit**: 20 events per day (configurable in code)
-- **Storage**: Firestore collection `userEventQuota/{uid}`
+- **Storage**: Database collection `userEventQuota/{uid}`
 - **Reset**: Automatic daily reset based on date key
 
 ### Audit Trail
@@ -306,10 +306,10 @@ firebase functions:log --only chatEventOps
 
 If issues arise, rollback in this order:
 
-### 1. Rollback Firestore Rules (Immediate)
+### 1. Rollback Database Rules (Immediate)
 ```bash
-git checkout HEAD~1 firestore.rules
-firebase deploy --only firestore:rules
+git checkout HEAD~1 database.rules
+supabase deploy --only database:rules
 ```
 This will restore employee-only access to events.
 
@@ -317,7 +317,7 @@ This will restore employee-only access to events.
 ```bash
 git checkout HEAD~1 functions/chatEventOps.js
 cd functions && npm install && cd ..
-firebase deploy --only functions:chatEventOps
+supabase deploy --only functions:chatEventOps
 ```
 
 ### 3. Monitor
@@ -330,16 +330,16 @@ firebase deploy --only functions:chatEventOps
 ### Common Issues
 
 **Q: User gets "permission-denied" error**
-A: Check Firestore rules are deployed. Verify user is authenticated.
+A: Check Database rules are deployed. Verify user is authenticated.
 
 **Q: Events don't appear in real-time**
-A: Check EventService is using Stream, not one-time fetch. Verify Firestore rules allow read.
+A: Check EventService is using Stream, not one-time fetch. Verify Database rules allow read.
 
 **Q: Rate limit not working**
 A: Check `userEventQuota` collection exists. Verify backend transaction logic.
 
 **Q: ForceUpdate still crashes**
-A: Verify `AppVersionConfig.fromFirestore()` has fallback logic. Check Firestore document structure.
+A: Verify `AppVersionConfig.fromDatabase()` has fallback logic. Check Database document structure.
 
 **Q: NDK build still fails**
 A: Follow all steps in ANDROID_TROUBLESHOOTING.md. Try manual NDK reinstall via Android Studio.
@@ -352,8 +352,8 @@ For issues or questions, contact the development team or create a GitHub issue.
 ### Backend
 - `functions/chatEventOps.js` - Auth-only access, rate limiting, owner permissions
 
-### Firestore
-- `firestore.rules` - Updated evenimente and conversationStates rules
+### Database
+- `database.rules` - Updated evenimente and conversationStates rules
 
 ### Flutter
 - `superparty_flutter/lib/models/app_version_config.dart` - Legacy schema support

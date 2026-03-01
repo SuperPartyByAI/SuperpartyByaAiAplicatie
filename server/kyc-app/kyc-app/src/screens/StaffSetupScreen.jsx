@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { auth, db } from '../firebase';
+import { auth, db } from '../supabase';
 import {
   doc,
   setDoc,
@@ -10,8 +10,8 @@ import {
   collection,
   where,
   getDocs,
-} from 'firebase/firestore';
-import { signOut } from 'firebase/auth';
+} from 'supabase/database';
+import { signOut } from 'supabase/auth';
 
 function StaffSetupScreen() {
   const navigate = useNavigate();

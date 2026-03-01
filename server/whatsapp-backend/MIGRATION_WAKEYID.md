@@ -8,7 +8,7 @@ This migration ensures that all messages have a valid WhatsApp key ID (`waKeyId`
 
 ## Problem
 
-- Old messages in Firestore don't have `key.id` (original WhatsApp message ID) saved
+- Old messages in Database don't have `key.id` (original WhatsApp message ID) saved
 - Without `waKeyId`, `fetchMessageHistory` cannot construct a valid `oldestMsgKey` → backfill returns 0 messages
 - New messages (after fix) have `key.id` saved, but old messages need migration
 
@@ -21,7 +21,7 @@ This migration ensures that all messages have a valid WhatsApp key ID (`waKeyId`
 
 ## Usage
 
-**⚠️ RECOMANDARE**: Rulează migrarea pe serverul Hetzner, unde backend-ul are deja credențiale funcționale pentru Firestore. Varianta locală necesită configurare suplimentară de credențiale.
+**⚠️ RECOMANDARE**: Rulează migrarea pe serverul Hetzner, unde backend-ul are deja credențiale funcționale pentru Database. Varianta locală necesită configurare suplimentară de credențiale.
 
 ### Opțiunea 1: CLI Script direct pe server (CEL MAI SIMPLU - Recomandat)
 
@@ -170,7 +170,7 @@ gcloud auth application-default login --no-launch-browser --scopes=https://www.g
 
 After migration, check:
 
-1. **Firestore**: `accounts/{accountId}.lastMessageIdMigrationResult`
+1. **Database**: `accounts/{accountId}.lastMessageIdMigrationResult`
    ```json
    {
      "threadsScanned": 14,
@@ -201,9 +201,9 @@ After migration, check:
 - Uses **batch writes** (max 450 ops per batch) for efficiency
 - **Dry run** mode logs what would be done without making changes
 
-## Firestore Index Required
+## Database Index Required
 
-Recent-sync necesită un index Firestore compus pentru query-ul de threads. Vezi [FIRESTORE_INDEXES.md](./FIRESTORE_INDEXES.md) pentru instrucțiuni complete.
+Recent-sync necesită un index Database compus pentru query-ul de threads. Vezi [DATABASE_INDEXES.md](./DATABASE_INDEXES.md) pentru instrucțiuni complete.
 
 **Quick fix**: Când vezi eroarea în logs cu link-ul de index, deschide link-ul și creează indexul.
 

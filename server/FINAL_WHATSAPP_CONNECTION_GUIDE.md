@@ -61,7 +61,7 @@ Din logs-urile legacy hosting:
 **Fix permanent**: Trebuie fixat în **backend legacy hosting code** (nu în Flutter):
 - Caută logic care recreează conturi șterse
 - Caută cron jobs sau scheduled tasks
-- Verifică Firestore rules pentru auto-recreate
+- Verifică Database rules pentru auto-recreate
 
 ---
 

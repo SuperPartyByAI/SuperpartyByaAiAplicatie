@@ -28,15 +28,15 @@
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "prepare": "husky",
-    "emulators": "firebase.cmd emulators:start --config .\\firebase.json --only firestore,functions,auth --project demo-test",
+    "emulators": "supabase.cmd emulators:start --config .\\supabase.json --only database,functions,auth --project demo-test",
     "emu": "npm run emulators",
     "emu:android": "powershell.exe -ExecutionPolicy Bypass -File tools\\run_emulators.ps1",
     "emu:fix": "tools\\fix_local_emulators_windows.cmd",
     "emu:check": "powershell.exe -ExecutionPolicy Bypass -NoProfile -File scripts\\check_emu_ports.ps1",
-    "seed:emu": "node tools/seed_firestore.js --emulator --project demo-test",
+    "seed:emu": "node tools/seed_database.js --emulator --project demo-test",
     "functions:build": "cd functions && npm.cmd ci && npm.cmd run build",
-    "functions:deploy": "cd functions && npm.cmd run build && firebase.cmd deploy --only functions",
-    "rules:deploy": "firebase.cmd deploy --only firestore:rules"
+    "functions:deploy": "cd functions && npm.cmd run build && supabase.cmd deploy --only functions",
+    "rules:deploy": "supabase.cmd deploy --only database:rules"
   },
   "dependencies": {
     "@logtail/node": "^0.5.6",
@@ -47,7 +47,6 @@
     "axios": "^1.6.0",
     "cors": "^2.8.6",
     "express": "^4.18.2",
-    "firebase-admin": "^13.7.0",
     "google-spreadsheet": "^5.2.0",
     "googleapis": "^171.4.0",
     "https-proxy-agent": "^7.0.6",

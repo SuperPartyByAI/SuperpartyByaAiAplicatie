@@ -9,7 +9,7 @@ Eliminarea tuturor referințelor la providerul vechi și standardizarea pe Hetzn
 
 ## ✅ Modificări Aplicate
 
-### 1. Firebase Functions
+### 1. Supabase Functions
 
 #### A) `functions/index.js`
 - ✅ Eliminat `whatsappBackendUrl` secret (doar `whatsappBackendBaseUrl`)
@@ -90,20 +90,20 @@ Eliminarea tuturor referințelor la providerul vechi și standardizarea pe Hetzn
 ### Setare Secret (Recomandat)
 
 ```bash
-firebase functions:secrets:set WHATSAPP_BACKEND_BASE_URL
+supabase functions:secrets:set WHATSAPP_BACKEND_BASE_URL
 # Paste: http://37.27.34.179:8080
 ```
 
 ### Setare Config (Fallback pentru Emulator)
 
 ```bash
-firebase functions:config:set whatsapp.backend_base_url="http://37.27.34.179:8080"
+supabase functions:config:set whatsapp.backend_base_url="http://37.27.34.179:8080"
 ```
 
 ### Deploy Functions
 
 ```bash
-firebase deploy --only functions
+supabase deploy --only functions
 ```
 
 ## ✅ Verificare
@@ -112,7 +112,7 @@ După deploy, verifică:
 
 ```bash
 # Verifică secret-ul
-firebase functions:secrets:access WHATSAPP_BACKEND_BASE_URL
+supabase functions:secrets:access WHATSAPP_BACKEND_BASE_URL
 
 # Testează endpoint
 curl -i https://us-central1-superparty-frontend.cloudfunctions.net/whatsappProxyGetAccounts \

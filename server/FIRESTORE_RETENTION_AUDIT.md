@@ -1,14 +1,14 @@
-# Firestore Retention Audit - Verificare Ștergere Automată Date
+# Database Retention Audit - Verificare Ștergere Automată Date
 
 ## ✅ REZULTAT: NIMIC NU SE ȘTERGE AUTOMAT
 
-Am verificat întreaga aplicație și **TOATE datele sunt salvate PERMANENT** în Firestore.
+Am verificat întreaga aplicație și **TOATE datele sunt salvate PERMANENT** în Database.
 
 ---
 
 ## 🔍 Ce am verificat:
 
-### 1. ✅ Firestore Rules (`firestore.rules`)
+### 1. ✅ Database Rules (`database.rules`)
 
 **Status:** ✅ **NU există reguli de ștergere automată**
 
@@ -40,7 +40,7 @@ Am verificat întreaga aplicație și **TOATE datele sunt salvate PERMANENT** î
 
 ---
 
-### 2. ✅ Firebase Configuration (`firebase.json`)
+### 2. ✅ Supabase Configuration (`supabase.json`)
 
 **Status:** ✅ **NU există configurare de ștergere automată**
 
@@ -53,7 +53,7 @@ Am verificat întreaga aplicație și **TOATE datele sunt salvate PERMANENT** î
 
 ---
 
-### 3. ✅ Firestore Indexes (`firestore.indexes.json`)
+### 3. ✅ Database Indexes (`database.indexes.json`)
 
 **Status:** ✅ **NU există TTL indexes**
 
@@ -74,7 +74,7 @@ Am verificat întreaga aplicație și **TOATE datele sunt salvate PERMANENT** î
 - ❌ **NU există** funcții scheduled pentru cleanup
 - ❌ **NU există** cron jobs pentru ștergere
 - ❌ **NU există** funcții de expirare date
-- ✅ Doar cache în memorie (se șterge la restart, dar NU afectează Firestore)
+- ✅ Doar cache în memorie (se șterge la restart, dar NU afectează Database)
 
 ---
 
@@ -93,7 +93,7 @@ Am verificat întreaga aplicație și **TOATE datele sunt salvate PERMANENT** î
 
 ## 📊 Rezumat pe Tipuri de Date
 
-| Tip Date                 | Colecție Firestore                  | Ștergere Automată? | Retention    |
+| Tip Date                 | Colecție Database                  | Ștergere Automată? | Retention    |
 | ------------------------ | ----------------------------------- | ------------------ | ------------ |
 | **Conversații AI**       | `aiConversations`                   | ❌ NU              | ♾️ PERMANENT |
 | **Mesaje WhatsApp**      | `threads/{id}/messages`             | ❌ NU              | ♾️ PERMANENT |
@@ -111,21 +111,21 @@ Am verificat întreaga aplicație și **TOATE datele sunt salvate PERMANENT** î
 
 ---
 
-## ⚠️ Ce SE ȘTERGE (doar temporar, NU în Firestore):
+## ⚠️ Ce SE ȘTERGE (doar temporar, NU în Database):
 
 ### 1. Cache în Memorie (Backend)
 
 **Locație:** `shared/cache.js`, `whatsapp-backend/cache.js`
 **TTL:** 5 minute (default)
-**Impact:** ❌ **NU afectează Firestore** - e doar cache temporar în RAM
-**Ce se întâmplă:** La restart server, cache-ul se golește, dar datele din Firestore rămân
+**Impact:** ❌ **NU afectează Database** - e doar cache temporar în RAM
+**Ce se întâmplă:** La restart server, cache-ul se golește, dar datele din Database rămân
 
 ### 2. Cache Browser (Frontend)
 
 **Locație:** Browser localStorage, Service Worker cache
 **TTL:** Variabil (30 zile pentru assets statice)
-**Impact:** ❌ **NU afectează Firestore** - e doar cache local în browser
-**Ce se întâmplă:** Utilizatorul poate șterge cache-ul browser, dar datele din Firestore rămân
+**Impact:** ❌ **NU afectează Database** - e doar cache local în browser
+**Ce se întâmplă:** Utilizatorul poate șterge cache-ul browser, dar datele din Database rămân
 
 ---
 
@@ -141,7 +141,7 @@ Am verificat întreaga aplicație și **TOATE datele sunt salvate PERMANENT** î
 
 ### ❌ NIMIC NU SE ȘTERGE AUTOMAT
 
-**Firestore Rules:** ✅ NU șterge  
+**Database Rules:** ✅ NU șterge  
 **Cloud Functions:** ✅ NU șterge  
 **Backend:** ✅ NU șterge automat  
 **Scheduled Jobs:** ✅ NU există  
@@ -151,9 +151,9 @@ Am verificat întreaga aplicație și **TOATE datele sunt salvate PERMANENT** î
 
 ## 📝 Notă Importantă
 
-**Singura modalitate de a șterge date din Firestore este:**
+**Singura modalitate de a șterge date din Database este:**
 
-1. **Manual** - Admin șterge explicit din Firebase Console
+1. **Manual** - Admin șterge explicit din Supabase Console
 2. **Prin cod** - Admin apelează endpoint de delete (ex: `/api/cleanup-duplicates`)
 3. **Prin aplicație** - Admin apasă buton de delete în UI
 
@@ -180,7 +180,7 @@ Dacă în viitor vrei să ștergi date vechi (ex: mesaje > 1 an), va trebui să:
 
 ---
 
-## 📊 Costuri Firestore (cu date permanente)
+## 📊 Costuri Database (cu date permanente)
 
 **Stocare:** $0.18/GB/lună  
 **Citiri:** $0.06 per 100,000 documents  
@@ -203,4 +203,4 @@ Dacă în viitor vrei să ștergi date vechi (ex: mesaje > 1 an), va trebui să:
 
 ---
 
-**Concluzie:** Poți fi liniștit - **NIMIC nu se șterge automat** din Firestore. Toate conversațiile, mesajele și datele sunt salvate **PERMANENT** până le ștergi manual.
+**Concluzie:** Poți fi liniștit - **NIMIC nu se șterge automat** din Database. Toate conversațiile, mesajele și datele sunt salvate **PERMANENT** până le ștergi manual.

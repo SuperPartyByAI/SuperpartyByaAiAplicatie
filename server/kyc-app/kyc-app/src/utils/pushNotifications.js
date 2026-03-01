@@ -1,6 +1,6 @@
 // Push Notifications - Keep-alive system
-import { auth, db } from '../firebase';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { auth, db } from '../supabase';
+import { doc, setDoc, serverTimestamp } from 'supabase/database';
 
 // Request notification permission and register
 export async function initializePushNotifications() {
@@ -23,8 +23,8 @@ export async function initializePushNotifications() {
     const registration = await navigator.serviceWorker.register('/sw.js');
     await navigator.serviceWorker.ready;
 
-    // Get FCM token (Firebase Cloud Messaging)
-    // Note: You need to add Firebase Messaging SDK
+    // Get FCM token (Supabase Cloud Messaging)
+    // Note: You need to add Supabase Messaging SDK
     // For now, we'll use a placeholder
     const token = await getDeviceToken(registration);
 
@@ -33,10 +33,10 @@ export async function initializePushNotifications() {
       return null;
     }
 
-    // Save token to Firestore
+    // Save token to Database
     const user = auth.currentUser;
     if (user) {
-      await saveTokenToFirestore(user.uid, token);
+      await saveTokenToDatabase(user.uid, token);
     }
 
     console.log('✅ Push notifications initialized');
@@ -47,10 +47,10 @@ export async function initializePushNotifications() {
   }
 }
 
-// Get device token (placeholder - needs Firebase Messaging)
+// Get device token (placeholder - needs Supabase Messaging)
 async function getDeviceToken(registration) {
-  // TODO: Implement Firebase Messaging
-  // import { getMessaging, getToken } from 'firebase/messaging';
+  // TODO: Implement Supabase Messaging
+  // import { getMessaging, getToken } from 'supabase/messaging';
   // const messaging = getMessaging();
   // return await getToken(messaging, { serviceWorkerRegistration: registration });
 
@@ -58,8 +58,8 @@ async function getDeviceToken(registration) {
   return `device_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 }
 
-// Save token to Firestore
-async function saveTokenToFirestore(userId, token) {
+// Save token to Database
+async function saveTokenToDatabase(userId, token) {
   try {
     await setDoc(
       doc(db, 'users', userId),
@@ -72,7 +72,7 @@ async function saveTokenToFirestore(userId, token) {
       { merge: true }
     );
 
-    console.log('Token saved to Firestore');
+    console.log('Token saved to Database');
   } catch (error) {
     console.error('Failed to save token:', error);
   }

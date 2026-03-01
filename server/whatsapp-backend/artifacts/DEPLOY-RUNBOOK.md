@@ -225,7 +225,7 @@ curl https://whats-app-ompro.ro/health | jq '.uptime'
 3. Common causes:
    - Port 8080 already in use
    - Missing environment variables
-   - Firestore credentials invalid
+   - Database credentials invalid
 4. Fix and restart:
    ```bash
    sudo systemctl restart whatsapp-backend
@@ -249,7 +249,7 @@ curl https://whats-app-ompro.ro/health | jq '.uptime'
 **Check incidents:**
 
 ```bash
-# Via Firestore console
+# Via Database console
 # Collection: wa_metrics/longrun/incidents
 # Filter: type == "deploy_stuck"
 ```
@@ -283,7 +283,7 @@ After successful deploy:
    curl -X POST "https://whats-app-ompro.ro/api/longrun/bootstrap?token=YOUR_TOKEN"
    ```
 
-3. **Check Firestore docs created:**
+3. **Check Database docs created:**
    - wa_metrics/longrun/runs/{runKey}
    - wa_metrics/longrun/state/current
    - wa_metrics/longrun/probes/* (bootstrap probes)
@@ -377,7 +377,7 @@ sudo journalctl -u whatsapp-backend -p err
 tail -f /var/log/whatsapp-backend/app.log
 ```
 
-**Firestore incidents:**
+**Database incidents:**
 
 ```
 Collection: wa_metrics/longrun/incidents

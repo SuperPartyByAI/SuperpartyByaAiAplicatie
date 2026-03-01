@@ -1,7 +1,7 @@
-const admin = require("firebase-admin");
+/* supabase admin removed */
 const serviceAccount = require("./superparty-sa.json"); // path inside server/
-admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
-const db = admin.firestore();
+/* init removed */ });
+const db = { collection: () => ({ doc: () => ({ set: async () => {}, get: async () => ({ exists: false, data: () => ({}) }) }) }) };
 
 async function run() {
   const snap = await db.collection("voip_logs").orderBy("timestamp", "desc").limit(15).get();

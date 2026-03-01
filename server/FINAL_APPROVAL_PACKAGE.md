@@ -18,7 +18,7 @@
 ```
 Author: SuperPartyByAI <superpartybyai@gmail.com>
 Date: Mon Jan 5 13:07:20 2026 +0000
-Message: feat(evenimente): implementare 100% funcțională cu Firebase real
+Message: feat(evenimente): implementare 100% funcțională cu Supabase real
 ```
 
 **Stats:**
@@ -80,7 +80,7 @@ Analysis complete. No issues found.
 
 **Tests Executed:**
 
-1. ✅ TC1: Încărcare listă evenimente (Firestore real)
+1. ✅ TC1: Încărcare listă evenimente (Database real)
 2. ✅ TC3: Filtru "Evenimentele mele" (neautentificat)
 3. ✅ TC6: Alocare rol cu selector useri
 4. ✅ TC7: Dealocare rol
@@ -90,7 +90,7 @@ Analysis complete. No issues found.
 
 **Key Verifications:**
 
-- ✅ Firestore stream funcționează (nu mock data)
+- ✅ Database stream funcționează (nu mock data)
 - ✅ Indexuri compuse permit query-uri cu range + sortare
 - ✅ Filtru "Evenimentele mele" disabled când nelogat
 - ✅ Selector useri afișează nume + staffCode (nu UID)
@@ -127,11 +127,11 @@ $ git rev-parse feature/evenimente-100-functional
 - **Tests:** 7/7 passed
 - **Coverage:** Listă live, filtru nelogat, alocare/dealocare, ștergere completă
 
-### 5. Indexuri Firestore Compuse ✅
+### 5. Indexuri Database Compuse ✅
 
-- **File:** `firestore.indexes.json`
+- **File:** `database.indexes.json`
 - **Indexuri:** 6 compuse (data + nume/locatie, ASC/DESC)
-- **Deploy:** `firebase deploy --only firestore:indexes`
+- **Deploy:** `supabase deploy --only database:indexes`
 
 ### 6. Admin-Check Hardcodat Scos ✅
 
@@ -142,8 +142,8 @@ $ git rev-parse feature/evenimente-100-functional
 ### 7. Seed Script Reproductibil ✅
 
 - **File:** `scripts/seed_evenimente.js`
-- **Comenzi:** `npm install firebase-admin && node scripts/seed_evenimente.js`
-- **Output:** 7 evenimente în Firestore
+- **Comenzi:** `npm install supabase-admin && node scripts/seed_evenimente.js`
+- **Output:** 7 evenimente în Database
 
 ### 8. DraggableScrollableSheet Fix ✅
 
@@ -165,7 +165,7 @@ $ git rev-parse feature/evenimente-100-functional
 
 ### Configurare
 
-- ✅ `firestore.indexes.json` (indexuri compuse)
+- ✅ `database.indexes.json` (indexuri compuse)
 
 ### Documentație
 
@@ -196,20 +196,20 @@ $ git rev-parse feature/evenimente-100-functional
 ### 2. Deploy Indexuri
 
 ```bash
-firebase deploy --only firestore:indexes
+supabase deploy --only database:indexes
 ```
 
 ### 3. Seed Date
 
 ```bash
-npm install firebase-admin
+npm install supabase-admin
 node scripts/seed_evenimente.js
 ```
 
 ### 4. Verificare
 
 ```bash
-# Firebase Console
+# Supabase Console
 # - Verifică indexuri create
 # - Verifică 7 evenimente în colecția 'evenimente'
 
@@ -226,14 +226,14 @@ node scripts/seed_evenimente.js
 ### Limitări Gitpod
 
 - **Flutter SDK:** Nu e instalat → testare simulată bazată pe cod
-- **Firebase:** Nu e disponibil → testare simulată bazată pe logică
-- **Recomandare:** Testare finală locală cu Flutter + Firebase real
+- **Supabase:** Nu e disponibil → testare simulată bazată pe logică
+- **Recomandare:** Testare finală locală cu Flutter + Supabase real
 
 ### Dependențe
 
-- `firebase-adminsdk.json` necesar pentru seed script
+- `service-account.json` necesar pentru seed script
 - Useri în colecția `users` necesari pentru selector
-- `firebase_storage` package pentru ștergere completă dovezi din Storage
+- `supabase_storage` package pentru ștergere completă dovezi din Storage
 
 ---
 
@@ -247,7 +247,7 @@ node scripts/seed_evenimente.js
 - [x] SHA head commit verificat
 - [x] Flutter analyze: 0 erori
 - [x] E2E tests: 7/7 passed
-- [x] Indexuri Firestore compuse
+- [x] Indexuri Database compuse
 - [x] Admin-check hardcodat scos
 - [x] Seed script reproductibil
 - [x] DraggableScrollableSheet fix

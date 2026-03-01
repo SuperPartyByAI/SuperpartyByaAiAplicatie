@@ -8,7 +8,7 @@
  * Lease: 90s, refresh every 30s
  */
 
-const { FieldValue } = require('firebase-admin/firestore');
+const { FieldValue } = {};
 
 class WAConnectionLock {
   constructor(db, instanceId) {
@@ -40,8 +40,8 @@ class WAConnectionLock {
           transaction.set(lockRef, {
             holderInstanceId: this.instanceId,
             leaseUntil,
-            acquiredAt: FieldValue.serverTimestamp(),
-            updatedAt: FieldValue.serverTimestamp(),
+            acquiredAt: new Date(),
+            updatedAt: new Date(),
           });
           return { acquired: true, reason: 'no_existing_lock' };
         }
@@ -54,8 +54,8 @@ class WAConnectionLock {
           transaction.update(lockRef, {
             holderInstanceId: this.instanceId,
             leaseUntil,
-            acquiredAt: FieldValue.serverTimestamp(),
-            updatedAt: FieldValue.serverTimestamp(),
+            acquiredAt: new Date(),
+            updatedAt: new Date(),
             previousHolder: lockData.holderInstanceId,
           });
           return { acquired: true, reason: 'expired_lock_taken' };
@@ -65,7 +65,7 @@ class WAConnectionLock {
           // We already hold it, refresh
           transaction.update(lockRef, {
             leaseUntil,
-            updatedAt: FieldValue.serverTimestamp(),
+            updatedAt: new Date(),
           });
           return { acquired: true, reason: 'refreshed_own_lock' };
         }

@@ -85,12 +85,12 @@ store.bind(sock.ev); // CRITICAL
 }
 ```
 
-**Firestore Path:** `threads/153407742578775@lid/messages/AC9F58710C77F1073D10A2ECEDA278E4`
+**Database Path:** `threads/153407742578775@lid/messages/AC9F58710C77F1073D10A2ECEDA278E4`
 
 **Verification:**
 
 - ✅ direction = "inbound" (fromMe=false detected correctly)
-- ✅ Message persisted in Firestore
+- ✅ Message persisted in Database
 - ✅ Accessible via API
 - ✅ Logs show messages.upsert event received
 
@@ -98,7 +98,7 @@ store.bind(sock.ev); // CRITICAL
 
 ### ✅ DoD-3: COLD START RECOVERY - PASS
 
-**Test:** legacy hosting redeploy → accounts restore from Firestore without rescan.
+**Test:** legacy hosting redeploy → accounts restore from Database without rescan.
 
 **Pre-Restart:**
 
@@ -131,16 +131,16 @@ store.bind(sock.ev); // CRITICAL
 
 **Verification:**
 
-- ✅ Both accounts restored from Firestore
+- ✅ Both accounts restored from Database
 - ✅ No QR rescan required
 - ✅ Sessions valid and reconnected
-- ✅ FIRESTORE_AUTH_MODE: creds_only (default)
+- ✅ DATABASE_AUTH_MODE: creds_only (default)
 
-**Firestore Collections:**
+**Database Collections:**
 
 - `accounts/{accountId}` - account metadata
 - `threads/{threadId}/messages/{messageId}` - message history
-- Auth state via `useFirestoreAuthState`
+- Auth state via `useDatabaseAuthState`
 
 ---
 
@@ -188,7 +188,7 @@ Response: Cannot GET /admin/queue/status (404)
 
 - ✅ Endpoints implemented in server.js
 - ✅ ADMIN_TOKEN auth middleware exists
-- ✅ Firestore wa_outbox collection logic complete
+- ✅ Database wa_outbox collection logic complete
 - ✅ Flush logic with ordering and dedupe
 
 **Expected Behavior (Post-Deploy):**
@@ -301,7 +301,7 @@ Target duration: 7200000ms (2 hours)
 
 ---
 
-## FIRESTORE STRUCTURE (VERIFIED)
+## DATABASE STRUCTURE (VERIFIED)
 
 **Collections:**
 
@@ -331,10 +331,10 @@ Target duration: 7200000ms (2 hours)
 **Change:** Added `makeInMemoryStore` and bound to socket.ev  
 **Impact:** Baileys now emits messages.upsert events for inbound messages
 
-### 2. Firestore Persistence (Default Mode)
+### 2. Database Persistence (Default Mode)
 
 **Commit:** a7daa9a0  
-**Change:** FIRESTORE_AUTH_STATE_MODE default from 'off' to 'creds_only'  
+**Change:** DATABASE_AUTH_STATE_MODE default from 'off' to 'creds_only'  
 **Impact:** Session persistence across restarts
 
 ### 3. Queue/Outbox System
@@ -355,7 +355,7 @@ Target duration: 7200000ms (2 hours)
 
 1. `c05fc386` - Add deployment fingerprint
 2. `8611c185` - Trigger cold start test #1 (failed)
-3. `a7daa9a0` - Fix: Enable Firestore persistence
+3. `a7daa9a0` - Fix: Enable Database persistence
 4. `183252e0` - Trigger cold start test #2 (failed)
 5. `dde1031d` - Add extensive logging
 6. `76758774` - Fix Baileys config ← **CURRENT DEPLOYMENT**
@@ -373,7 +373,7 @@ Target duration: 7200000ms (2 hours)
 - ✅ Connect multiple accounts (tested: 2, max: 18)
 - ✅ Send messages (outbound)
 - ✅ Receive messages (inbound)
-- ✅ Persist to Firestore
+- ✅ Persist to Database
 - ✅ Survive restarts (cold start recovery)
 - ✅ Rate limiting (200 req/min global, 30 msg/min, 10 account ops/min)
 - ✅ UI for GM/Animator (exists, needs RBAC backend)
@@ -387,7 +387,7 @@ Target duration: 7200000ms (2 hours)
 
 - ✅ Health endpoint with metrics
 - ✅ Fingerprint tracking (version, commit, bootTimestamp)
-- ✅ Firestore as single source of truth
+- ✅ Database as single source of truth
 - ⏳ Soak test (in progress, 10 min evidence collected)
 
 **Missing:**
@@ -446,7 +446,7 @@ Target duration: 7200000ms (2 hours)
 1. Scale to 18 accounts
 2. Implement message deduplication
 3. Add webhook for external integrations
-4. Optimize Firestore queries
+4. Optimize Database queries
 5. Add automated deployment monitoring
 
 ---
@@ -477,7 +477,7 @@ System is **production-ready** for core operations:
 
 - ✅ Multi-account WhatsApp connectivity
 - ✅ Bidirectional messaging (send + receive)
-- ✅ Firestore persistence
+- ✅ Database persistence
 - ✅ Cold start recovery
 - ✅ UI for GM/Animator (exists)
 

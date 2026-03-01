@@ -2,7 +2,7 @@
 
 **Date:** 2025-12-29  
 **Time:** 10:52-11:00 UTC  
-**Environment:** Firebase Functions whatsappV3
+**Environment:** Supabase Functions whatsappV3
 
 ---
 
@@ -57,7 +57,7 @@ this.CONNECTION_TIMEOUT_MS = 30000; // 30s per attempt
 
 - Detect `loggedOut` status
 - Set account status to `needs_qr`
-- Log incident to Firestore
+- Log incident to Database
 - Attempt to send alert
 - Trigger QR regeneration
 
@@ -67,7 +67,7 @@ this.CONNECTION_TIMEOUT_MS = 30000; // 30s per attempt
 2025-12-29T10:57:48.953909Z ? whatsappV3: 📊 [Monitor] Account account_1767002145379 status: logged_out
 2025-12-29T10:57:51.591033Z ? whatsappV3: 📝 [Monitor] Incident logged: logged_out for account_1767002145379
 2025-12-29T10:57:51.591459Z ? whatsappV3: 🔄 [account_1767002145379] Generating new QR/pairing code...
-2025-12-29T10:57:48.587292Z ? whatsappV3: ⚠️ [Alert] No connected account, logging to Firestore
+2025-12-29T10:57:48.587292Z ? whatsappV3: ⚠️ [Alert] No connected account, logging to Database
 ```
 
 **Test Result:** ⚠️ PARTIAL
@@ -75,7 +75,7 @@ this.CONNECTION_TIMEOUT_MS = 30000; // 30s per attempt
 - ✅ Detection: Works
 - ✅ Status update: Works
 - ✅ Incident logging: Works
-- ✅ Alert (Firestore fallback): Works
+- ✅ Alert (Database fallback): Works
 - ❌ QR generation: Bug (calls addAccount instead of regenerate)
 
 **Bug Details:**
@@ -96,7 +96,7 @@ this.regenerateQR(accountId); // Regenerates QR for EXISTING account
 
 - `message-queue.js`: +223 lines (new file)
 - Queue messages when disconnected
-- Store in Firestore with status tracking
+- Store in Database with status tracking
 - Auto-flush on reconnect
 - Retry logic with backoff
 
@@ -176,7 +176,7 @@ this.regenerateQR(accountId); // Regenerates QR for EXISTING account
 **Analysis:**
 
 - ✅ Logged out detected (status changed to needs_qr)
-- ✅ Incidents logged to Firestore
+- ✅ Incidents logged to Database
 - ❌ QR not generated (bug in regeneration logic)
 - ❌ No account connected (all sessions invalid)
 
@@ -206,7 +206,7 @@ this.regenerateQR(accountId); // Regenerates QR for EXISTING account
 | Fallback to QR       | ⚠️ Partial (detection works, generation has bug) |
 | Message queue        | ✅ Yes (implemented, not tested)                 |
 | Monitoring           | ✅ Yes                                           |
-| Alerts               | ✅ Yes (Firestore fallback)                      |
+| Alerts               | ✅ Yes (Database fallback)                      |
 
 ---
 
@@ -326,7 +326,7 @@ if (attempts >= this.MAX_RECONNECT_ATTEMPTS) {
 5. **Test Alerts** (10 min)
    - Force logged_out
    - Verify alert sent
-   - Check Firestore incident
+   - Check Database incident
 
 6. **Soak Test** (2 hours)
    - Run continuous monitoring
@@ -352,7 +352,7 @@ if (attempts >= this.MAX_RECONNECT_ATTEMPTS) {
 | Fallback to QR       | ⚠️ PARTIAL | Detection works, generation has bug |
 | Message queue        | ✅ PASS    | Implemented, not tested             |
 | Monitoring           | ✅ PASS    | Status tracking works               |
-| Alerts               | ✅ PASS    | Firestore fallback works            |
+| Alerts               | ✅ PASS    | Database fallback works            |
 | MTTR < 60s           | ⏳ PENDING | Need valid session to test          |
 | Zero message loss    | ⏳ PENDING | Need connected account to test      |
 

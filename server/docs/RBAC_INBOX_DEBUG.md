@@ -5,7 +5,7 @@
 | Source | File | Lines | Notes |
 |--------|------|-------|--------|
 | **Custom claim** `admin` | `superparty_flutter/lib/services/admin_service.dart` | 44–47 | `token.claims?['admin'] == true` via `getIdTokenResult(true)`. |
-| **Firestore** `users/{uid}.role` | `admin_service.dart` | 51–55 | Fallback if no claim; `role == 'admin'` → admin. |
+| **Database** `users/{uid}.role` | `admin_service.dart` | 51–55 | Fallback if no claim; `role == 'admin'` → admin. |
 | **Scripts** | `scripts/set_admin_role.js`, `tools/set_admin_claim.js` | — | Set claim and/or `users` role. |
 
 Flutter uses **either** claim **or** `users.role` for “admin” (Manage Accounts, Inbox All Accounts). No allowlist in Flutter.
@@ -15,7 +15,7 @@ Flutter uses **either** claim **or** `users.role` for “admin” (Manage Accoun
 | Source | File | Lines | Notes |
 |--------|------|-------|--------|
 | **Allowlist** (Functions) | `functions/whatsappProxy.js` | 17–18, 24–28, 76–84 | `SUPER_ADMIN_EMAIL` + `getAdminEmails()` (env `ADMIN_EMAILS`). Email in list → `isEmployee: true`, `role: 'admin'`. |
-| **Firestore** `staffProfiles/{uid}` | `whatsappProxy.js` | 86–108 | If doc exists → `isEmployee: true`; `role` from `staffData.role` (e.g. `admin`, `gm`, `staff`). |
+| **Database** `staffProfiles/{uid}` | `whatsappProxy.js` | 86–108 | If doc exists → `isEmployee: true`; `role` from `staffData.role` (e.g. `admin`, `gm`, `staff`). |
 
 Functions **never** use `users.role` for employee. Employee = allowlist **or** `staffProfiles/{uid}`.
 
@@ -51,7 +51,7 @@ cd /Users/universparty/Aplicatie-SuperpartyByAi
 node scripts/set_admin_claims.mjs --project superparty-frontend --email YOUR_REAL_EMAIL --admin --employee
 ```
 
-Replace `YOUR_REAL_EMAIL` with your Firebase Auth email (e.g. `superpartybyai@gmail.com`).  
+Replace `YOUR_REAL_EMAIL` with your Supabase Auth email (e.g. `superpartybyai@gmail.com`).  
 Uses ADC or `GOOGLE_APPLICATION_CREDENTIALS` (see VERIFICATION_WHATSAPP_INBOX.md).
 
 Then **sign out and sign in again** in the app so claims and role apply.
@@ -77,8 +77,8 @@ flutter run
 
 ```bash
 cd /Users/universparty/Aplicatie-SuperpartyByAi/functions
-firebase use superparty-frontend
-firebase deploy --only functions:whatsappWhoAmI
+supabase use superparty-frontend
+supabase deploy --only functions:whatsappWhoAmI
 ```
 
 Then, with a **real** ID token (from the app or a small test script):
@@ -94,8 +94,8 @@ Expected JSON: `uid`, `email`, `isAdmin`, `isEmployee`, `claimsKeys`, `staffProf
 
 ```bash
 cd /Users/universparty/Aplicatie-SuperpartyByAi
-firebase use superparty-frontend
-firebase functions:log --project superparty-frontend --only whatsappWhoAmI,whatsappProxyGetAccountsStaff
+supabase use superparty-frontend
+supabase functions:log --project superparty-frontend --only whatsappWhoAmI,whatsappProxyGetAccountsStaff
 ```
 
 Confirm requests hit auth (e.g. `[whatsappWhoAmI] requestId=...`, `[whatsappProxy/getAccountsStaff]`).
@@ -103,4 +103,4 @@ Confirm requests hit auth (e.g. `[whatsappWhoAmI] requestId=...`, `[whatsappProx
 ### If this still doesn’t work, next 2 checks are …
 
 1. **403 on getAccountsStaff** → Functions `isEmployee`: allowlist **or** `staffProfiles/{uid}`. Ensure `staffProfiles/<uid>` exists and has `role` (e.g. `admin`). Run `set_admin_claims.mjs --employee` for that user.
-2. **No Admin UI (Manage Accounts / Inbox All)** → Flutter `isCurrentUserAdmin()` uses **claim** or **users.role**. Ensure you ran `--admin`, then **re-login** so the new token includes `admin: true` and Firestore `users/{uid}.role == 'admin'`.
+2. **No Admin UI (Manage Accounts / Inbox All)** → Flutter `isCurrentUserAdmin()` uses **claim** or **users.role**. Ensure you ran `--admin`, then **re-login** so the new token includes `admin: true` and Database `users/{uid}.role == 'admin'`.

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { auth } from '../firebase';
-import { sendEmailVerification, signOut } from 'firebase/auth';
+import { auth } from '../supabase';
+import { sendEmailVerification, signOut } from 'supabase/auth';
 
 function VerifyEmailScreen() {
   const navigate = useNavigate();

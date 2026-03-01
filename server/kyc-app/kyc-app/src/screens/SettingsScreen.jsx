@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { auth } from '../firebase';
+import { auth } from '../supabase';
 
 function SettingsScreen() {
   const navigate = useNavigate();
@@ -53,7 +53,7 @@ function SettingsScreen() {
               🔑 OpenAI API Key
             </h3>
             <p style={{ color: '#9ca3af', marginBottom: '1.5rem', fontSize: '0.875rem' }}>
-              API Key-ul este stocat securizat în Firebase Functions Secrets și nu poate fi accesat
+              API Key-ul este stocat securizat în Supabase Functions Secrets și nu poate fi accesat
               din aplicație.
             </p>
 
@@ -91,7 +91,7 @@ function SettingsScreen() {
                       borderRadius: '0.25rem',
                     }}
                   >
-                    firebase functions:secrets:set OPENAI_API_KEY
+                    supabase functions:secrets:set OPENAI_API_KEY
                   </code>
                 </li>
                 <li>Introdu noul API key când ești solicitat</li>
@@ -104,7 +104,7 @@ function SettingsScreen() {
                       borderRadius: '0.25rem',
                     }}
                   >
-                    firebase deploy --only functions
+                    supabase deploy --only functions
                   </code>
                 </li>
               </ol>
@@ -117,9 +117,9 @@ function SettingsScreen() {
             </h3>
             <ul style={{ color: '#9ca3af', fontSize: '0.875rem', lineHeight: '1.75' }}>
               <li>
-                API Key-ul este stocat în Firebase Functions Secrets (Google Cloud Secret Manager)
+                API Key-ul este stocat în Supabase Functions Secrets (Google Cloud Secret Manager)
               </li>
-              <li>Key-ul NU este accesibil din client sau Firestore</li>
+              <li>Key-ul NU este accesibil din client sau Database</li>
               <li>Toate request-urile AI trec prin Cloud Functions autentificate</li>
               <li>Rate limiting: 10 request-uri/minut per utilizator</li>
               <li>Timeout: 30 secunde per request</li>

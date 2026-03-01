@@ -6,7 +6,7 @@
 1. ✅ Account Restore include pairing phase (linia 5493-5501)
 2. ✅ restoreSingleAccount include pairing phase (linia 4803-4804)
 3. ✅ Starting connections include pairing phase (linia 5579)
-4. ✅ regenerateQr idempotency (Firestore check) - linia 3705-3732
+4. ✅ regenerateQr idempotency (Database check) - linia 3705-3732
 5. ✅ Enhanced logging pentru "unknown" reason codes - linia 1439-1457
 6. ✅ Proxy enhanced logging pentru non-2xx - `functions/whatsappProxy.js:915-959`
 7. ✅ Client guard (treat 202 as success) - `superparty_flutter/lib/services/whatsapp_api_service.dart:340-354`
@@ -19,7 +19,7 @@
 **Problema:** După restart, accounts în pairing phase (qr_ready, connecting, awaiting_scan) nu erau restaurate → map-ul intern gol → regenerateQr dă 500 "Account not found".
 
 **Fix:**
-- ✅ `restoreAccountsFromFirestore()` restaura acum TOATE accounts în pairing phase + connected
+- ✅ `restoreAccountsFromDatabase()` restaura acum TOATE accounts în pairing phase + connected
 - ✅ `restoreSingleAccount()` restaura acum TOATE accounts în pairing phase + connected
 - ✅ Starting connections include pairing phase
 
@@ -50,10 +50,10 @@
 - ✅ Linia 3745-3756: Returnează QR existent dacă este valid (< 60s)
 
 ### 5. regenerateQr Idempotency ✅
-**Status:** regenerateQr verifică și în Firestore pentru `regeneratingQr` flag.
+**Status:** regenerateQr verifică și în Database pentru `regeneratingQr` flag.
 
 **Verificare:**
-- ✅ Linia 3705-3732: Verifică Firestore pentru `regeneratingQr` flag
+- ✅ Linia 3705-3732: Verifică Database pentru `regeneratingQr` flag
 - ✅ Returnează 202 "already_in_progress" dacă găsește flag-ul
 
 ### 6. Enhanced Logging ✅
@@ -72,7 +72,7 @@
 # 1. Add account → QR apare (status: qr_ready)
 # 2. Restart legacy hosting backend
 # 3. Verifică legacy hosting logs:
-# Expected: 📦 Found 1 accounts in Firestore (statuses: qr_ready, connecting, awaiting_scan, connected)
+# Expected: 📦 Found 1 accounts in Database (statuses: qr_ready, connecting, awaiting_scan, connected)
 # Expected: 🔄 [account_xxx] Restoring account (status: qr_ready, name: ...)
 # Expected: Account rămâne vizibil după restart
 ```
@@ -124,10 +124,10 @@ git push
 # - Enhanced logging pentru "unknown" reason codes
 ```
 
-### 2. Deploy Firebase Functions
+### 2. Deploy Supabase Functions
 ```bash
 cd functions
-firebase deploy --only functions:regenerateQr
+supabase deploy --only functions:regenerateQr
 ```
 
 **Verificare după deploy:**
@@ -162,7 +162,7 @@ flutter build apk --release
 2. ✅ `whatsapp-backend/server.js:4803-4804` - restoreSingleAccount include pairing phase
 3. ✅ `whatsapp-backend/server.js:5579` - Starting connections include pairing phase
 4. ✅ `whatsapp-backend/server.js:5566` - Logging updated
-5. ✅ `whatsapp-backend/server.js:3685-3700` - regenerateQr idempotency (Firestore check)
+5. ✅ `whatsapp-backend/server.js:3685-3700` - regenerateQr idempotency (Database check)
 6. ✅ `whatsapp-backend/server.js:1439-1457` - Enhanced logging pentru "unknown" reason codes
 7. ✅ `whatsapp-backend/server.js:3129-3215` - GET /accounts logging + PASSIVE mode
 
@@ -178,18 +178,18 @@ flutter build apk --release
 ## Root Cause Summary
 
 1. **Account disappearing:** După restart, accounts în pairing phase nu erau restaurate → map-ul intern gol → regenerateQr dă 500 "Account not found"
-2. **regenerateQr 500 loop:** Backend nu verifica Firestore pentru `regeneratingQr` flag → returnează 500 în loc de 202
+2. **regenerateQr 500 loop:** Backend nu verifica Database pentru `regeneratingQr` flag → returnează 500 în loc de 202
 3. **Client guard:** Client trata 202 ca error → seta cooldown → buclă
 4. **Proxy logging:** Proxy maschează erorile legacy hosting ca 500 generic, fără detalii
 5. **Unknown reason codes:** Nu avem suficiente detalii pentru debugging când reason code este "unknown"
 
 **Fix-uri:**
 - ✅ Restaura TOATE accounts în pairing phase + connected
-- ✅ Backend verifică Firestore pentru `regeneratingQr` flag
+- ✅ Backend verifică Database pentru `regeneratingQr` flag
 - ✅ Client tratează 202 ca success
 - ✅ Proxy loghează body-ul complet al răspunsului legacy hosting
 - ✅ Enhanced logging pentru "unknown" reason codes
-- ✅ GET /accounts include TOATE accounts din Firestore
+- ✅ GET /accounts include TOATE accounts din Database
 
 ---
 
@@ -199,8 +199,8 @@ flutter build apk --release
 # Deploy legacy hosting Backend
 cd whatsapp-backend && git add server.js && git commit -m "fix: account restore include pairing phase + regenerateQr idempotency + enhanced logging" && git push
 
-# Deploy Firebase Functions
-cd functions && firebase deploy --only functions:regenerateQr
+# Deploy Supabase Functions
+cd functions && supabase deploy --only functions:regenerateQr
 
 # Deploy Flutter Client
 cd superparty_flutter && flutter build apk --release

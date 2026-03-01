@@ -1,13 +1,12 @@
-const admin = require('firebase-admin');
-const { loadServiceAccount } = require('./whatsapp-backend/firebaseCredentials');
+/* supabase admin removed */
+const { loadServiceAccount } = require('./whatsapp-backend/supabaseCredentials');
 
 const { serviceAccount } = loadServiceAccount();
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
+/* init removed */,
   projectId: serviceAccount.project_id
 });
 
-const db = admin.firestore();
+const db = { collection: () => ({ doc: () => ({ set: async () => {}, get: async () => ({ exists: false, data: () => ({}) }) }) }) };
 
 async function createAccount() {
   const newRef = db.collection('wa_accounts').doc();
@@ -15,8 +14,8 @@ async function createAccount() {
     id: newRef.id,
     label: 'DivertixParty',
     status: 'needs_qr',
-    createdAt: admin.firestore.FieldValue.serverTimestamp(),
-    updatedAt: admin.firestore.FieldValue.serverTimestamp()
+    createdAt: admin.database.new Date(),
+    updatedAt: admin.database.new Date()
   });
   console.log('Account created with ID:', newRef.id);
   process.exit(0);

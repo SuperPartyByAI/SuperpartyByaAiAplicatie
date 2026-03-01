@@ -3,7 +3,7 @@ set -euo pipefail
 
 HOST="${1:?Usage: $0 user@host [ssh_key_path]}"
 KEY_PATH="${2:-$HOME/.ssh/hetzner_whatsapp_backend}"
-ENV_FILE="/etc/whatsapp-backend/firebase-sa.env"
+ENV_FILE="/etc/whatsapp-backend/supabase-sa.env"
 
 read -rs -p "GROQ_API_KEY: " GROQ_API_KEY
 echo

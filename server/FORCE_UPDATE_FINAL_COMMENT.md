@@ -41,7 +41,7 @@ Force Update acum **NU mai deloghează utilizatorul**. User-ul rămâne autentif
 ### 3. AppStateMigrationService (NEW)
 
 - Curăță cache/SharedPreferences între versiuni
-- Păstrează FirebaseAuth session
+- Păstrează SupabaseAuth session
 - Migrări specifice per versiune
 - **NU deloghează user-ul**
 
@@ -142,7 +142,7 @@ Force Update acum **NU mai deloghează utilizatorul**. User-ul rămâne autentif
 **Setup**:
 
 1. Login to app with build 2
-2. Set Firestore: `min_build_number: 3, force_update: true`
+2. Set Database: `min_build_number: 3, force_update: true`
 3. Close and reopen app
 
 **Expected Flow**:
@@ -156,7 +156,7 @@ Force Update acum **NU mai deloghează utilizatorul**. User-ul rămâne autentif
 7. ✅ UpdateGate checks → no update needed
 8. ✅ AppStateMigrationService cleans cache
 9. ✅ User enters app **WITHOUT re-login**
-10. ✅ `FirebaseAuth.currentUser` is NOT null
+10. ✅ `SupabaseAuth.currentUser` is NOT null
 
 ---
 
@@ -164,13 +164,13 @@ Force Update acum **NU mai deloghează utilizatorul**. User-ul rămâne autentif
 
 - [`FORCE_UPDATE_NO_LOGOUT.md`](./FORCE_UPDATE_NO_LOGOUT.md) - Complete implementation guide
 - [`FORCE_UPDATE_SETUP.md`](./superparty_flutter/FORCE_UPDATE_SETUP.md) - Original setup guide
-- [`APP_VERSION_SCHEMA.md`](./superparty_flutter/APP_VERSION_SCHEMA.md) - Firestore schema
+- [`APP_VERSION_SCHEMA.md`](./superparty_flutter/APP_VERSION_SCHEMA.md) - Database schema
 
 ---
 
 ## 🔑 Key Points
 
-1. **User ALWAYS stays authenticated** - FirebaseAuth session persistă
+1. **User ALWAYS stays authenticated** - SupabaseAuth session persistă
 2. **UpdateGate la root** - verifică înainte de routing
 3. **ForceUpdateScreen full-screen** - nu dialog
 4. **AppStateMigrationService** - curăță cache fără logout

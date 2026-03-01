@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 /**
- * Dump one thread + sample messages from Firestore as JSON (read-only).
- * Use this to verify "as saved" structure vs Firebase Console.
+ * Dump one thread + sample messages from Database as JSON (read-only).
+ * Use this to verify "as saved" structure vs Supabase Console.
  *
  * Usage (from project root):
- *   node scripts/dump_firestore_inbox_sample.mjs --project superparty-frontend --accountId account_prod_26ec0bfb54a6ab88cc3cd7aba6a9a443
- *   node scripts/dump_firestore_inbox_sample.mjs --project superparty-frontend --threadId "account_prod_f869ce13d00bc7d7aa13ef18c16f3bd5__[obiect Obiect]"
+ *   node scripts/dump_database_inbox_sample.mjs --project superparty-frontend --accountId account_prod_26ec0bfb54a6ab88cc3cd7aba6a9a443
+ *   node scripts/dump_database_inbox_sample.mjs --project superparty-frontend --threadId "account_prod_f869ce13d00bc7d7aa13ef18c16f3bd5__[obiect Obiect]"
  *
  * Optional: --messages 10 (default 5)
  */
@@ -15,7 +15,7 @@ import { readFileSync, existsSync } from 'fs';
 import path from 'path';
 
 const require = createRequire(import.meta.url);
-const admin = require('firebase-admin');
+const admin = require('supabase-admin');
 
 function loadServiceAccount() {
   const cwd = process.cwd();
@@ -30,7 +30,7 @@ function loadServiceAccount() {
   };
   const gac = process.env.GOOGLE_APPLICATION_CREDENTIALS;
   if (gac) { const v = tryPath(gac); if (v) return v; }
-  const fpath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH;
+  const fpath = process.env.SUPABASE_SERVICE_ACCOUNT_PATH;
   if (fpath) { const v = tryPath(fpath); if (v) return v; }
   for (const rel of ['functions/serviceAccountKey.json', 'whatsapp-backend/serviceAccountKey.json', 'serviceAccountKey.json']) {
     const v = tryPath(path.join(cwd, rel)) || tryPath(path.join(cwd, '..', rel));
@@ -64,7 +64,7 @@ function toJsonSafe(o) {
 async function main() {
   const { project, accountId, threadId, messagesLimit } = parseArgs();
   if (!project) {
-    console.error('Usage: node scripts/dump_firestore_inbox_sample.mjs --project <id> (--accountId <id> | --threadId <id>) [--messages N]');
+    console.error('Usage: node scripts/dump_database_inbox_sample.mjs --project <id> (--accountId <id> | --threadId <id>) [--messages N]');
     process.exit(1);
   }
   if (!accountId && !threadId) {
@@ -74,14 +74,14 @@ async function main() {
 
   const cred = loadServiceAccount();
   if (!cred) {
-    console.error('Missing Firebase credentials. Set GOOGLE_APPLICATION_CREDENTIALS or serviceAccountKey.json.');
+    console.error('Missing Supabase credentials. Set GOOGLE_APPLICATION_CREDENTIALS or serviceAccountKey.json.');
     process.exit(1);
   }
 
   if (!admin.apps.length) {
     admin.initializeApp({ credential: admin.credential.cert(cred), projectId: project });
   }
-  const db = admin.firestore();
+  const db = admin.database();
 
   let docRef;
   if (threadId) {

@@ -1,8 +1,8 @@
 # Files Touched Outside Evenimente/Dovezi Module
 
-## Infrastructure Files (Firebase)
+## Infrastructure Files (Supabase)
 
-### 1. `firestore.rules`
+### 1. `database.rules`
 
 **Changes:** Added evenimente rules
 
@@ -30,7 +30,7 @@ match /event_images/{allPaths=**} {
 **Impact:** NO changes to existing rules
 **Verification:** Existing storage paths unaffected
 
-### 3. `firestore.indexes.json`
+### 3. `database.indexes.json`
 
 **Changes:** Added composite indexes for evenimente
 
@@ -144,7 +144,7 @@ match /event_images/{allPaths=**} {
 
 **Breakdown:**
 
-- Infrastructure (Firebase): 3 files
+- Infrastructure (Supabase): 3 files
   - ✅ NO changes to existing rules/indexes
   - ✅ Only additions for evenimente module
 - CI/CD: 1 file

@@ -40,7 +40,7 @@ node scripts/migrate_threads_backfill_lastMessageAt.mjs \
 # apoi --apply
 ```
 
-### 2. Firestore
+### 2. Database
 
 - Deschide un document `threads/{threadId}`.
 - Confirmă că există `lastMessageAt` și `lastMessageAtMs`.

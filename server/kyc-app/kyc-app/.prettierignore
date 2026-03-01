@@ -1,7 +1,7 @@
 node_modules
 dist
 build
-.firebase
+.supabase
 coverage
 *.min.js
 package-lock.json

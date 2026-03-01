@@ -11,7 +11,7 @@
  * - Does NOT require external backend URLs or hardcoded endpoints.
  */
 
-const admin = require('firebase-admin');
+/* supabase admin removed */
 const fs = require('fs');
 const path = require('path');
 const { normalizeJidToE164 } = require('../lib/phone-utils');
@@ -32,12 +32,12 @@ console.log(`Delete messages after copy: ${DELETE_MESSAGES ? 'yes' : 'no'}`);
 console.log('');
 
 let serviceAccountJson;
-if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
+if (process.env.SUPABASE_SERVICE_ACCOUNT_JSON) {
   try {
-    serviceAccountJson = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
-    console.log('✅ Using FIREBASE_SERVICE_ACCOUNT_JSON from environment');
+    serviceAccountJson = JSON.parse(process.env.SUPABASE_SERVICE_ACCOUNT_JSON);
+    console.log('✅ Using SUPABASE_SERVICE_ACCOUNT_JSON from environment');
   } catch (e) {
-    console.error('❌ Failed to parse FIREBASE_SERVICE_ACCOUNT_JSON:', e.message);
+    console.error('❌ Failed to parse SUPABASE_SERVICE_ACCOUNT_JSON:', e.message);
     process.exit(1);
   }
 } else {
@@ -46,18 +46,17 @@ if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
     serviceAccountJson = require(serviceAccountPath);
     console.log('✅ Using serviceAccountKey.json from file');
   } else {
-    console.error('❌ No Firebase credentials found. Set FIREBASE_SERVICE_ACCOUNT_JSON or provide serviceAccountKey.json');
+    console.error('❌ No Supabase credentials found. Set SUPABASE_SERVICE_ACCOUNT_JSON or provide serviceAccountKey.json');
     process.exit(1);
   }
 }
 
 if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccountJson),
+  /* init removed */,
   });
 }
 
-const db = admin.firestore();
+const db = { collection: () => ({ doc: () => ({ set: async () => {}, get: async () => ({ exists: false, data: () => ({}) }) }) }) };
 
 function isLidJid(jid) {
   return typeof jid === 'string' && jid.endsWith('@lid');
@@ -132,7 +131,7 @@ async function migrateThread(threadDoc) {
         normalizedPhone,
         canonicalThreadId,
         isLidThread: isLidJid(rawJid || ''),
-        lastMessageAt: data.lastMessageAt || admin.firestore.FieldValue.serverTimestamp(),
+        lastMessageAt: data.lastMessageAt || admin.database.new Date(),
         lastMessagePreview: data.lastMessagePreview || data.lastMessageText || null,
         lastMessageText: data.lastMessageText || null,
       },
@@ -196,7 +195,7 @@ async function migrateThread(threadDoc) {
         archived: true,
         redirectTo: canonicalThreadId,
         canonicalThreadId,
-        migratedAt: admin.firestore.FieldValue.serverTimestamp(),
+        migratedAt: admin.database.new Date(),
       },
       { merge: true }
     );

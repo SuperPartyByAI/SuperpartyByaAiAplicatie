@@ -1,7 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 
 const String _BASE = 'http://46.225.182.127/api';
@@ -62,7 +61,7 @@ class _CallingDialogState extends State<CallingDialog>
         _pollTimer = Timer.periodic(const Duration(seconds: 2), (_) async {
           if (!mounted) return;
           try {
-            final token = await FirebaseAuth.instance.currentUser?.getIdToken();
+            final token = await Future.value(Supabase.instance.client.auth.currentSession?.accessToken);
             final res = await http.get(
               Uri.parse('$_BASE/voice/calls/$sid'),
               headers: {if (token != null) 'Authorization': 'Bearer $token'},

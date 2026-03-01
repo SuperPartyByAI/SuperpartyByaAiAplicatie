@@ -20,8 +20,8 @@
 
 **Key Functions:**
 - `createConnection(accountId, name, phone)` (line 490) - Creates Baileys socket
-- `restoreAccount(accountId, data)` (line 3101) - Restores from disk/Firestore
-- `restoreAccountsFromFirestore()` (line 3520) - Restores all connected accounts from Firestore
+- `restoreAccount(accountId, data)` (line 3101) - Restores from disk/Database
+- `restoreAccountsFromDatabase()` (line 3520) - Restores all connected accounts from Database
 - `restoreAccountsFromDisk()` (line 3600) - **NEW** - Scans disk for session directories
 
 **Evidence:**
@@ -30,7 +30,7 @@
 const connections = new Map();
 
 // Line 3520
-async function restoreAccountsFromFirestore() { ... }
+async function restoreAccountsFromDatabase() { ... }
 
 // Line 3600
 async function restoreAccountsFromDisk() { ... }
@@ -72,10 +72,10 @@ if (!isWritable) {
 }
 ```
 
-**Firestore Backup:**
-- ✅ Enabled: `USE_FIRESTORE_BACKUP = true` (line 160)
-- ✅ Backup on `saveCreds()`: Wraps Baileys saveCreds to write to Firestore `wa_sessions` collection
-- ✅ Restore: Can restore from Firestore if disk session missing (line 3112-3138)
+**Database Backup:**
+- ✅ Enabled: `USE_DATABASE_BACKUP = true` (line 160)
+- ✅ Backup on `saveCreds()`: Wraps Baileys saveCreds to write to Database `wa_sessions` collection
+- ✅ Restore: Can restore from Database if disk session missing (line 3112-3138)
 
 ### C) Boot Flow
 
@@ -83,13 +83,13 @@ if (!isWritable) {
 
 ```javascript
 // Line 4162-4163
-await restoreAccountsFromFirestore();
+await restoreAccountsFromDatabase();
 await restoreAccountsFromDisk();
 ```
 
 **Boot Steps:**
 1. ✅ Server starts listening on PORT
-2. ✅ `restoreAccountsFromFirestore()` - Restores accounts where `status='connected'` from Firestore
+2. ✅ `restoreAccountsFromDatabase()` - Restores accounts where `status='connected'` from Database
 3. ✅ `restoreAccountsFromDisk()` - Scans `authDir` for session directories, restores any not already in memory
 4. ✅ Health monitoring watchdog starts (line 4165-4180)
 
@@ -274,11 +274,11 @@ process.on('SIGTERM', async () => {
    - **Impact:** Low - Last registered handler (enhanced one) should execute, but old handlers may interfere
    - **Fix:** Remove old handlers at lines 4595 and 4615
 
-4. **🟢 Firestore Dependency**
-   - **Risk:** Boot sequence relies on Firestore for account restore
-   - **Evidence:** `restoreAccountsFromFirestore()` called first, then `restoreAccountsFromDisk()` as backup
+4. **🟢 Database Dependency**
+   - **Risk:** Boot sequence relies on Database for account restore
+   - **Evidence:** `restoreAccountsFromDatabase()` called first, then `restoreAccountsFromDisk()` as backup
    - **Mitigation:** Disk scan exists as fallback (line 3600)
-   - **Impact:** Low - Graceful degradation (works with disk-only if Firestore down)
+   - **Impact:** Low - Graceful degradation (works with disk-only if Database down)
 
 5. **🟢 Memory Leaks (Potential)**
    - **Risk:** Event listeners not removed on disconnect
@@ -351,7 +351,7 @@ process.on('SIGTERM', async () => {
    - Hetzner dashboard → Service → **Settings** → **Restart**
    - Watch logs for boot sequence:
      ```
-     🔄 Restoring accounts from Firestore...
+     🔄 Restoring accounts from Database...
      🔄 Scanning disk for session directories...
      ✅ Boot sequence complete: 30/30 accounts connected
      ```
@@ -376,7 +376,7 @@ process.on('SIGTERM', async () => {
 - Service: systemd `whatsapp-backend.service`
 - Restart policy: `on-failure` (systemd default)
 
-**Enhancement Needed:** Add storage writability check to `/health` response (currently only checks service/Firestore).
+**Enhancement Needed:** Add storage writability check to `/health` response (currently only checks service/Database).
 
 **Manual Steps:**
 1. SSH to Hetzner: `ssh root@37.27.34.179`
@@ -398,7 +398,7 @@ process.on('SIGTERM', async () => {
 
 1. **Deploy service to Hetzner** (after storage setup)
    - Service starts with 0 accounts
-   - Boot sequence: `restoreAccountsFromFirestore()` → `restoreAccountsFromDisk()` → finds 0 sessions
+   - Boot sequence: `restoreAccountsFromDatabase()` → `restoreAccountsFromDisk()` → finds 0 sessions
 
 2. **Add accounts one-by-one via API:**
    ```bash
@@ -486,7 +486,7 @@ setInterval(() => {
 2. ✅ Code detects `loggedOut` reason (line 728)
 3. ✅ Sets `shouldReconnect = false` (does NOT auto-reconnect)
 4. ✅ Sets account status to `needs_qr` (line 826)
-5. ✅ Saves status to Firestore (line 828)
+5. ✅ Saves status to Database (line 828)
 6. ✅ Status dashboard shows `status: "needs_qr"` with new QR code
 
 **Evidence:**
@@ -497,7 +497,7 @@ const shouldReconnect = lastDisconnect?.error?.output?.statusCode !== Disconnect
 // Line 824-830
 if (!shouldReconnect) {
   account.status = 'needs_qr';
-  await saveAccountToFirestore(accountId, { status: 'needs_qr' });
+  await saveAccountToDatabase(accountId, { status: 'needs_qr' });
 }
 ```
 
@@ -568,7 +568,7 @@ if (account && account.sock) {
 
 **Implementation:**
 ```javascript
-// In restoreAccountsFromFirestore() and restoreAccountsFromDisk()
+// In restoreAccountsFromDatabase() and restoreAccountsFromDisk()
 for (let i = 0; i < accounts.length; i++) {
   const account = accounts[i];
   const jitter = Math.floor(Math.random() * 3000) + 2000; // 2-5s
@@ -602,7 +602,7 @@ app.get('/health', (req, res) => {
       exists: fs.existsSync(authDir),
       writable: isWritable,
     },
-    firestore: firestoreAvailable && !!db,
+    database: databaseAvailable && !!db,
     accounts: {
       total: connections.size,
       connected: Array.from(connections.values())
@@ -610,7 +610,7 @@ app.get('/health', (req, res) => {
     },
   };
   
-  const isReady = checks.storage.writable && checks.firestore;
+  const isReady = checks.storage.writable && checks.database;
   res.status(isReady ? 200 : 503).json({ status: isReady ? 'healthy' : 'unhealthy', checks });
 });
 ```
@@ -652,7 +652,7 @@ npm test
 **✅ Implemented:**
 - Baileys multi-account management (no browser)
 - Session persistence with `SESSIONS_PATH` validation
-- Boot sequence: Firestore restore + disk scan
+- Boot sequence: Database restore + disk scan
 - Auto-reconnect with exponential backoff (max 5 attempts)
 - Health monitoring (stale connection detection every 60s)
 - Status dashboard endpoint (`/api/status/dashboard`)

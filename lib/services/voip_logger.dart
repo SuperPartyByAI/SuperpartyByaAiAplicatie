@@ -2,7 +2,7 @@
 ///
 /// Usage:
 ///   VoipLogger.instance.log('answer() result=true');
-///   VoipLogger.instance.logAuthError('firebase_auth/network-request-failed');
+///   VoipLogger.instance.logAuthError('supabase_auth/network-request-failed');
 ///   VoipLogger.instance.setLastCallSid('CAxxxxxxxx');
 library voip_logger;
 
@@ -36,7 +36,7 @@ class VoipLogger {
 
   // Track last known callSid (from customParams / Twilio notifications)
   String? _lastCallSid;
-  // Track last auth error (e.g. firebase_auth/network-request-failed)
+  // Track last auth error (e.g. supabase_auth/network-request-failed)
   String? _lastAuthError;
   DateTime? _lastAuthErrorTs;
 
@@ -81,7 +81,7 @@ class VoipLogger {
     });
   }
 
-  /// Call this whenever a Firebase Auth / network error is caught.
+  /// Call this whenever a Supabase Auth / network error is caught.
   void logAuthError(String errorCode, {String? details}) {
     _lastAuthError = errorCode;
     _lastAuthErrorTs = DateTime.now();

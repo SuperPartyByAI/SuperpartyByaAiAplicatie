@@ -82,7 +82,7 @@ curl -X POST -H "Authorization: Bearer $ADMIN_TOKEN" \
 
 **Flutter Emulator**:
 - ✅ Functions URL = `http://10.0.2.2:5002` when `USE_ADB_REVERSE=false`
-- ✅ App can reach Firebase Functions emulator
+- ✅ App can reach Supabase Functions emulator
 
 ## Files Changed
 

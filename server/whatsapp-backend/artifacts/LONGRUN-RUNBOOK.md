@@ -32,7 +32,7 @@ Hetzner Server (Node.js)
   │   ├── Daily rollup (midnight UTC)
   │   └── Alert monitoring (1h interval)
   │
-  └── Firestore (persistence)
+  └── Database (persistence)
       ├── wa_metrics/longrun/config/current
       ├── wa_metrics/longrun/locks/{lockName}
       ├── wa_metrics/longrun/heartbeats/{bucketId}
@@ -45,7 +45,7 @@ Hetzner Server (Node.js)
 
 ```
 1. Heartbeat (every 60s)
-   → Write to Firestore: wa_metrics/longrun/heartbeats/{bucketId}
+   → Write to Database: wa_metrics/longrun/heartbeats/{bucketId}
    → Include: commitHash, serviceVersion, instanceId, uptime, memory, connectedCount
 
 2. Probes (scheduled)
@@ -82,7 +82,7 @@ Hetzner Server (Node.js)
 
 ```bash
 cd whatsapp-backend
-export FIREBASE_SERVICE_ACCOUNT_JSON='...'
+export SUPABASE_SERVICE_ACCOUNT_JSON='...'
 node server.js
 ```
 
@@ -188,7 +188,7 @@ curl https://whats-app-ompro.ro/api/admin/longrun/locks | jq '.locks'
 - Consecutive probe failures ≥ 2
 - Daily rollup failures
 
-**Firestore Incidents:**
+**Database Incidents:**
 
 - All alerts create incident docs
 - Query: `wa_metrics/longrun/incidents`
@@ -202,7 +202,7 @@ curl https://whats-app-ompro.ro/api/admin/longrun/locks | jq '.locks'
 **Symptoms:**
 
 - `/api/admin/longrun/heartbeats` returns count=0
-- No recent heartbeat docs in Firestore
+- No recent heartbeat docs in Database
 
 **Diagnosis:**
 
@@ -224,9 +224,9 @@ curl https://whats-app-ompro.ro/api/admin/longrun/locks | jq '.locks'
    - If `leaseUntilTs` > now, another instance is active
    - **Fix:** Wait for lease to expire (120s) or manually delete lock
 
-2. **Firestore connection failed**
-   - Check `FIREBASE_SERVICE_ACCOUNT_JSON` env var
-   - Check Hetzner logs for "Firebase Admin initialization failed"
+2. **Database connection failed**
+   - Check `SUPABASE_SERVICE_ACCOUNT_JSON` env var
+   - Check Hetzner logs for "Supabase Admin initialization failed"
    - **Fix:** Verify credentials, redeploy
 
 3. **Job initialization failed**
@@ -237,7 +237,7 @@ curl https://whats-app-ompro.ro/api/admin/longrun/locks | jq '.locks'
 
 ```bash
 # Option 1: Wait for lock expiry (120s)
-# Option 2: Manual lock release (Firestore Console)
+# Option 2: Manual lock release (Database Console)
 # Delete doc: wa_metrics/longrun/locks/heartbeat-scheduler
 
 # Option 3: Restart Hetzner service
@@ -278,10 +278,10 @@ curl https://whats-app-ompro.ro/health | jq '.uptime'
    - Hetzner server: check available memory
    - **Fix:** Upgrade plan or optimize memory usage
 
-3. **Firestore write throttling**
-   - Check Firestore quotas in Firebase Console
+3. **Database write throttling**
+   - Check Database quotas in Supabase Console
    - Free tier: 20k writes/day
-   - **Fix:** Upgrade Firestore plan
+   - **Fix:** Upgrade Database plan
 
 **Recovery:**
 
@@ -305,7 +305,7 @@ curl https://whats-app-ompro.ro/health | jq '.uptime'
 curl https://whats-app-ompro.ro/api/admin/longrun/probes | jq '.probes[] | select(.result=="FAIL")'
 
 # Check probe type
-# - outbound: Firestore write test
+# - outbound: Database write test
 # - queue: Queue depth check
 # - inbound: Message receive test (requires probe sender)
 ```
@@ -313,9 +313,9 @@ curl https://whats-app-ompro.ro/api/admin/longrun/probes | jq '.probes[] | selec
 **Possible Causes:**
 
 1. **Outbound probe failure**
-   - Firestore write permission denied
+   - Database write permission denied
    - Network timeout
-   - **Fix:** Check Firestore rules, network connectivity
+   - **Fix:** Check Database rules, network connectivity
 
 2. **Queue probe failure**
    - Queue depth > threshold (100)
@@ -346,7 +346,7 @@ curl https://whats-app-ompro.ro/api/admin/longrun/probes | jq '.probes[] | selec
 
 ```bash
 # Check if rollup exists
-# Firestore Console: wa_metrics/longrun/rollups/{yyyy-mm-dd}
+# Database Console: wa_metrics/longrun/rollups/{yyyy-mm-dd}
 
 # Check Hetzner logs for "Running daily rollup"
 ssh root@37.27.34.179
@@ -356,14 +356,14 @@ sudo journalctl -u whatsapp-backend -f | grep "daily rollup"
 **Possible Causes:**
 
 1. **Rollup already exists (idempotency)**
-   - Check Firestore for doc with date key
+   - Check Database for doc with date key
    - **Expected:** Log shows "already exists, skipping"
 
 2. **Insufficient data**
    - < 80% heartbeat coverage for the day
    - **Expected:** Rollup created with `insufficientData: true`
 
-3. **Firestore query timeout**
+3. **Database query timeout**
    - Large dataset (> 10k docs)
    - **Fix:** Optimize query with pagination
 
@@ -392,7 +392,7 @@ sudo journalctl -u whatsapp-backend -f | grep "daily rollup"
    ```
 
 2. Delete lock manually:
-   - Go to Firestore Console
+   - Go to Database Console
    - Navigate to: `wa_metrics/longrun/locks/heartbeat-scheduler`
    - Click "Delete document"
 
@@ -421,7 +421,7 @@ sudo journalctl -u whatsapp-backend -f | grep "daily rollup"
 
 1. **DO NOT backfill** - heartbeats are real-time only
 2. Document gap in incident:
-   - Create incident doc manually in Firestore
+   - Create incident doc manually in Database
    - Type: `missed_heartbeat`
    - Include: tsStart, tsEnd, reason
 
@@ -433,14 +433,14 @@ sudo journalctl -u whatsapp-backend -f | grep "daily rollup"
 
 ---
 
-### Procedure 3: Recover from Firestore Outage
+### Procedure 3: Recover from Database Outage
 
-**When:** Firestore unavailable, all writes failing
+**When:** Database unavailable, all writes failing
 
 **Steps:**
 
-1. Check Firestore status:
-   - https://status.firebase.google.com/
+1. Check Database status:
+   - https://status.supabase.google.com/
 
 2. If outage confirmed:
    - Wait for Google to resolve
@@ -502,7 +502,7 @@ sudo journalctl -u whatsapp-backend -f | grep "daily rollup"
 
 **Steps:**
 
-1. Update doc in Firestore Console
+1. Update doc in Database Console
 2. Changes take effect on next job execution
 3. No restart required
 
@@ -523,7 +523,7 @@ sudo journalctl -u whatsapp-backend -f | grep "daily rollup"
 
 ```bash
 # Delete heartbeats older than 90 days
-# Firestore Console: wa_metrics/longrun/heartbeats
+# Database Console: wa_metrics/longrun/heartbeats
 # Filter: tsIso < (now - 90 days)
 # Bulk delete
 ```
@@ -595,7 +595,7 @@ sudo journalctl -u whatsapp-backend -f | grep "daily rollup"
 **1. Detection**
 
 - Telegram alert (if configured)
-- Incident doc created in Firestore
+- Incident doc created in Database
 - Manual monitoring
 
 **2. Triage**
@@ -607,7 +607,7 @@ sudo journalctl -u whatsapp-backend -f | grep "daily rollup"
 **3. Investigation**
 
 - Check Hetzner logs (journalctl -u whatsapp-backend)
-- Query Firestore for related docs
+- Query Database for related docs
 - Run diagnostic scripts
 
 **4. Resolution**
@@ -634,7 +634,7 @@ sudo journalctl -u whatsapp-backend -f | grep "daily rollup"
 **Level 2:** SRE Team
 
 - Complex incidents requiring code changes
-- Firestore schema migrations
+- Database schema migrations
 
 **Level 3:** Engineering Team
 
@@ -671,7 +671,7 @@ node scripts/verify-longrun-dataquality.js
 node scripts/generate-longrun-report.js
 ```
 
-### Firestore Paths
+### Database Paths
 
 ```
 wa_metrics/longrun/config/current

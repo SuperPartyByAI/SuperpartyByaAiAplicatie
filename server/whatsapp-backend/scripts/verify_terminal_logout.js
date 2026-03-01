@@ -4,7 +4,7 @@
  * Verification script for terminal logout (401) fix
  * 
  * This script verifies that:
- * 1. clearAccountSession() clears both disk and Firestore sessions
+ * 1. clearAccountSession() clears both disk and Database sessions
  * 2. Terminal logout (401) does NOT schedule createConnection()
  * 3. Regenerate QR endpoint clears session deterministically
  * 
@@ -37,11 +37,11 @@ if (!serverCode.includes('function clearAccountSession')) {
     console.log('✅ clearAccountSession() clears disk session (fs.rmSync found)');
   }
   
-  // Check it clears Firestore backup
+  // Check it clears Database backup
   if (!serverCode.includes("db.collection('wa_sessions')")) {
-    warnings.push('⚠️  clearAccountSession() may not clear Firestore backup (wa_sessions delete not found)');
+    warnings.push('⚠️  clearAccountSession() may not clear Database backup (wa_sessions delete not found)');
   } else {
-    console.log('✅ clearAccountSession() clears Firestore backup (wa_sessions delete found)');
+    console.log('✅ clearAccountSession() clears Database backup (wa_sessions delete found)');
   }
 }
 

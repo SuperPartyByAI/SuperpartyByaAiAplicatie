@@ -10,8 +10,8 @@
 -keep class com.twilio.voice.** { *; }
 -keep class com.twilio.** { *; }
 
-# Firebase Messaging
--keep class com.google.firebase.** { *; }
+# Supabase Messaging
+-keep class com.google.supabase.** { *; }
 
 # Keep generic classes used by reflection
 -keepattributes *Annotation*

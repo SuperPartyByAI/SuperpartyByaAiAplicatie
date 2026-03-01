@@ -68,7 +68,7 @@ Implementare completă a flow-ului de creare evenimente cu AI, cu validare stric
 - `VERIFICATION.md` - Checklist verificare
 - `IMPLEMENTATION_SUMMARY.md` - Sumar implementare
 - `TEST_RESULTS.md` - Rezultate detaliate
-- `FIRESTORE_STRUCTURE.md` - Structură bază de date
+- `DATABASE_STRUCTURE.md` - Structură bază de date
 - `FLOW_TEST_COMPLETE.md` - Raport complet
 - `TESTING_README.md` - Ghid testare automată
 - `SUMMARY.md` - Acest fișier

@@ -28,8 +28,8 @@
 1. `f4e4878f` - `docs: add Flutter WhatsApp status (what exists vs what's missing for CRM)`
 2. `768e2089` - `docs: add acceptance checklist (10 tests) for CRM WhatsApp integration`
 3. `8e7603ef` - `feat: implement CRM profiles + AI extraction from WhatsApp threads`
-4. `4fcc518b` - `feat: add Firestore rules and indexes for CRM collections (customers, orders, extractions)`
-5. `293ed026` - `docs: add Firestore retention + CRM profile plan (AI extraction pipeline)`
+4. `4fcc518b` - `feat: add Database rules and indexes for CRM collections (customers, orders, extractions)`
+5. `293ed026` - `docs: add Database retention + CRM profile plan (AI extraction pipeline)`
 
 **Total files changed in CRM implementation:** 7 files
 
@@ -78,7 +78,7 @@ https://github.com/SuperPartyByAI/Aplicatie-SuperpartyByAi/compare/main...audit-
 - ✅ `evenimente` where `phoneE164` query
 - ✅ AI answers based on structured data
 
-**`firestore.rules`:**
+**`database.rules`:**
 - ✅ `clients/{phoneE164}` collection (NEVER DELETE)
 - ✅ `threads/{threadId}/messages` (NEVER DELETE)
 - ✅ `threads/{threadId}/extractions` (NEVER DELETE)
@@ -87,7 +87,7 @@ https://github.com/SuperPartyByAI/Aplicatie-SuperpartyByAi/compare/main...audit-
 
 ## ✅ **STEP G — Key Files Modified**
 
-### **Backend (Cloud Functions + Firestore):**
+### **Backend (Cloud Functions + Database):**
 
 1. **`functions/aggregateClientStats.js`** (NEW)
    - Trigger on `evenimente` create/update
@@ -104,34 +104,34 @@ https://github.com/SuperPartyByAI/Aplicatie-SuperpartyByAi/compare/main...audit-
 4. **`functions/index.js`** (MODIFIED)
    - Exports: `aggregateClientStats`, `whatsappExtractEventFromThread`, `clientCrmAsk`
 
-5. **`firestore.rules`** (MODIFIED)
+5. **`database.rules`** (MODIFIED)
    - Added `clients/{phoneE164}` collection (NEVER DELETE)
    - Added `threads/{threadId}/extractions/{messageId}` subcollection
 
-6. **`firestore.indexes.json`** (MODIFIED)
+6. **`database.indexes.json`** (MODIFIED)
    - Added indexes for `evenimente` on `phoneE164`
 
 ### **Documentation:**
 
 7. **`RUNBOOK_CRM_WHATSAPP.md`** (NEW)
    - Complete CRM backend documentation
-   - API endpoints, Firestore schema, deployment steps
+   - API endpoints, Database schema, deployment steps
 
 8. **`ACCEPTANCE_CHECKLIST_CRM_WHATSAPP.md`** (NEW)
    - 10 scripted tests for CRM WhatsApp integration
-   - UI actions + API calls + Firestore checks
+   - UI actions + API calls + Database checks
 
 9. **`FLUTTER_WHATSAPP_STATUS.md`** (NEW)
    - Status of Flutter WhatsApp UI (what exists vs what's missing)
 
-10. **`FIRESTORE_RETENTION_CRM_PLAN.md`** (NEW)
-    - Firestore retention policy + CRM profile plan
+10. **`DATABASE_RETENTION_CRM_PLAN.md`** (NEW)
+    - Database retention policy + CRM profile plan
 
-11. **`FIREBASE_ACCESS_GUIDE.md`** (NEW)
-    - Guide for Firebase CLI access and deployment
+11. **`SUPABASE_ACCESS_GUIDE.md`** (NEW)
+    - Guide for Supabase CLI access and deployment
 
-12. **`FIREBASE_DEPLOY_INSTRUCTIONS.md`** (NEW)
-    - Step-by-step Firebase deploy instructions
+12. **`SUPABASE_DEPLOY_INSTRUCTIONS.md`** (NEW)
+    - Step-by-step Supabase deploy instructions
 
 ---
 
@@ -139,7 +139,7 @@ https://github.com/SuperPartyByAI/Aplicatie-SuperpartyByAi/compare/main...audit-
 
 ### **✅ Backend CRM (Complete):**
 
-1. **Firestore Schema:**
+1. **Database Schema:**
    - `clients/{phoneE164}` collection (with aggregation fields)
    - `threads/{threadId}/extractions/{messageId}` (AI audit)
 
@@ -148,11 +148,11 @@ https://github.com/SuperPartyByAI/Aplicatie-SuperpartyByAi/compare/main...audit-
    - `whatsappExtractEventFromThread` (callable for AI extraction)
    - `clientCrmAsk` (callable for AI questions)
 
-3. **Firestore Rules:**
+3. **Database Rules:**
    - `clients/{phoneE164}` (NEVER DELETE policy)
    - Security rules (server-only writes)
 
-4. **Firestore Indexes:**
+4. **Database Indexes:**
    - `evenimente` queries on `phoneE164`
 
 ### **❌ Flutter UI (Missing - NOT Implemented):**
@@ -193,14 +193,14 @@ https://github.com/SuperPartyByAI/Aplicatie-SuperpartyByAi/compare/main...audit-
   - `/whatsapp/chat/:accountId/:threadId`
   - `/whatsapp/client/:phoneE164`
 
-### **2. Firebase Deploy (Before Testing):**
+### **2. Supabase Deploy (Before Testing):**
 
 ```bash
-# Deploy Firestore rules + indexes
-firebase deploy --only firestore
+# Deploy Database rules + indexes
+supabase deploy --only database
 
 # Deploy Cloud Functions
-firebase deploy --only functions:aggregateClientStats,functions:whatsappExtractEventFromThread,functions:clientCrmAsk
+supabase deploy --only functions:aggregateClientStats,functions:whatsappExtractEventFromThread,functions:clientCrmAsk
 ```
 
 ---

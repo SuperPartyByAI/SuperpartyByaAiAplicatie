@@ -41,7 +41,7 @@ bool _detectEventIntent(String message) {
 
 **Features:**
 - Step 1: Preview (dryRun=true) - Shows event data without creating
-- Step 2: Confirm (dryRun=false) - Creates event in Firestore
+- Step 2: Confirm (dryRun=false) - Creates event in Database
 - clientRequestId generated from message hash for idempotency
 
 **Flow:**
@@ -260,18 +260,18 @@ Flutter Verification:
 - **Current:** 1.3.0 (Build 30)
 - **Location:** `superparty_flutter/pubspec.yaml`
 
-### Firebase Functions
+### Supabase Functions
 - **Deployment:** Automatic via GitHub Actions on push to main
 - **Manual:** `cd functions && npm run deploy`
 
 ### Verification
 ```bash
 # Check function deployment
-firebase functions:list
+supabase functions:list
 
 # Check function logs
-firebase functions:log --only chatEventOps
-firebase functions:log --only chatWithAI
+supabase functions:log --only chatEventOps
+supabase functions:log --only chatWithAI
 ```
 
 ## 📝 Documentation

@@ -61,7 +61,7 @@
 - ✅ `addAccount(name, phone)` → `POST /api/whatsapp/add-account`
 - ✅ `regenerateQr(accountId)` → `POST /api/whatsapp/regenerate-qr/:accountId`
 - ✅ `deleteAccount(accountId)` → `DELETE /api/whatsapp/accounts/:accountId`
-- ✅ `sendViaProxy(threadId, accountId, toJid, text, clientMessageId)` → `POST /whatsappProxySend` (Firebase Functions)
+- ✅ `sendViaProxy(threadId, accountId, toJid, text, clientMessageId)` → `POST /whatsappProxySend` (Supabase Functions)
 - ✅ `qrPageUrl(accountId)` → returnează URL pentru QR page
 
 **Ce NU are:**
@@ -112,7 +112,7 @@
 - Navigare la Chat screen când apeși pe thread
 
 **API necesar:**
-- `GET /api/whatsapp/threads/:accountId` (sau query direct Firestore `threads` where `accountId`)
+- `GET /api/whatsapp/threads/:accountId` (sau query direct Database `threads` where `accountId`)
 
 ---
 
@@ -128,7 +128,7 @@
   - Button "Open Client Profile"
 
 **API necesar:**
-- `GET /api/whatsapp/messages/:accountId/:threadId` (sau query direct Firestore)
+- `GET /api/whatsapp/messages/:accountId/:threadId` (sau query direct Database)
 - `whatsappExtractEventFromThread` (callable - trebuie adăugat în service)
 
 ---
@@ -143,8 +143,8 @@
 - Button "Ask AI about client" (calls `clientCrmAsk`)
 
 **API necesar:**
-- Query `clients/{phoneE164}` (Firestore)
-- Query `evenimente` where `phoneE164` (Firestore)
+- Query `clients/{phoneE164}` (Database)
+- Query `evenimente` where `phoneE164` (Database)
 - `clientCrmAsk` (callable - trebuie adăugat în service)
 
 ---
@@ -160,7 +160,7 @@ Future<Map<String, dynamic>> extractEventFromThread({
   int lastNMessages = 50,
   bool dryRun = true,
 }) async {
-  // Call Firebase callable: whatsappExtractEventFromThread
+  // Call Supabase callable: whatsappExtractEventFromThread
   // Returns: { action, draftEvent, targetEventId?, confidence, reasons }
 }
 ```
@@ -170,7 +170,7 @@ Future<Map<String, dynamic>> extractEventFromThread({
 #### **B) `getClientProfile()`** ❌
 ```dart
 Future<Map<String, dynamic>?> getClientProfile(String phoneE164) async {
-  // Query Firestore: clients/{phoneE164}
+  // Query Database: clients/{phoneE164}
   // Returns: { phoneE164, lifetimeSpendPaid, eventsCount, ... }
 }
 ```
@@ -183,7 +183,7 @@ Future<Map<String, dynamic>> askClientAI({
   required String phoneE164,
   required String question,
 }) async {
-  // Call Firebase callable: clientCrmAsk
+  // Call Supabase callable: clientCrmAsk
   // Returns: { answer, sources: [...] }
 }
 ```

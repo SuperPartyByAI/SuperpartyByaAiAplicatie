@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { collection, query, where, getDocs, orderBy, limit } from 'firebase/firestore';
-import { db } from '../firebase';
+import { collection, query, where, getDocs, orderBy, limit } from 'supabase/database';
+import { db } from '../supabase';
 
 /**
  * Fetch WhatsApp conversations

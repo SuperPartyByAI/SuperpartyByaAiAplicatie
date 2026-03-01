@@ -1,15 +1,15 @@
-# Canonical Thread Migration Runbook (Firestore)
+# Canonical Thread Migration Runbook (Database)
 
 Goal: merge duplicate threads into a single canonical thread per conversation, without deleting data.
 
 ## Pre-reqs
 - Backend deployed on Ubuntu (ACTIVE mode, sessions ok).
-- Service account available via `FIREBASE_SERVICE_ACCOUNT_JSON` (no output of secrets).
+- Service account available via `SUPABASE_SERVICE_ACCOUNT_JSON` (no output of secrets).
 - Ensure **single writer** (only one ACTIVE instance) during apply.
 
 ## Dry-run (default)
 ```bash
-node scripts/migrate-firestore-canonical.js --accountId=<accountId> --days=30 --threads=200
+node scripts/migrate-database-canonical.js --accountId=<accountId> --days=30 --threads=200
 ```
 
 Interpretation (sanitized output keys):
@@ -24,7 +24,7 @@ Interpretation (sanitized output keys):
 
 ## Apply (gated)
 ```bash
-MIGRATE_APPLY=1 node scripts/migrate-firestore-canonical.js --accountId=<accountId> --days=30 --threads=200 --apply
+MIGRATE_APPLY=1 node scripts/migrate-database-canonical.js --accountId=<accountId> --days=30 --threads=200 --apply
 ```
 
 Notes:
@@ -46,12 +46,12 @@ Goal: mark legacy duplicate messages inside a thread without deleting data.
 
 Dry-run (default):
 ```bash
-node scripts/cleanup-firestore-duplicates.js --threadId=<threadId> --windowHours=48 --limit=2000
+node scripts/cleanup-database-duplicates.js --threadId=<threadId> --windowHours=48 --limit=2000
 ```
 
 Apply (gated):
 ```bash
-node scripts/cleanup-firestore-duplicates.js --threadId=<threadId> --windowHours=48 --limit=2000 --apply
+node scripts/cleanup-database-duplicates.js --threadId=<threadId> --windowHours=48 --limit=2000 --apply
 ```
 
 NPM convenience:

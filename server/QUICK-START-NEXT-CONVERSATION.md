@@ -67,14 +67,14 @@
 
 ## 🎯 Ce Trebuie Făcut Acum
 
-### 1. Configurare Firebase (10 min):
+### 1. Configurare Supabase (10 min):
 
 ```bash
-# 1. Create Firebase project: https://console.firebase.google.com/
-# 2. Enable Firestore Database
+# 1. Create Supabase project: https://console.supabase.google.com/
+# 2. Enable Database Database
 # 3. Generate Service Account key (Settings > Service Accounts)
 # 4. Copy JSON content
-# 5. Set in legacy hosting: FIREBASE_SERVICE_ACCOUNT = <JSON>
+# 5. Set in legacy hosting: SUPABASE_SERVICE_ACCOUNT = <JSON>
 ```
 
 ### 2. Configurare Proxy (Optional, 15 min):
@@ -211,7 +211,7 @@ A: 73% adevăr mediu. Funcționează bine, dar nu e magic. Risc ban 1-2% cu prox
 
 **Poți implementa:**
 
-- ✅ Configurare Firebase (necesar)
+- ✅ Configurare Supabase (necesar)
 - ✅ Configurare Proxy (recomandat)
 - ✅ Setup Webhooks (optional)
 - ✅ Testing end-to-end
@@ -270,7 +270,7 @@ curl http://localhost:3000/api/ultimate/proxy
 - [x] Cod implementat (3,695+ linii)
 - [x] Documentație completă
 - [x] Committed și pushed
-- [ ] Firebase configurat
+- [ ] Supabase configurat
 - [ ] Proxy configurat (optional dar recomandat)
 - [ ] Webhooks configurat (optional)
 - [ ] Accounts adăugate
@@ -284,7 +284,7 @@ curl http://localhost:3000/api/ultimate/proxy
 
 ```
 "Continuăm de unde am rămas. Am implementat TIER ULTIMATE 2 (versiune 5.0.0).
-Vreau să configurez Firebase și să adaug primele 5 conturi pentru testare."
+Vreau să configurez Supabase și să adaug primele 5 conturi pentru testare."
 ```
 
 **Sau:**

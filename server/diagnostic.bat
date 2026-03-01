@@ -1,27 +1,27 @@
 @echo off
 echo ========================================
-echo Firebase Deployment Diagnostic Script
+echo Supabase Deployment Diagnostic Script
 echo ========================================
 echo.
 
-echo [1/6] Checking Firebase CLI version...
+echo [1/6] Checking Supabase CLI version...
 echo ----------------------------------------
-firebase --version
+supabase --version
 echo.
 
 echo [2/6] Checking authenticated user...
 echo ----------------------------------------
-firebase login:list
+supabase login:list
 echo.
 
-echo [3/6] Listing Firebase Functions...
+echo [3/6] Listing Supabase Functions...
 echo ----------------------------------------
-firebase functions:list
+supabase functions:list
 echo.
 
 echo [4/6] Getting function logs (last 100 lines)...
 echo ----------------------------------------
-firebase functions:log --lines 100
+supabase functions:log --lines 100
 echo.
 
 echo [5/6] Checking functions directory size...

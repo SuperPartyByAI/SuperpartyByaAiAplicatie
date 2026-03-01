@@ -81,7 +81,7 @@ echo "creds.json_count=$(find "$SESS" -maxdepth 3 -name creds.json 2>/dev/null |
 - `/health` → `waMode=active` and lock holder is this instance  
 - Logs should include:
   - `Session restored from disk` (normal restart)
-  - `Session restored from Firestore` (after redeploy/crash)
+  - `Session restored from Database` (after redeploy/crash)
   - No `needs_qr` immediately after restart for connected accounts
 
 ## Troubleshooting
@@ -91,4 +91,4 @@ echo "creds.json_count=$(find "$SESS" -maxdepth 3 -name creds.json 2>/dev/null |
   - check mount/volume path (if using a volume)
 - If QR is required after restart:
   - verify sessions directory contains per-account `creds.json`
-  - verify Firestore is available for fallback restore
+  - verify Database is available for fallback restore

@@ -172,12 +172,12 @@
 
 ## C) Emulator Black Screen - VERIFIED ✅
 
-### Root Cause: Auth/Firestore Stream Timeout
+### Root Cause: Auth/Database Stream Timeout
 
 **Status:** ✅ Already Fixed
 - `AuthWrapper` (line 69-77): Timeout 30s (debug) / 5s (release) → fallback la `currentUser`
 - `AppRouter` (line 51-63): Timeout 30s (debug) / 5s (release) → fallback la `currentUser`
-- Firestore stream (line 144-150): Timeout 30s (debug) / 5s (release) → error handling → show Home
+- Database stream (line 144-150): Timeout 30s (debug) / 5s (release) → error handling → show Home
 
 **Verification:**
 - ✅ `kDebugMode` importat corect
@@ -193,7 +193,7 @@
 ### Query Verification:
 
 **File:** `superparty_flutter/lib/screens/evenimente/evenimente_screen.dart`
-- ✅ Query: `FirebaseFirestore.instance.collection('evenimente').snapshots()`
+- ✅ Query: `SupabaseDatabase.instance.collection('evenimente').snapshots()`
 - ✅ Filters: `isArchived=false`, date, driver, code, `cineNoteaza`
 - ✅ Logging: Total events, non-archived count, filtered count
 
@@ -231,8 +231,8 @@
 
 1. User: "Notează o petrecere pe 15 martie"
 2. Flutter: Detectează intent → `chatEventOps(dryRun: true)` → preview card
-3. User: Confirmă → `chatEventOps(dryRun: false)` → event creat în Firestore
-4. Firestore: Event apare în `evenimente` collection
+3. User: Confirmă → `chatEventOps(dryRun: false)` → event creat în Database
+4. Database: Event apare în `evenimente` collection
 5. Evenimente Screen: Stream update → event apare în listă
 
 **Status:** ✅ Flow complet verificat și funcțional
@@ -266,7 +266,7 @@
 # - If 515 occurs → QR clears → new QR appears after reconnect
 # - If PASSIVE mode → purple SnackBar "Backend în mod PASSIVE"
 
-# 3. Check Firestore
+# 3. Check Database
 # accounts/{accountId}: status changes: connecting → qr_ready → (515) → connecting → qr_ready
 ```
 
@@ -275,7 +275,7 @@
 ### 2. Black Screen
 
 **Root Cause:**
-- Auth/Firestore stream timeout → GoRouter fără configurație validă
+- Auth/Database stream timeout → GoRouter fără configurație validă
 
 **Status:** ✅ Already Fixed
 - `AuthWrapper` și `AppRouter` au timeout handling corect
@@ -283,7 +283,7 @@
 
 **Verification:**
 ```bash
-# 1. Start emulator WITHOUT Firebase emulators
+# 1. Start emulator WITHOUT Supabase emulators
 flutter run -d emulator-5554
 
 # Expected: 
@@ -304,7 +304,7 @@ flutter run -d emulator-5554
 **Status:** ✅ Verified
 - `chatEventOps` există și funcționează
 - Flutter UI apelează corect
-- Events se scriu în Firestore
+- Events se scriu în Database
 - Evenimente Screen afișează events
 
 **Verification:**
@@ -313,7 +313,7 @@ flutter run -d emulator-5554
 # - User: "Notează o petrecere pe 15 martie"
 # - Expected: Preview card → Confirm → Event created
 
-# 2. Check Firestore
+# 2. Check Database
 # evenimente/{eventId}: date="15-03-2024", isArchived=false
 
 # 3. Check Evenimente Screen
@@ -353,7 +353,7 @@ git apply COMPLETE_DEBUG_FIX.patch
 ```bash
 # Terminal 1: Start emulators
 export WHATSAPP_LEGACY_BASE_URL='https://whats-app-ompro.ro'
-firebase emulators:start --only firestore,functions,auth
+supabase emulators:start --only database,functions,auth
 
 # Terminal 2: Run Flutter
 cd superparty_flutter
@@ -364,7 +364,7 @@ adb -s emulator-5554 logcat | grep -iE "WhatsApp|whatsapp|515|passive|pairing|ti
 ```
 
 **Test Steps:**
-1. ✅ Login (Firebase Auth)
+1. ✅ Login (Supabase Auth)
 2. ✅ Navigate to WhatsApp Accounts
 3. ✅ Add account → Should create + show QR
 4. ✅ Check logs: `[accountId] Connection session #1 started`
@@ -411,12 +411,12 @@ curl -H "Authorization: Bearer $ADMIN_TOKEN" \
 # 1. Health check
 curl https://whats-app-ompro.ro/health
 
-# 2. Accounts (via Functions proxy with Firebase token)
+# 2. Accounts (via Functions proxy with Supabase token)
 # Tested in Flutter app
 
 # 3. Add account (should return 503 if PASSIVE)
 curl -X POST \
-  -H "Authorization: Bearer $FIREBASE_ID_TOKEN" \
+  -H "Authorization: Bearer $SUPABASE_ID_TOKEN" \
   -H "Content-Type: application/json" \
   -H "X-Request-ID: test_$(date +%s)" \
   -d '{"name":"Test","phone":"+40712345678"}' \
@@ -427,7 +427,7 @@ curl -X POST \
 
 # 4. Regenerate QR (should return 503 if PASSIVE)
 curl -X POST \
-  -H "Authorization: Bearer $FIREBASE_ID_TOKEN" \
+  -H "Authorization: Bearer $SUPABASE_ID_TOKEN" \
   -H "X-Request-ID: test_$(date +%s)" \
   "https://us-central1-superparty-frontend.cloudfunctions.net/whatsappProxyRegenerateQr?accountId=account_xxx"
 
@@ -441,13 +441,13 @@ curl -X POST \
 
 **Test Steps:**
 1. ✅ Navigate to Events screen
-2. ✅ Check logs: `[EvenimenteScreen] Loaded X events from Firestore`
+2. ✅ Check logs: `[EvenimenteScreen] Loaded X events from Database`
 3. ✅ Verify filters work (date, driver, code, noted by)
 4. ✅ Create event via AI Chat → Should appear in Events
 
 **Expected Logs:**
 ```
-[EvenimenteScreen] Loaded 10 events from Firestore
+[EvenimenteScreen] Loaded 10 events from Database
 [EvenimenteScreen] Events with isArchived=false: 8
 [EvenimenteScreen] Filtered events count: 5
 ```
@@ -478,12 +478,12 @@ curl -X POST \
 ### Production Backend (legacy hosting):
 ```bash
 ADMIN_TOKEN=<your-admin-token>
-FIREBASE_SERVICE_ACCOUNT_JSON=<firebase-credentials>
+SUPABASE_SERVICE_ACCOUNT_JSON=<supabase-credentials>
 ```
 
-### Firebase Functions:
+### Supabase Functions:
 ```bash
-firebase functions:secrets:set WHATSAPP_LEGACY_BASE_URL
+supabase functions:secrets:set WHATSAPP_LEGACY_BASE_URL
 # Value: https://whats-app-ompro.ro
 ```
 
@@ -561,7 +561,7 @@ Flutter: Purple SnackBar "Backend în mod PASSIVE. Lock nu este achiziționat. R
 1. Apply patch
 2. Test in emulator
 3. Deploy backend to legacy hosting
-4. Deploy Functions to Firebase
+4. Deploy Functions to Supabase
 5. Test in production
 6. Monitor logs for 515, PASSIVE mode, and pairing phase transitions
 

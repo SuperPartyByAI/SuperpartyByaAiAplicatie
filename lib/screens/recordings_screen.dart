@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 import 'package:audioplayers/audioplayers.dart';
 import 'package:http/http.dart' as http;
@@ -56,7 +54,7 @@ class _RecordingsScreenState extends State<RecordingsScreen> {
   }
 
   Future<String?> _getToken() async =>
-      await FirebaseAuth.instance.currentUser?.getIdToken();
+      await Future.value(Supabase.instance.client.auth.currentSession?.accessToken);
 
   Future<void> _loadRecordings() async {
     setState(() { _loading = true; _error = null; });

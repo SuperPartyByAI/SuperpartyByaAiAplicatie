@@ -52,7 +52,7 @@
 2. Connection closes (`Reason code: unknown`) during pairing
 3. Backend detects `isPairingPhase` && QR exists
 4. **Status stays `qr_ready`** (not changed to `awaiting_scan`)
-5. QR code preserved in Firestore
+5. QR code preserved in Database
 6. **Flutter app still shows QR** ✅ (because `status === 'qr_ready'`)
 
 ### **Scenario 2: User Presses "Regenerate QR"**

@@ -3,14 +3,14 @@ import 'package:http/http.dart' as http;
 import 'package:http_parser/http_parser.dart';
 import 'package:flutter/foundation.dart';
 import 'auth_service.dart';
-import 'crashlytics_helper.dart';
+
 import 'supabase_service.dart';
 
 class BackendService {
   // Update to your actual backend URL. 
   // CHANGE BACK TO IP because api.superparty.ro DNS is still pointing to Hosterion for the user's phone!
   static const String BASE_URL = 'http://46.225.182.127/api';  // TEMP FIX 
-  static const String FIREBASE_API_URL = 'https://europe-west1-superparty-frontend.cloudfunctions.net/api';
+  static const String SUPABASE_API_URL = 'https://europe-west1-superparty-frontend.cloudfunctions.net/api';
   // static const String BASE_URL = 'http://127.0.0.1:3000/api'; // Debugging Local Fixes 
   
   final AuthService _authService;

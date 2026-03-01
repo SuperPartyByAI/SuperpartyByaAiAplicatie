@@ -6,7 +6,7 @@
  * - 5 hour conversation release
  */
 
-const admin = require('firebase-admin');
+/* supabase admin removed */
 const ConversationService = require('./conversation-service');
 
 class TimerService {
@@ -86,7 +86,7 @@ class TimerService {
     // Get reserved conversations with recent client messages
     const snapshot = await this.conversationsRef
       .where('status', '==', 'RESERVED')
-      .where('last_client_message_at', '>', admin.firestore.Timestamp.fromDate(fiveMinutesAgo))
+      .where('last_client_message_at', '>', admin.database.Timestamp.fromDate(fiveMinutesAgo))
       .get();
 
     for (const doc of snapshot.docs) {
@@ -190,7 +190,7 @@ class TimerService {
     // Get reserved conversations older than 5 hours
     const snapshot = await this.conversationsRef
       .where('status', '==', 'RESERVED')
-      .where('reserved_at', '<', admin.firestore.Timestamp.fromDate(fiveHoursAgo))
+      .where('reserved_at', '<', admin.database.Timestamp.fromDate(fiveHoursAgo))
       .get();
 
     for (const doc of snapshot.docs) {

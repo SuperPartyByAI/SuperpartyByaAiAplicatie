@@ -15,7 +15,7 @@ if [ -z "$EMAIL" ] || [ -z "$ACCOUNT_ID" ]; then
   exit 1
 fi
 
-export FIREBASE_API_KEY="AIzaSyDcMXO6XdFZE_tVnJ1M4Wrt8Aw7Yh1o0K0"
+export SUPABASE_API_KEY="AIzaSyDcMXO6XdFZE_tVnJ1M4Wrt8Aw7Yh1o0K0"
 
 cd "$(dirname "$0")/.." || exit 1
 

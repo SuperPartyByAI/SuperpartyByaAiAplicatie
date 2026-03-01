@@ -1,6 +1,6 @@
-# Firebase Route Diagnostics
+# Supabase Route Diagnostics
 
-This module identifies abandoned or broken webhook destinations and SIP PBX links stored in our Firestore collections (`routes`, `whatsapp_routes`, `pbx_routes`).
+This module identifies abandoned or broken webhook destinations and SIP PBX links stored in our Database collections (`routes`, `whatsapp_routes`, `pbx_routes`).
 
 ## Heuristics utilized:
 
@@ -14,6 +14,6 @@ If 0 usages are found in the last 30 days, the probe is failing, and no referenc
 
 Set these environment variables inside GitHub Actions:
 
-- `FIREBASE_SA` (Google Credentials block)
+- `SUPABASE_SA` (Google Credentials block)
 - `LOKI_URL` & `PROM_URL` (For backend usage insights)
 - `SLACK_WEBHOOK_URL` (Alert notifications)

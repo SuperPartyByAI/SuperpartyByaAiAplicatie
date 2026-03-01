@@ -4,7 +4,7 @@
 ✅ Cod 100% implementat
 ✅ Versiune actualizată: 1.2.0+14
 ✅ Toate cele 8 funcții AI create în functions/
-⏳ Deploy Firebase Functions (necesită autentificare)
+⏳ Deploy Supabase Functions (necesită autentificare)
 ⏳ Build AAB
 ⏳ Upload Play Store
 
@@ -21,41 +21,41 @@ Toate funcțiile AI au fost create și sunt gata de deploy:
 7. ✅ `generateReportAI.js` - Generare rapoarte inteligente
 8. ✅ `getChatAI` - Deja existent în index.js
 
-## Pași pentru Deploy Firebase Functions
+## Pași pentru Deploy Supabase Functions
 
-### 1. Autentificare Firebase
+### 1. Autentificare Supabase
 
 Opțiunea A - Login interactiv (local):
 ```bash
 cd functions
-firebase login
-firebase deploy --only functions
+supabase login
+supabase deploy --only functions
 ```
 
 Opțiunea B - Service Account (CI/CD):
 ```bash
-# Obține service account key din Firebase Console:
+# Obține service account key din Supabase Console:
 # Project Settings > Service Accounts > Generate New Private Key
 
 export GOOGLE_APPLICATION_CREDENTIALS="/path/to/service-account-key.json"
 cd functions
-firebase deploy --only functions --token "$(gcloud auth print-access-token)"
+supabase deploy --only functions --token "$(gcloud auth print-access-token)"
 ```
 
 Opțiunea C - CI Token:
 ```bash
 # Generează token CI
-firebase login:ci
+supabase login:ci
 
 # Folosește token-ul
 cd functions
-firebase deploy --only functions --token "YOUR_CI_TOKEN"
+supabase deploy --only functions --token "YOUR_CI_TOKEN"
 ```
 
 ### 2. Verificare Deploy
 
-După deploy, verifică funcțiile în Firebase Console:
-- https://console.firebase.google.com/project/superparty-frontend/functions
+După deploy, verifică funcțiile în Supabase Console:
+- https://console.supabase.google.com/project/superparty-frontend/functions
 
 Funcții care ar trebui să fie active:
 - noteazaEventeAutomat
@@ -216,7 +216,7 @@ fastlane supply --aab build/app/outputs/bundle/release/app-release.aab \
 - [ ] Toate funcțiile AI create și testate
 - [ ] index.js actualizat cu export-uri
 - [ ] Versiune actualizată în pubspec.yaml (1.2.0+14)
-- [ ] Firebase Functions deployed
+- [ ] Supabase Functions deployed
 - [ ] AAB build cu succes
 - [ ] AAB testat (opțional: internal testing track)
 - [ ] Release notes pregătite
@@ -224,7 +224,7 @@ fastlane supply --aab build/app/outputs/bundle/release/app-release.aab \
 
 ### Post-Deploy Checklist
 
-- [ ] Verifică funcțiile în Firebase Console
+- [ ] Verifică funcțiile în Supabase Console
 - [ ] Testează funcțiile AI din aplicație
 - [ ] Monitorizează logs pentru erori
 - [ ] Verifică status review în Play Console
@@ -232,22 +232,22 @@ fastlane supply --aab build/app/outputs/bundle/release/app-release.aab \
 
 ## Troubleshooting
 
-### Firebase Deploy Errors
+### Supabase Deploy Errors
 
 **Error: Failed to authenticate**
 ```bash
-firebase login --reauth
+supabase login --reauth
 ```
 
 **Error: Permission denied**
-- Verifică că ai rol de Editor/Owner în Firebase project
+- Verifică că ai rol de Editor/Owner în Supabase project
 - Verifică service account permissions
 
 **Error: Function deployment timeout**
 ```bash
 # Deploy funcții individual
-firebase deploy --only functions:noteazaEventeAutomat
-firebase deploy --only functions:getEventeAI
+supabase deploy --only functions:noteazaEventeAutomat
+supabase deploy --only functions:getEventeAI
 # etc.
 ```
 
@@ -280,15 +280,15 @@ flutter build appbundle --release
 ## Contact
 
 Pentru probleme sau întrebări:
-- Firebase: Verifică Firebase Console logs
+- Supabase: Verifică Supabase Console logs
 - Flutter: Verifică `flutter doctor`
 - Play Store: Verifică Play Console notifications
 
 ## Next Steps
 
 După ce toate sunt deployed:
-1. Monitorizează crash reports în Firebase Crashlytics
-2. Verifică analytics în Firebase Analytics
+1. Monitorizează crash reports în Supabase Crashlytics
+2. Verifică analytics în Supabase Analytics
 3. Răspunde la review-uri utilizatori
 4. Planifică următorul update
 

@@ -311,12 +311,12 @@ SCRIPT
 
 **Important:**
 
-- **Firebase / alte secrete:** Bootstrap-ul **nu** configurează Firebase. Trebuie să adaugi manual:
-  - `GOOGLE_APPLICATION_CREDENTIALS` (cale către JSON service account) sau variabilele Firestore.
+- **Supabase / alte secrete:** Bootstrap-ul **nu** configurează Supabase. Trebuie să adaugi manual:
+  - `GOOGLE_APPLICATION_CREDENTIALS` (cale către JSON service account) sau variabilele Database.
   - `ADMIN_TOKEN`, `GROQ_API_KEY` etc. conform `RUNBOOK_WHATSAPP_SYNC.md` și `whatsapp-backend/env.auto-backfill.example`.
 - Editează `$BACKEND_DIR/.env` pe server (sau adaugă override systemd) și repornește: `systemctl restart whatsapp-backend`.
 - **Repo privat:** dacă `REPO_URL` e `git@github.com:...`, pe server trebuie deploy key sau SSH key care poate face `git clone`. Pentru HTTPS cu token, folosești `https://TOKEN@github.com/...`.
-- **Dacă /ready nu răspunde:** backend-ul poate avea nevoie de Firebase credentials înainte să asculte. Verifică `journalctl -u whatsapp-backend -n 200`, adaugă `GOOGLE_APPLICATION_CREDENTIALS` în `.env`, repornește serviciul.
+- **Dacă /ready nu răspunde:** backend-ul poate avea nevoie de Supabase credentials înainte să asculte. Verifică `journalctl -u whatsapp-backend -n 200`, adaugă `GOOGLE_APPLICATION_CREDENTIALS` în `.env`, repornește serviciul.
 
 ---
 
@@ -353,7 +353,7 @@ ssh superparty-hetzner "curl -fsS http://127.0.0.1:8080/health"
 ### 5. Auto-backfill
 
 - **Loguri:** `ssh superparty-hetzner "journalctl -u whatsapp-backend -f"` și caută `[wa-auto-backfill]` sau mesaje despre backfill.
-- **Firestore:** verifică în `accounts/{accountId}` câmpurile `lastAutoBackfillAt`, `lastAutoBackfillStatus` (vezi `RUNBOOK_WHATSAPP_SYNC.md`).
+- **Database:** verifică în `accounts/{accountId}` câmpurile `lastAutoBackfillAt`, `lastAutoBackfillStatus` (vezi `RUNBOOK_WHATSAPP_SYNC.md`).
 
 ---
 

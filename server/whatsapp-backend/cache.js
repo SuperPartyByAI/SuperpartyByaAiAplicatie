@@ -1,6 +1,6 @@
 /**
  * Simple in-memory cache with TTL support
- * Reduces Firebase/Firestore reads and improves API response time
+ * Reduces Supabase/Database reads and improves API response time
  */
 
 class MemoryCache {

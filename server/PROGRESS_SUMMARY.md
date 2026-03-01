@@ -26,7 +26,7 @@
 **Features:**
 - Listă evenimente cu cod (assigned + pending)
 - Butoane ACCEPT/REFUZ pentru cereri pending
-- Firestore transaction pentru atomic updates
+- Database transaction pentru atomic updates
 - Safety check: pendingCode verification
 - Elimină complet textul "Demo: tab cod dezactivat"
 
@@ -99,7 +99,7 @@
 
 ---
 
-## SCHEMA FIRESTORE
+## SCHEMA DATABASE
 
 ### V2 (Current)
 ```json
@@ -169,7 +169,7 @@ dart run scripts/migrate_events_to_v2.dart
 ### Deployment
 ```bash
 flutter build web --release
-firebase deploy --only hosting
+supabase deploy --only hosting
 ```
 
 **Live URL:** https://superparty-frontend.web.app
@@ -190,7 +190,7 @@ firebase deploy --only hosting
 
 ### 3. Evenimente vechi fără schema v2
 **Status:** ⏳ NEEDS MIGRATION  
-**Cauză:** Documente în Firestore au câmpuri românești sau lipsă  
+**Cauză:** Documente în Database au câmpuri românești sau lipsă  
 **Fix:** Rulează `dart run scripts/migrate_events_to_v2.dart`
 
 ---
@@ -216,7 +216,7 @@ firebase deploy --only hosting
 ## CONTACT & LINKS
 
 **Repository:** https://github.com/SuperPartyByAI/Aplicatie-SuperpartyByAi  
-**Firebase Console:** https://console.firebase.google.com/project/superparty-frontend  
+**Supabase Console:** https://console.supabase.google.com/project/superparty-frontend  
 **Live App:** https://superparty-frontend.web.app  
 **HTML Reference:** `kyc-app/kyc-app/REFERENCE_EVENIMENTE_HTML.html`
 

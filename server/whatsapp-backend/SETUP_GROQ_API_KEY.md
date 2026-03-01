@@ -17,7 +17,7 @@ Backend-ul rulează pe Hetzner. Cheia trebuie setată în fișierul de environme
 ssh user@37.27.34.179
 
 # Editează fișierul de environment
-sudo nano /etc/whatsapp-backend/firebase-sa.env
+sudo nano /etc/whatsapp-backend/supabase-sa.env
 
 # Adaugă linia:
 GROQ_API_KEY=gsk_YOUR_GROQ_API_KEY_HERE
@@ -48,15 +48,14 @@ Dacă vezi în logs:
 
 Înseamnă că auto-reply-ul funcționează!
 
-## Structura Fișierului `/etc/whatsapp-backend/firebase-sa.env`
+## Structura Fișierului `/etc/whatsapp-backend/supabase-sa.env`
 
 Fișierul ar trebui să conțină:
 
 ```bash
-# Firebase Service Account
-FIREBASE_PROJECT_ID=your-project-id
-FIREBASE_PRIVATE_KEY=...
-FIREBASE_CLIENT_EMAIL=...
+# Supabase Service Account
+SUPABASE_PRIVATE_KEY=...
+SUPABASE_CLIENT_EMAIL=...
 
 # Groq API Key pentru AI Auto-Reply
 GROQ_API_KEY=gsk_YOUR_GROQ_API_KEY_HERE
@@ -89,7 +88,7 @@ După configurare:
 
 1. Verifică că `GROQ_API_KEY` este setat:
    ```bash
-   sudo cat /etc/whatsapp-backend/firebase-sa.env | grep GROQ
+   sudo cat /etc/whatsapp-backend/supabase-sa.env | grep GROQ
    ```
 
 2. Verifică că serviciul a fost repornit:
@@ -102,12 +101,12 @@ După configurare:
    sudo journalctl -u whatsapp-backend -n 100 --no-pager
    ```
 
-4. Verifică că `autoReplyEnabled` este `true` în Firestore:
-   - Deschide Firebase Console
+4. Verifică că `autoReplyEnabled` este `true` în Database:
+   - Deschide Supabase Console
    - Verifică `accounts/{accountId}` → `autoReplyEnabled` = `true`
 
 ### Eroare: "GROQ_API_KEY not configured"
 
-- Verifică că cheia este în `/etc/whatsapp-backend/firebase-sa.env`
+- Verifică că cheia este în `/etc/whatsapp-backend/supabase-sa.env`
 - Verifică că nu există spații în jurul `=`
 - Repornește serviciul după modificare

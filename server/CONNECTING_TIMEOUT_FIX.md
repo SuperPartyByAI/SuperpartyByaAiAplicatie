@@ -5,7 +5,7 @@
 **From legacy hosting logs:**
 ```
 ⏸️ [account_dev_dde908a65501c63b124cb94c627e551d] Faza de asociere (qr_ready), păstrarea contului (motiv: 515)
-💾 [account_dev_dde908a65501c63b124cb94c627e551d] Salvat în Firestore
+💾 [account_dev_dde908a65501c63b124cb94c627e551d] Salvat în Database
 🔓 [account_dev_dde908a65501c63b124cb94c627e551d] Blocarea conexiunii a fost deblocată
 ⏰ [account_dev_dde908a65501c63b124cb94c627e551d] Timp de conectare expirat (60s), trecere la deconectare
 ```

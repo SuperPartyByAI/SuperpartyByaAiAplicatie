@@ -243,7 +243,7 @@ Zilnic:
 1. Analizează aplicația actuală
    ✅ Detectează: React frontend
    ✅ Detectează: Node.js backend
-   ✅ Detectează: Firebase database
+   ✅ Detectează: Supabase database
 
 2. Decide arhitectura
    ✅ Opțiune 1: WordPress separat (heavy)
@@ -256,7 +256,7 @@ Zilnic:
 3. Creează structura
    ✅ Backend: /routes/blog.js
    ✅ Frontend: /src/components/Blog/
-   ✅ Database: Firestore collection "posts"
+   ✅ Database: Database collection "posts"
 
 4. Generează cod backend
    ✅ GET /api/blog/posts (list posts)
@@ -418,7 +418,7 @@ Robot: "🤖 Analizez aplicația...
 📊 Situație actuală:
 - Frontend: React
 - Backend: Node.js + Express
-- Database: Firebase
+- Database: Supabase
 - Hosting: legacy hosting
 
 💡 Opțiuni pentru blog:
@@ -471,7 +471,7 @@ Vrei Opțiunea 3 sau preferi WordPress?"
    - Comment section
 
 3. Database schema (5 min)
-   - Firestore collections
+   - Database collections
 
 4. Integrare (20 min)
    - Add în navbar
@@ -518,7 +518,7 @@ Features incluse:
    - CommentSection.jsx creat
 
 ✅ 3/6 - Setup database... (2 min)
-   - Firestore collection 'posts' creat
+   - Database collection 'posts' creat
    - Indexes adăugate
    - Security rules update
 
@@ -547,7 +547,7 @@ Features incluse:
 📊 Ce am creat:
 - 7 API endpoints
 - 4 React components
-- 1 Firestore collection
+- 1 Database collection
 - WYSIWYG editor integrat
 - Image upload system
 - Comment system

@@ -2,12 +2,12 @@
 
 ## Problema
 
-Firebase CLI nu detectează funcțiile `chatWithAI` și `aiManager`, deși codul este corect și uploaded.
+Supabase CLI nu detectează funcțiile `chatWithAI` și `aiManager`, deși codul este corect și uploaded.
 
 ## Verificare Imediată
 
-**Deschide Firebase Console:**
-https://console.firebase.google.com/project/superparty-frontend/functions
+**Deschide Supabase Console:**
+https://console.supabase.google.com/project/superparty-frontend/functions
 
 **Verifică dacă funcțiile apar acolo.**
 
@@ -26,18 +26,18 @@ Dacă NU → funcțiile nu sunt create
 
 ## Dacă Funcțiile NU Funcționează
 
-### Opțiunea A: Upgrade firebase-functions
+### Opțiunea A: Upgrade supabase-functions
 
 ```bash
 cd C:\Users\ursac\Aplicatie-SuperpartyByAi\functions
-npm install firebase-functions@latest
+npm install supabase-functions@latest
 cd ..
-firebase deploy --only functions
+supabase deploy --only functions
 ```
 
 ### Opțiunea B: Deploy manual prin Console
 
-1. Firebase Console → Functions → Create Function
+1. Supabase Console → Functions → Create Function
 2. Name: `chatWithAI`
 3. Trigger: HTTPS → Callable
 4. Runtime: Node.js 20
@@ -47,7 +47,7 @@ firebase deploy --only functions
 
 ## Verificare Logs
 
-https://console.firebase.google.com/project/superparty-frontend/functions/logs
+https://console.supabase.google.com/project/superparty-frontend/functions/logs
 
 Caută:
 
@@ -56,6 +56,6 @@ Caută:
 
 ## Concluzie
 
-**Codul este corect.** Problema este cu Firebase CLI detection.
+**Codul este corect.** Problema este cu Supabase CLI detection.
 
 **TEST IMEDIAT:** Deschide aplicația și trimite mesaj la AI.

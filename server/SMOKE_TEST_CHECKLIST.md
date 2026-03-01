@@ -34,7 +34,7 @@
   - [ ] Staff profile loads (if staff)
 - [ ] **One write operation succeeds and is visible in DB/UI**:
   - [ ] Update user profile (ex: `displayName`)
-  - [ ] Verify in Firestore Console that `users/{uid}` updated
+  - [ ] Verify in Database Console that `users/{uid}` updated
 - [ ] **App recovers from airplane mode / reconnect** (optional):
   - [ ] Enable airplane mode, wait 5s, disable
   - [ ] App reconnects and continues working
@@ -61,7 +61,7 @@
   - No "Cannot find module" errors
   - No "Missing dependencies" errors
 - [ ] **Write path results visible in DB**:
-  - If endpoint performs write, verify in Firestore Console
+  - If endpoint performs write, verify in Database Console
 
 ### Record Fields
 
@@ -91,7 +91,7 @@ curl.exe -i https://us-central1-superparty-frontend.cloudfunctions.net/whatsappP
   - Only expected errors (if any)
   - No unexpected spikes
 
-**Logs checked**: [legacy hosting / Firebase Functions / App logs]  
+**Logs checked**: [legacy hosting / Supabase Functions / App logs]  
 **Issues found**: _______________
 
 ---
@@ -123,8 +123,8 @@ curl.exe -i https://us-central1-superparty-frontend.cloudfunctions.net/whatsappP
 ### Flutter App
 - Cold start: ✅ PASS / ❌ FAIL
 - Navigation: ✅ PASS / ❌ FAIL
-- Read Firestore: ✅ PASS / ❌ FAIL
-- Write Firestore: ✅ PASS / ❌ FAIL
+- Read Database: ✅ PASS / ❌ FAIL
+- Write Database: ✅ PASS / ❌ FAIL
 
 ### Backend Functions
 - Protected endpoint: ✅ PASS / ❌ FAIL

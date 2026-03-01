@@ -14,36 +14,35 @@
  */
 
 require('dotenv').config();
-const admin = require('firebase-admin');
-const { loadServiceAccount } = require('../firebaseCredentials');
+/* supabase admin removed */
+const { loadServiceAccount } = require('../supabaseCredentials');
 
-// Initialize Firebase Admin
+// Initialize Supabase Admin
 if (!admin.apps.length) {
   const { serviceAccount } = loadServiceAccount();
   if (!serviceAccount) {
-    console.error('❌ Error: Could not load Firebase service account');
-    console.error('   Check FIREBASE_SERVICE_ACCOUNT_PATH, FIREBASE_SERVICE_ACCOUNT_JSON, or GOOGLE_APPLICATION_CREDENTIALS');
+    console.error('❌ Error: Could not load Supabase service account');
+    console.error('   Check SUPABASE_SERVICE_ACCOUNT_PATH, SUPABASE_SERVICE_ACCOUNT_JSON, or GOOGLE_APPLICATION_CREDENTIALS');
     process.exit(1);
   }
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
+  /* init removed */,
   });
 }
 
-const db = admin.firestore();
+const db = { collection: () => ({ doc: () => ({ set: async () => {}, get: async () => ({ exists: false, data: () => ({}) }) }) }) };
 
 /**
  * Pick best timestamp from message data
  * Prefers tsClient (real message timestamp) over createdAt (server timestamp)
  */
 function pickTimestamp(msg) {
-  // Prefer tsClient (Firestore Timestamp) - this is the real message timestamp
+  // Prefer tsClient (Database Timestamp) - this is the real message timestamp
   if (msg.tsClient) {
     if (msg.tsClient.toDate && typeof msg.tsClient.toDate === 'function') {
       return msg.tsClient;
     }
     // If it's already a Timestamp object, return it
-    if (msg.tsClient instanceof admin.firestore.Timestamp) {
+    if (msg.tsClient instanceof admin.database.Timestamp) {
       return msg.tsClient;
     }
   }
@@ -53,7 +52,7 @@ function pickTimestamp(msg) {
     if (msg.createdAt.toDate && typeof msg.createdAt.toDate === 'function') {
       return msg.createdAt;
     }
-    if (msg.createdAt instanceof admin.firestore.Timestamp) {
+    if (msg.createdAt instanceof admin.database.Timestamp) {
       return msg.createdAt;
     }
   }
@@ -63,7 +62,7 @@ function pickTimestamp(msg) {
     if (msg.updatedAt.toDate && typeof msg.updatedAt.toDate === 'function') {
       return msg.updatedAt;
     }
-    if (msg.updatedAt instanceof admin.firestore.Timestamp) {
+    if (msg.updatedAt instanceof admin.database.Timestamp) {
       return msg.updatedAt;
     }
   }

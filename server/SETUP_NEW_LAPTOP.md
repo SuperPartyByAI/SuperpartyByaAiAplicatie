@@ -22,13 +22,13 @@ $env:Path = "C:\src\flutter\bin;$env:Path"
 flutter --version  # Verify installation
 ```
 
-**Firebase CLI**
+**Supabase CLI**
 ```powershell
-npm install -g firebase-tools
-firebase --version  # Verify
+npm install -g supabase-tools
+supabase --version  # Verify
 ```
 
-**Java 17+ (for Firestore emulator)**
+**Java 17+ (for Database emulator)**
 ```powershell
 winget install EclipseAdoptium.Temurin.17.JDK
 java -version  # Verify
@@ -84,22 +84,22 @@ cd ..
 
 ### 4. Configure Secrets (REQUIRED)
 
-**Firebase Configuration Files**
+**Supabase Configuration Files**
 
-1. **Android: `google-services.json`**
-   - Go to [Firebase Console](https://console.firebase.google.com/)
+1. **Android: `config.json`**
+   - Go to [Supabase Console](https://console.supabase.google.com/)
    - Select project: `superparty-frontend`
    - Project Settings → Your apps → Android app
-   - Download `google-services.json`
-   - Place it at: `superparty_flutter\android\app\google-services.json`
+   - Download `config.json`
+   - Place it at: `superparty_flutter\android\app\config.json`
    - ⚠️ This file is NOT committed (see `.gitignore`)
 
-2. **iOS: `GoogleService-Info.plist`** (if developing for iOS)
-   - Download from Firebase Console → iOS app
-   - Place at: `superparty_flutter\ios\Runner\GoogleService-Info.plist`
+2. **iOS: `AppConfig.plist`** (if developing for iOS)
+   - Download from Supabase Console → iOS app
+   - Place at: `superparty_flutter\ios\Runner\AppConfig.plist`
    - ⚠️ This file is NOT committed
 
-3. **Flutter: `firebase_options.dart`** (auto-generated)
+3. **Flutter: `supabase_options.dart`** (auto-generated)
    ```powershell
    cd superparty_flutter
    flutter pub global activate flutterfire_cli
@@ -107,7 +107,7 @@ cd ..
    # Select project: superparty-frontend
    # Select platforms: android, ios (if needed), web
    ```
-   - This generates `lib/firebase_options.dart`
+   - This generates `lib/supabase_options.dart`
    - ⚠️ This file is NOT committed (contains API keys)
 
 **Environment Variables**
@@ -145,10 +145,10 @@ flutter doctor
 # Should show no critical issues
 ```
 
-**Check Firebase CLI**
+**Check Supabase CLI**
 ```powershell
-firebase login
-firebase projects:list
+supabase login
+supabase projects:list
 # Should show superparty-frontend
 ```
 
@@ -167,8 +167,8 @@ npm run emu:check
 npm run emu:fix
 # This will:
 # - Free any blocked ports
-# - Start Firebase emulators
-# - Seed Firestore
+# - Start Supabase emulators
+# - Seed Database
 # - Verify everything works
 ```
 
@@ -177,7 +177,7 @@ npm run emu:fix
 # Terminal 1: Start emulators
 npm run emu
 
-# Terminal 2: Seed Firestore (wait for emulators to start)
+# Terminal 2: Seed Database (wait for emulators to start)
 npm run seed:emu
 
 # Terminal 3: Run Flutter
@@ -222,7 +222,7 @@ flutter clean
 flutter pub get
 ```
 
-**Firebase init timeout**
+**Supabase init timeout**
 - Verify emulators are running: `npm run emu:check`
 - Check `adb reverse` if using Android emulator
 - See `RUN_LOCAL_ANDROID.md` for detailed troubleshooting
@@ -231,11 +231,11 @@ flutter pub get
 
 ```
 Aplicatie-SuperpartyByAi/
-├── functions/              # Firebase Cloud Functions (TypeScript)
+├── functions/              # Supabase Cloud Functions (TypeScript)
 ├── superparty_flutter/     # Flutter mobile app
 ├── tools/                  # Utility scripts
 ├── scripts/                # Development scripts
-├── firebase.json           # Firebase emulator config
+├── supabase.json           # Supabase emulator config
 ├── package.json            # Root npm scripts
 └── .gitignore             # Git ignore rules
 ```
@@ -251,10 +251,10 @@ Aplicatie-SuperpartyByAi/
 
 Before running the app, ensure you have:
 
-- [ ] `google-services.json` in `superparty_flutter/android/app/`
-- [ ] `firebase_options.dart` generated (via `flutterfire configure`)
+- [ ] `config.json` in `superparty_flutter/android/app/`
+- [ ] `supabase_options.dart` generated (via `flutterfire configure`)
 - [ ] `.env` file in root with required API keys
-- [ ] Firebase CLI logged in (`firebase login`)
+- [ ] Supabase CLI logged in (`supabase login`)
 - [ ] Android Studio configured with SDK and AVD
 
 ## Support
@@ -263,4 +263,4 @@ If you encounter issues:
 1. Check `WINDOWS_TROUBLESHOOTING.md` (if exists)
 2. Check `ANDROID_TROUBLESHOOTING.md` in `superparty_flutter/`
 3. Run `npm run emu:check` to verify emulator setup
-4. Check Firebase emulator UI: http://127.0.0.1:4001
+4. Check Supabase emulator UI: http://127.0.0.1:4001

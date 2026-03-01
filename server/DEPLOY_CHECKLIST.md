@@ -13,8 +13,8 @@ Toate fix-urile sunt implementate în cod și gata pentru deploy. Logs-urile din
 **Status:** ✅ Implementat, gata pentru deploy
 
 **Ce face:**
-- Verifică și în Firestore dacă `regeneratingQr` este true (nu doar în memorie)
-- Returnează 202 "already_in_progress" dacă găsește flag-ul în Firestore
+- Verifică și în Database dacă `regeneratingQr` este true (nu doar în memorie)
+- Returnează 202 "already_in_progress" dacă găsește flag-ul în Database
 
 **Test după deploy:**
 ```bash
@@ -81,7 +81,7 @@ Toate fix-urile sunt implementate în cod și gata pentru deploy. Logs-urile din
 
 **Ce face:**
 - Loghează waMode, lockReason, instanceId, requestId
-- Include TOATE accounts din Firestore (inclusiv `disconnected`)
+- Include TOATE accounts din Database (inclusiv `disconnected`)
 
 **Test după deploy:**
 ```bash
@@ -89,7 +89,7 @@ Toate fix-urile sunt implementate în cod și gata pentru deploy. Logs-urile din
 # Expected în legacy hosting logs:
 # [GET /accounts/req_xxx] Request: waMode=active, lockReason=none
 # [GET /accounts/req_xxx] In-memory accounts: X
-# [GET /accounts/req_xxx] Firestore accounts: Y total
+# [GET /accounts/req_xxx] Database accounts: Y total
 # [GET /accounts/req_xxx] Total accounts: Z
 ```
 
@@ -114,10 +114,10 @@ git push
 # - GET /accounts logging cu waMode, lockReason
 ```
 
-### 2. Deploy Firebase Functions
+### 2. Deploy Supabase Functions
 ```bash
 cd functions
-firebase deploy --only functions:regenerateQr
+supabase deploy --only functions:regenerateQr
 ```
 
 **Verificare după deploy:**
@@ -193,7 +193,7 @@ flutter build apk --release
 grep -n "UNKNOWN REASON (investigating...)" whatsapp-backend/server.js
 # Expected: linia 1441
 
-grep -n "Check Firestore if not in memory" whatsapp-backend/server.js
+grep -n "Check Database if not in memory" whatsapp-backend/server.js
 # Expected: linia ~3690
 ```
 
@@ -234,7 +234,7 @@ legacy hosting: [regenerateQr/req_1234567890] QR regeneration started
 ## Files Modified (Ready for Deploy)
 
 ### Backend (legacy hosting)
-1. ✅ `whatsapp-backend/server.js:3685-3700` - regenerateQr idempotency (Firestore check)
+1. ✅ `whatsapp-backend/server.js:3685-3700` - regenerateQr idempotency (Database check)
 2. ✅ `whatsapp-backend/server.js:1439-1457` - Enhanced logging pentru "unknown" reason codes
 3. ✅ `whatsapp-backend/server.js:3129-3215` - GET /accounts logging + PASSIVE mode
 
@@ -263,8 +263,8 @@ legacy hosting: [regenerateQr/req_1234567890] QR regeneration started
 # Deploy legacy hosting Backend
 cd whatsapp-backend && git add server.js && git commit -m "fix: regenerateQr idempotency + enhanced logging" && git push
 
-# Deploy Firebase Functions
-cd functions && firebase deploy --only functions:regenerateQr
+# Deploy Supabase Functions
+cd functions && supabase deploy --only functions:regenerateQr
 
 # Deploy Flutter Client
 cd superparty_flutter && flutter build apk --release

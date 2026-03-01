@@ -14,7 +14,7 @@ const PORT = process.env.PORT || 8080;
 app.use(cors({
   origin: [
     'https://superparty-frontend.web.app',
-    'https://superparty-frontend.firebaseapp.com',
+    'https://superparty-frontend.supabaseapp.com',
     'http://localhost:5173',
     'http://localhost:3000'
   ],

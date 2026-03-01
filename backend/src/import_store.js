@@ -1,12 +1,12 @@
 const fs = require('fs');
 const path = require('path');
-const { initFirebase, processBaileysMessage } = require('./firestore-sync');
+const { initSupabase, processBaileysMessage } = require('./database-sync');
 require('dotenv').config();
 
 const STORE_FILE = path.resolve(process.cwd(), 'baileys_store_multi.json');
 
 async function main() {
-  initFirebase({ storageBucket: process.env.FIREBASE_STORAGE_BUCKET });
+  initSupabase({ storageBucket: process.env.SUPABASE_STORAGE_BUCKET });
 
   if (!fs.existsSync(STORE_FILE)) {
     console.error('Store file not found:', STORE_FILE);

@@ -194,7 +194,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     }
   }
 
-  // NOTE: Schema for messages in Firestore:
+  // NOTE: Schema for messages in Database:
   // direction, text, timestamp, type, hasMedia, etc.
 
   @override
@@ -518,7 +518,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
 
   /// Resolve media URL: prefer media.url (public permanent), fallback to legacy mediaUrl
   String? _resolveMediaUrl(Map<String, dynamic> data) {
-    // 1. Structured media{} from Firebase Storage — use public URL
+    // 1. Structured media{} from Supabase Storage — use public URL
     final media = data['media'];
     if (media is Map && media['url'] != null && (media['url'] as String).isNotEmpty) {
       return media['url'] as String;

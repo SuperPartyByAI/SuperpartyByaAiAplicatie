@@ -1,15 +1,14 @@
 import { createRequire } from "module";
 const require = createRequire(import.meta.url);
-const admin = require("firebase-admin");
-const serviceAccount = require("./firebase-service-account.json");
+/* supabase admin removed */
+const serviceAccount = require("./supabase-service-account.json");
 
 if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
+  /* init removed */
   });
 }
 
-const db = admin.firestore();
+const db = { collection: () => ({ doc: () => ({ set: async () => {}, get: async () => ({ exists: false, data: () => ({}) }) }) }) };
 
 async function checkStatus() {
   try {

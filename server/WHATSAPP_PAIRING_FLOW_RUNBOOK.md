@@ -23,7 +23,7 @@ curl -X POST \
 
 This will:
 - Delete session directory on disk (`/app/sessions/ACCOUNT_ID`)
-- Clear Firestore session backup
+- Clear Database session backup
 - Set status to `needs_qr`
 - Clear all timers and in-memory state
 
@@ -46,7 +46,7 @@ If you have shell access to legacy hosting backend:
 # Delete session directory
 rm -rf /app/sessions/ACCOUNT_ID
 
-# Update Firestore (via Firebase console or CLI)
+# Update Database (via Supabase console or CLI)
 # Set status: 'needs_qr'
 # Set requiresQR: true
 # Clear nextRetryAt: null
@@ -56,9 +56,9 @@ rm -rf /app/sessions/ACCOUNT_ID
 ### Verification
 
 After reset, verify:
-1. Account status is `needs_qr` in Firestore
+1. Account status is `needs_qr` in Database
 2. Session directory does not exist: `ls /app/sessions/ACCOUNT_ID` → should fail
-3. Firestore `accounts/ACCOUNT_ID` shows `nextRetryAt: null`, `retryCount: 0`
+3. Database `accounts/ACCOUNT_ID` shows `nextRetryAt: null`, `retryCount: 0`
 4. No reconnect attempts in logs (no `createConnection` scheduled)
 
 ### Prevention
@@ -66,7 +66,7 @@ After reset, verify:
 Backend now automatically:
 - Clears `connectingTimeout` on 401 cleanup
 - Sets `nextRetryAt=null`, `retryCount=0` on terminal logout
-- Blocks `createConnection()` if Firestore status is `needs_qr` or `logged_out`
+- Blocks `createConnection()` if Database status is `needs_qr` or `logged_out`
 - Does NOT schedule reconnect for 401/logged_out (requires user action)
 
 Flutter now:

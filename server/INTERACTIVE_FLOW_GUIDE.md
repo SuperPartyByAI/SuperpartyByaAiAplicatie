@@ -78,12 +78,12 @@ Poți vedea detaliile în lista de evenimente."
 **User anulează:** "nu" / "anulează" / "renunț"
 
 ### 7. Creare Eveniment
-**Dacă confirmă:** Creează eveniment în Firestore
+**Dacă confirmă:** Creează eveniment în Database
 **Dacă anulează:** Șterge state și revine la conversație normală
 
 ## 💾 State Management
 
-### Structura State în Firestore:
+### Structura State în Database:
 
 ```javascript
 {
@@ -99,7 +99,7 @@ Poți vedea detaliile în lista de evenimente."
 }
 ```
 
-### Colecție Firestore:
+### Colecție Database:
 - **Colecție:** `conversationStates`
 - **Document ID:** `sessionId`
 - **Cleanup:** Șters automat după confirmare/anulare
@@ -167,7 +167,7 @@ git add functions/index.js INTERACTIVE_FLOW_GUIDE.md
 git commit -m "Add interactive event creation flow
 
 - Step-by-step data collection
-- State management in Firestore
+- State management in Database
 - Validation at each step
 - Preview before creation
 - Cancel option at any time
@@ -223,7 +223,7 @@ git push origin main
 
 ### Problema: Flow se blochează la un pas
 
-**Cauză:** State corupt în Firestore
+**Cauză:** State corupt în Database
 **Soluție:** Scrie "anulează" pentru a reseta
 
 ### Problema: Evenimentul nu se creează după confirmare
@@ -231,7 +231,7 @@ git push origin main
 **Cauză:** Eroare la apelul chatEventOps
 **Soluție:** Verifică logs:
 ```bash
-npx firebase functions:log --only chatWithAI
+npx supabase functions:log --only chatWithAI
 ```
 
 ## 📝 Next Steps

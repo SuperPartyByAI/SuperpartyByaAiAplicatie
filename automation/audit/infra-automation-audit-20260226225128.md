@@ -21,7 +21,7 @@ Deployments required for full synergy (Runbook):
 1. **GitHub Secrets Missing:**
    - \`ADMIN_TOKEN\`
    - \`SLACK_WEBHOOK_URL\`
-   - \`FIREBASE_SA\` (Service Account JSON text)
+   - \`SUPABASE_SA\` (Service Account JSON text)
 2. **Server Secrets:**
    - \`ORCH_SECRET\` on Node machine in \`/opt/voip-orch/.env\`
 3. **Execution Instructions:**

@@ -44,7 +44,7 @@
       at Object.toThrow (__tests__/index-import.test.js:57:12)
 
   console.log
-    🚀 Firebase Functions starting - BUILD_SHA=unknown
+    🚀 Supabase Functions starting - BUILD_SHA=unknown
 
       at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
 
@@ -81,7 +81,7 @@
       at Object.toThrow (__tests__/index-import.test.js:69:12)
 
   console.log
-    🚀 Firebase Functions starting - BUILD_SHA=unknown
+    🚀 Supabase Functions starting - BUILD_SHA=unknown
 
       at console.<anonymous> (node_modules/@sentry/core/src/instrument/console.ts:39:14)
 
@@ -117,7 +117,7 @@
       at Object.toThrow (test/whatsappProxy.test.js:774:12)
 
   console.log
-    🚀 Firebase Functions starting - BUILD_SHA=unknown
+    🚀 Supabase Functions starting - BUILD_SHA=unknown
 
       at console.log (node_modules/@sentry/core/src/instrument/console.ts:39:14)
 

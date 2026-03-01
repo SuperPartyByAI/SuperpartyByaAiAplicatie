@@ -17,7 +17,7 @@ git log --oneline -n 10
 ```
 5e2b6d20 fix: refactor UpdateGate to use overlay instead of nested MaterialApp ✅ CRITICAL
 55106bbb fix: remove null-unsafe currentUser! + add global error handlers
-6085a494 fix: add timeout to Firebase initialization to prevent hang
+6085a494 fix: add timeout to Supabase initialization to prevent hang
 1dbb66ca fix: prevent unnecessary notifyListeners in setEmployeeStatus + logout reset
 7d38134f fix: prevent rebuild loop in AuthWrapper with guards
 1a2af537 fix: normalize route in onGenerateRoute to handle hash routing
@@ -241,7 +241,7 @@ decoration: BoxDecoration(
 ### Problem
 
 ```
-Error: Cannot find module 'firebase-admin'
+Error: Cannot find module 'supabase-admin'
 ```
 
 ### Fix
@@ -293,7 +293,7 @@ DRY_RUN=true node scripts/migrate_evenimente_schema_v2.js
 
 ```
 🔄 Migrare evenimente: RO → EN schema v2
-   Mode: LIVE (will write to Firestore)
+   Mode: LIVE (will write to Database)
 
 📋 Found 5 evenimente documents
 
@@ -312,13 +312,13 @@ DRY_RUN=true node scripts/migrate_evenimente_schema_v2.js
 # Install dependencies
 npm ci
 
-# Dry run (no changes to Firestore)
+# Dry run (no changes to Database)
 DRY_RUN=true node scripts/migrate_evenimente_schema_v2.js
 
 # Or use npm script
 npm run migrate:evenimente:v2:dry
 
-# Actual migration (requires firebase-adminsdk.json)
+# Actual migration (requires service-account.json)
 npm run migrate:evenimente:v2
 ```
 
@@ -401,8 +401,8 @@ DRY_RUN=true node scripts/migrate_evenimente_schema_v2.js
 ## Expected Console Output (Clean)
 
 ```
-[Main] Initializing Firebase...
-[Main] ✅ Firebase initialized successfully
+[Main] Initializing Supabase...
+[Main] ✅ Supabase initialized successfully
 [Main] Starting app...
 [EventModel] Parsing 5 events with EN schema
 ✅ No routing errors

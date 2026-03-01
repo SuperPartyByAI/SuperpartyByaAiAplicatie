@@ -18,7 +18,7 @@
 
 **This is the account that was causing the infinite 401 loop!** It was cleaned up because:
 - It had status `needs_qr` or `logged_out` (terminal logout)
-- It wasn't in Firestore with status `connected`
+- It wasn't in Database with status `connected`
 - Backend correctly identified it as "orphaned" and deleted it
 
 ### ✅ **New Account Created (Fresh Session)**

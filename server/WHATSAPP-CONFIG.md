@@ -1,6 +1,6 @@
 # 🔧 WhatsApp Configuration - SuperParty
 
-## Firebase Configuration
+## Supabase Configuration
 
 ### Project Details
 
@@ -38,8 +38,8 @@ API Base: https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp/ap
     "express": "^4.18.2",
     "cors": "^2.8.5",
     "socket.io": "^4.6.1",
-    "firebase-admin": "^11.11.0",
-    "firebase-functions": "^4.5.0",
+    "supabase-admin": "^11.11.0",
+    "supabase-functions": "^4.5.0",
     "qrcode": "^1.5.3",
     "pino": "^8.16.2",
     "libphonenumber-js": "^1.10.51",
@@ -53,24 +53,23 @@ API Base: https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp/ap
 
 ## Environment Variables
 
-### Firebase Functions (nu necesită .env)
+### Supabase Functions (nu necesită .env)
 
 ```bash
-# Toate configurările sunt în firebase.json și .firebaserc
-# Firebase Admin SDK se autentifică automat în Cloud Functions
+# Toate configurările sunt în supabase.json și .supabaserc
+# Supabase Admin SDK se autentifică automat în Cloud Functions
 ```
 
 ### Local Development (opțional)
 
 ```bash
 # .env (dacă rulezi local)
-FIREBASE_PROJECT_ID=superparty-frontend
 GOOGLE_APPLICATION_CREDENTIALS=./serviceAccountKey.json
 ```
 
 ---
 
-## Firestore Collections
+## Database Collections
 
 ### whatsapp_sessions
 
@@ -168,7 +167,7 @@ Structure:
 ### Cloud (Production)
 
 ```
-Firestore: whatsapp_sessions collection
+Database: whatsapp_sessions collection
 Cloud Storage: gs://superparty-frontend.appspot.com/whatsapp-sessions/
 ```
 
@@ -176,11 +175,11 @@ Cloud Storage: gs://superparty-frontend.appspot.com/whatsapp-sessions/
 
 ## Monitoring & Logging
 
-### Firebase Console
+### Supabase Console
 
 ```
-URL: https://console.firebase.google.com/project/superparty-frontend/functions
-Logs: https://console.firebase.google.com/project/superparty-frontend/logs
+URL: https://console.supabase.google.com/project/superparty-frontend/functions
+Logs: https://console.supabase.google.com/project/superparty-frontend/logs
 ```
 
 ### Log Levels
@@ -211,7 +210,7 @@ Logs: https://console.firebase.google.com/project/superparty-frontend/logs
 ### Authentication (TODO)
 
 ```javascript
-// Add Firebase Auth middleware
+// Add Supabase Auth middleware
 app.use(async (req, res, next) => {
   const token = req.headers.authorization?.split('Bearer ')[1];
   if (!token) return res.status(401).json({ error: 'Unauthorized' });
@@ -289,7 +288,7 @@ async autoRestoreSessions() {
 
 ```bash
 # Start emulator
-firebase emulators:start --only functions
+supabase emulators:start --only functions
 
 # Test endpoint
 curl http://localhost:5001/superparty-frontend/us-central1/whatsapp/
@@ -314,33 +313,33 @@ curl -X POST https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp
 ### Check Function Status
 
 ```bash
-firebase functions:list
+supabase functions:list
 ```
 
 ### View Logs
 
 ```bash
-firebase functions:log --only whatsapp
-firebase functions:log --only whatsapp --follow
+supabase functions:log --only whatsapp
+supabase functions:log --only whatsapp --follow
 ```
 
 ### Redeploy
 
 ```bash
-firebase deploy --only functions:whatsapp
+supabase deploy --only functions:whatsapp
 ```
 
 ### Delete Function
 
 ```bash
-firebase functions:delete whatsapp
+supabase functions:delete whatsapp
 ```
 
 ---
 
 ## Cost Estimation
 
-### Firebase Functions (Gen 1)
+### Supabase Functions (Gen 1)
 
 ```
 Invocations: Free tier 2M/month
@@ -350,7 +349,7 @@ Network egress: Free tier 5GB/month
 Estimated cost for 10,000 messages/day: ~$0-5/month
 ```
 
-### Firestore
+### Database
 
 ```
 Reads: Free tier 50,000/day
@@ -383,7 +382,7 @@ Production (high volume): $20-50/month
 
 ```javascript
 // Change in index.js
-const { onRequest } = require('firebase-functions/v2/https');
+const { onRequest } = require('supabase-functions/v2/https');
 
 exports.whatsapp = onRequest(
   {

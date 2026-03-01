@@ -3,7 +3,7 @@
 ## Test Environment Setup
 
 - [ ] App built and deployed to test device
-- [ ] Firebase Functions deployed to us-central1
+- [ ] Supabase Functions deployed to us-central1
 - [ ] GROQ_API_KEY secret configured (version 3)
 
 ## Test Scenario 1: Unauthenticated User
@@ -39,7 +39,7 @@ adb logcat | grep "AIChatScreen"
 
 1. [ ] Temporarily remove GROQ_API_KEY secret
    ```bash
-   firebase functions:secrets:destroy GROQ_API_KEY
+   supabase functions:secrets:destroy GROQ_API_KEY
    ```
 2. [ ] Log in to app
 3. [ ] Navigate to AI Chat
@@ -55,15 +55,15 @@ adb logcat | grep "AIChatScreen"
 
 ```bash
 # Check function logs
-firebase functions:log --only chatWithAI --lines 10
+supabase functions:log --only chatWithAI --lines 10
 ```
 
 ### Cleanup:
 
 ```bash
 # Restore GROQ_API_KEY
-echo "your-groq-api-key" | firebase functions:secrets:set GROQ_API_KEY
-firebase deploy --only functions:chatWithAI
+echo "your-groq-api-key" | supabase functions:secrets:set GROQ_API_KEY
+supabase deploy --only functions:chatWithAI
 ```
 
 ---
@@ -91,7 +91,7 @@ firebase deploy --only functions:chatWithAI
 
 ```bash
 # Check function logs for successful request
-firebase functions:log --only chatWithAI --lines 5
+supabase functions:log --only chatWithAI --lines 5
 
 # Look for:
 # - [requestId] Request received
@@ -131,7 +131,7 @@ firebase functions:log --only chatWithAI --lines 5
 
 ```bash
 # Check function logs for timeout
-firebase functions:log --only chatWithAI --lines 5
+supabase functions:log --only chatWithAI --lines 5
 
 # Look for:
 # - [requestId] Request received
@@ -161,7 +161,7 @@ firebase functions:log --only chatWithAI --lines 5
 
 ```bash
 # Check function logs for rate limit errors
-firebase functions:log --only chatWithAI --lines 10
+supabase functions:log --only chatWithAI --lines 10
 ```
 
 ---
@@ -191,19 +191,19 @@ firebase functions:log --only chatWithAI --lines 10
 ### Check Function Deployment
 
 ```bash
-firebase functions:list | grep chatWithAI
+supabase functions:list | grep chatWithAI
 ```
 
 ### Check Secret Configuration
 
 ```bash
-firebase functions:secrets:access GROQ_API_KEY --data-file=-
+supabase functions:secrets:access GROQ_API_KEY --data-file=-
 ```
 
 ### View Recent Logs
 
 ```bash
-firebase functions:log --only chatWithAI --lines 20
+supabase functions:log --only chatWithAI --lines 20
 ```
 
 ### Check Function Region

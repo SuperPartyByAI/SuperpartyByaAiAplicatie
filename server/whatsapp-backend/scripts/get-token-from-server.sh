@@ -1,8 +1,8 @@
 #!/bin/bash
 
-# Script pentru a obține Firebase ID token folosind credențialele de pe server
+# Script pentru a obține Supabase ID token folosind credențialele de pe server
 
-echo "🔑 Obținere Firebase ID Token de pe server..."
+echo "🔑 Obținere Supabase ID Token de pe server..."
 echo ""
 
 # Verifică dacă email-ul este dat
@@ -28,7 +28,7 @@ cd /root/whatsapp-backend 2>/dev/null || cd /opt/whatsapp-backend 2>/dev/null ||
   exit 1
 }
 
-# Verifică dacă există Node.js și firebase-admin
+# Verifică dacă există Node.js și supabase-admin
 if ! command -v node &> /dev/null; then
   echo "❌ Node.js nu este instalat pe server"
   exit 1
@@ -36,7 +36,7 @@ fi
 
 # Creează script temporar pentru a genera token
 cat > /tmp/get-token-temp.js << 'NODE_SCRIPT'
-const admin = require('firebase-admin');
+const admin = require('supabase-admin');
 const fs = require('fs');
 const path = require('path');
 
@@ -44,13 +44,13 @@ const path = require('path');
 let serviceAccount = null;
 
 // Verifică variabile de mediu
-if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
+if (process.env.SUPABASE_SERVICE_ACCOUNT_JSON) {
   try {
-    serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
+    serviceAccount = JSON.parse(process.env.SUPABASE_SERVICE_ACCOUNT_JSON);
   } catch (e) {
     // Poate e path
-    if (fs.existsSync(process.env.FIREBASE_SERVICE_ACCOUNT_JSON)) {
-      serviceAccount = JSON.parse(fs.readFileSync(process.env.FIREBASE_SERVICE_ACCOUNT_JSON, 'utf8'));
+    if (fs.existsSync(process.env.SUPABASE_SERVICE_ACCOUNT_JSON)) {
+      serviceAccount = JSON.parse(fs.readFileSync(process.env.SUPABASE_SERVICE_ACCOUNT_JSON, 'utf8'));
     }
   }
 }
@@ -70,11 +70,11 @@ for (const p of possiblePaths) {
 }
 
 if (!serviceAccount) {
-  console.error('❌ Firebase service account nu a fost găsit pe server');
+  console.error('❌ Supabase service account nu a fost găsit pe server');
   process.exit(1);
 }
 
-// Initialize Firebase Admin
+// Initialize Supabase Admin
 if (admin.apps.length === 0) {
   admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
@@ -100,12 +100,12 @@ admin.auth().getUserByEmail(email)
     console.log(customToken);
     console.log('');
     console.log('💡 Pentru ID token, folosește metoda din browser (F12 → Console):');
-    console.log('   firebase.auth().currentUser.getIdToken().then(token => console.log(token));');
+    console.log('   supabase.auth().currentUser.getIdToken().then(token => console.log(token));');
   })
   .catch(error => {
     if (error.code === 'auth/user-not-found') {
       console.error('❌ User not found:', email);
-      console.error('Creează user-ul în Firebase Console → Authentication → Users');
+      console.error('Creează user-ul în Supabase Console → Authentication → Users');
     } else {
       console.error('❌ Eroare:', error.message);
     }

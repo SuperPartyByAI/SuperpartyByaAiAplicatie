@@ -8,7 +8,7 @@
 
 ## SETUP PRE-TEST (obligatoriu)
 
-### 1. Pornește Firebase Emulators + Seed (un singur command)
+### 1. Pornește Supabase Emulators + Seed (un singur command)
 
 **Windows PowerShell:**
 
@@ -20,10 +20,10 @@ powershell -ExecutionPolicy Bypass -File tools/run_emulators.ps1
 
 ```bash
 # Terminal 1: Emulators
-firebase emulators:start --only firestore,functions,auth --project demo-test
+supabase emulators:start --only database,functions,auth --project demo-test
 
 # Terminal 2: Seed
-node tools/seed_firestore.js --emulator --project demo-test
+node tools/seed_database.js --emulator --project demo-test
 ```
 
 **Așteaptă** până vezi în output:
@@ -34,7 +34,7 @@ node tools/seed_firestore.js --emulator --project demo-test
 
 **URL-uri:**
 
-- Firestore Emulator: `http://127.0.0.1:8080`
+- Database Emulator: `http://127.0.0.1:8080`
 - Functions Emulator: `http://127.0.0.1:5001`
 - Auth Emulator: `http://127.0.0.1:9099`
 - Emulator UI: `http://127.0.0.1:4000`
@@ -68,7 +68,7 @@ Emulator wiring este automat (doar în `kDebugMode` + `USE_EMULATORS=true`).
 - Password: `test123456`
 - UID: (generat automat)
 
-Apoi în Firestore → `users/{uid}`:
+Apoi în Database → `users/{uid}`:
 
 ```json
 {
@@ -91,7 +91,7 @@ Apoi în Firestore → `users/{uid}`:
 - Password: `admin123456`
 - UID: (generat automat - **notează-l!**)
 
-Apoi în Firestore → `users/{adminUid}`:
+Apoi în Database → `users/{adminUid}`:
 
 ```json
 {
@@ -119,12 +119,12 @@ Apoi în Firestore → `users/{adminUid}`:
 
 - ✅ Screen se încarcă fără erori
 - ✅ Vezi numele: "Test User Full Name" (din `users/{uid}.kycData.fullName`)
-- ✅ Vezi email: `test@local.dev` (read-only, din `FirebaseAuth.currentUser.email`)
+- ✅ Vezi email: `test@local.dev` (read-only, din `SupabaseAuth.currentUser.email`)
 - ✅ Câmp telefon este editabil
 - ✅ Dropdown echipe se încarcă cu: "Echipa A", "Echipa B", "Echipa C" (sortate alfabetic)
 - ✅ Dropdown echipe este **activ** (nu e disabled)
 
-**Verifică în Firestore:**
+**Verifică în Database:**
 
 - `staffProfiles/{uid}` nu există încă (sau există cu `setupDone: false`)
 
@@ -134,7 +134,7 @@ Apoi în Firestore → `users/{adminUid}`:
 
 **Pași:**
 
-1. În Emulator UI → Firestore, editează `users/{uid}`:
+1. În Emulator UI → Database, editează `users/{uid}`:
    - Setează `kycDone: false`
    - Șterge `kycData.fullName` (sau setează la `""`)
 2. Reîncarcă Flutter app sau navighează din nou la `/staff-settings`
@@ -156,7 +156,7 @@ Apoi în Firestore → `users/{adminUid}`:
 
 **Pași:**
 
-1. În Emulator UI → Firestore, editează `teams/team_b`:
+1. În Emulator UI → Database, editează `teams/team_b`:
    - Setează `active: false`
 2. Reîncarcă `/staff-settings` în Flutter
 
@@ -188,7 +188,7 @@ Apoi în Firestore → `users/{adminUid}`:
 - ✅ Vezi cod alocat: `A150` (sau alt număr din `teamCodePools/team_a.freeCodes`, cel mai mare)
 - ✅ Câmpul "Cod alocat" este populat cu codul
 
-**Verifică în Firestore:**
+**Verifică în Database:**
 
 - `teamAssignments/team_a_{uid}` există cu:
   ```json
@@ -226,7 +226,7 @@ Apoi în Firestore → `users/{adminUid}`:
 - ✅ Dropdown echipe devine **disabled** (nu mai poți schimba echipa)
 - ✅ Câmpul telefon rămâne editabil
 
-**Verifică în Firestore:**
+**Verifică în Database:**
 
 - `staffProfiles/{uid}` există cu:
   ```json
@@ -275,7 +275,7 @@ Apoi în Firestore → `users/{adminUid}`:
 - ✅ Vezi mesaj de succes
 - ✅ Telefonul este actualizat în UI
 
-**Verifică în Firestore:**
+**Verifică în Database:**
 
 - `staffProfiles/{uid}.phone` = `"+40798765432"`
 - `users/{uid}.phone` = `"+40798765432"`
@@ -297,14 +297,14 @@ Apoi în Firestore → `users/{adminUid}`:
 **Verificări:**
 
 - ✅ Screen se încarcă fără erori
-- ✅ Vezi listă de `staffProfiles` (toate profilele din Firestore)
+- ✅ Vezi listă de `staffProfiles` (toate profilele din Database)
 - ✅ Fiecare rând afișează: nume, email, cod, echipă, status
 - ✅ Câmpul de căutare funcționează:
   - Caută "test" → găsește user-ul cu email `test@local.dev`
   - Caută "A150" → găsește user-ul cu codul `A150`
   - Caută "Test User" → găsește user-ul cu numele "Test User Full Name"
 
-**Verifică în Firestore:**
+**Verifică în Database:**
 
 - Query-ul citește din `staffProfiles` (toate documentele)
 
@@ -327,7 +327,7 @@ Apoi în Firestore → `users/{adminUid}`:
 - ✅ Echipa este actualizată în UI: "Echipa B"
 - ✅ Codul este re-alocat: vezi un cod nou din `teamCodePools/team_b` (ex: `B250`)
 
-**Verifică în Firestore:**
+**Verifică în Database:**
 
 - `staffProfiles/{uid}.teamId` = `"team_b"`
 - `staffProfiles/{uid}.assignedCode` = `"B250"` (sau alt cod nou)
@@ -385,7 +385,7 @@ Apoi în Firestore → `users/{adminUid}`:
 - ✅ Vezi mesaj de succes
 - ✅ Status este actualizat în UI: "inactive"
 
-**Verifică în Firestore:**
+**Verifică în Database:**
 
 - `staffProfiles/{uid}.status` = `"inactive"` (sau `users/{uid}.status = "inactive"`)
 - `adminActions/{docId}` există cu:
@@ -414,11 +414,11 @@ Apoi în Firestore → `users/{adminUid}`:
 **Pași:**
 
 1. În Flutter app, deschide DevTools (sau folosește browser console dacă e web)
-2. Încearcă să scrii direct în Firestore (din cod sau console):
+2. Încearcă să scrii direct în Database (din cod sau console):
 
 ```dart
 // În Flutter (sau JavaScript în browser console):
-FirebaseFirestore.instance
+SupabaseDatabase.instance
   .collection('teamAssignments')
   .doc('test_doc')
   .set({'test': 'value'});
@@ -426,22 +426,22 @@ FirebaseFirestore.instance
 
 **Verificări:**
 
-- ✅ Vezi eroare: `[firestore/permission-denied]`
-- ✅ Documentul `teamAssignments/test_doc` NU este creat în Firestore
+- ✅ Vezi eroare: `[database/permission-denied]`
+- ✅ Documentul `teamAssignments/test_doc` NU este creat în Database
 
 **Testează și pentru `adminActions`:**
 
 ```dart
-FirebaseFirestore.instance
+SupabaseDatabase.instance
   .collection('adminActions')
   .doc('test_doc')
   .set({'test': 'value'});
 ```
 
-- ✅ Vezi eroare: `[firestore/permission-denied]`
+- ✅ Vezi eroare: `[database/permission-denied]`
 - ✅ Documentul NU este creat
 
-**Verifică în Firestore (Emulator UI):**
+**Verifică în Database (Emulator UI):**
 
 - `teamAssignments/test_doc` nu există
 - `adminActions/test_doc` nu există
@@ -456,35 +456,35 @@ FirebaseFirestore.instance
 
 ```dart
 // Test 1: threads
-FirebaseFirestore.instance
+SupabaseDatabase.instance
   .collection('threads')
   .doc('test_thread')
   .set({'test': 'value'});
 // Așteaptă: permission-denied
 
 // Test 2: whatsapp_messages
-FirebaseFirestore.instance
+SupabaseDatabase.instance
   .collection('whatsapp_messages')
   .doc('test_msg')
   .set({'test': 'value'});
 // Așteaptă: permission-denied
 
 // Test 3: whatsapp_threads
-FirebaseFirestore.instance
+SupabaseDatabase.instance
   .collection('whatsapp_threads')
   .doc('test_thread')
   .set({'test': 'value'});
 // Așteaptă: permission-denied
 
 // Test 4: accounts
-FirebaseFirestore.instance
+SupabaseDatabase.instance
   .collection('accounts')
   .doc('test_account')
   .set({'test': 'value'});
 // Așteaptă: permission-denied
 
 // Test 5: accounts/{id}/chats
-FirebaseFirestore.instance
+SupabaseDatabase.instance
   .collection('accounts')
   .doc('test_account')
   .collection('chats')
@@ -495,17 +495,17 @@ FirebaseFirestore.instance
 
 **Verificări:**
 
-- ✅ Toate cele 5 încercări returnează eroare: `[firestore/permission-denied]`
-- ✅ Niciun document nu este creat în Firestore
+- ✅ Toate cele 5 încercări returnează eroare: `[database/permission-denied]`
+- ✅ Niciun document nu este creat în Database
 
-**Verifică în Firestore (Emulator UI):**
+**Verifică în Database (Emulator UI):**
 
 - `threads/test_thread` nu există
 - `whatsapp_messages/test_msg` nu există
 - `whatsapp_threads/test_thread` nu există
 - `accounts/test_account` nu există
 
-**Verifică în `firestore.rules`:**
+**Verifică în `database.rules`:**
 
 - Caută `match /threads/{threadId}` → vezi `allow create, update: if false;`
 - Caută `match /whatsapp_messages/{messageId}` → vezi `allow create, update: if false;`
@@ -516,7 +516,7 @@ FirebaseFirestore.instance
 
 ## VERIFICĂRI FINALE
 
-### Firestore Rules Summary
+### Database Rules Summary
 
 Verifică că următoarele colecții au `allow write: if false;` (sau `allow create, update: if false;`):
 
@@ -555,7 +555,7 @@ După ce ai rulat toate testele:
 
 - ✅ Toate testele A-K trec
 - ✅ Nu există erori în console (Flutter sau Functions)
-- ✅ Firestore rules blochează scrierile client în colecții critice
+- ✅ Database rules blochează scrierile client în colecții critice
 - ✅ Admin features funcționează corect
 - ✅ Staff settings funcționează corect cu KYC gating
 

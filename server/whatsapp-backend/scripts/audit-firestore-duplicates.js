@@ -4,7 +4,7 @@ const crypto = require('crypto');
 const fs = require('fs');
 const os = require('os');
 const path = require('path');
-const admin = require('firebase-admin');
+/* supabase admin removed */
 const { normalizeMessageText, safeHash } = require('../lib/wa-message-identity');
 
 const toSha1 = (value) =>
@@ -271,7 +271,7 @@ const buildStableKeyHash = ({ data, accountId, tsClientMs }) => {
   return toSha1(seed);
 };
 
-const getFirestoreEnvMeta = () => {
+const getDatabaseEnvMeta = () => {
   const gacPath = process.env.GOOGLE_APPLICATION_CREDENTIALS || '';
   const hasGac = gacPath.length > 0;
   const gacFileExists = hasGac ? fs.existsSync(gacPath) : false;
@@ -290,21 +290,21 @@ const getFirestoreEnvMeta = () => {
   };
 };
 
-const initFirestore = () => {
-  const raw = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+const initDatabase = () => {
+  const raw = process.env.SUPABASE_SERVICE_ACCOUNT_JSON;
 
   try {
     if (!admin.apps.length) {
       if (raw) {
         const serviceAccount = JSON.parse(raw);
-        admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+        /* init removed */ });
       } else {
-        admin.initializeApp();
+        /* init removed */;
       }
     }
-    return { db: admin.firestore(), error: null };
+    return { db: { collection: () => ({ doc: () => ({ set: async () => {}, get: async () => ({ exists: false, data: () => ({}) }) }) }) }, error: null };
   } catch (error) {
-    return { db: null, error: 'Firestore not available' };
+    return { db: null, error: 'Database not available' };
   }
 };
 
@@ -313,7 +313,7 @@ const getIndexLink = (error) => {
   const match = raw.match(/https?:\/\/\S+/);
   if (!match) return null;
   const url = match[0];
-  if (url.includes('console.firebase.google.com') || url.includes('firebase.google.com')) {
+  if (url.includes('console.supabase.google.com') || url.includes('supabase.google.com')) {
     return url;
   }
   return null;
@@ -460,14 +460,14 @@ if (require.main === module) {
   (async () => {
   const opts = parseArgs(process.argv.slice(2));
 
-  const { db, error } = initFirestore();
+  const { db, error } = initDatabase();
   if (!db) {
     console.log(
       JSON.stringify(
         {
-          error: 'firestore_unavailable',
+          error: 'database_unavailable',
           message: 'Set GOOGLE_APPLICATION_CREDENTIALS or gcloud ADC',
-          env: getFirestoreEnvMeta(),
+          env: getDatabaseEnvMeta(),
         },
         null,
         2
@@ -497,7 +497,7 @@ if (require.main === module) {
   let modeUsed = 'desc';
   let usedFallback = false;
   let fallbackIndexLink = null;
-  let windowModeUsed = 'firestoreWhere';
+  let windowModeUsed = 'databaseWhere';
   let parseFailures = 0;
   let parsedMinMs = null;
   let parsedMaxMs = null;
@@ -518,7 +518,7 @@ if (require.main === module) {
     snapshot.threadsScanned = windowResult.threadsScanned;
     snapshot.messagesScanned = windowResult.messagesScanned;
   } catch (error) {
-    const message = error?.message || 'Firestore query failed';
+    const message = error?.message || 'Database query failed';
     const indexLink = getIndexLink(error);
     const hint = getHint(error, message);
     const missingIndex = isMissingIndex(error, message, indexLink);
@@ -544,13 +544,13 @@ if (require.main === module) {
       queryShape += '|clientSideWindow';
     } else {
       const payload = {
-        error: 'firestore_query_failed',
+        error: 'database_query_failed',
         code: error?.code || null,
         message,
         hint,
         indexLink: indexLink && opts.printIndexLink ? indexLink : null,
         projectId: getProjectId(),
-        emulatorHost: process.env.FIRESTORE_EMULATOR_HOST || null,
+        emulatorHost: process.env.DATABASE_EMULATOR_HOST || null,
         usedFallback,
         modeUsed,
       };

@@ -43,7 +43,7 @@ flutter test
    - ✅ Thumbnail apare instant cu status 🟠 (pending)
    - ✅ După 2-3 secunde, status devine 🟢 (synced)
    - ✅ Nu apare crash
-   - ✅ Nu apare query suplimentar în logs (verifică Firebase Console)
+   - ✅ Nu apare query suplimentar în logs (verifică Supabase Console)
    - ✅ După sync, thumbnail-ul local dispare și rămâne doar cel remote
    - ✅ **Zero duplicate thumbnails**
 
@@ -114,7 +114,7 @@ flutter test
 
 ```bash
 cd superparty_flutter
-grep -r "firebasestorage.googleapis.com\|storage.googleapis.com" lib/screens/dovezi/ lib/services/evidence_service.dart
+grep -r "supabasestorage.googleapis.com\|storage.googleapis.com" lib/screens/dovezi/ lib/services/evidence_service.dart
 ```
 
 **Expected:** No results (sau doar în comentarii/teste)

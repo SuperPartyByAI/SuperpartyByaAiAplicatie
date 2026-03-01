@@ -3,7 +3,7 @@
 ## 🎯 LINK DOWNLOAD:
 
 ```
-https://firebasestorage.googleapis.com/v0/b/superparty-frontend.firebasestorage.app/o/apk%2Fapp-release.apk?alt=media
+https://supabasestorage.googleapis.com/v0/b/superparty-frontend.supabasestorage.app/o/apk%2Fapp-release.apk?alt=media
 ```
 
 **SAU link scurt (dacă vrei să creezi):**
@@ -188,7 +188,7 @@ Setări → Securitate → Surse necunoscute → Activează
 **Download APK:**
 
 ```
-https://firebasestorage.googleapis.com/v0/b/superparty-frontend.firebasestorage.app/o/apk%2Fapp-release.apk?alt=media
+https://supabasestorage.googleapis.com/v0/b/superparty-frontend.supabasestorage.app/o/apk%2Fapp-release.apk?alt=media
 ```
 
 **Verifică versiune:**

@@ -1,22 +1,22 @@
-# Deploy Firebase Infrastructure - Evenimente Module
+# Deploy Supabase Infrastructure - Evenimente Module
 
 ## Prerequisites
 
-1. Firebase CLI installed: `npm install -g firebase-tools`
-2. Authenticated: `firebase login`
-3. Project selected: `firebase use superparty-ai` (or your project ID)
+1. Supabase CLI installed: `npm install -g supabase-tools`
+2. Authenticated: `supabase login`
+3. Project selected: `supabase use superparty-ai` (or your project ID)
 
 ## Deployment Steps
 
-### 1. Deploy Firestore Rules
+### 1. Deploy Database Rules
 
 ```bash
-firebase deploy --only firestore:rules
+supabase deploy --only database:rules
 ```
 
 **What this does:**
 
-- Deploys updated Firestore security rules
+- Deploys updated Database security rules
 - Adds explicit rules for `evenimente/{eventId}/dovezi` subcollection
 - Adds explicit rules for `evenimente/{eventId}/dovezi_meta` subcollection
 - Enforces NEVER DELETE policy (`allow delete: if false`)
@@ -25,15 +25,15 @@ firebase deploy --only firestore:rules
 **Verification:**
 
 ```bash
-# Check rules in Firebase Console
-# Navigate to: Firestore Database > Rules
+# Check rules in Supabase Console
+# Navigate to: Database Database > Rules
 # Verify: allow delete: if false on evenimente and subcollections
 ```
 
 ### 2. Deploy Storage Rules
 
 ```bash
-firebase deploy --only storage:rules
+supabase deploy --only storage:rules
 ```
 
 **What this does:**
@@ -46,7 +46,7 @@ firebase deploy --only storage:rules
 **Verification:**
 
 ```bash
-# Check rules in Firebase Console
+# Check rules in Supabase Console
 # Navigate to: Storage > Rules
 # Verify: write: if request.auth != null && request.resource != null
 ```
@@ -54,7 +54,7 @@ firebase deploy --only storage:rules
 ### 3. Deploy Composite Indexes
 
 ```bash
-firebase deploy --only firestore:indexes
+supabase deploy --only database:indexes
 ```
 
 **What this does:**
@@ -72,30 +72,30 @@ firebase deploy --only firestore:indexes
 **Verification:**
 
 ```bash
-# Check indexes in Firebase Console
-# Navigate to: Firestore Database > Indexes
+# Check indexes in Supabase Console
+# Navigate to: Database Database > Indexes
 # Wait for all indexes to finish building (status: Enabled)
 ```
 
 ### 4. All-in-One Deploy (Optional)
 
 ```bash
-firebase deploy --only firestore:rules,firestore:indexes,storage:rules
+supabase deploy --only database:rules,database:indexes,storage:rules
 ```
 
 **Use this if:**
 
-- You want to deploy all Firebase infrastructure at once
+- You want to deploy all Supabase infrastructure at once
 - You're confident all changes are correct
 - You want to minimize deployment time
 
 ## Post-Deployment Verification
 
-### 1. Test Firestore Rules
+### 1. Test Database Rules
 
 ```bash
 # Try to delete an event (should fail)
-# In Firebase Console > Firestore Database
+# In Supabase Console > Database Database
 # Select any document in evenimente collection
 # Click "Delete" - should show permission error
 ```
@@ -104,7 +104,7 @@ firebase deploy --only firestore:rules,firestore:indexes,storage:rules
 
 ```bash
 # Try to delete a file (should fail)
-# In Firebase Console > Storage
+# In Supabase Console > Storage
 # Select any file in event_images/
 # Click "Delete" - should show permission error
 ```
@@ -130,23 +130,23 @@ flutter run
 
 ```bash
 # Get previous version
-firebase firestore:rules:get > firestore.rules.backup
+supabase database:rules:get > database.rules.backup
 
 # Restore from git
-git checkout HEAD~1 firestore.rules storage.rules
+git checkout HEAD~1 database.rules storage.rules
 
 # Deploy old version
-firebase deploy --only firestore:rules,storage:rules
+supabase deploy --only database:rules,storage:rules
 ```
 
 ### Rollback Indexes
 
 ```bash
 # Indexes cannot be rolled back easily
-# You can delete indexes manually in Firebase Console
-# Or deploy an older firestore.indexes.json
-git checkout HEAD~1 firestore.indexes.json
-firebase deploy --only firestore:indexes
+# You can delete indexes manually in Supabase Console
+# Or deploy an older database.indexes.json
+git checkout HEAD~1 database.indexes.json
+supabase deploy --only database:indexes
 ```
 
 ## Troubleshooting
@@ -159,10 +159,10 @@ firebase deploy --only firestore:indexes
 
 ```bash
 # Validate rules locally
-firebase firestore:rules:validate
+supabase database:rules:validate
 
 # Deploy rules
-firebase deploy --only firestore:rules
+supabase deploy --only database:rules
 ```
 
 ### Error: "The query requires an index"
@@ -172,7 +172,7 @@ firebase deploy --only firestore:rules
 **Fix:**
 
 ```bash
-# Check index status in Firebase Console
+# Check index status in Supabase Console
 # Wait for indexes to finish building
 # Or click the link in error message to auto-create index
 ```
@@ -191,7 +191,7 @@ firebase deploy --only firestore:rules
 
 ## Security Checklist
 
-- [ ] Firestore rules deployed
+- [ ] Database rules deployed
 - [ ] Storage rules deployed
 - [ ] Composite indexes deployed and enabled
 - [ ] NEVER DELETE policy enforced (allow delete: if false)
@@ -199,7 +199,7 @@ firebase deploy --only firestore:rules
 - [ ] Authentication required for all operations
 - [ ] Admin-only operations restricted (isAdmin())
 - [ ] Staff-only operations restricted (hasStaffProfile())
-- [ ] Tested delete prevention (Firestore + Storage)
+- [ ] Tested delete prevention (Database + Storage)
 - [ ] Tested query performance (no missing index errors)
 
 ## Notes
@@ -214,7 +214,7 @@ firebase deploy --only firestore:rules
 
 If you encounter issues:
 
-1. Check Firebase Console for error messages
-2. Verify rules syntax: `firebase firestore:rules:validate`
-3. Check index status: Firebase Console > Firestore > Indexes
-4. Review deployment logs: `firebase deploy --debug`
+1. Check Supabase Console for error messages
+2. Verify rules syntax: `supabase database:rules:validate`
+3. Check index status: Supabase Console > Database > Indexes
+4. Review deployment logs: `supabase deploy --debug`

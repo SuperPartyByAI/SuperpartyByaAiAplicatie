@@ -78,7 +78,7 @@ waStatus: CONNECTED
 lastDisconnectReason: null
 retryCount: 0
 nextRetryAt: null
-authStore: firestore
+authStore: database
 authStateExists: true
 authKeyCount: 15
 lockHolder: legacy hosting-prod-abc123
@@ -196,7 +196,7 @@ The test verifies all required fields are present:
 - `lastDisconnectReason` - reason for last disconnect
 - `retryCount` - number of reconnect attempts
 - `nextRetryAt` - when next reconnect will happen
-- `authStore` - should be "firestore"
+- `authStore` - should be "database"
 
 ### Connection Health
 
@@ -230,4 +230,4 @@ If you encounter issues:
 
 1. Check legacy hosting logs: `legacy hosting logs`
 2. Verify app is running: https://whats-app-ompro.ro/health
-3. Check Firestore for incidents: `wa_metrics/longrun/incidents`
+3. Check Database for incidents: `wa_metrics/longrun/incidents`

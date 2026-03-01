@@ -1,8 +1,8 @@
 # scripts/adb_reverse_emulators.ps1
-# Setup ADB reverse for Firebase emulators on Android emulator
+# Setup ADB reverse for Supabase emulators on Android emulator
 
 $ErrorActionPreference = "Continue"
-Write-Host "=== ADB Reverse Setup for Firebase Emulators ===" -ForegroundColor Cyan
+Write-Host "=== ADB Reverse Setup for Supabase Emulators ===" -ForegroundColor Cyan
 
 # ADB path
 $adb = Join-Path $env:LOCALAPPDATA "Android\Sdk\platform-tools\adb.exe"
@@ -42,26 +42,26 @@ if (-not $emulatorFound) {
     exit 1
 }
 
-# Read ports from firebase.json (single source of truth)
+# Read ports from supabase.json (single source of truth)
 function Read-EmulatorPorts {
     $repoRoot = Split-Path -Parent $PSScriptRoot
-    $firebaseJsonPath = Join-Path $repoRoot "firebase.json"
+    $supabaseJsonPath = Join-Path $repoRoot "supabase.json"
     
-    if (-not (Test-Path $firebaseJsonPath)) {
-        Write-Host "WARNING: firebase.json not found, using defaults" -ForegroundColor Yellow
+    if (-not (Test-Path $supabaseJsonPath)) {
+        Write-Host "WARNING: supabase.json not found, using defaults" -ForegroundColor Yellow
         return @(
-            @{Port=8082; Service="Firestore"},
+            @{Port=8082; Service="Database"},
             @{Port=9098; Service="Auth"},
             @{Port=5002; Service="Functions"}
         )
     }
     
     try {
-        $json = Get-Content $firebaseJsonPath -Raw | ConvertFrom-Json
+        $json = Get-Content $supabaseJsonPath -Raw | ConvertFrom-Json
         $ports = @()
         
-        if ($json.emulators.firestore) {
-            $ports += @{Port = $json.emulators.firestore.port; Service = "Firestore"}
+        if ($json.emulators.database) {
+            $ports += @{Port = $json.emulators.database.port; Service = "Database"}
         }
         if ($json.emulators.auth) {
             $ports += @{Port = $json.emulators.auth.port; Service = "Auth"}
@@ -72,16 +72,16 @@ function Read-EmulatorPorts {
         
         return $ports
     } catch {
-        Write-Host "WARNING: Error reading firebase.json, using defaults: $_" -ForegroundColor Yellow
+        Write-Host "WARNING: Error reading supabase.json, using defaults: $_" -ForegroundColor Yellow
         return @(
-            @{Port=8082; Service="Firestore"},
+            @{Port=8082; Service="Database"},
             @{Port=9098; Service="Auth"},
             @{Port=5002; Service="Functions"}
         )
     }
 }
 
-# Setup port forwarding (ports from firebase.json: single source of truth)
+# Setup port forwarding (ports from supabase.json: single source of truth)
 Write-Host "`nSetting up ADB reverse..." -ForegroundColor Yellow
 $ports = Read-EmulatorPorts
 

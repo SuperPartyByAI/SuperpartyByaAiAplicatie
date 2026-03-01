@@ -1,12 +1,12 @@
 # Deploy chatEventOps on Hetzner
 
 ## Env vars (no secrets in repo)
-Add to your systemd EnvironmentFile (currently `/etc/whatsapp-backend/firebase-sa.env`):
+Add to your systemd EnvironmentFile (currently `/etc/whatsapp-backend/supabase-sa.env`):
 
 ```
 GROQ_API_KEY=...
 ADMIN_EMAILS=admin1@example.com,admin2@example.com
-GOOGLE_APPLICATION_CREDENTIALS=/etc/whatsapp-backend/firebase-sa.json
+GOOGLE_APPLICATION_CREDENTIALS=/etc/whatsapp-backend/supabase-sa.json
 ```
 
 ## Install dependency
@@ -25,7 +25,7 @@ sudo systemctl status whatsapp-backend --no-pager
 ## Smoke test (replace TOKEN)
 ```
 curl -sS -X POST http://127.0.0.1:8080/api/ai/chatEventOps \
-  -H "Authorization: Bearer <FIREBASE_ID_TOKEN>" \
+  -H "Authorization: Bearer <SUPABASE_ID_TOKEN>" \
   -H "Content-Type: application/json" \
   -d '{"text":"listeaza ultimele 2 evenimente","dryRun":true}'
 ```

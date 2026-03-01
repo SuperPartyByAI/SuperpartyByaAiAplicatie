@@ -10,14 +10,14 @@ Status: **✅ READY FOR DEPLOY**
 
 ## 🚀 Următorii Pași (În Ordine)
 
-### PASUL 1: Deploy Firebase Functions (5 minute)
+### PASUL 1: Deploy Supabase Functions (5 minute)
 
 ```powershell
 # Ești deja în directorul corect!
 # Rulează aceste comenzi:
 
-firebase login
-firebase deploy --only functions
+supabase login
+supabase deploy --only functions
 ```
 
 **Documentație:** `DEPLOY_NOW.md` (instrucțiuni detaliate)
@@ -52,10 +52,10 @@ flutter build appbundle --release
 
 ## 📋 Quick Checklist
 
-### Firebase Functions
-- [ ] `firebase login` executat
-- [ ] `firebase deploy --only functions` executat
-- [ ] Verificat în Firebase Console
+### Supabase Functions
+- [ ] `supabase login` executat
+- [ ] `supabase deploy --only functions` executat
+- [ ] Verificat în Supabase Console
 - [ ] Toate 7 funcții AI active
 
 ### Flutter AAB
@@ -90,7 +90,7 @@ flutter build appbundle --release
 - ✅ Versiune 1.2.0+14 setată în pubspec.yaml
 
 ### Configurație
-- ✅ Firebase CLI instalat (v15.2.0)
+- ✅ Supabase CLI instalat (v15.2.0)
 - ✅ Signing config pentru Android (key.properties)
 - ✅ Keystore disponibil (superparty-release-key.jks)
 
@@ -121,8 +121,8 @@ După deploy, vei avea:
 
 ```powershell
 # 1. Deploy Functions (5 min)
-firebase login
-firebase deploy --only functions
+supabase login
+supabase deploy --only functions
 
 # 2. Build AAB (10 min)
 cd ..\superparty_flutter
@@ -140,15 +140,15 @@ flutter build appbundle --release
 
 ### Dacă întâmpini probleme:
 
-1. **Firebase Deploy Errors** → Vezi `DEPLOY_NOW.md` secțiunea Troubleshooting
+1. **Supabase Deploy Errors** → Vezi `DEPLOY_NOW.md` secțiunea Troubleshooting
 2. **Flutter Build Errors** → Vezi `DEPLOY_READY.md` secțiunea Troubleshooting
 3. **Play Store Errors** → Vezi `DEPLOY_INSTRUCTIONS.md`
 
 ### Verificări Rapide
 
 ```powershell
-# Verifică Firebase CLI
-firebase --version
+# Verifică Supabase CLI
+supabase --version
 
 # Verifică Flutter
 flutter --version
@@ -165,7 +165,7 @@ node -c index.js
 ## 🎉 Success!
 
 Când vezi:
-- ✅ "Deploy complete!" în Firebase
+- ✅ "Deploy complete!" în Supabase
 - ✅ AAB generat în `build\app\outputs\bundle\release\`
 - ✅ "Submitted for review" în Play Console
 
@@ -179,5 +179,5 @@ Când vezi:
 
 **Prima comandă:**
 ```powershell
-firebase login
+supabase login
 ```

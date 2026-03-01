@@ -1,4 +1,4 @@
-# 🚀 Migrare la Firebase Functions 2nd Gen (Cloud Run)
+# 🚀 Migrare la Supabase Functions 2nd Gen (Cloud Run)
 
 ## ⚠️ Problema Actuală
 
@@ -6,7 +6,7 @@
 Error: [whatsapp(us-central1)] Upgrading from 1st Gen to 2nd Gen is not yet supported.
 ```
 
-**Cauză:** Funcția existentă este **1st Gen**, iar firebase-functions v5 folosește **2nd Gen** by default.
+**Cauză:** Funcția existentă este **1st Gen**, iar supabase-functions v5 folosește **2nd Gen** by default.
 
 **Soluție:** Trebuie să ștergem funcția veche și să o recreăm ca 2nd Gen.
 
@@ -36,7 +36,7 @@ Error: [whatsapp(us-central1)] Upgrading from 1st Gen to 2nd Gen is not yet supp
 ### Înainte (v1 - 1st Gen):
 
 ```javascript
-const functions = require('firebase-functions');
+const functions = require('supabase-functions');
 
 exports.whatsapp = functions.https.onRequest(
   {
@@ -50,7 +50,7 @@ exports.whatsapp = functions.https.onRequest(
 ### După (v2 - 2nd Gen):
 
 ```javascript
-const { onRequest } = require('firebase-functions/v2/https');
+const { onRequest } = require('supabase-functions/v2/https');
 
 exports.whatsapp = onRequest(
   {
@@ -84,7 +84,7 @@ gcloud functions describe whatsapp --region=us-central1 --project=superparty-fro
 ### Pas 2: Șterge Funcția 1st Gen
 
 ```cmd
-firebase functions:delete whatsapp --region us-central1
+supabase functions:delete whatsapp --region us-central1
 ```
 
 **Confirmă cu:** `y`
@@ -101,7 +101,7 @@ i  functions: deleting function whatsapp(us-central1)...
 ### Pas 3: Deploy Funcția 2nd Gen
 
 ```cmd
-firebase deploy --only functions
+supabase deploy --only functions
 ```
 
 **Output așteptat:**
@@ -145,7 +145,7 @@ curl https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp
 ```json
 {
   "status": "online",
-  "service": "SuperParty WhatsApp on Firebase",
+  "service": "SuperParty WhatsApp on Supabase",
   "version": "5.0.0",
   "accounts": 1
 }
@@ -158,8 +158,8 @@ curl https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp
 ```cmd
 cd C:\Users\ursac\Aplicatie-SuperpartyByAi
 git pull
-firebase functions:delete whatsapp --region us-central1
-firebase deploy --only functions
+supabase functions:delete whatsapp --region us-central1
+supabase deploy --only functions
 gcloud run services add-iam-policy-binding whatsapp --region=us-central1 --member=allUsers --role=roles/run.invoker --project=superparty-frontend
 curl https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp
 ```
@@ -254,7 +254,7 @@ gcloud run services list --region=us-central1 --project=superparty-frontend
 - [ ] Configurat IAM permissions
 - [ ] Verificat funcția este accesibilă
 - [ ] Testat WhatsApp connection
-- [ ] Verificat Firestore session persistence
+- [ ] Verificat Database session persistence
 
 ---
 
@@ -278,7 +278,7 @@ gcloud run services delete whatsapp --region=us-central1 --project=superparty-fr
 ### 3. Deploy 1st Gen
 
 ```cmd
-firebase deploy --only functions
+supabase deploy --only functions
 ```
 
 ---

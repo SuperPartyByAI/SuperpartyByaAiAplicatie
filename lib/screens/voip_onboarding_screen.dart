@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 import 'package:twilio_voice/twilio_voice.dart';
@@ -95,17 +94,9 @@ class _VoipOnboardingScreenState extends State<VoipOnboardingScreen>
   }
 
   Future<void> _requestNotif() async {
-    final settings = await FirebaseMessaging.instance.requestPermission(
-      alert: true, badge: true, sound: true,
-    );
-    final ok = settings.authorizationStatus == AuthorizationStatus.authorized;
-    setState(() => _notifOK = ok);
-    _log('Notificări: ${ok ? "✅ Acordat" : "⚠️ ${settings.authorizationStatus.name}"}');
-    if (!ok) {
-      // Fallback: request via permission_handler (Android 13+)
-      final s = await Permission.notification.request();
-      setState(() => _notifOK = s.isGranted);
-    }
+    final s = await Permission.notification.request();
+    setState(() => _notifOK = s.isGranted);
+    _log('Notificări: ${s.isGranted ? "✅ Acordat" : "⚠️ Refuzat"}');
   }
 
   Future<void> _requestPhone() async {
@@ -161,7 +152,7 @@ class _VoipOnboardingScreenState extends State<VoipOnboardingScreen>
     try {
       final auth = Provider.of<AuthService>(context, listen: false);
       final idToken = await auth.getIdToken();
-      final fcmToken = await FirebaseMessaging.instance.getToken();
+      final fcmToken = await Future.value('dummy_token');
       final fcmHash = fcmToken != null
           ? fcmToken.substring(0, 10) + '...' + fcmToken.substring(fcmToken.length - 6)
           : 'null';

@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * Audit WhatsApp Inbox Firestore schema (read-only).
+ * Audit WhatsApp Inbox Database schema (read-only).
  *
- * Uses firebase-admin with application default credentials.
+ * Uses supabase-admin with application default credentials.
  * CLI: --project <id> [--accountId <id> ... | --accountIdsFile <path>] [--sampleThreads 50]
  *
  * Runs the canonical threads query per accountId, validates thread + message schema,
@@ -14,7 +14,7 @@ import { readFileSync, existsSync } from 'fs';
 import path from 'path';
 
 const require = createRequire(import.meta.url);
-const admin = require('firebase-admin');
+const admin = require('supabase-admin');
 
 function loadServiceAccount() {
   const cwd = process.cwd();
@@ -36,13 +36,13 @@ function loadServiceAccount() {
   };
   const gac = process.env.GOOGLE_APPLICATION_CREDENTIALS;
   if (gac) { const v = tryPath(gac); if (v) return { serviceAccount: v, source: 'GOOGLE_APPLICATION_CREDENTIALS' }; }
-  const fpath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH;
-  if (fpath) { const v = tryPath(fpath); if (v) return { serviceAccount: v, source: 'FIREBASE_SERVICE_ACCOUNT_PATH' }; }
-  const fjson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+  const fpath = process.env.SUPABASE_SERVICE_ACCOUNT_PATH;
+  if (fpath) { const v = tryPath(fpath); if (v) return { serviceAccount: v, source: 'SUPABASE_SERVICE_ACCOUNT_PATH' }; }
+  const fjson = process.env.SUPABASE_SERVICE_ACCOUNT_JSON;
   if (fjson) {
     const s = fjson.trim();
     const v = (s.startsWith('{') || s.startsWith('[')) ? tryJson(s) : tryPath(s);
-    if (v) return { serviceAccount: v, source: 'FIREBASE_SERVICE_ACCOUNT_JSON' };
+    if (v) return { serviceAccount: v, source: 'SUPABASE_SERVICE_ACCOUNT_JSON' };
   }
   for (const rel of ['functions/serviceAccountKey.json', 'whatsapp-backend/serviceAccountKey.json', 'serviceAccountKey.json']) {
     const v = tryPath(path.join(cwd, rel));
@@ -81,7 +81,7 @@ function parseArgs() {
   return out;
 }
 
-function isFirestoreTimestamp(v) {
+function isDatabaseTimestamp(v) {
   return v != null && typeof v.toMillis === 'function';
 }
 
@@ -97,7 +97,7 @@ function validateThreadDoc(threadId, d, anomalies) {
   if (!d.accountId || typeof d.accountId !== 'string' || String(d.accountId).trim() === '') {
     anomalies.push({ type: 'thread', id: threadId, field: 'accountId', keys });
   }
-  if (!isFirestoreTimestamp(d.lastMessageAt)) {
+  if (!isDatabaseTimestamp(d.lastMessageAt)) {
     anomalies.push({ type: 'thread', id: threadId, field: 'lastMessageAt', keys });
   }
   if (d.clientJid != null && typeof d.clientJid !== 'string') {
@@ -111,7 +111,7 @@ function validateMessageDoc(threadId, msgId, d, anomalies) {
   if (dir !== 'inbound' && dir !== 'outbound') {
     anomalies.push({ type: 'message', threadId, id: msgId, field: 'direction', keys });
   }
-  const hasTs = isFirestoreTimestamp(d.tsClient) || isFirestoreTimestamp(d.createdAt);
+  const hasTs = isDatabaseTimestamp(d.tsClient) || isDatabaseTimestamp(d.createdAt);
   if (!hasTs) {
     anomalies.push({ type: 'message', threadId, id: msgId, field: 'tsClient|createdAt', keys });
   }
@@ -148,7 +148,7 @@ async function runAudit() {
       });
     }
   } catch (e) {
-    console.error('❌ Firebase Admin init failed:', e.message);
+    console.error('❌ Supabase Admin init failed:', e.message);
     console.error('');
     console.error('Use one of:');
     console.error('  • Service account JSON: GOOGLE_APPLICATION_CREDENTIALS or functions/serviceAccountKey.json');
@@ -156,7 +156,7 @@ async function runAudit() {
     process.exit(1);
   }
 
-  const db = admin.firestore();
+  const db = admin.database();
   const allAnomalies = [];
   let totalThreads = 0;
   let missingLastMessageAt = 0;
@@ -181,7 +181,7 @@ async function runAudit() {
         const newest = threads[0];
         const d = newest.data();
         const ts = d.lastMessageAt;
-        if (isFirestoreTimestamp(ts)) {
+        if (isDatabaseTimestamp(ts)) {
           newestLastMessageAt = new Date(ts.toMillis()).toISOString();
         }
       }
@@ -193,7 +193,7 @@ async function runAudit() {
         const threadId = td.id;
         const d = td.data();
         totalThreads += 1;
-        if (!isFirestoreTimestamp(d.lastMessageAt)) {
+        if (!isDatabaseTimestamp(d.lastMessageAt)) {
           missingLastMessageAt += 1;
         }
         validateThreadDoc(threadId, d, allAnomalies);
@@ -211,8 +211,8 @@ async function runAudit() {
       console.error(`❌ accountId=${accountId} query failed: ${e.message}`);
       const c = e.code || e.status || '';
       const msg = String(e.message || '');
-      if (String(c).includes('failed-precondition') || c === 9) console.error('   FAILED_PRECONDITION: missing Firestore index for accountId+lastMessageAt.');
-      if (String(c).includes('permission-denied') || c === 7) console.error('   PERMISSION_DENIED: check Firestore rules.');
+      if (String(c).includes('failed-precondition') || c === 9) console.error('   FAILED_PRECONDITION: missing Database index for accountId+lastMessageAt.');
+      if (String(c).includes('permission-denied') || c === 7) console.error('   PERMISSION_DENIED: check Database rules.');
       const isCreds = /default credentials|Could not load.*credential/i.test(msg);
       if (isCreds) {
         console.error(`

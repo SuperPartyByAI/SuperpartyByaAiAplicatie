@@ -69,7 +69,7 @@ Ar trebui să vezi:
 4. **Verifică GROQ_API_KEY:**
    ```bash
    ssh root@37.27.34.179
-   sudo cat /etc/whatsapp-backend/firebase-sa.env | grep GROQ
+   sudo cat /etc/whatsapp-backend/supabase-sa.env | grep GROQ
    ```
 
 ### Mesajul nu primește răspuns
@@ -79,7 +79,7 @@ Ar trebui să vezi:
 - Verifică că nu ai trimis `stop` sau `dezactiveaza` (dezactivează auto-reply)
 - Verifică logs pentru erori: `sudo journalctl -u whatsapp-backend -f`
 
-## Structura Firestore
+## Structura Database
 
 Setările se salvează în:
 ```

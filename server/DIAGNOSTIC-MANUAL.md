@@ -1,8 +1,8 @@
-# 🔍 Diagnostic Manual - Firebase Deployment
+# 🔍 Diagnostic Manual - Supabase Deployment
 
 ## ✅ Informații Obținute
 
-### Firebase CLI Version
+### Supabase CLI Version
 
 ```
 15.1.0
@@ -19,17 +19,17 @@ Rulează fiecare comandă **individual** și trimite-mi output-ul:
 ### 1. Verifică User Autentificat
 
 ```cmd
-firebase login:list
+supabase login:list
 ```
 
 **Ce verificăm:** Dacă ești autentificat cu contul corect
 
 ---
 
-### 2. Listează Funcțiile Firebase
+### 2. Listează Funcțiile Supabase
 
 ```cmd
-firebase functions:list
+supabase functions:list
 ```
 
 **Ce verificăm:**
@@ -44,13 +44,13 @@ firebase functions:list
 ### 3. Obține Logs (Sintaxă Corectă)
 
 ```cmd
-firebase functions:log --lines 100
+supabase functions:log --lines 100
 ```
 
 SAU simplu:
 
 ```cmd
-firebase functions:log
+supabase functions:log
 ```
 
 **Ce verificăm:** Erori recente în funcție
@@ -75,15 +75,15 @@ node --version
 npm --version
 ```
 
-**Ce verificăm:** Versiunile sunt compatibile cu Firebase Functions
+**Ce verificăm:** Versiunile sunt compatibile cu Supabase Functions
 
 ---
 
-### 6. Verifică firebase-functions SDK Version
+### 6. Verifică supabase-functions SDK Version
 
 ```cmd
 cd functions
-npm list firebase-functions
+npm list supabase-functions
 ```
 
 **Ce verificăm:** Versiunea SDK-ului (warning-ul spune că e outdated: 4.9.0)
@@ -97,8 +97,8 @@ Din output-ul tău, văd:
 ### ⚠️ Warning Important:
 
 ```
-!  functions: package.json indicates an outdated version of firebase-functions.
-   Please upgrade using npm install --save firebase-functions@latest in your functions directory.
+!  functions: package.json indicates an outdated version of supabase-functions.
+   Please upgrade using npm install --save supabase-functions@latest in your functions directory.
 ```
 
 **Versiune actuală:** `4.9.0`  
@@ -111,11 +111,11 @@ Din output-ul tău, văd:
 Failed to update function projects/superparty-frontend/locations/us-central1/functions/whatsapp
 ```
 
-**Cauză posibilă:** SDK-ul outdated poate cauza incompatibilități cu Firebase Functions runtime.
+**Cauză posibilă:** SDK-ul outdated poate cauza incompatibilități cu Supabase Functions runtime.
 
 ---
 
-## 🛠️ Soluție Long-Term: Upgrade firebase-functions SDK
+## 🛠️ Soluție Long-Term: Upgrade supabase-functions SDK
 
 ### Pas 1: Backup package.json
 
@@ -124,10 +124,10 @@ cd functions
 copy package.json package.json.backup
 ```
 
-### Pas 2: Upgrade firebase-functions
+### Pas 2: Upgrade supabase-functions
 
 ```cmd
-npm install --save firebase-functions@latest
+npm install --save supabase-functions@latest
 ```
 
 **Ce face:** Actualizează SDK-ul de la 4.9.0 la 5.x.x (latest)
@@ -135,10 +135,10 @@ npm install --save firebase-functions@latest
 ### Pas 3: Verifică Compatibilitatea
 
 ```cmd
-npm list firebase-functions
+npm list supabase-functions
 ```
 
-**Așteptat:** `firebase-functions@5.x.x`
+**Așteptat:** `supabase-functions@5.x.x`
 
 ### Pas 4: Test Local
 
@@ -152,7 +152,7 @@ npm run serve
 
 ```cmd
 cd ..
-firebase deploy --only functions
+supabase deploy --only functions
 ```
 
 ---
@@ -162,10 +162,10 @@ firebase deploy --only functions
 Rulează aceste comenzi și trimite-mi output-ul:
 
 ```cmd
-firebase login:list
-firebase functions:list
-firebase functions:log --lines 50
-cd functions && npm list firebase-functions
+supabase login:list
+supabase functions:list
+supabase functions:log --lines 50
+cd functions && npm list supabase-functions
 ```
 
 ---
@@ -174,20 +174,20 @@ cd functions && npm list firebase-functions
 
 ### ✅ Ce Funcționează:
 
-- Firebase CLI version: 15.1.0 (latest)
+- Supabase CLI version: 15.1.0 (latest)
 - Git pull: Success
 - Code upload: Success (95.85 KB)
 
 ### ❌ Ce NU Funcționează:
 
 - Function update: Failed
-- firebase-functions SDK: Outdated (4.9.0 vs 5.1.0+)
+- supabase-functions SDK: Outdated (4.9.0 vs 5.1.0+)
 
 ### 🎯 Root Cause Probabil:
 
-**Incompatibilitate între firebase-functions SDK 4.9.0 și Firebase Functions runtime Node.js 20**
+**Incompatibilitate între supabase-functions SDK 4.9.0 și Supabase Functions runtime Node.js 20**
 
-Firebase Functions Node.js 20 necesită firebase-functions SDK >=5.0.0 pentru suport complet.
+Supabase Functions Node.js 20 necesită supabase-functions SDK >=5.0.0 pentru suport complet.
 
 ---
 
@@ -197,10 +197,10 @@ Firebase Functions Node.js 20 necesită firebase-functions SDK >=5.0.0 pentru su
 
 ```cmd
 cd functions
-npm install --save firebase-functions@latest
-npm install --save firebase-admin@latest
+npm install --save supabase-functions@latest
+npm install --save supabase-admin@latest
 cd ..
-firebase deploy --only functions
+supabase deploy --only functions
 ```
 
 **Avantaje:**
@@ -227,7 +227,7 @@ Modifică `functions/package.json`:
 }
 ```
 
-Modifică `firebase.json`:
+Modifică `supabase.json`:
 
 ```json
 {

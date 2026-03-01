@@ -181,7 +181,7 @@ index 58e367f6..86e30e71 100644
 +        
          // Call chatEventOps with dryRun=true for preview
          final eventCallable =
-             FirebaseFunctions.instanceFor(region: 'us-central1').httpsCallable(
+             SupabaseFunctions.instanceFor(region: 'us-central1').httpsCallable(
 @@ -385,6 +387,8 @@ class _AIChatScreenState extends State<AIChatScreen> {
            'clientRequestId': clientRequestId,
          });
@@ -199,7 +199,7 @@ index 58e367f6..86e30e71 100644
 +    
      try {
        final eventCallable =
-           FirebaseFunctions.instanceFor(region: 'us-central1').httpsCallable(
+           SupabaseFunctions.instanceFor(region: 'us-central1').httpsCallable(
 @@ -1320,6 +1326,8 @@ class _AIChatScreenState extends State<AIChatScreen> {
          'dryRun': false,
          'clientRequestId': clientRequestId,

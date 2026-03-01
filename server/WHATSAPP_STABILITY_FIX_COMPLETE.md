@@ -19,7 +19,7 @@
 
 ### 4. Flutter Emulator Functions URL Hardcoded
 **Problem**: Functions URL hardcodat la `127.0.0.1:5002`, nu funcționează în Android emulator fără adb reverse
-**Root Cause**: Nu folosea logica din `firebase_service.dart` pentru host selection (10.0.2.2)
+**Root Cause**: Nu folosea logica din `supabase_service.dart` pentru host selection (10.0.2.2)
 
 ### 5. Flutter UI Loops on 500/429
 **Problem**: Flutter nu gestionează 202/429/503 ca non-fatal, cauzând loops
@@ -124,7 +124,7 @@ if (lastRegenerate && (Date.now() - lastRegenerate < REGENERATE_THROTTLE_MS)) {
 // BEFORE: account.status = 'needs_qr';
 // AFTER: account.status = 'logged_out';
 
-await saveAccountToFirestore(accountId, {
+await saveAccountToDatabase(accountId, {
   status: 'logged_out', // Changed from 'needs_qr'
   lastError: `logged_out (${reason}) - requires re-link`,
   requiresQR: true,
@@ -293,7 +293,7 @@ const backoff = Math.min(baseBackoff * Math.pow(2, attempts), 30000);
 flutter run -d emulator-5554 --dart-define=USE_EMULATORS=true --dart-define=USE_ADB_REVERSE=false
 
 # Verify: Functions URL = http://10.0.2.2:5002 (not 127.0.0.1:5002)
-# Verify: App can reach Firebase Functions emulator
+# Verify: App can reach Supabase Functions emulator
 
 # With adb reverse:
 adb reverse tcp:5002 tcp:5002  # (and 8082, 9098)
@@ -315,7 +315,7 @@ flutter run -d emulator-5554 --dart-define=USE_EMULATORS=true
 
 ### Local Emulator Test (Without adb reverse)
 ```bash
-# Terminal 1: Start Firebase emulators
+# Terminal 1: Start Supabase emulators
 cd Aplicatie-SuperpartyByAi
 npm run emu:all
 

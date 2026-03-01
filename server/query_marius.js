@@ -1,6 +1,6 @@
-import { initFirebase } from "./firebase-sync.js";
+import { initSupabase } from "./supabase-sync.js";
 
-const db = initFirebase();
+const db = initSupabase();
 
 async function checkUser(email) {
   try {

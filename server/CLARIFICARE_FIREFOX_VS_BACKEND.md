@@ -23,7 +23,7 @@ Sunt **două sisteme complet separate**:
 
 ### Limitații:
 - ✅ **Funcționează local** pe macOS
-- ❌ **NU creează accounts** în backend/Firestore
+- ❌ **NU creează accounts** în backend/Database
 - ❌ **NU apare în aplicația Flutter**
 - ⚠️  Trebuie să scanezi QR-ul **manual** pe fiecare telefon
 
@@ -33,15 +33,15 @@ Sunt **două sisteme complet separate**:
 
 ### Ce face:
 - **Gestionează conexiuni WhatsApp** via Baileys library
-- **Stochează accounts** în Firestore
+- **Stochează accounts** în Database
 - **Generează QR codes** pentru pairing
 - **Primește și trimite mesaje** WhatsApp
 
 ### Flow:
 1. **Backend** (`whatsapp-backend/server.js`) creează conexiune Baileys
 2. **Baileys** generează QR code
-3. **QR code** e salvat în **Firestore** (`accounts` collection)
-4. **Flutter app** citește QR din Firestore și îl afișează
+3. **QR code** e salvat în **Database** (`accounts` collection)
+4. **Flutter app** citește QR din Database și îl afișează
 5. **User scanează QR** din app → Backend se conectează
 
 ### Endpoints:
@@ -51,24 +51,24 @@ Sunt **două sisteme complet separate**:
 
 ---
 
-## 🔄 Firebase Functions Proxy
+## 🔄 Supabase Functions Proxy
 
 ### Ce face:
 - **Proxy între Flutter app și legacy hosting backend**
-- **Autentifică** userul prin Firebase ID token
+- **Autentifică** userul prin Supabase ID token
 - **Verifică** dacă userul e super-admin
 - **Forward** request-ul către legacy hosting
 
 ### Flow:
 ```
 Flutter App
-  ↓ (Firebase ID token)
-Firebase Functions (whatsappProxyGetAccounts)
+  ↓ (Supabase ID token)
+Supabase Functions (whatsappProxyGetAccounts)
   ↓ (verifică super-admin)
   ↓ (X-Admin-Token: ADMIN_TOKEN)
 legacy hosting Backend (/api/whatsapp/accounts)
   ↓ (returnează accounts)
-Firebase Functions
+Supabase Functions
   ↓ (returnează răspuns)
 Flutter App
 ```
@@ -85,12 +85,12 @@ Flutter App
 ### 2. Nu ești logat ca super-admin
 - **Cauză**: Proxy-ul verifică `SUPER_ADMIN_EMAIL = 'ursache.andrei1995@gmail.com'`
 - **Fix**: Loghează-te cu acest email în Flutter app
-- **Verificare**: Verifică Firebase Auth în app
+- **Verificare**: Verifică Supabase Auth în app
 
-### 3. Nu există accounts în Firestore
+### 3. Nu există accounts în Database
 - **Cauză**: Niciun account nu a fost creat în backend
-- **Fix**: Creează account din app sau direct în Firestore
-- **Verificare**: Firestore Console → `accounts` collection
+- **Fix**: Creează account din app sau direct în Database
+- **Verificare**: Database Console → `accounts` collection
 
 ---
 
@@ -98,7 +98,7 @@ Flutter App
 
 | Aspect | Firefox Containers | Backend Accounts |
 |--------|-------------------|------------------|
-| **Locație** | Local (macOS browser) | Cloud (legacy hosting + Firestore) |
+| **Locație** | Local (macOS browser) | Cloud (legacy hosting + Database) |
 | **Creează accounts?** | ❌ NU | ✅ DA |
 | **Apare în Flutter?** | ❌ NU | ✅ DA |
 | **QR Code** | Manual scan în browser | Generat de backend, afișat în app |
@@ -117,11 +117,11 @@ Flutter App
 
 2. **✅ Trebuie să fii logat ca super-admin**:
    - Email: `ursache.andrei1995@gmail.com`
-   - Firebase ID token valid
+   - Supabase ID token valid
 
-3. **✅ Trebuie să existe accounts în Firestore**:
+3. **✅ Trebuie să existe accounts în Database**:
    - Fie create din app
-   - Fie create manual în Firestore
+   - Fie create manual în Database
    - Fie create prin legacy hosting API
 
 ### Firefox containers sunt **separate**:
@@ -135,7 +135,7 @@ Flutter App
 
 **Pentru a sincroniza Firefox cu Flutter în viitor, ar trebui:**
 1. Când user scanează QR în Firefox → Backend primește eveniment
-2. Backend creează account în Firestore automat
+2. Backend creează account în Database automat
 3. Flutter vede account-ul nou
 
 **Dar momentan, acestea sunt sisteme separate! 🎯**

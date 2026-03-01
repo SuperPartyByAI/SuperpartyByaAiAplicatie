@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 
-/// EvenimenteScreen — Lista evenimentelor rezervate din Firestore
+/// EvenimenteScreen — Lista evenimentelor rezervate din Database
 /// Afișează evenimentul „mamă" cu short code (01, 02...) + lista rolurilor (01A, 01B...)
 class EvenimenteScreen extends StatelessWidget {
   const EvenimenteScreen({super.key});
@@ -54,18 +53,8 @@ class EvenimenteScreen extends StatelessWidget {
   }
 
   Widget _buildEventsList() {
-    return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('evenimente')
-          .where('isArchived', isEqualTo: false)
-          .orderBy('createdAt', descending: true)
-          .limit(50)
-          .snapshots(),
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
-            child: CircularProgressIndicator(color: Color(0xFF4ECDC4)),
-          );
+    return StreamBuilder<dynamic>(
+      stream: /* Removed */ ;
         }
 
         if (snapshot.hasError) {

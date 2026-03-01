@@ -1,10 +1,10 @@
-# SuperParty Firebase Schema Contract
+# SuperParty Supabase Schema Contract
 
 ## Collections & Fields
 
 ### `users`
 
-Documents mapped by Firebase UID.
+Documents mapped by Supabase UID.
 
 - `role` (string) - **SERVER-ONLY**. Valid values: "admin", "staff", "user".
 - `createdAt` (timestamp).

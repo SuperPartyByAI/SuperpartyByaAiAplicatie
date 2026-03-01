@@ -10,7 +10,7 @@
  * 3. Exit process (systemd/Docker restarts)
  */
 
-const { FieldValue } = require('firebase-admin/firestore');
+const { FieldValue } = {};
 
 class WAAutoHeal {
   constructor(db, instanceId, reconnectManager, lockManager) {
@@ -83,7 +83,7 @@ class WAAutoHeal {
 
       await this.db.doc(`wa_metrics/longrun/incidents/${incidentId}`).set({
         type: 'wa_reconnect_loop',
-        detectedAt: FieldValue.serverTimestamp(),
+        detectedAt: new Date(),
         instanceId: this.instanceId,
         evidence: {
           retryCount: state.retryCount,
@@ -108,7 +108,7 @@ class WAAutoHeal {
       console.log('[WAAutoHeal] Releasing lock...');
       await this.lockManager.release();
 
-      // Wait a bit for Firestore writes to complete
+      // Wait a bit for Database writes to complete
       await new Promise(resolve => setTimeout(resolve, 2000));
 
       // Exit process (systemd/Docker will restart)

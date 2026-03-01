@@ -9,8 +9,8 @@ if [ -z "$FROM" ] || [ -z "$TO" ]; then
   exit 1
 fi
 
-node /opt/app/superparty-server/admin/replay_baileys_to_firestore.js --pm2 --lines 5000 --from "$FROM" --to "$TO" --out "$OUT_REPLAY"
-node /opt/app/superparty-server/admin/firestore_verify_and_report.js --from "$FROM" --to "$TO" --out "$OUT_VERIFY"
+node /opt/app/superparty-server/admin/replay_baileys_to_database.js --pm2 --lines 5000 --from "$FROM" --to "$TO" --out "$OUT_REPLAY"
+node /opt/app/superparty-server/admin/database_verify_and_report.js --from "$FROM" --to "$TO" --out "$OUT_VERIFY"
 
 echo "Replay report: $OUT_REPLAY"
 echo "Verify report: $OUT_VERIFY"

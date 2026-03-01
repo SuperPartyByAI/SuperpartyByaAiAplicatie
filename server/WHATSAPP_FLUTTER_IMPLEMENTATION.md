@@ -38,7 +38,7 @@ Implemented WhatsApp in-app module in Flutter that mirrors the web flow:
    - Optimistic UI: message appears via real-time listener
 
 4. `superparty_flutter/lib/screens/whatsapp/whatsapp_accounts_screen.dart`
-   - Changed from Firestore stream → Functions proxy call
+   - Changed from Database stream → Functions proxy call
    - Load accounts via `whatsappProxyGetAccounts`
    - Display QR code and pairing code from backend response
    - Refresh list after add/regenerate/delete
@@ -65,8 +65,8 @@ Implemented WhatsApp in-app module in Flutter that mirrors the web flow:
 3. `functions/test/whatsappProxy.test.js` (NEW)
    - Basic test structure for guard logic
 
-### Firestore Rules (Commit 3)
-1. `firestore.rules`
+### Database Rules (Commit 3)
+1. `database.rules`
    - `threads`: Allow employees to read (for inbox/chat)
    - `threads/{threadId}/messages`: Allow employees to read
    - `outbox`: Allow employees to create (for sending messages)
@@ -135,7 +135,7 @@ npm test -- whatsappProxy.test.js
    - Type message in chat input
    - Press send
    - Message should appear immediately (optimistic)
-   - Check Firestore: `outbox/{requestId}` should exist with `status='queued'`
+   - Check Database: `outbox/{requestId}` should exist with `status='queued'`
    - Backend processes and updates: `outbox.status='sent'`, `message.status='sent'`
 
 5. **Verify No Duplicates**
@@ -153,7 +153,7 @@ npm test -- whatsappProxy.test.js
 
 **Functions Secret Required:**
 ```bash
-firebase functions:secrets:set LEGACY_WHATSAPP_URL
+supabase functions:secrets:set LEGACY_WHATSAPP_URL
 # Value: https://whats-app-ompro.ro
 ```
 
@@ -165,7 +165,7 @@ firebase functions:secrets:set LEGACY_WHATSAPP_URL
 
 1. **Commit 1:** Flutter screens + WhatsAppApiService updates
 2. **Commit 2:** Functions proxy + tests
-3. **Commit 3:** Firestore rules update
+3. **Commit 3:** Database rules update
 
 ---
 

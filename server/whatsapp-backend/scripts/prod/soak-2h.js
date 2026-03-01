@@ -1,13 +1,13 @@
 const axios = require('axios');
-const admin = require('firebase-admin');
+/* supabase admin removed */
 
 function startSoak(baseUrl, accountId, runId, token) {
   if (!admin.apps.length) {
-    const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
-    admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+    const serviceAccount = JSON.parse(process.env.SUPABASE_SERVICE_ACCOUNT_JSON);
+    /* init removed */ });
   }
 
-  const db = admin.firestore();
+  const db = { collection: () => ({ doc: () => ({ set: async () => {}, get: async () => ({ exists: false, data: () => ({}) }) }) }) };
   const startTime = Date.now();
   const duration = 2 * 60 * 60 * 1000; // 2h
   let heartbeatCount = 0;
@@ -26,7 +26,7 @@ function startSoak(baseUrl, accountId, runId, token) {
         .collection('heartbeats')
         .doc(`hb_${heartbeatCount}`)
         .set({
-          ts: admin.firestore.FieldValue.serverTimestamp(),
+          ts: admin.database.new Date(),
           uptime: health.uptime,
           accounts: health.accounts,
           crash: 0,
@@ -47,7 +47,7 @@ function startSoak(baseUrl, accountId, runId, token) {
             status: 'PASS',
             soakDuration: duration / 1000,
             heartbeats: heartbeatCount,
-            endTs: admin.firestore.FieldValue.serverTimestamp(),
+            endTs: admin.database.new Date(),
           });
 
         console.log(`✅ Soak test complete: ${heartbeatCount} heartbeats, 0 crashes`);

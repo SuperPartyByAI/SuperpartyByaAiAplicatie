@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { db, auth, FieldValue } = require('../firebase');
+const { db, auth, FieldValue } = require('../supabase');
 
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim());
 

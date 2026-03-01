@@ -18,17 +18,16 @@
  */
 
 const fetch = require('node-fetch');
-const admin = require('firebase-admin');
+/* supabase admin removed */
 
-// Ensure firebase-admin is initialized
+// Ensure supabase-admin is initialized
 if (!admin.apps.length) {
   try {
-    const serviceAccount = require('../firebase-service-account.json');
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount)
+    const serviceAccount = require('../supabase-service-account.json');
+    /* init removed */
     });
   } catch (e) {
-    console.error('Failed to init firebase-admin in perfect-monitor:', e.message);
+    console.error('Failed to init supabase-admin in perfect-monitor:', e.message);
   }
 }
 
@@ -123,11 +122,11 @@ class PerfectMonitor {
   }
 
   /**
-   * Fetch connected WA accounts from Firestore to monitor them
+   * Fetch connected WA accounts from Database to monitor them
    */
   async pollWhatsAppAccounts() {
     try {
-      const db = admin.firestore();
+      const db = { collection: () => ({ doc: () => ({ set: async () => {}, get: async () => ({ exists: false, data: () => ({}) }) }) }) };
       const accountsSnap = await db.collection('wa_accounts').where('status', '==', 'connected').get();
       
       const activeIds = new Set();
@@ -158,7 +157,7 @@ class PerfectMonitor {
       this.initServiceStates();
 
     } catch (e) {
-      console.error('[Watchdog] Failed to poll WA accounts from Firestore:', e.message);
+      console.error('[Watchdog] Failed to poll WA accounts from Database:', e.message);
     }
   }
 

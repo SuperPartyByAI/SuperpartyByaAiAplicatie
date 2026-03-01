@@ -2,13 +2,13 @@
 
 ## Overview
 
-Production-grade instrumentation for Baileys WhatsApp service on legacy hosting with Firestore persistence.
+Production-grade instrumentation for Baileys WhatsApp service on legacy hosting with Database persistence.
 
 ## Architecture
 
 - **Provider:** Baileys (@whiskeysockets/baileys)
 - **Platform:** legacy hosting
-- **Database:** Firestore
+- **Database:** Database
 - **Monitoring:** Heartbeats (60s) + Probes (6h/24h)
 
 ## Jobs

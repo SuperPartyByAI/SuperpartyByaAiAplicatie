@@ -13,7 +13,7 @@ Sistemul de evenimente permite:
 
 ---
 
-## 🗄️ Structura Firestore
+## 🗄️ Structura Database
 
 ### Collection: `evenimente`
 
@@ -31,7 +31,7 @@ Sistemul de evenimente permite:
   // Staff
   rol: "ospatar",               // ospatar | barman | bucatar | manager
   nrStaffNecesar: 10,           // Câți oameni sunt necesari
-  staffAlocat: [                // Array de UIDs Firebase Auth
+  staffAlocat: [                // Array de UIDs Supabase Auth
     "uid_user_1",
     "uid_user_2",
     "uid_user_3"
@@ -57,7 +57,7 @@ Sistemul de evenimente permite:
 
 ```javascript
 {
-  uid: "firebase_auth_uid",     // ID Firebase Auth
+  uid: "supabase_auth_uid",     // ID Supabase Auth
   code: "A1",                   // Cod unic: A1-A50, Atrainer, etc.
   nume: "Ion Popescu",
   email: "ion@example.com",
@@ -86,7 +86,7 @@ const memberPattern = /^[A-Z]([1-9]|[1-4][0-9]|50)$/;
 
 ```javascript
 {
-  userId: "firebase_auth_uid",
+  userId: "supabase_auth_uid",
   userEmail: "ion@example.com",
 
   dataStart: "2026-12-20",
@@ -103,7 +103,7 @@ const memberPattern = /^[A-Z]([1-9]|[1-4][0-9]|50)$/;
 
 ---
 
-## 🔐 Firestore Security Rules
+## 🔐 Database Security Rules
 
 ```javascript
 // Evenimente - doar admin poate crea/modifica
@@ -356,7 +356,7 @@ evenimenteFiltrate.forEach(ev => {
   (ev.staffAlocat || []).forEach(id => uniqueStaffIds.add(id));
 });
 
-// Batch fetch (max 10 per query - limită Firestore)
+// Batch fetch (max 10 per query - limită Database)
 const staffProfiles = {};
 const staffIds = Array.from(uniqueStaffIds);
 const batchSize = 10;
@@ -424,10 +424,10 @@ const handleDelete = async id => {
 
 ## 🔄 Workflow Complet
 
-### 1. Admin Creează Eveniment (Manual în Firestore)
+### 1. Admin Creează Eveniment (Manual în Database)
 
 ```javascript
-// Firebase Console → Firestore → evenimente → Add document
+// Supabase Console → Database → evenimente → Add document
 {
   nume: "Petrecere Revelion",
   data: "2026-12-31",
@@ -446,13 +446,13 @@ const handleDelete = async id => {
 
 ```
 User → DisponibilitateScreen → Adaugă disponibilitate
-→ Firestore: disponibilitati collection
+→ Database: disponibilitati collection
 ```
 
 ### 3. Admin Alocă Staff pe Eveniment
 
 ```javascript
-// Firebase Console → Firestore → evenimente → Edit document
+// Supabase Console → Database → evenimente → Edit document
 {
   staffAlocat: ["uid1", "uid2", "uid3"],
   cineNoteaza: "A1"
@@ -517,7 +517,7 @@ const handleAllocateStaff = async (eventId, selectedStaffIds) => {
 
 **Soluție:**
 
-- Firebase Cloud Messaging (FCM)
+- Supabase Cloud Messaging (FCM)
 - Email notifications
 - WhatsApp notifications
 
@@ -574,13 +574,13 @@ const handleAllocateStaff = async (eventId, selectedStaffIds) => {
 ### Admin Check
 
 ```javascript
-// Frontend - verificare pe rol din Firestore
+// Frontend - verificare pe rol din Database
 const isAdmin = async (userId) => {
-  const userDoc = await firestore.collection('users').doc(userId).get();
+  const userDoc = await database.collection('users').doc(userId).get();
   return userDoc.data()?.role === 'admin';
 };
 
-// Firestore Rules - verificare pe custom claims
+// Database Rules - verificare pe custom claims
 function isAdmin() {
   return isAuthenticated() && request.auth.token.role == 'admin';
 }
@@ -603,7 +603,7 @@ const isValidStaffCode = cod => {
   return trainerPattern.test(trimmed) || memberPattern.test(trimmed);
 };
 
-// Verifică existență în Firestore
+// Verifică existență în Database
 const staffSnapshot = await getDocs(
   query(collection(db, 'staffProfiles'), where('code', '==', cod.trim()))
 );
@@ -690,7 +690,7 @@ await runTransaction(db, async transaction => {
 ### 3. Indexing pentru Performance
 
 ```javascript
-// firestore.indexes.json
+// database.indexes.json
 {
   "indexes": [
     {
@@ -733,16 +733,16 @@ await runTransaction(db, async transaction => {
 
 ## 🚀 Deployment
 
-### 1. Deploy Firestore Rules
+### 1. Deploy Database Rules
 
 ```bash
-firebase deploy --only firestore:rules
+supabase deploy --only database:rules
 ```
 
-### 2. Deploy Firestore Indexes
+### 2. Deploy Database Indexes
 
 ```bash
-firebase deploy --only firestore:indexes
+supabase deploy --only database:indexes
 ```
 
 ### 3. Deploy Frontend
@@ -750,7 +750,7 @@ firebase deploy --only firestore:indexes
 ```bash
 cd kyc-app/kyc-app
 npm run build
-firebase deploy --only hosting
+supabase deploy --only hosting
 ```
 
 ---
@@ -786,4 +786,4 @@ firebase deploy --only hosting
 
 **Status**: ✅ Sistem funcțional, optimizat, gata de producție
 **Performance**: 90% reducere queries, real-time updates
-**Security**: Firestore rules configurate, validare cod staff
+**Security**: Database rules configurate, validare cod staff

@@ -16,7 +16,7 @@ Successfully implemented **best-effort full conversation sync** for WhatsApp mes
 4. ✅ **Backfill after reconnect** - Best-effort gap filling for recent threads
 5. ✅ **Enhanced API endpoints** - New threads/messages endpoints with pagination
 6. ✅ **Idempotency** - Message ID as document ID prevents duplicates
-7. ✅ **Batch processing** - Firestore batch writes (500 ops/batch) with throttling
+7. ✅ **Batch processing** - Database batch writes (500 ops/batch) with throttling
 
 ---
 
@@ -24,7 +24,7 @@ Successfully implemented **best-effort full conversation sync** for WhatsApp mes
 
 ### New Helper Functions (Lines ~509-759)
 
-- **`saveMessageToFirestore(accountId, msg, isFromHistory)`** - Idempotent single message save
+- **`saveMessageToDatabase(accountId, msg, isFromHistory)`** - Idempotent single message save
 - **`saveMessagesBatch(accountId, messages, source)`** - Batch writes for history sync (max 500 ops/batch)
 
 ### Configuration (Lines ~378-386)
@@ -48,7 +48,7 @@ Successfully implemented **best-effort full conversation sync** for WhatsApp mes
 
 ### Enhanced Message Persistence (Lines ~1194-1197)
 
-- Replaced inline save logic with `saveMessageToFirestore()` helper
+- Replaced inline save logic with `saveMessageToDatabase()` helper
 - Ensures consistent schema and idempotency
 
 ### Enhanced Receipt Handlers (Lines ~1410-1480, ~4191-4286)
@@ -84,7 +84,7 @@ Successfully implemented **best-effort full conversation sync** for WhatsApp mes
 ### Enhanced Dashboard (Lines ~4892-4970)
 
 - Added `lastBackfillAt` and `lastHistorySyncAt` fields per account
-- Fetches from Firestore `accounts` collection
+- Fetches from Database `accounts` collection
 
 ---
 

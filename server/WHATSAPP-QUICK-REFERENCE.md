@@ -238,7 +238,7 @@ curl -X POST https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp
 
 ### Sesiunea se pierde?
 
-- Sesiunile sunt salvate în Firestore
+- Sesiunile sunt salvate în Database
 - Auto-reconnect după restart
 - Dacă nu funcționează, recreează contul
 
@@ -343,17 +343,17 @@ functions/
 ├── package.json                # Dependencies
 └── whatsapp/
     ├── manager.js              # WhatsApp logic (Baileys)
-    └── session-store.js        # Firestore persistence
+    └── session-store.js        # Database persistence
 
-firebase.json                   # Firebase config
-.firebaserc                     # Project ID
+supabase.json                   # Supabase config
+.supabaserc                     # Project ID
 ```
 
 ---
 
 ## 🔗 Links Utile
 
-- **Firebase Console:** https://console.firebase.google.com/project/superparty-frontend/functions
+- **Supabase Console:** https://console.supabase.google.com/project/superparty-frontend/functions
 - **Baileys Docs:** https://github.com/WhiskeySockets/Baileys
 - **Twilio WhatsApp:** https://www.twilio.com/whatsapp
 
@@ -364,8 +364,8 @@ firebase.json                   # Firebase config
 1. **Salvează Account ID** după creare - îl vei folosi pentru toate operațiunile
 2. **Verifică status** înainte de fiecare trimitere mesaj
 3. **Respectă rate limits** - 2 secunde între mesaje
-4. **Monitorizează logs** - `firebase functions:log`
-5. **Backup sessions** - sunt salvate automat în Firestore
+4. **Monitorizează logs** - `supabase functions:log`
+5. **Backup sessions** - sunt salvate automat în Database
 
 ---
 

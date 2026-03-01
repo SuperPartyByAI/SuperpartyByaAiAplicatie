@@ -17,7 +17,7 @@ import { readFileSync, existsSync } from 'fs';
 import path from 'path';
 
 const require = createRequire(import.meta.url);
-const admin = require('firebase-admin');
+const admin = require('supabase-admin');
 
 function loadServiceAccount() {
   const cwd = process.cwd();
@@ -35,7 +35,7 @@ function loadServiceAccount() {
     const v = tryPath(gac);
     if (v) return v;
   }
-  const fpath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH;
+  const fpath = process.env.SUPABASE_SERVICE_ACCOUNT_PATH;
   if (fpath) {
     const v = tryPath(fpath);
     if (v) return v;
@@ -95,7 +95,7 @@ async function deleteCollection(ref, batchSize = 400) {
   const q = ref.orderBy('__name__').limit(batchSize);
   const snap = await q.get();
   if (snap.empty) return 0;
-  const batch = ref.firestore.batch();
+  const batch = ref.database.batch();
   snap.docs.forEach((d) => batch.delete(d.ref));
   await batch.commit();
   return snap.size + (await deleteCollection(ref, batchSize));
@@ -121,9 +121,9 @@ async function main() {
         console.log('Using Application Default Credentials (no service account key).');
       } catch (e) {
         console.error(
-          'Missing Firebase credentials. Use one of:\n' +
+          'Missing Supabase credentials. Use one of:\n' +
             '  - GOOGLE_APPLICATION_CREDENTIALS=/path/to/serviceAccountKey.json\n' +
-            '  - FIREBASE_SERVICE_ACCOUNT_PATH=/path/to/key.json\n' +
+            '  - SUPABASE_SERVICE_ACCOUNT_PATH=/path/to/key.json\n' +
             '  - serviceAccountKey.json in functions/ or project root\n' +
             '  - gcloud auth application-default login (then run again)'
         );
@@ -131,7 +131,7 @@ async function main() {
       }
     }
   }
-  const db = admin.firestore();
+  const db = admin.database();
 
   console.log(`Mode: ${dryRun ? 'dry-run' : hide ? 'hide' : 'delete'}`);
   const threadsRef = db.collection('threads');

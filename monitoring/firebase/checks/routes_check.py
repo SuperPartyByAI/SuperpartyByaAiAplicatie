@@ -22,10 +22,10 @@ results = []
 alerts_triggered = False
 
 def list_routes():
-    """Simulates fetching from Firestore 'routes', 'whatsapp_routes', 'pbx_routes' collections."""
+    """Simulates fetching from Database 'routes', 'whatsapp_routes', 'pbx_routes' collections."""
     try:
-        from google.cloud import firestore
-        db = firestore.Client()
+        from google.cloud import database
+        db = database.Client()
         routes = []
         for col in ['routes', 'whatsapp_routes', 'pbx_routes']:
             for doc in db.collection(col).stream():
@@ -35,7 +35,7 @@ def list_routes():
                 routes.append(r)
         return routes
     except Exception as e:
-        print(f"Skipping actual Firestore query (dry-run or no credentials): {e}")
+        print(f"Skipping actual Database query (dry-run or no credentials): {e}")
         # Return dummy data for testing the orchestrator logic
         return [
             {"_id": "r1", "_collection": "whatsapp_routes", "path": "/api/v1/wh", "type": "http", "target": "https://api.superparty.ro/api/voice/incoming", "deprecated": False},
@@ -65,7 +65,7 @@ def search_repo_usage(route_id):
 
 def generate_report():
     with open(REPORT_PATH, "w") as f:
-        f.write("# Firebase Routes STALE Verification Report\n\n")
+        f.write("# Supabase Routes STALE Verification Report\n\n")
         f.write(f"**Date:** {datetime.now().isoformat()}\n\n")
         for r in results:
             icon = "✅" if r['verdict'] == 'OK' else "⚠️" if r['verdict'] == 'WARNING' else "❌"
@@ -75,7 +75,7 @@ def generate_report():
             f.write(f"- **Health Probe:** {r['probe']}\n")
             f.write(f"- **Code References:** {r['code_refs']}\n\n")
 
-print("Starting Firebase Routes Checker...")
+print("Starting Supabase Routes Checker...")
 routes = list_routes()
 
 for r in routes:
@@ -108,7 +108,7 @@ for r in routes:
     })
 
     if verdict == "STALE" and AUTO_DEPRECATE and not DRY_RUN:
-        print(f"Auto-deprecating STALE route {r_id} in Firestore...")
+        print(f"Auto-deprecating STALE route {r_id} in Database...")
         # db.collection(r['_collection']).document(r['_id']).update({"deprecated": True})
 
 generate_report()
@@ -116,6 +116,6 @@ print(f"Report written to {REPORT_PATH}")
 
 if alerts_triggered and SLACK_WEBHOOK:
     print("Alerts triggered! Posting to Slack.")
-    requests.post(SLACK_WEBHOOK, json={"text": "🚨 Stale or Critical Routes detected in Firebase. See CI Report."})
+    requests.post(SLACK_WEBHOOK, json={"text": "🚨 Stale or Critical Routes detected in Supabase. See CI Report."})
 
 sys.exit(0)

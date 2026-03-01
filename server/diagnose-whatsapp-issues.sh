@@ -4,7 +4,7 @@
 set -e
 
 RAILWAY_URL="https://whats-upp-production.up.railway.app"
-FIREBASE_PROJECT="superparty-frontend"
+SUPABASE_PROJECT="superparty-frontend"
 
 echo "=== WhatsApp Issues Diagnostic ==="
 echo ""
@@ -12,7 +12,7 @@ echo ""
 # 1. Check Railway Health
 echo "1. Checking Railway Backend Health..."
 HEALTH=$(curl -sS "$RAILWAY_URL/health")
-echo "$HEALTH" | jq -r '.status, .firestore.status, .lock.owner, .waMode // "unknown"'
+echo "$HEALTH" | jq -r '.status, .database.status, .lock.owner, .waMode // "unknown"'
 echo ""
 
 # 2. Check if backend is in PASSIVE mode
@@ -35,16 +35,16 @@ echo "   Total accounts: $ACCOUNTS_COUNT"
 echo "   Connected: $CONNECTED_COUNT"
 echo ""
 
-# 4. Check Firestore accounts (if Firebase CLI available)
-if command -v firebase &> /dev/null; then
-  echo "4. Checking Firestore Accounts..."
-  echo "   (This requires Firebase CLI and authentication)"
+# 4. Check Database accounts (if Supabase CLI available)
+if command -v supabase &> /dev/null; then
+  echo "4. Checking Database Accounts..."
+  echo "   (This requires Supabase CLI and authentication)"
   echo ""
   echo "   To check manually:"
-  echo "   firebase firestore:get accounts --limit 10"
+  echo "   supabase database:get accounts --limit 10"
   echo ""
 else
-  echo "4. Firebase CLI not available - skipping Firestore check"
+  echo "4. Supabase CLI not available - skipping Database check"
   echo ""
 fi
 
@@ -54,7 +54,7 @@ echo "   (This requires authentication token)"
 echo ""
 echo "   To test manually:"
 echo "   curl -X POST \\"
-echo "     \"https://us-central1-${FIREBASE_PROJECT}.cloudfunctions.net/whatsappProxyRegenerateQr/ACCOUNT_ID\" \\"
+echo "     \"https://us-central1-${SUPABASE_PROJECT}.cloudfunctions.net/whatsappProxyRegenerateQr/ACCOUNT_ID\" \\"
 echo "     -H \"Authorization: Bearer YOUR_TOKEN\" \\"
 echo "     -H \"Content-Type: application/json\""
 echo ""
@@ -74,13 +74,13 @@ fi
 if [ "$ACCOUNTS_COUNT" -eq 0 ]; then
   echo "⚠️  No accounts found"
   echo "   - This is normal if no accounts have been created"
-  echo "   - If you just created an account, check Firestore"
+  echo "   - If you just created an account, check Database"
   echo ""
 fi
 
 echo "Next steps:"
 echo "1. Check Railway logs for detailed error messages"
-echo "2. Verify account exists in Firestore"
+echo "2. Verify account exists in Database"
 echo "3. Check if backend is in PASSIVE mode (if yes, investigate lock)"
 echo "4. Review WHATSAPP_ISSUES_DIAGNOSTIC.md for detailed analysis"
 echo ""

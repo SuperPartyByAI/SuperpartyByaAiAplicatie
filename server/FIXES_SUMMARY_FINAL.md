@@ -4,7 +4,7 @@
 
 1. **Functions Proxy**: Generic 500 for non-2xx responses hides real status codes (401, 403, etc.)
 2. **401 Loop**: Account cleanup doesn't prevent auto-reconnect, causing infinite loops
-3. **Black Screen**: Uncaught exceptions in Firebase init, auth listener, or StreamBuilder
+3. **Black Screen**: Uncaught exceptions in Supabase init, auth listener, or StreamBuilder
 4. **Events Page**: Empty state might show black screen (actually already handled ✅)
 5. **AI Scoring**: Location unclear (needs investigation)
 
@@ -14,12 +14,12 @@
 
 1. **401 Handler** (~line 1664)
    - ✅ Clear `connectingTimeout` before cleanup
-   - ✅ Set `nextRetryAt=null`, `retryCount=0` in Firestore
+   - ✅ Set `nextRetryAt=null`, `retryCount=0` in Database
    - ✅ Use incident type `wa_logged_out_requires_pairing`
    - ✅ Log session state before/after clear
 
 2. **createConnection Guard** (~line 1025)
-   - ✅ Check Firestore if account not in memory
+   - ✅ Check Database if account not in memory
    - ✅ Block auto-connect if status is `needs_qr` or `logged_out`
 
 3. **Timeout Handler Safety** (~line 1147)
@@ -28,7 +28,7 @@
 
 4. **Reset Endpoint** (~line 4267)
    - ✅ `POST /api/whatsapp/accounts/:id/reset`
-   - ✅ Clears disk session + Firestore backup
+   - ✅ Clears disk session + Database backup
    - ✅ Sets status to `needs_qr`
 
 ### Functions Proxy (functions/whatsappProxy.js)
@@ -66,7 +66,7 @@
 ### Backend
 - `whatsapp-backend/server.js`:
   - Line ~1664: 401 handler improvements
-  - Line ~1025: createConnection guard (Firestore check)
+  - Line ~1025: createConnection guard (Database check)
   - Line ~1147: Timeout handler safety
   - Line ~4267: Reset endpoint
 
@@ -90,7 +90,7 @@
 
 ### Medium Risk ⚠️
 - Backend 401 handler (affects reconnect behavior)
-- createConnection guard (might block legitimate connections if Firestore stale)
+- createConnection guard (might block legitimate connections if Database stale)
 
 ### Rollback Plan
 ```bash
@@ -104,7 +104,7 @@ cd superparty_flutter && flutter pub get
 
 # Revert Functions
 git revert <functions-commit-hash>
-cd functions && firebase deploy --only functions
+cd functions && supabase deploy --only functions
 ```
 
 ## Verification

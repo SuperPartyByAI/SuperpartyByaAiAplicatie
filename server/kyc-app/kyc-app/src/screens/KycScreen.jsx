@@ -1,9 +1,9 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { auth, db, storage, callExtractKYCData } from '../firebase';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
-import { signOut } from 'firebase/auth';
+import { auth, db, storage, callExtractKYCData } from '../supabase';
+import { doc, setDoc, serverTimestamp } from 'supabase/database';
+import { ref, uploadBytes, getDownloadURL } from 'supabase/storage';
+import { signOut } from 'supabase/auth';
 
 function KycScreen() {
   const navigate = useNavigate();
@@ -211,7 +211,7 @@ function KycScreen() {
         uploads.record = await uploadFile(files.record, 'record.jpg');
       }
 
-      // Salvează în Firestore
+      // Salvează în Database
       await setDoc(doc(db, 'kycSubmissions', uid), {
         uid,
         email: currentUser.email,

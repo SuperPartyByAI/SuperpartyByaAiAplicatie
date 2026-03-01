@@ -16,7 +16,7 @@
 
 **Functions migrated to `europe-west1`:**
 
-1. **`aggregateClientStats`** (Firestore trigger)
+1. **`aggregateClientStats`** (Database trigger)
    - File: `functions/aggregateClientStats.js:20`
    - Change: `region: 'us-central1'` → `region: 'europe-west1'`
    - maxInstances: 1 (preserved)
@@ -48,24 +48,24 @@
 1. **`extractEventFromThread()` method (line ~291)**
    ```dart
    // Before:
-   final functions = FirebaseFunctions.instanceFor(region: 'us-central1');
+   final functions = SupabaseFunctions.instanceFor(region: 'us-central1');
    
    // After:
-   final functions = FirebaseFunctions.instanceFor(region: 'europe-west1');
+   final functions = SupabaseFunctions.instanceFor(region: 'europe-west1');
    ```
 
 2. **`askClientAI()` method (line ~379)**
    ```dart
    // Before:
-   final functions = FirebaseFunctions.instanceFor(region: 'us-central1');
+   final functions = SupabaseFunctions.instanceFor(region: 'us-central1');
    
    // After:
-   final functions = FirebaseFunctions.instanceFor(region: 'europe-west1');
+   final functions = SupabaseFunctions.instanceFor(region: 'europe-west1');
    ```
 
 **Unchanged (still use default `us-central1`):**
 - All `whatsappProxy*` calls (HTTPS endpoints)
-- Other Firebase Function calls
+- Other Supabase Function calls
 
 ---
 
@@ -84,20 +84,20 @@
 # Step 1: Deploy migrated functions only (recommended first)
 cd /Users/universparty/Aplicatie-SuperpartyByAi
 
-firebase deploy --only \
+supabase deploy --only \
   functions:aggregateClientStats,functions:whatsappExtractEventFromThread,functions:clientCrmAsk
 
 # Step 2: Verify regions changed
-firebase functions:list | grep -E "aggregateClientStats|whatsappExtractEventFromThread|clientCrmAsk"
+supabase functions:list | grep -E "aggregateClientStats|whatsappExtractEventFromThread|clientCrmAsk"
 # Expected: All 3 should show "europe-west1"
 
 # Step 3: Deploy all functions (after verification)
-firebase deploy --only functions
+supabase deploy --only functions
 
 # Step 4: View logs (use --lines, NOT --limit)
-firebase functions:log --only whatsappExtractEventFromThread --lines 120
-firebase functions:log --only clientCrmAsk --lines 120
-firebase functions:log --only aggregateClientStats --lines 120
+supabase functions:log --only whatsappExtractEventFromThread --lines 120
+supabase functions:log --only clientCrmAsk --lines 120
+supabase functions:log --only aggregateClientStats --lines 120
 ```
 
 ---
@@ -135,20 +135,20 @@ info • 'value' is deprecated and shouldn't be used. Use initialValue instead.
 ```bash
 # Functions (backend):
 functions/aggregateClientStats.js:20:
-  region: 'europe-west1', // Co-located with Firestore (eur3) for low latency
+  region: 'europe-west1', // Co-located with Database (eur3) for low latency
 
 functions/whatsappExtractEventFromThread.js:33:
-  region: 'europe-west1', // Co-located with Firestore (eur3) for low latency
+  region: 'europe-west1', // Co-located with Database (eur3) for low latency
 
 functions/clientCrmAsk.js:27:
-  region: 'europe-west1', // Co-located with Firestore (eur3) for low latency
+  region: 'europe-west1', // Co-located with Database (eur3) for low latency
 
 # Flutter (client):
 superparty_flutter/lib/services/whatsapp_api_service.dart:295:
-  final functions = FirebaseFunctions.instanceFor(region: 'europe-west1');
+  final functions = SupabaseFunctions.instanceFor(region: 'europe-west1');
 
 superparty_flutter/lib/services/whatsapp_api_service.dart:383:
-  final functions = FirebaseFunctions.instanceFor(region: 'europe-west1');
+  final functions = SupabaseFunctions.instanceFor(region: 'europe-west1');
 ```
 
 ---
@@ -160,7 +160,7 @@ superparty_flutter/lib/services/whatsapp_api_service.dart:383:
 ⚠️ **Manual deletion of old `whatsapp(us-central1)` v1 function required**
 
 **Resolution:**
-1. Open: https://console.firebase.google.com/
+1. Open: https://console.supabase.google.com/
 2. Project: `superparty-frontend`
 3. Functions → Find `whatsapp` (1st gen, us-central1)
 4. 3 dots menu → Delete → Confirm
@@ -175,8 +175,8 @@ superparty_flutter/lib/services/whatsapp_api_service.dart:383:
 
 | Metric | Before (US) | After (EU) | Improvement |
 |--------|-------------|------------|-------------|
-| **Firestore read latency** | ~120ms | ~3ms | **40x faster** |
-| **Firestore write latency** | ~130ms | ~5ms | **26x faster** |
+| **Database read latency** | ~120ms | ~3ms | **40x faster** |
+| **Database write latency** | ~130ms | ~5ms | **26x faster** |
 | **Extract event (30 reads + 2 writes)** | ~3,860ms | ~100ms | **38x faster** |
 | **Ask AI (10 reads)** | ~1,200ms | ~50ms | **24x faster** |
 | **Egress cost** | $0.10/GB | $0.00/GB | **100% saved** |
@@ -185,18 +185,18 @@ superparty_flutter/lib/services/whatsapp_api_service.dart:383:
 
 ## 🎯 Deployment Order
 
-1. **Delete old `whatsapp` function** (manual, Firebase Console)
+1. **Delete old `whatsapp` function** (manual, Supabase Console)
 2. **Deploy migrated functions:**
    ```bash
-   firebase deploy --only functions:aggregateClientStats,functions:whatsappExtractEventFromThread,functions:clientCrmAsk
+   supabase deploy --only functions:aggregateClientStats,functions:whatsappExtractEventFromThread,functions:clientCrmAsk
    ```
 3. **Verify regions:**
    ```bash
-   firebase functions:list | grep europe-west1
+   supabase functions:list | grep europe-west1
    ```
 4. **Deploy all functions:**
    ```bash
-   firebase deploy --only functions
+   supabase deploy --only functions
    ```
 5. **Test in Flutter app:**
    - Open WhatsApp Chat → Client Profile
@@ -236,6 +236,6 @@ superparty_flutter/lib/services/whatsapp_api_service.dart:383:
 
 **Status:** All code complete. Ready for deployment after manual deletion.
 
-**Next action:** User must delete old `whatsapp` function via Firebase Console, then run deployment commands.
+**Next action:** User must delete old `whatsapp` function via Supabase Console, then run deployment commands.
 
 **Complete guide:** See `EU_REGION_DEPLOYMENT.md` for step-by-step instructions and troubleshooting.

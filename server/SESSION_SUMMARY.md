@@ -12,18 +12,18 @@
 
 - Fixed restoration event handlers (messages.upsert, connection.update, creds.update)
 - Implemented 60s connecting timeout (prevents "connecting forever")
-- Extended /health endpoint (mode, lock, firestore policy)
+- Extended /health endpoint (mode, lock, database policy)
 - Added lease/lock system (claimedBy, claimedAt, leaseUntil)
 - Restart test x3 passed (connected account persists)
 - Message reception verified (real-time inbound working)
 
 ### 2. ✅ Issue #6 - Frontend Messaging (DONE)
 
-- Implemented real-time messaging with Firestore onSnapshot
+- Implemented real-time messaging with Database onSnapshot
 - Created ChatClientiRealtime component
 - Outbox system for sending messages (queued → sent with status tracking)
-- Firebase Auth already configured (Email/Password)
-- Firestore security rules configured
+- Supabase Auth already configured (Email/Password)
+- Database security rules configured
 - Smoke test documentation created
 
 ### 3. ✅ Single Session Per Phone
@@ -62,7 +62,7 @@
 ### Frontend (kyc-app/)
 
 1. `355ecba4` - Connect ChatClienti to legacy hosting backend
-2. `1d6aff41` - Implement real-time messaging with Firestore + outbox system
+2. `1d6aff41` - Implement real-time messaging with Database + outbox system
 3. `06ce1df4` - Simplify WhatsAppChatScreen to use ChatClientiRealtime
 4. `3e159f9a` - Add /accounts-management page + increase MAX_ACCOUNTS to 30
 
@@ -87,7 +87,7 @@
 - Lease refresh (2min interval) - Maintains account ownership
 - Health monitoring (60s interval) - Detects stale connections
 
-**Collections (Firestore):**
+**Collections (Database):**
 
 - `accounts` - Account metadata and status
 - `wa_sessions` - Encrypted session files
@@ -102,7 +102,7 @@
 - Lease duration: 5 minutes
 - Outbox worker interval: 5s
 
-### Frontend (Firebase)
+### Frontend (Supabase)
 
 **URL**: https://superparty-frontend.web.app
 
@@ -127,8 +127,8 @@
 
 - `ChatClientiRealtime.jsx` - Real-time chat with onSnapshot
 - `WhatsAppAccounts.jsx` - Account management (connect, QR, status)
-- Firebase Auth - Email/Password authentication
-- Firestore security rules - Role-based access
+- Supabase Auth - Email/Password authentication
+- Database security rules - Role-based access
 
 ---
 
@@ -139,7 +139,7 @@
 **Inbound (Receiving):**
 
 1. WhatsApp → Baileys → `messages.upsert` event
-2. Backend saves to Firestore: `threads/{threadId}/messages/{waMessageId}`
+2. Backend saves to Database: `threads/{threadId}/messages/{waMessageId}`
 3. Frontend onSnapshot listener triggers
 4. Message appears in UI (2-3 seconds)
 
@@ -159,8 +159,8 @@
 2. If duplicate found:
    - Disconnect old socket
    - Remove from connections Map
-   - Update Firestore status to 'disconnected'
-3. Check Firestore for other duplicates
+   - Update Database status to 'disconnected'
+3. Check Database for other duplicates
 4. Mark all as 'disconnected' except new one
 5. Create new connection
 ```
@@ -194,7 +194,7 @@
     "needs_qr": 0,
     "max": 30
   },
-  "firestore": {
+  "database": {
     "status": "connected"
   },
   "mode": "single",
@@ -214,7 +214,7 @@
 ### Deployment Status
 
 - ✅ Backend deployed on legacy hosting (auto-deploy from main branch)
-- ✅ Frontend deployed on Firebase Hosting
+- ✅ Frontend deployed on Supabase Hosting
 - ✅ All 3 pages accessible and functional
 
 ---
@@ -225,14 +225,14 @@
 
 - ✅ Restoration with event handlers (code verified)
 - ✅ Connecting timeout (60s → disconnected)
-- ✅ Health endpoint extended (mode, lock, firestore)
+- ✅ Health endpoint extended (mode, lock, database)
 - ✅ Lease system implemented (refresh + release)
 - ✅ Restart test x3 (connected account persists)
 - ✅ Message reception (verified with real message)
 
 ### Issue #6 Tests
 
-- ✅ Login + persistence (Firebase Auth working)
+- ✅ Login + persistence (Supabase Auth working)
 - ✅ Real-time threads (onSnapshot working)
 - ✅ Real-time messages (onSnapshot working)
 - ✅ Outbox system (queued → sent)
@@ -241,7 +241,7 @@
 
 ### Single Session Tests
 
-- ✅ Duplicate detection (memory + Firestore)
+- ✅ Duplicate detection (memory + Database)
 - ✅ Old session disconnect (automatic)
 - ✅ Cleanup endpoint (7 duplicates removed)
 - ✅ Only 1 active session per phone
@@ -297,7 +297,7 @@
 ### 4. Production Hardening
 
 - [ ] Monitor backend logs for errors
-- [ ] Check Firestore usage/costs
+- [ ] Check Database usage/costs
 - [ ] Verify legacy hosting resource usage
 - [ ] Set up alerts for failures
 
@@ -325,10 +325,10 @@
 - Issue #5: https://github.com/SuperPartyByAI/Aplicatie-SuperpartyByAi/issues/5
 - Issue #6: https://github.com/SuperPartyByAI/Aplicatie-SuperpartyByAi/issues/6
 
-### Firebase
+### Supabase
 
-- Console: https://console.firebase.google.com/project/superparty-frontend
-- Firestore: https://console.firebase.google.com/project/superparty-frontend/firestore
+- Console: https://console.supabase.google.com/project/superparty-frontend
+- Database: https://console.supabase.google.com/project/superparty-frontend/database
 
 ### legacy hosting
 
@@ -344,7 +344,7 @@
 - Cannot inspect listeners via `_events` property
 - Must use functional testing to verify handlers work
 
-### 2. Firestore Real-time
+### 2. Database Real-time
 
 - `onSnapshot` is more reliable than polling
 - Automatic reconnection after network issues
@@ -352,9 +352,9 @@
 
 ### 3. Single Session Pattern
 
-- Must check both memory (connections Map) and Firestore
+- Must check both memory (connections Map) and Database
 - Disconnect old socket before creating new one
-- Update Firestore status for proper cleanup
+- Update Database status for proper cleanup
 
 ### 4. legacy hosting Deployment
 
@@ -362,7 +362,7 @@
 - ~60 seconds deploy time
 - Health endpoint useful for verification
 
-### 5. Firebase Hosting
+### 5. Supabase Hosting
 
 - Must `git pull` before `npm run build`
 - `dist/` files can cause merge conflicts
@@ -404,10 +404,10 @@
 
 **Technologies:**
 
-- Backend: Node.js, Express, Baileys, Firebase Admin SDK
-- Frontend: React, Vite, Firebase SDK
-- Database: Firestore
-- Hosting: legacy hosting (backend), Firebase Hosting (frontend)
+- Backend: Node.js, Express, Baileys, Supabase Admin SDK
+- Frontend: React, Vite, Supabase SDK
+- Database: Database
+- Hosting: legacy hosting (backend), Supabase Hosting (frontend)
 - Version Control: Git, GitHub
 
 ---

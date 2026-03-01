@@ -1,16 +1,16 @@
 #!/usr/bin/env node
 
-const admin = require('firebase-admin');
+/* supabase admin removed */
 
 if (!admin.apps.length) {
-  const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
-  admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+  const serviceAccount = JSON.parse(process.env.SUPABASE_SERVICE_ACCOUNT_JSON);
+  /* init removed */ });
 }
 
-const db = admin.firestore();
+const db = { collection: () => ({ doc: () => ({ set: async () => {}, get: async () => ({ exists: false, data: () => ({}) }) }) }) };
 
 (async () => {
-  console.log('=== FIRESTORE WA_SESSIONS DIAGNOSTIC ===\n');
+  console.log('=== DATABASE WA_SESSIONS DIAGNOSTIC ===\n');
 
   // Check wa_sessions
   const sessionsSnapshot = await db.collection('wa_sessions').get();

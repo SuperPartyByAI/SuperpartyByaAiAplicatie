@@ -22,12 +22,12 @@
 - `createdAt`: timestamp
 - `updatedAt`: timestamp
 
-**Firestore Rules:**
+**Database Rules:**
 - `allow read: if isEmployee()`
 - `allow write: if false` (server-only, Admin SDK bypasses rules)
 - `allow delete: if false` (NEVER DELETE)
 
-**Location:** `firestore.rules` (linia ~385-394)
+**Location:** `database.rules` (linia ~385-394)
 
 ---
 
@@ -47,7 +47,7 @@
 
 **Deploy:**
 ```bash
-firebase deploy --only functions:aggregateClientStats
+supabase deploy --only functions:aggregateClientStats
 ```
 
 ---
@@ -96,7 +96,7 @@ firebase deploy --only functions:aggregateClientStats
 
 **Deploy:**
 ```bash
-firebase deploy --only functions:whatsappExtractEventFromThread
+supabase deploy --only functions:whatsappExtractEventFromThread
 ```
 
 ---
@@ -136,22 +136,22 @@ firebase deploy --only functions:whatsappExtractEventFromThread
 
 **Deploy:**
 ```bash
-firebase deploy --only functions:clientCrmAsk
+supabase deploy --only functions:clientCrmAsk
 ```
 
 ---
 
-### **E) Firestore Indexes**
+### **E) Database Indexes**
 
 **Added indexes for `evenimente`:**
 - `phoneE164 ASC, date DESC` (pentru client events list)
 - `phoneE164 ASC, isArchived ASC, date DESC` (pentru active events)
 
-**Location:** `firestore.indexes.json` (liniile ~300-325)
+**Location:** `database.indexes.json` (liniile ~300-325)
 
 **Deploy:**
 ```bash
-firebase deploy --only firestore:indexes
+supabase deploy --only database:indexes
 ```
 
 ---
@@ -192,9 +192,9 @@ firebase deploy --only firestore:indexes
 
 ---
 
-## 🔍 **3. Verificare (Firebase Console)**
+## 🔍 **3. Verificare (Supabase Console)**
 
-### **Firestore Collections:**
+### **Database Collections:**
 
 1. **`clients/{phoneE164}`:**
    - Verifică agregări: `lifetimeSpendPaid`, `eventsCount`, `lastEventAt`
@@ -211,39 +211,39 @@ firebase deploy --only firestore:indexes
 
 ```bash
 # List functions
-firebase functions:list
+supabase functions:list
 
 # Verify exports
-firebase functions:config:get
+supabase functions:config:get
 
 # Check logs
-firebase functions:log --only aggregateClientStats
-firebase functions:log --only whatsappExtractEventFromThread
-firebase functions:log --only clientCrmAsk
+supabase functions:log --only aggregateClientStats
+supabase functions:log --only whatsappExtractEventFromThread
+supabase functions:log --only clientCrmAsk
 ```
 
 ---
 
 ## 🚀 **4. Deploy Checklist**
 
-### **Firestore Rules:**
+### **Database Rules:**
 ```bash
-firebase deploy --only firestore:rules
+supabase deploy --only database:rules
 ```
 
-### **Firestore Indexes:**
+### **Database Indexes:**
 ```bash
-firebase deploy --only firestore:indexes
+supabase deploy --only database:indexes
 ```
 
 ### **Cloud Functions:**
 ```bash
-firebase deploy --only functions:aggregateClientStats,functions:whatsappExtractEventFromThread,functions:clientCrmAsk
+supabase deploy --only functions:aggregateClientStats,functions:whatsappExtractEventFromThread,functions:clientCrmAsk
 ```
 
 **Sau deploy tot:**
 ```bash
-firebase deploy --only functions
+supabase deploy --only functions
 ```
 
 ---
@@ -272,7 +272,7 @@ firebase deploy --only functions
 ## 📊 **6. Testing**
 
 ### **Test 1: Create Event → Client Aggregation**
-1. Create eveniment manual în Firestore:
+1. Create eveniment manual în Database:
    ```json
    {
      "phoneE164": "+40712345678",
@@ -329,9 +329,9 @@ curl -X POST https://us-central1-superparty-frontend.cloudfunctions.net/clientCr
 - ✅ `functions/clientCrmAsk.js` (new)
 - ✅ `functions/index.js` (modified, exports added)
 
-### **Firestore:**
-- ✅ `firestore.rules` (modified, added `clients/{phoneE164}`)
-- ✅ `firestore.indexes.json` (modified, added `evenimente` indexes)
+### **Database:**
+- ✅ `database.rules` (modified, added `clients/{phoneE164}`)
+- ✅ `database.indexes.json` (modified, added `evenimente` indexes)
 
 ### **Docs:**
 - ✅ `RUNBOOK_CRM_WHATSAPP.md` (new, this file)

@@ -138,7 +138,7 @@ Flow:
 3. Validare: ✅ Format DD-MM-YYYY corect
 4. Validare: ✅ Adresa prezentă
 5. Preview: ✅ Afișează datele pentru confirmare
-6. Confirm: ✅ Creează eveniment în Firestore
+6. Confirm: ✅ Creează eveniment în Database
 ```
 
 ### ✅ Exemplu 2: Fără diacritice

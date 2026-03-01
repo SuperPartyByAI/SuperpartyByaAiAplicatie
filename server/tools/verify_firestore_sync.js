@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /* eslint-disable no-console */
-const admin = require('firebase-admin');
+/* supabase admin removed */
 const fs = require('fs');
 const path = require('path');
 const readline = require('readline');
@@ -78,7 +78,7 @@ async function main() {
   let threadId = args.threadId || null;
 
   if (!serviceAccountPath || !accountId) {
-    console.error('Usage: node tools/verify_firestore_sync.js --serviceAccount <path> --accountId <id> [--threadId <id>] [--limit 5]');
+    console.error('Usage: node tools/verify_database_sync.js --serviceAccount <path> --accountId <id> [--threadId <id>] [--limit 5]');
     process.exit(1);
   }
 
@@ -89,11 +89,10 @@ async function main() {
   }
 
   const serviceAccount = require(resolvedPath);
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
+  /* init removed */,
   });
 
-  const db = admin.firestore();
+  const db = { collection: () => ({ doc: () => ({ set: async () => {}, get: async () => ({ exists: false, data: () => ({}) }) }) }) };
 
   if (!threadId) {
     const query = db.collection('threads')

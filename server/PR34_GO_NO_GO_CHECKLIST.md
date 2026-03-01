@@ -56,7 +56,7 @@
 
 ## C. Security Verification (Already Completed, but Record It)
 
-- [x] `firebase-adminsdk.json` — DELETED from tracking
+- [x] `service-account.json` — DELETED from tracking
 - [x] `LEGACY_HOSTING-VARIABLES-V7.env` — DELETED from tracking
 - [x] `functions/.runtimeconfig.json` — REMOVED from tracking (only `.example` remains)
 - [x] `.gitignore` — blocks env/runtimeconfig/backups
@@ -112,14 +112,14 @@
 **After merge, consider:**
 1. **Split large PR** into smaller PRs for future:
    - CI/security cleanup
-   - Firestore rules
+   - Database rules
    - Functions changes
    - Flutter changes
    - Docs
 
 2. **Monitor production** for:
    - Logtail errors (should be zero spam)
-   - Firestore permission errors (should be zero for server-only collections)
+   - Database permission errors (should be zero for server-only collections)
    - WhatsApp connection timeouts (adjust `WHATSAPP_CONNECT_TIMEOUT_MS` if needed)
 
 ---

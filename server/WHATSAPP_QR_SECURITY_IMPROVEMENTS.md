@@ -16,7 +16,7 @@ Hardened WhatsApp QR connect feature with server-side RBAC enforcement, input va
 
 ### 2. Auth Middleware
 - Created reusable middleware functions:
-  - `requireAuth()`: Verifies Firebase ID token
+  - `requireAuth()`: Verifies Supabase ID token
   - `requireEmployee()`: Requires employee (staffProfiles or admin email)
   - `requireSuperAdmin()`: Requires super-admin email
 - All routes use middleware for consistent auth handling
@@ -71,7 +71,7 @@ Hardened WhatsApp QR connect feature with server-side RBAC enforcement, input va
 
 ## Security Behaviors Validated
 
-✅ **401 on missing/invalid token**: All routes reject requests without valid Firebase ID token
+✅ **401 on missing/invalid token**: All routes reject requests without valid Supabase ID token
 
 ✅ **403 on insufficient permissions**: 
 - Non-employees cannot access `getAccounts`
@@ -98,8 +98,8 @@ ADMIN_EMAILS=admin1@example.com,admin2@example.com
 
 ## Deployment Checklist
 
-- [ ] Set `WHATSAPP_BACKEND_BASE_URL` in Firebase Functions config
-- [ ] Deploy Functions: `firebase deploy --only functions:whatsappProxyGetAccounts,functions:whatsappProxyAddAccount,functions:whatsappProxyRegenerateQr`
+- [ ] Set `WHATSAPP_BACKEND_BASE_URL` in Supabase Functions config
+- [ ] Deploy Functions: `supabase deploy --only functions:whatsappProxyGetAccounts,functions:whatsappProxyAddAccount,functions:whatsappProxyRegenerateQr`
 - [ ] Verify Functions logs show no "WHATSAPP_BACKEND_BASE_URL environment variable is required" errors
 - [ ] Test with non-admin user: should get 403 on admin routes
 - [ ] Test with invalid input: should get 400

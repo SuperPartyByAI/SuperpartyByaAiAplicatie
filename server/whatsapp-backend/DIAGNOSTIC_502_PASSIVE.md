@@ -5,7 +5,7 @@
 **Backend PORNESTE CORECT:**
 - ✅ Server running on port 8080
 - ✅ ADMIN_TOKEN configured
-- ✅ FIREBASE_SERVICE_ACCOUNT_JSON setat
+- ✅ SUPABASE_SERVICE_ACCOUNT_JSON setat
 - ✅ SESSIONS_PATH=/app/sessions
 - ✅ Health endpoint: 200 OK
 
@@ -133,7 +133,7 @@ curl -s https://whats-app-ompro.ro/health | jq '{mode, waMode, lock}'
 
 **Variabilele sunt setate corect:**
 - ✅ `ADMIN_TOKEN` = `8df59afe1ca9387674e2b72c42460e3a3d2dea96833af6d3d9b840ff48ddfea3`
-- ✅ `FIREBASE_SERVICE_ACCOUNT_JSON` = setat
+- ✅ `SUPABASE_SERVICE_ACCOUNT_JSON` = setat
 - ✅ `SESSIONS_PATH` = `/app/sessions`
 
 **Nu e problemă cu variabilele!**

@@ -8,7 +8,7 @@ const QRCode = require('qrcode');
 const path = require('path');
 const fs = require('fs');
 const pino = require('pino');
-const firestore = require('../firebase/firestore');
+const database = require('../supabase/database');
 const sessionStore = require('./session-store');
 
 // TIER ULTIMATE 1: Import new modules
@@ -68,10 +68,10 @@ class WhatsAppManager {
     this.startProactiveMonitoring(); // TIER 3: Proactive reconnect
     this.startBatchProcessor(); // TIER 3: Batch processing
 
-    // Initialize Firebase
-    firestore.initialize();
+    // Initialize Supabase
+    database.initialize();
 
-    // TIER 3: Restore queue from Firestore
+    // TIER 3: Restore queue from Database
     this.restoreQueue();
 
     // TIER ULTIMATE 1: Initialize modules
@@ -99,8 +99,8 @@ class WhatsAppManager {
       console.warn(`⚠️ Circuit opened for ${accountId}: ${failures} failures, last: ${lastError}`);
       this.metrics.circuitBreaks = (this.metrics.circuitBreaks || 0) + 1;
 
-      // Log to Firestore
-      firestore.logEvent({
+      // Log to Database
+      database.logEvent({
         type: 'circuit_opened',
         accountId,
         failures,
@@ -112,8 +112,8 @@ class WhatsAppManager {
     circuitBreaker.on('circuit-closed', ({ accountId }) => {
       console.log(`✅ Circuit closed for ${accountId}: recovered`);
 
-      // Log to Firestore
-      firestore.logEvent({
+      // Log to Database
+      database.logEvent({
         type: 'circuit_closed',
         accountId,
         timestamp: Date.now(),
@@ -134,8 +134,8 @@ class WhatsAppManager {
     webhookManager.on('webhook-failed', ({ endpoint, event, error }) => {
       console.error(`❌ Webhook failed: ${endpoint} (${event}) - ${error}`);
 
-      // Log to Firestore
-      firestore.logEvent({
+      // Log to Database
+      database.logEvent({
         type: 'webhook_failed',
         endpoint,
         event,
@@ -176,7 +176,7 @@ class WhatsAppManager {
 
   async autoRestoreSessions() {
     try {
-      console.log('🔄 Checking for saved sessions in Firestore...');
+      console.log('🔄 Checking for saved sessions in Database...');
       const sessions = await sessionStore.listSessions();
 
       if (sessions.length === 0) {
@@ -286,11 +286,11 @@ class WhatsAppManager {
   }
 
   /**
-   * TIER 3: Restore message queue from Firestore
+   * TIER 3: Restore message queue from Database
    */
   async restoreQueue() {
     try {
-      const savedQueue = await firestore.getQueue('global');
+      const savedQueue = await database.getQueue('global');
       if (savedQueue && savedQueue.length > 0) {
         this.messageQueue = savedQueue;
         console.log(`📦 Restored ${savedQueue.length} messages from queue`);
@@ -302,7 +302,7 @@ class WhatsAppManager {
   }
 
   /**
-   * TIER 3: Batch processor for Firestore saves
+   * TIER 3: Batch processor for Database saves
    */
   startBatchProcessor() {
     setInterval(async () => {
@@ -313,7 +313,7 @@ class WhatsAppManager {
   }
 
   /**
-   * TIER 3: Flush message batch to Firestore
+   * TIER 3: Flush message batch to Database
    */
   async flushBatch() {
     if (this.messageBatch.length === 0) return;
@@ -322,7 +322,7 @@ class WhatsAppManager {
     this.messageBatch = [];
 
     try {
-      await firestore.saveBatch(batchToSave);
+      await database.saveBatch(batchToSave);
       console.log(`✅ Saved ${batchToSave.length} messages in batch`);
       await this.logMetric('batch_saved', { count: batchToSave.length });
     } catch (error) {
@@ -489,11 +489,11 @@ class WhatsAppManager {
   }
 
   /**
-   * TIER 3: Log metric to Firestore for monitoring
+   * TIER 3: Log metric to Database for monitoring
    */
   async logMetric(type, data) {
     try {
-      await firestore.logEvent({
+      await database.logEvent({
         type,
         data,
         timestamp: Date.now(),
@@ -558,9 +558,9 @@ class WhatsAppManager {
         await this.processNextMessage();
       }
 
-      // TIER 3: Save queue to Firestore every 10 messages
+      // TIER 3: Save queue to Database every 10 messages
       if (this.messageQueue.length > 0 && this.messageQueue.length % 10 === 0) {
-        await firestore.saveQueue('global', this.messageQueue);
+        await database.saveQueue('global', this.messageQueue);
       }
     }, 100);
   }
@@ -634,10 +634,10 @@ class WhatsAppManager {
       fs.mkdirSync(sessionPath, { recursive: true });
     }
 
-    // Try to restore session from Firestore
+    // Try to restore session from Database
     const restored = await sessionStore.restoreSession(accountId, sessionPath);
     if (restored) {
-      console.log(`✅ [${accountId}] Session restored from Firestore`);
+      console.log(`✅ [${accountId}] Session restored from Database`);
     }
 
     const { state, saveCreds } = await useMultiFileAuthState(sessionPath);
@@ -722,7 +722,7 @@ class WhatsAppManager {
         if (account) {
           account.status = shouldReconnect ? 'reconnecting' : 'disconnected';
 
-          // Salvează status în Firestore (păstrează accountul în listă)
+          // Salvează status în Database (păstrează accountul în listă)
           const sessionPath = path.join(this.sessionsPath, accountId);
           sessionStore.saveSession(accountId, sessionPath, account).catch(err => {
             console.error(`❌ [${accountId}] Failed to save status:`, err.message);
@@ -776,7 +776,7 @@ class WhatsAppManager {
         // TIER ULTIMATE 2: Send webhook
         webhookManager.onAccountConnected(accountId, sock.user?.id?.split(':')[0]);
 
-        // Save session + metadata to Firestore for persistence
+        // Save session + metadata to Database for persistence
         const sessionPath = path.join(this.sessionsPath, accountId);
         sessionStore.saveSession(accountId, sessionPath, account).catch(err => {
           console.error(`❌ [${accountId}] Failed to save session:`, err.message);
@@ -792,7 +792,7 @@ class WhatsAppManager {
 
     sock.ev.on('creds.update', async () => {
       await saveCreds();
-      // Also save to Firestore for persistence across restarts
+      // Also save to Database for persistence across restarts
       const sessionPath = path.join(this.sessionsPath, accountId);
       const account = this.accounts.get(accountId);
       sessionStore.saveSession(accountId, sessionPath, account).catch(err => {
@@ -857,7 +857,7 @@ class WhatsAppManager {
           }
         }
 
-        // ÎMBUNĂTĂȚIRE: Save to Firestore with retry logic and deduplication
+        // ÎMBUNĂTĂȚIRE: Save to Database with retry logic and deduplication
         await this.saveMessageWithRetry(accountId, chatId, messageData, message.pushName);
 
         if (this.messageQueue.length > 1000) {
@@ -898,17 +898,17 @@ class WhatsAppManager {
     for (let attempt = 0; attempt < maxRetries; attempt++) {
       try {
         // ÎMBUNĂTĂȚIRE: Check for duplicates before saving
-        const exists = await firestore.messageExists(accountId, chatId, messageData.id);
+        const exists = await database.messageExists(accountId, chatId, messageData.id);
         if (exists) {
           console.log(`[${accountId}] Message ${messageData.id} already exists, skipping`);
           return;
         }
 
         // Save message
-        await firestore.saveMessage(accountId, chatId, messageData);
+        await database.saveMessage(accountId, chatId, messageData);
 
         // Save chat metadata
-        await firestore.saveChat(accountId, chatId, {
+        await database.saveChat(accountId, chatId, {
           name: pushName || chatId.split('@')[0],
           lastMessage: messageData.body,
           lastMessageTimestamp: messageData.timestamp,
@@ -964,7 +964,7 @@ class WhatsAppManager {
         fs.rmSync(sessionPath, { recursive: true, force: true });
       }
 
-      // Delete from Firestore
+      // Delete from Database
       await sessionStore.deleteSession(accountId);
 
       this.io.emit('whatsapp:account_removed', { accountId });
@@ -1013,13 +1013,13 @@ class WhatsAppManager {
     try {
       console.log(`📋 [${accountId}] Getting messages for ${chatId}...`);
 
-      // Try Firestore first (persistent)
-      const firestoreMessages = await firestore.getMessages(accountId, chatId, limit);
-      if (firestoreMessages.length > 0) {
+      // Try Database first (persistent)
+      const databaseMessages = await database.getMessages(accountId, chatId, limit);
+      if (databaseMessages.length > 0) {
         console.log(
-          `✅ [${accountId}] Returning ${firestoreMessages.length} messages from Firestore`
+          `✅ [${accountId}] Returning ${databaseMessages.length} messages from Database`
         );
-        return firestoreMessages;
+        return databaseMessages;
       }
 
       // Fallback to cache
@@ -1331,10 +1331,10 @@ class WhatsAppManager {
         await this.processNextMessage();
       }
 
-      // TIER 3: Save queue to Firestore
+      // TIER 3: Save queue to Database
       if (this.messageQueue.length > 0) {
         console.log(`💾 Saving ${this.messageQueue.length} messages to queue...`);
-        await firestore.saveQueue('global', this.messageQueue);
+        await database.saveQueue('global', this.messageQueue);
       }
 
       // Save all sessions

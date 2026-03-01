@@ -7,20 +7,20 @@
  * 
  * Prerequisites:
  *   - serviceAccountKey.json in the same directory
- *   - npm install firebase-admin (already available on VPS)
+ *   - npm install supabase-admin (already available on VPS)
  */
 
-import { initializeApp, cert } from 'firebase-admin/app';
-import { getFirestore } from 'firebase-admin/firestore';
+import { initializeApp, cert } from 'supabase-admin/app';
+import { getDatabase } from 'supabase-admin/database';
 import { readFileSync } from 'fs';
 import crypto from 'crypto';
 
 const DRY_RUN = !process.argv.includes('--apply');
 
-// Init Firebase
-const serviceAccount = JSON.parse(readFileSync('./firebase-service-account.json', 'utf8'));
+// Init Supabase
+const serviceAccount = JSON.parse(readFileSync('./supabase-service-account.json', 'utf8'));
 initializeApp({ credential: cert(serviceAccount) });
-const db = getFirestore();
+const db = getDatabase();
 
 // Generate unique code
 const usedCodes = new Set();
@@ -28,7 +28,7 @@ async function generateCode() {
   for (let attempt = 0; attempt < 50; attempt++) {
     const code = 'SP-' + crypto.randomBytes(2).toString('hex').toUpperCase();
     if (!usedCodes.has(code)) {
-      // Check Firestore too
+      // Check Database too
       const dup = await db.collection('employees').where('personCode', '==', code).limit(1).get();
       if (dup.empty) {
         usedCodes.add(code);

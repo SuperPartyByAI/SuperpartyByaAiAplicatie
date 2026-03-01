@@ -1,16 +1,15 @@
-const admin = require('firebase-admin');
+/* supabase admin removed */
 const fs = require('fs');
 
-const { loadServiceAccount } = require('./whatsapp-backend/firebaseCredentials');
+const { loadServiceAccount } = require('./whatsapp-backend/supabaseCredentials');
 
 const { serviceAccount } = loadServiceAccount();
 if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
+  /* init removed */,
     projectId: serviceAccount.project_id
   });
 }
-const db = admin.firestore();
+const db = { collection: () => ({ doc: () => ({ set: async () => {}, get: async () => ({ exists: false, data: () => ({}) }) }) }) };
 
 const TO_CREATE = [
   "MegaParty",
@@ -50,8 +49,8 @@ async function run() {
               id: newRef.id,
               label: name,
               status: 'needs_qr',
-              createdAt: admin.firestore.FieldValue.serverTimestamp(),
-              updatedAt: admin.firestore.FieldValue.serverTimestamp()
+              createdAt: admin.database.new Date(),
+              updatedAt: admin.database.new Date()
           };
           await newRef.set(docData);
           found = { id: newRef.id, ...docData, phoneNumber: 'unknown' };
@@ -63,7 +62,7 @@ async function run() {
           route_id: `route-${found.id}`,
           name: found.label,
           metadata: { whatsapp_phone: phone, phone_id: found.id },
-          destination: { url: `firestore://wa_accounts/${found.id}` },
+          destination: { url: `database://wa_accounts/${found.id}` },
           binding_id: `bind-${found.id}`
       });
       report.created.push(`Created/Ensured route for ${name} (ID: ${found.id})`);
@@ -115,7 +114,7 @@ async function run() {
               ],
               is_wildcard: false,
               destination: {
-                  url: `firestore://wa_accounts/${acc.id}`,
+                  url: `database://wa_accounts/${acc.id}`,
                   method: "POST",
                   headers: { "X-Route-Id": `route-${acc.id}` }
               },
@@ -136,7 +135,7 @@ async function run() {
                       from: phone,
                       to: "system",
                       route_id: `route-${acc.id}`,
-                      destination_url: `firestore://wa_accounts/${acc.id}`,
+                      destination_url: `database://wa_accounts/${acc.id}`,
                       response_status: acc.status === 'connected' ? 200 : 503,
                       error_message: acc.status === 'connected' ? null : "QR Not Scanned",
                       latency_ms: 15

@@ -23,23 +23,23 @@ if ($javaProcesses) {
 }
 
 Write-Host "`n[2/3] Deleting problematic build folder..." -ForegroundColor Yellow
-$cloudFirestoreBuild = Join-Path $buildPath "cloud_firestore"
-if (Test-Path $cloudFirestoreBuild) {
-    Write-Host "  Path: $cloudFirestoreBuild" -ForegroundColor Cyan
+$cloudDatabaseBuild = Join-Path $buildPath "cloud_database"
+if (Test-Path $cloudDatabaseBuild) {
+    Write-Host "  Path: $cloudDatabaseBuild" -ForegroundColor Cyan
     try {
-        Remove-Item -Path $cloudFirestoreBuild -Recurse -Force -ErrorAction Stop
-        Write-Host "✓ cloud_firestore build folder deleted" -ForegroundColor Green
+        Remove-Item -Path $cloudDatabaseBuild -Recurse -Force -ErrorAction Stop
+        Write-Host "✓ cloud_database build folder deleted" -ForegroundColor Green
     } catch {
         Write-Host "✗ Failed to delete: $($_.Exception.Message)" -ForegroundColor Red
         Write-Host "`nTry manually:" -ForegroundColor Yellow
         Write-Host "  1. Close Cursor/Android Studio" -ForegroundColor White
         Write-Host "  2. Stop all Java processes in Task Manager" -ForegroundColor White
-        Write-Host "  3. Run: Remove-Item -Path '$cloudFirestoreBuild' -Recurse -Force" -ForegroundColor White
+        Write-Host "  3. Run: Remove-Item -Path '$cloudDatabaseBuild' -Recurse -Force" -ForegroundColor White
         Write-Host "  4. Or move repo out of OneDrive: C:\dev\Aplicatie-SuperpartyByAi" -ForegroundColor White
         exit 1
     }
 } else {
-    Write-Host "✓ cloud_firestore build folder doesn't exist" -ForegroundColor Green
+    Write-Host "✓ cloud_database build folder doesn't exist" -ForegroundColor Green
 }
 
 Write-Host "`n[3/3] Running flutter clean..." -ForegroundColor Yellow

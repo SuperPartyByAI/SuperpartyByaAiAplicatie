@@ -40,7 +40,7 @@ These are **completely separate** and do **NOT** sync automatically.
 
 ### What it is:
 - **Managed by legacy hosting backend** (Baileys library)
-- Stored in **Firestore** database
+- Stored in **Database** database
 - **AI-enabled** - supports operator inbox, automated responses
 - QR codes generated **in app** and displayed there
 
@@ -52,7 +52,7 @@ These are **completely separate** and do **NOT** sync automatically.
 
 ### Location:
 - Backend: legacy hosting (`whatsapp-backend`)
-- Database: Firestore (`accounts` collection)
+- Database: Database (`accounts` collection)
 - App: Flutter `WhatsAppAccountsScreen`
 
 ### How to use:
@@ -69,7 +69,7 @@ These are **completely separate** and do **NOT** sync automatically.
 
 | Aspect | Firefox Sessions | Backend Accounts |
 |--------|-----------------|------------------|
-| **Location** | Local (Firefox) | Cloud (legacy hosting + Firestore) |
+| **Location** | Local (Firefox) | Cloud (legacy hosting + Database) |
 | **AI Features** | ❌ No | ✅ Yes |
 | **App Integration** | ❌ No | ✅ Yes |
 | **QR Generation** | Browser (web.whatsapp.com) | App (backend) |
@@ -83,7 +83,7 @@ These are **completely separate** and do **NOT** sync automatically.
 **Firefox sessions are local browser tabs**, not backend accounts. The Flutter app only shows accounts from:
 
 ```
-Flutter App → Cloud Functions Proxy → legacy hosting Backend → Firestore
+Flutter App → Cloud Functions Proxy → legacy hosting Backend → Database
 ```
 
 Firefox containers are **completely separate** and never touch the backend.

@@ -4,9 +4,9 @@ const {
   extractThreadId,
   extractFrom,
   buildStableKeyHash,
-} = require('../scripts/audit-firestore-duplicates');
+} = require('../scripts/audit-database-duplicates');
 
-describe('audit-firestore-duplicates helpers', () => {
+describe('audit-database-duplicates helpers', () => {
   test('coerceToMs handles numbers and strings', () => {
     expect(coerceToMs(1700000000)).toBe(1700000000 * 1000);
     expect(coerceToMs('1700000000')).toBe(1700000000 * 1000);

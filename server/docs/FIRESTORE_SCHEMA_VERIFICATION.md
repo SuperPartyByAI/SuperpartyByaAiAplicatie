@@ -1,6 +1,6 @@
-# Verificare schema Firestore – threads & mesaje WhatsApp
+# Verificare schema Database – threads & mesaje WhatsApp
 
-Document de referință pentru verificarea că **threads** și **mesaje** se salvează corect în Firestore (colecții `threads`, `threads/{threadId}/messages`).
+Document de referință pentru verificarea că **threads** și **mesaje** se salvează corect în Database (colecții `threads`, `threads/{threadId}/messages`).
 
 ---
 
@@ -83,7 +83,7 @@ Document de referință pentru verificarea că **threads** și **mesaje** se sal
   - Evită folosirea de obiecte care s-ar stringifica la `[object Object]`.
 
 - Folosire:
-  - **saveMessageToFirestore**: `from = ensureJidString(msg.key.remoteJid)`; dacă `!from`, mesajul nu se salvează.
+  - **saveMessageToDatabase**: `from = ensureJidString(msg.key.remoteJid)`; dacă `!from`, mesajul nu se salvează.
   - **saveMessagesBatch** (history sync): același pattern; mesajele cu `remoteJid` invalid se sar.
   - **message_persist.writeMessageIdempotent**: dacă `threadId` conține `[object Object]` sau `[obiect Obiect]`, scrierea se abandonează.
   - **Contacts batch**: `contact.id` se normalizează cu `ensureJidString` înainte de a scrie în `contacts`.
@@ -98,14 +98,14 @@ Document de referință pentru verificarea că **threads** și **mesaje** se sal
 - **My Inbox**: un singur cont, cel din `users/{uid}.myWhatsAppAccountId` (ex. contul tău personal). De obicei `account_prod_f869ce13d00bc7d7aa13ef18c16f3bd5` (0737571397).
 - **Inbox Admin**: doar contul 0737571397 (același ID ca My Inbox când ești admin).
 
-Structura pe care o vezi în Firestore (thread + `messages`) e **aceeași** pentru toate inbox-urile. Diferă doar **ce `accountId`** interogăm. Dacă inspecționezi `account_prod_f869ce13d00bc7d7aa13ef18c16f3bd5__...` → e **My Inbox / Admin**. Dacă inspecționezi `account_prod_26ec0bfb54a6ab88cc3cd7aba6a9a443__...` → e **Inbox Angajați** (staff).
+Structura pe care o vezi în Database (thread + `messages`) e **aceeași** pentru toate inbox-urile. Diferă doar **ce `accountId`** interogăm. Dacă inspecționezi `account_prod_f869ce13d00bc7d7aa13ef18c16f3bd5__...` → e **My Inbox / Admin**. Dacă inspecționezi `account_prod_26ec0bfb54a6ab88cc3cd7aba6a9a443__...` → e **Inbox Angajați** (staff).
 
-- **„ID cont” / „cont_prod” în Console**: Consola Firestore poate afișa „ID cont” (sau „cont_prod”) ca etichetă pentru câmpul `accountId`. Valoarea rămasă e `account_prod_...` (nu un câmp separat „cont_prod”).
+- **„ID cont” / „cont_prod” în Console**: Consola Database poate afișa „ID cont” (sau „cont_prod”) ca etichetă pentru câmpul `accountId`. Valoarea rămasă e `account_prod_...` (nu un câmp separat „cont_prod”).
 - **`clientJid` map vs string**: Uneori `clientJid` e **map** (`canonicalJid`, `rawJid`, etc.), nu string. Flutter citește cu `_readString(..., mapKeys: ['canonicalJid','jid','clientJid','remoteJid'])`, deci e OK.
 
 ---
 
-## 5. Cum verifici în consola Firestore
+## 5. Cum verifici în consola Database
 
 1. **Threads**  
    - Filtrezi `accountId` = cont cunoscut (staff sau admin).  
@@ -117,12 +117,12 @@ Structura pe care o vezi în Firestore (thread + `messages`) e **aceeași** pent
      - `direction`, `messageType`, `tsClient`/`tsServer` = prezente și coerente.
 
 3. **Dump structură „as saved”**  
-   - `node scripts/dump_firestore_inbox_sample.mjs --project <project> --accountId <id>`  
+   - `node scripts/dump_database_inbox_sample.mjs --project <project> --accountId <id>`  
    - sau `--threadId "account_prod_...__..."` pentru un thread anume.  
    - Afișează un thread + câteva mesaje ca JSON (cu Timestamp → ISO). Folosește-l pentru a compara cu ce vezi în Console.
 
 4. **Deduplicare**  
-   - Rulezi scripturile din `whatsapp-backend/scripts/` (ex. `audit-firestore-duplicates.js`) conform documentației lor.
+   - Rulezi scripturile din `whatsapp-backend/scripts/` (ex. `audit-database-duplicates.js`) conform documentației lor.
 
 **Checklist rapid „se salvează OK”** (per account):
 
@@ -136,7 +136,7 @@ Structura pe care o vezi în Firestore (thread + `messages`) e **aceeași** pent
 ## 6. Referințe cod
 
 - **Scriere threads/mesaje**: `whatsapp-backend/whatsapp/message_persist.js` (`writeMessageIdempotent`).  
-- **History sync**: `whatsapp-backend/server.js` → `saveMessagesBatch`, `saveMessageToFirestore`.  
+- **History sync**: `whatsapp-backend/server.js` → `saveMessagesBatch`, `saveMessageToDatabase`.  
 - **`ensureJidString`**: `whatsapp-backend/server.js` (helper), folosit la persist și la contacts batch.  
 - **Canonicalizare**: `whatsapp-backend/lib/wa-canonical.js`, `buildCanonicalThreadId`; `server.js` → `canonicalClientKey`, `buildCanonicalThreadId`.
 
@@ -148,7 +148,7 @@ Câteva cauze frecvente și ce s-a făcut:
 
 ### 7.1 `tsClient` lipsă / null
 
-- **Problema**: Chat-ul face `orderBy('tsClient', descending: true)` pe `threads/{threadId}/messages`. Firestore **exclude** documentele cu `tsClient == null` din query-uri sortate → mesajele respective „dispar”.
+- **Problema**: Chat-ul face `orderBy('tsClient', descending: true)` pe `threads/{threadId}/messages`. Database **exclude** documentele cu `tsClient == null` din query-uri sortate → mesajele respective „dispar”.
 - **Fix**: În `message_persist` există **fallback**: dacă `messageTimestamp` lipsește, setăm `tsClient` = `Timestamp.now()` (și `tsClientMs`). Astfel nu mai scriem niciodată `tsClient` null.
 
 ### 7.2 LID vs canonical – mesajele rămân pe @lid
@@ -156,7 +156,7 @@ Câteva cauze frecvente și ce s-a făcut:
 - **Problema**: Inbox-ul **ascunde** thread-urile @lid când există un thread **canonical** (`redirectTo` sau același contact cu `@s.whatsapp.net`). Lista arată doar thread-ul canonical. Mesajele vechi au fost salvate pe thread-ul **@lid**; cele noi pe **canonical**. Când deschizi canonical-ul, vezi doar mesajele de acolo → „lipsesc” cele vechi.
 - **Fix**: Rulează migrarea **LID → canonical** ca să copiezi mesajele de pe @lid în thread-ul canonical:
   - `whatsapp-backend/scripts/migrate-lid-threads.js` (vezi README-ul din script).
-- **Verificare**: În Firestore, sub `threads/...__...@lid` există mesaje; sub `threads/...__...@s.whatsapp.net` (canonical) sunt mai puține sau zero. După migrare, canonical ar trebui să aibă toate mesajele.
+- **Verificare**: În Database, sub `threads/...__...@lid` există mesaje; sub `threads/...__...@s.whatsapp.net` (canonical) sunt mai puține sau zero. După migrare, canonical ar trebui să aibă toate mesajele.
 
 ### 7.3 Thread-uri invalide `[object Object]` / `[obiect Obiect]`
 
@@ -174,8 +174,8 @@ Câteva cauze frecvente și ce s-a făcut:
 
 ### 7.4 Index pentru `tsClient`
 
-- Chat-ul folosește `orderBy('tsClient', descending: true)` pe `messages`. Trebuie index în Firestore (ex. `fieldOverrides` pentru `messages` + `tsClient`).
-- Dacă lipsește indexul → `failed-precondition` la stream, nu doar „lista goală”. Verifică `firestore.indexes.json` și `firebase deploy --only firestore:indexes`.
+- Chat-ul folosește `orderBy('tsClient', descending: true)` pe `messages`. Trebuie index în Database (ex. `fieldOverrides` pentru `messages` + `tsClient`).
+- Dacă lipsește indexul → `failed-precondition` la stream, nu doar „lista goală”. Verifică `database.indexes.json` și `supabase deploy --only database:indexes`.
 
 ---
 
@@ -183,4 +183,4 @@ Câteva cauze frecvente și ce s-a făcut:
 
 - **Thread IDs**: mereu `{accountId}__{jid}` cu `jid` string valid; `[object Object]` / `[obiect Obiect]` evitate prin `ensureJidString` și validare în `message_persist`.  
 - **Mesaje**: `body` gol la documente e așteptat; `tsClient` are mereu fallback (nu null). `clientJid` poate fi string sau map; Flutter folosește `_readString` cu `mapKeys`.  
-- **Verificare**: inspecție în Firestore + `dump_firestore_inbox_sample.mjs` + scripturi de audit; pentru „nu apar mesajele” vezi secțiunea 7.
+- **Verificare**: inspecție în Database + `dump_database_inbox_sample.mjs` + scripturi de audit; pentru „nu apar mesajele” vezi secțiunea 7.

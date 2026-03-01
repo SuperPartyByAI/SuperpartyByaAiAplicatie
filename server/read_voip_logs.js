@@ -1,7 +1,7 @@
-import { initFirebase, db } from "./firebase-sync.js";
+import { initSupabase, db } from "./supabase-sync.js";
 
 async function run() {
-  await initFirebase();
+  await initSupabase();
   const snap = await db.collection("voip_logs").orderBy("timestamp", "desc").limit(20).get();
   snap.forEach(doc => {
     const d = doc.data();

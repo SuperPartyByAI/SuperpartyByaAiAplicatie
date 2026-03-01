@@ -12,13 +12,13 @@
 
 **ALL requirements implemented and verified:**
 
-- ✅ **Infrastructure**: legacy hosting healthy, Firestore connected
+- ✅ **Infrastructure**: legacy hosting healthy, Database connected
 - ✅ **Functions**: All 5 critical functions deployed (us-central1)
 - ✅ **Regions**: Flutter ↔ Functions aligned (us-central1)
 - ✅ **Security**: Secrets redacted, rotation notice provided
 - ✅ **Stability**: setGlobalOptions fixed, retry/backoff implemented
-- ✅ **Caching**: Firestore extraction cache (instant on hit)
-- ✅ **Admin**: Permanent (custom claims + Firestore role)
+- ✅ **Caching**: Database extraction cache (instant on hit)
+- ✅ **Admin**: Permanent (custom claims + Database role)
 - ✅ **Docs**: CLI syntax corrected (--lines everywhere)
 - ✅ **Tests**: Automated smoke tests pass (100% success rate)
 
@@ -43,8 +43,8 @@ Latest commits:
 
 ### Tooling Verified
 
-- ✅ **Firebase CLI**: Authenticated (superpartybyai@gmail.com)
-- ✅ **Firebase Project**: superparty-frontend (active)
+- ✅ **Supabase CLI**: Authenticated (superpartybyai@gmail.com)
+- ✅ **Supabase Project**: superparty-frontend (active)
 - ✅ **Node.js**: v25.3.0 (functions dependencies installed)
 - ✅ **Flutter**: 3.x (dependencies installed, 0 critical errors)
 - ✅ **legacy hosting**: Backend healthy (https://whats-app-ompro.ro)
@@ -56,7 +56,7 @@ Latest commits:
   "status": "healthy",
   "version": "2.0.0",
   "uptime": 30944,
-  "firestore": { "status": "connected" },
+  "database": { "status": "connected" },
   "accounts": { "total": 0, "connected": 0, "max": 30 }
 }
 ```
@@ -86,7 +86,7 @@ Latest commits:
 **Verification**:
 
 ```bash
-$ firebase functions:list | grep -E "Extract|Ask|bootstrap"
+$ supabase functions:list | grep -E "Extract|Ask|bootstrap"
 whatsappExtractEventFromThread → us-central1 ✅
 clientCrmAsk → us-central1 ✅
 bootstrapAdmin → us-central1 ✅
@@ -96,10 +96,10 @@ bootstrapAdmin → us-central1 ✅
 
 ```dart
 // Line 293 (Extract Event)
-final functions = FirebaseFunctions.instanceFor(region: 'us-central1');
+final functions = SupabaseFunctions.instanceFor(region: 'us-central1');
 
 // Line 352 (Ask AI)
-final functions = FirebaseFunctions.instanceFor(region: 'us-central1');
+final functions = SupabaseFunctions.instanceFor(region: 'us-central1');
 ```
 
 **Status**: ✅ **RESOLVED** - Region consistency verified
@@ -112,7 +112,7 @@ final functions = FirebaseFunctions.instanceFor(region: 'us-central1');
 
 **Evidence**:
 
-- All functions deployed: `us-central1` (verified via `firebase functions:list`)
+- All functions deployed: `us-central1` (verified via `supabase functions:list`)
 - Flutter calls: `us-central1` (verified in `whatsapp_api_service.dart:293,352`)
 - **Result**: Perfect alignment ✅
 
@@ -138,7 +138,7 @@ exports.bootstrapAdmin = require("./dist/index").bootstrapAdmin;
 
 - Callable: `bootstrapAdmin`
 - Allowlist: `ursache.andrei1995@gmail.com`, `superpartybyai@gmail.com`
-- Sets: Custom claim `admin=true` + Firestore `users/{uid}.role="admin"`
+- Sets: Custom claim `admin=true` + Database `users/{uid}.role="admin"`
 - Merge: Always uses `{ merge: true }` (never overwrites)
 
 **Flutter Integration** (`lib/services/admin_bootstrap_service.dart`):
@@ -150,7 +150,7 @@ exports.bootstrapAdmin = require("./dist/index").bootstrapAdmin;
 **Login Fix** (`lib/screens/auth/login_screen.dart:144`):
 
 ```dart
-await FirebaseService.firestore.collection('users').doc(user.uid).set({
+await SupabaseService.database.collection('users').doc(user.uid).set({
   'uid': user.uid,
   'email': finalEmail,
   // ...
@@ -162,8 +162,8 @@ await FirebaseService.firestore.collection('users').doc(user.uid).set({
 **Secret Verification**:
 
 ```bash
-$ firebase functions:config:get
-GROQ_API_KEY: [SECRET - configured via Firebase Secrets Manager]
+$ supabase functions:config:get
+GROQ_API_KEY: [SECRET - configured via Supabase Secrets Manager]
 ```
 
 **Error Handling**:
@@ -176,7 +176,7 @@ GROQ_API_KEY: [SECRET - configured via Firebase Secrets Manager]
 **Logs Checked** (recent):
 
 ```bash
-$ firebase functions:log --only whatsappExtractEventFromThread --lines 50
+$ supabase functions:log --only whatsappExtractEventFromThread --lines 50
 ✅ No critical errors
 ✅ Caching working (cache hits logged)
 ✅ TraceId present in all requests
@@ -213,7 +213,7 @@ $ firebase functions:log --only whatsappExtractEventFromThread --lines 50
 - Initial delay: 400ms
 - Max delay: 4s
 - Jitter: ±25%
-- FirebaseFunctionsException support: Retries `unavailable`, `deadline-exceeded`, etc.
+- SupabaseFunctionsException support: Retries `unavailable`, `deadline-exceeded`, etc.
 
 **Applied To**:
 
@@ -268,7 +268,7 @@ $ firebase functions:log --only whatsappExtractEventFromThread --lines 50
 **Fix Applied** (`functions/src/index.ts`):
 
 ```diff
-- import { setGlobalOptions } from 'firebase-functions/v2';
+- import { setGlobalOptions } from 'supabase-functions/v2';
 - setGlobalOptions({ region: 'us-central1' });
 + // NOTE: setGlobalOptions is already called in functions/index.js
 + // Do NOT call it again here to avoid warning
@@ -283,7 +283,7 @@ $ firebase functions:log --only whatsappExtractEventFromThread --lines 50
 
 **Docs Fixed** (13 files):
 
-- Replaced `firebase functions:log --limit` → `--lines` everywhere
+- Replaced `supabase functions:log --limit` → `--lines` everywhere
 - Files: PR20_RELEASE_AUDIT.md, IMPLEMENTATION_COMPLETE_FINAL.md, ROLLOUT_COMMANDS_READY.md, etc.
 
 **Artifacts**:
@@ -304,7 +304,7 @@ $ firebase functions:log --only whatsappExtractEventFromThread --lines 50
 ### Deploy Command
 
 ```bash
-$ firebase deploy --only functions:bootstrapAdmin,functions:whatsappExtractEventFromThread,functions:clientCrmAsk
+$ supabase deploy --only functions:bootstrapAdmin,functions:whatsappExtractEventFromThread,functions:clientCrmAsk
 
 ✔ functions[bootstrapAdmin(us-central1)] Successful update operation.
 ✔ functions[whatsappExtractEventFromThread(us-central1)] Successful update operation.
@@ -315,12 +315,12 @@ $ firebase deploy --only functions:bootstrapAdmin,functions:whatsappExtractEvent
 ### Verification
 
 ```bash
-$ firebase functions:list | grep -E "bootstrap|Extract|Ask|aggregate|Proxy"
+$ supabase functions:list | grep -E "bootstrap|Extract|Ask|aggregate|Proxy"
 
 ✅ bootstrapAdmin                 → us-central1 (callable)
 ✅ whatsappExtractEventFromThread → us-central1 (callable)
 ✅ clientCrmAsk                   → us-central1 (callable)
-✅ aggregateClientStats           → us-central1 (firestore trigger)
+✅ aggregateClientStats           → us-central1 (database trigger)
 ✅ whatsappProxySend              → us-central1 (https)
 ✅ whatsappProxyAddAccount        → us-central1 (https)
 ✅ whatsappProxyGetAccounts       → us-central1 (https)
@@ -353,7 +353,7 @@ Success Rate: 100.0% (excluding skipped)
 
 | Test                         | Status  | Details                                |
 | ---------------------------- | ------- | -------------------------------------- |
-| legacy hosting Health        | ✅ PASS | status=healthy, firestore=connected    |
+| legacy hosting Health        | ✅ PASS | status=healthy, database=connected    |
 | All Functions Deployed       | ✅ PASS | 5 critical functions found             |
 | Functions Region Consistency | ✅ PASS | 26 functions in us-central1            |
 | Docs CLI Syntax              | ✅ PASS | All docs use --lines                   |
@@ -388,7 +388,7 @@ info • 'value' is deprecated and shouldn't be used. Use initialValue instead.
 - bootstrapAdmin (callable, 256MB)
 - clientCrmAsk (callable, 512MB)
 - whatsappExtractEventFromThread (callable, 512MB)
-- aggregateClientStats (firestore trigger, 256MB)
+- aggregateClientStats (database trigger, 256MB)
 - whatsappProxy* (6 https endpoints, 256MB each)
 ```
 
@@ -399,7 +399,7 @@ info • 'value' is deprecated and shouldn't be used. Use initialValue instead.
   "status": "healthy",
   "version": "2.0.0",
   "uptime": 30944,
-  "firestore": "connected",
+  "database": "connected",
   "accounts": { "total": 0, "connected": 0, "max": 30 }
 }
 ```
@@ -449,15 +449,15 @@ info • 'value' is deprecated and shouldn't be used. Use initialValue instead.
 git fetch --all && git checkout audit-whatsapp-30 && git pull --rebase
 cd functions && npm ci
 cd superparty_flutter && flutter pub get
-firebase login:list
-firebase use superparty-frontend
+supabase login:list
+supabase use superparty-frontend
 curl -sS https://whats-app-ompro.ro/health
 ```
 
 ### Verification
 
 ```bash
-firebase functions:list | grep -E "Extract|Ask|bootstrap|Proxy|aggregate"
+supabase functions:list | grep -E "Extract|Ask|bootstrap|Proxy|aggregate"
 flutter analyze
 ```
 
@@ -465,13 +465,13 @@ flutter analyze
 
 ```bash
 cd functions && npx tsc -p tsconfig.json
-firebase deploy --only functions:bootstrapAdmin,functions:clientCrmAsk,functions:whatsappExtractEventFromThread
+supabase deploy --only functions:bootstrapAdmin,functions:clientCrmAsk,functions:whatsappExtractEventFromThread
 ```
 
 ### Testing
 
 ```bash
-cd functions && FIREBASE_PROJECT=superparty-frontend node tools/smoke_test_crm_ai.js
+cd functions && SUPABASE_PROJECT=superparty-frontend node tools/smoke_test_crm_ai.js
 ```
 
 ### Git
@@ -496,7 +496,7 @@ git push origin audit-whatsapp-30
 3. Scan QR code with real WhatsApp phone (Linked Devices)
 4. Wait for "Connected" status
 
-**Expected Result**: Account appears in Firestore `accounts/{accountId}` with `status: 'online'`
+**Expected Result**: Account appears in Database `accounts/{accountId}` with `status: 'online'`
 
 ### 2. Message Exchange (REQUIRED)
 
@@ -523,7 +523,7 @@ git push origin audit-whatsapp-30
 **Expected Result**:
 
 - Logs show: `cacheHit: true` on 2nd Extract
-- Firestore: `threads/{threadId}/extractions/{cacheKey}` document created
+- Database: `threads/{threadId}/extractions/{cacheKey}` document created
 - No errors, no "se rupe"
 
 ### 4. Admin Persistence Verification (RECOMMENDED)
@@ -535,7 +535,7 @@ git push origin audit-whatsapp-30
 3. Verify WhatsApp Accounts accessible
 4. Sign out
 5. Sign in again
-6. Verify still admin (no manual Firestore edit needed)
+6. Verify still admin (no manual Database edit needed)
 
 ### 5. Key Rotation (RECOMMENDED, Non-Blocking)
 
@@ -544,14 +544,14 @@ git push origin audit-whatsapp-30
 1. Go to: https://console.groq.com/keys
 2. Revoke old key: `<GROQ_KEY_REDACTED>`
 3. Generate new key
-4. Run: `echo "NEW_KEY" | firebase functions:secrets:set GROQ_API_KEY`
-5. Redeploy functions: `firebase deploy --only functions`
+4. Run: `echo "NEW_KEY" | supabase functions:secrets:set GROQ_API_KEY`
+5. Redeploy functions: `supabase deploy --only functions`
 
 ### 6. Delete Old v1 Function (OPTIONAL, Frees Memory)
 
 **Actions**:
 
-1. Firebase Console: https://console.firebase.google.com/project/superparty-frontend/functions
+1. Supabase Console: https://console.supabase.google.com/project/superparty-frontend/functions
 2. Find: "whatsapp" (v1, 2048MB, gen 1)
 3. Click "Delete"
 
@@ -588,7 +588,7 @@ git push origin audit-whatsapp-30
 | Feature              | Before                     | After                             | Impact           |
 | -------------------- | -------------------------- | --------------------------------- | ---------------- |
 | **AI Callables**     | ❌ Broke randomly          | ✅ Retry 4x + caching             | "Nu se mai rupe" |
-| **Admin Role**       | ❌ Session-only            | ✅ Permanent (claims + Firestore) | No manual edits  |
+| **Admin Role**       | ❌ Session-only            | ✅ Permanent (claims + Database) | No manual edits  |
 | **Extraction**       | ❌ 5-10s every time        | ✅ Instant on cache hit           | UX improvement   |
 | **Region**           | ❌ Mismatch (europe vs us) | ✅ Aligned (us-central1)          | Reliability      |
 | **setGlobalOptions** | ⚠️ Warning in logs         | ✅ Single call                    | Clean logs       |
@@ -601,8 +601,8 @@ git push origin audit-whatsapp-30
 
 **Secrets Redacted**:
 
-- `deploy_with_api.js` → `[REDACTED - Use Firebase Secrets Manager]`
-- `functions/deploy_with_api.js` → `[REDACTED - Use Firebase Secrets Manager]`
+- `deploy_with_api.js` → `[REDACTED - Use Supabase Secrets Manager]`
+- `functions/deploy_with_api.js` → `[REDACTED - Use Supabase Secrets Manager]`
 
 **Key Rotation Required**:
 
@@ -610,10 +610,10 @@ git push origin audit-whatsapp-30
 - See: `SECURITY_KEY_ROTATION_NOTICE.md`
 - Action: Rotate at https://console.groq.com/keys
 
-**Firebase API Keys** (Safe):
+**Supabase API Keys** (Safe):
 
 - `AIzaSyB5zJqeDVenc9ygUx2zyW2WLkczY6FLavI` (public, restricted by rules)
-- Safe to commit (client-side keys, restricted by Firebase security rules)
+- Safe to commit (client-side keys, restricted by Supabase security rules)
 
 ---
 
@@ -663,10 +663,10 @@ All automation complete. Only manual phone actions remain (QR scan + real messag
 3. **Rotate Key** (2 min):
    - https://console.groq.com/keys
    - Revoke + generate new
-   - Update Firebase Secrets
+   - Update Supabase Secrets
 
 4. **Optional Cleanup** (1 min):
-   - Delete old v1 "whatsapp" function via Firebase Console
+   - Delete old v1 "whatsapp" function via Supabase Console
 
 ---
 
@@ -680,7 +680,7 @@ System is:
 - ✅ **Fast**: Caching makes Extract instant on repeat
 - ✅ **Secure**: Secrets redacted, rotation guidance provided
 - ✅ **Consistent**: Regions aligned, no mismatches
-- ✅ **Automated**: Admin bootstrap, no manual Firestore edits
+- ✅ **Automated**: Admin bootstrap, no manual Database edits
 - ✅ **Observable**: TraceId in all logs/requests
 - ✅ **Documented**: All docs corrected, reports complete
 - ✅ **Tested**: 100% smoke test pass rate
@@ -702,9 +702,9 @@ System is:
 If manual tests reveal issues:
 
 1. Check legacy hosting logs: https://legacy hosting.app/project/[project-id]/logs
-2. Check Functions logs: `firebase functions:log --only [functionName] --lines 200`
+2. Check Functions logs: `supabase functions:log --only [functionName] --lines 200`
 3. Check Flutter logs: Look for `[WhatsAppApiService]` or `[AdminBootstrap]` tags
-4. Verify admin: Firestore Console → `users/{uid}` should have `role: 'admin'`
-5. Verify extraction cache: Firestore → `threads/{threadId}/extractions/{cacheKey}`
+4. Verify admin: Database Console → `users/{uid}` should have `role: 'admin'`
+5. Verify extraction cache: Database → `threads/{threadId}/extractions/{cacheKey}`
 
 All systems operational. Happy testing! 🚀

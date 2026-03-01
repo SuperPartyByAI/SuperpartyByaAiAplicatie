@@ -31,11 +31,11 @@ git ls-remote --heads origin
 
 ---
 
-## 2) Verify Firebase deploy inputs exist
+## 2) Verify Supabase deploy inputs exist
 
 ```bash
-# Check Firebase config files exist
-ls -la firebase.json firestore.rules firestore.indexes.json functions/index.js functions/whatsappProxy.js
+# Check Supabase config files exist
+ls -la supabase.json database.rules database.indexes.json functions/index.js functions/whatsappProxy.js
 
 # Verify secret names referenced in code
 grep -RIn "WHATSAPP_BACKEND_URL|WHATSAPP_BACKEND_BASE_URL|GROQ_API_KEY" functions || echo "No matches (may be in environment/config)"
@@ -100,13 +100,13 @@ grep -E "whatsappProxy(DeleteAccount|BackfillAccount)" functions/index.js
 
 ---
 
-## 6) Verify Firestore indexes
+## 6) Verify Database indexes
 
 ```bash
 # Check for required composite indexes
-grep -A 10 '"collectionGroup": "threads"' firestore.indexes.json | grep -E "accountId|lastMessageAt"
+grep -A 10 '"collectionGroup": "threads"' database.indexes.json | grep -E "accountId|lastMessageAt"
 
-grep -A 10 '"collectionGroup": "evenimente"' firestore.indexes.json | grep -E "phoneE164|date"
+grep -A 10 '"collectionGroup": "evenimente"' database.indexes.json | grep -E "phoneE164|date"
 ```
 
 **Expected:**

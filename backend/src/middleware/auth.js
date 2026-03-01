@@ -1,6 +1,6 @@
-const { auth } = require('../firebase');
+const { auth } = require('../supabase');
 
-const requireFirebaseAuth = async (req, res, next) => {
+const requireSupabaseAuth = async (req, res, next) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -19,4 +19,4 @@ const requireFirebaseAuth = async (req, res, next) => {
   }
 };
 
-module.exports = requireFirebaseAuth;
+module.exports = requireSupabaseAuth;

@@ -1,20 +1,20 @@
 # ⚡ SOLUȚIE RAPIDĂ - Folosește NPX
 
 ## 🎯 Problema
-Firebase CLI s-a instalat dar PowerShell nu îl găsește în PATH.
+Supabase CLI s-a instalat dar PowerShell nu îl găsește în PATH.
 
 ## ✅ Soluția Imediată - Folosește NPX
 
-**NPX rulează Firebase CLI direct, fără să fie nevoie de PATH.**
+**NPX rulează Supabase CLI direct, fără să fie nevoie de PATH.**
 
 ### Copie-Paste în PowerShell:
 
 ```powershell
-# 1. Login Firebase
-npx firebase-tools login
+# 1. Login Supabase
+npx supabase-tools login
 
 # 2. Deploy Functions
-npx firebase-tools deploy --only functions
+npx supabase-tools deploy --only functions
 ```
 
 **Asta e tot!** 🎉
@@ -23,10 +23,10 @@ npx firebase-tools deploy --only functions
 
 ## 📋 Pași Detaliat
 
-### Pasul 1: Login Firebase
+### Pasul 1: Login Supabase
 
 ```powershell
-npx firebase-tools login
+npx supabase-tools login
 ```
 
 **Ce se va întâmpla:**
@@ -38,7 +38,7 @@ npx firebase-tools login
 ### Pasul 2: Deploy Functions
 
 ```powershell
-npx firebase-tools deploy --only functions
+npx supabase-tools deploy --only functions
 ```
 
 **Timp estimat:** 3-5 minute
@@ -63,19 +63,19 @@ i  functions: preparing codebase default for deployment
 
 ## 🔧 Alternativă - Fix PATH (Opțional)
 
-**Dacă vrei să folosești `firebase` direct în viitor:**
+**Dacă vrei să folosești `supabase` direct în viitor:**
 
 ### Opțiunea 1: Restart PowerShell
 
 1. Închide toate ferestrele PowerShell
 2. Redeschide PowerShell
-3. Testează: `firebase --version`
+3. Testează: `supabase --version`
 
 ### Opțiunea 2: Adaugă PATH Manual (Temporar)
 
 ```powershell
 $env:Path += ";$env:APPDATA\npm"
-firebase --version
+supabase --version
 ```
 
 ### Opțiunea 3: Adaugă PATH Permanent
@@ -105,22 +105,22 @@ firebase --version
 
 ```powershell
 # Login
-npx firebase-tools login
+npx supabase-tools login
 
 # Deploy
-npx firebase-tools deploy --only functions
+npx supabase-tools deploy --only functions
 
 # Verifică (după deploy)
-npx firebase-tools functions:list
+npx supabase-tools functions:list
 ```
 
 ---
 
 ## 📊 După Deploy
 
-### Verifică în Firebase Console
+### Verifică în Supabase Console
 
-https://console.firebase.google.com/project/superparty-frontend/functions
+https://console.supabase.google.com/project/superparty-frontend/functions
 
 **Ar trebui să vezi:**
 - ✅ noteazaEventeAutomat
@@ -138,8 +138,8 @@ https://console.firebase.google.com/project/superparty-frontend/functions
 ### Error: Failed to authenticate
 
 ```powershell
-npx firebase-tools logout
-npx firebase-tools login --reauth
+npx supabase-tools logout
+npx supabase-tools login --reauth
 ```
 
 ### Error: Permission denied
@@ -147,17 +147,17 @@ npx firebase-tools login --reauth
 ```powershell
 # Rulează PowerShell ca Administrator
 # Click dreapta → Run as Administrator
-npx firebase-tools deploy --only functions
+npx supabase-tools deploy --only functions
 ```
 
 ### Error: GROQ_API_KEY not found
 
 ```powershell
 # Setează secret
-npx firebase-tools functions:secrets:set GROQ_API_KEY
+npx supabase-tools functions:secrets:set GROQ_API_KEY
 
 # Verifică
-npx firebase-tools functions:secrets:access GROQ_API_KEY
+npx supabase-tools functions:secrets:access GROQ_API_KEY
 ```
 
 ---
@@ -181,5 +181,5 @@ flutter build appbundle --release
 
 **Prima comandă:**
 ```powershell
-npx firebase-tools login
+npx supabase-tools login
 ```

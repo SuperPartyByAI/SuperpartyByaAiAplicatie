@@ -112,7 +112,7 @@ return res.status(...).json({
 ```bash
 # 1. Simulează 401/logged_out disconnect (Baileys)
 # 2. Verifică logs: "DO NOT schedule createConnection() for terminal logout"
-# 3. Verifică Firestore: status = 'needs_qr', requiresQR = true
+# 3. Verifică Database: status = 'needs_qr', requiresQR = true
 # 4. Verifică: NU există reconnect attempts după 401
 ```
 

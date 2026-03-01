@@ -150,10 +150,10 @@ Duration: 2 minutes
 
 ```
 ❌ Deployment Failed
-Workflow: Deploy Frontend to Firebase
+Workflow: Deploy Frontend to Supabase
 Commit: 31d0116 - feat: add ESLint + Prettier
 Branch: main
-Error: Firebase deployment failed
+Error: Supabase deployment failed
 Link: https://github.com/.../actions/runs/...
 ```
 

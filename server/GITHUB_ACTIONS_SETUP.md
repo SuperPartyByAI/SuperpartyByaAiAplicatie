@@ -2,7 +2,7 @@
 
 ## Overview
 
-GitHub Actions workflow automatically builds Flutter APK and uploads to Firebase App Distribution when code is pushed to `main` branch.
+GitHub Actions workflow automatically builds Flutter APK and uploads to Supabase App Distribution when code is pushed to `main` branch.
 
 **Workflow file:** `.github/workflows/flutter-build.yml`
 
@@ -12,13 +12,13 @@ GitHub Actions workflow automatically builds Flutter APK and uploads to Firebase
 
 Navigate to: **GitHub Repo → Settings → Secrets and variables → Actions**
 
-### 1. `FIREBASE_APP_ID`
+### 1. `SUPABASE_APP_ID`
 
-**What:** Firebase App ID for Android app
+**What:** Supabase App ID for Android app
 
 **How to get:**
 
-1. Go to [Firebase Console](https://console.firebase.google.com/project/superparty-frontend/settings/general)
+1. Go to [Supabase Console](https://console.supabase.google.com/project/superparty-frontend/settings/general)
 2. Scroll to "Your apps" section
 3. Find Android app (or create one if missing)
 4. Copy the **App ID** (format: `1:123456789:android:abcdef123456`)
@@ -26,17 +26,17 @@ Navigate to: **GitHub Repo → Settings → Secrets and variables → Actions**
 **Add to GitHub:**
 
 ```
-Name: FIREBASE_APP_ID
+Name: SUPABASE_APP_ID
 Value: 1:123456789:android:abcdef123456
 ```
 
-### 2. `FIREBASE_SERVICE_ACCOUNT`
+### 2. `SUPABASE_SERVICE_ACCOUNT`
 
-**What:** Service account JSON for Firebase Admin SDK
+**What:** Service account JSON for Supabase Admin SDK
 
 **How to get:**
 
-1. Go to [Firebase Console → Project Settings → Service Accounts](https://console.firebase.google.com/project/superparty-frontend/settings/serviceaccounts/adminsdk)
+1. Go to [Supabase Console → Project Settings → Service Accounts](https://console.supabase.google.com/project/superparty-frontend/settings/serviceaccounts/adminsdk)
 2. Click "Generate new private key"
 3. Download JSON file
 4. Copy entire JSON content
@@ -44,7 +44,7 @@ Value: 1:123456789:android:abcdef123456
 **Add to GitHub:**
 
 ```
-Name: FIREBASE_SERVICE_ACCOUNT
+Name: SUPABASE_SERVICE_ACCOUNT
 Value: {
   "type": "service_account",
   "project_id": "superparty-frontend",
@@ -117,9 +117,9 @@ flutter build apk --release
 - Available for download from workflow run page
 - Artifact name: `superparty-app`
 
-### 4. Upload to Firebase App Distribution
+### 4. Upload to Supabase App Distribution
 
-- APK is uploaded to Firebase App Distribution
+- APK is uploaded to Supabase App Distribution
 - Testers receive email notification
 - Release notes include latest features
 
@@ -169,9 +169,9 @@ git checkout feature/evenimente-ui-preview
 - Download `superparty-app.zip`
 - Extract and install APK on Android device
 
-### 3. Check Firebase App Distribution
+### 3. Check Supabase App Distribution
 
-- Go to [Firebase Console → App Distribution](https://console.firebase.google.com/project/superparty-frontend/appdistribution)
+- Go to [Supabase Console → App Distribution](https://console.supabase.google.com/project/superparty-frontend/appdistribution)
 - Latest release should appear
 - Testers should receive email
 
@@ -179,26 +179,26 @@ git checkout feature/evenimente-ui-preview
 
 ## Troubleshooting
 
-### Error: "Missing FIREBASE_APP_ID secret"
+### Error: "Missing SUPABASE_APP_ID secret"
 
-**Fix:** Add `FIREBASE_APP_ID` secret in GitHub repo settings
+**Fix:** Add `SUPABASE_APP_ID` secret in GitHub repo settings
 
-### Error: "Missing FIREBASE_SERVICE_ACCOUNT secret"
+### Error: "Missing SUPABASE_SERVICE_ACCOUNT secret"
 
-**Fix:** Add `FIREBASE_SERVICE_ACCOUNT` secret with full JSON content
+**Fix:** Add `SUPABASE_SERVICE_ACCOUNT` secret with full JSON content
 
-### Error: "Firebase App Distribution upload failed"
+### Error: "Supabase App Distribution upload failed"
 
 **Possible causes:**
 
 1. Invalid service account JSON
-2. Service account doesn't have "Firebase App Distribution Admin" role
-3. App ID doesn't match Firebase project
+2. Service account doesn't have "Supabase App Distribution Admin" role
+3. App ID doesn't match Supabase project
 
 **Fix:**
 
-1. Verify service account has correct permissions in Firebase Console
-2. Verify App ID matches Firebase project
+1. Verify service account has correct permissions in Supabase Console
+2. Verify App ID matches Supabase project
 3. Regenerate service account key if needed
 
 ### Error: "Flutter build failed"
@@ -225,7 +225,7 @@ Release notes are automatically generated from workflow file:
 releaseNotes: |
   🎉 Evenimente + Dovezi Module (NEW):
   - Full Flutter native implementation
-  - Firebase real-time sync
+  - Supabase real-time sync
   - NEVER DELETE policy
   ...
 
@@ -249,10 +249,10 @@ releaseNotes: |
 2. **Rotate service account keys regularly**
    - Generate new key every 90 days
    - Update GitHub Secret with new key
-   - Delete old key from Firebase Console
+   - Delete old key from Supabase Console
 
 3. **Limit service account permissions**
-   - Only grant "Firebase App Distribution Admin" role
+   - Only grant "Supabase App Distribution Admin" role
    - Don't use project owner account
 
 4. **Review workflow logs**
@@ -265,7 +265,7 @@ releaseNotes: |
 
 1. **Add secrets to GitHub** (see "Required GitHub Secrets" section)
 2. **Test workflow** (manual trigger or push to main)
-3. **Verify APK** (download from artifacts or Firebase App Distribution)
+3. **Verify APK** (download from artifacts or Supabase App Distribution)
 4. **Install on device** (test Evenimente + Dovezi module)
 
 ---
@@ -276,5 +276,5 @@ If you encounter issues:
 
 1. Check [GitHub Actions logs](https://github.com/SuperPartyByAI/Aplicatie-SuperpartyByAi/actions)
 2. Verify secrets are correctly configured
-3. Check Firebase Console for App Distribution status
+3. Check Supabase Console for App Distribution status
 4. Review this documentation for troubleshooting steps

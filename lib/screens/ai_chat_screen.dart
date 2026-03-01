@@ -1,8 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:image_picker/image_picker.dart';
 import '../services/ai_service.dart';
 import 'sales_extractor_screen.dart';
@@ -89,18 +87,14 @@ class _AIChatScreenState extends State<AIChatScreen> {
   }
 
   Future<bool> _checkStaffPermission() async {
-    final user = FirebaseAuth.instance.currentUser;
+    final user = (Supabase.instance.client.auth.currentUser);
     if (user == null) return false;
 
     // Admin bypass is absolute
     if (user.email == 'ursache.andrei1995@gmail.com') return true;
 
     try {
-      final querySnap = await FirebaseFirestore.instance
-          .collection('employees')
-          .where('uid', isEqualTo: user.uid)
-          .limit(1)
-          .get();
+      final querySnap = await /* Removed */ ;
 
       if (querySnap.docs.isNotEmpty) {
          final data = querySnap.docs.first.data();

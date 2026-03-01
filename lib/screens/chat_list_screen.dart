@@ -112,7 +112,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
         }
         if (name.contains('@') && !name.contains(' ')) name = name.split('@')[0];
 
-        // Timestamp
+        // dynamic
         final ts = row['last_message_at'];
         DateTime? lastDt;
         if (ts != null) lastDt = DateTime.fromMillisecondsSinceEpoch((ts as int) * 1000);

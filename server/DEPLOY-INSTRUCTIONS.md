@@ -1,8 +1,8 @@
-# Instrucțiuni Deploy Firebase
+# Instrucțiuni Deploy Supabase
 
 ## Problema
 
-Eroarea apare pentru că rulezi din `whatsapp-backend/` dar `firebase.json` și `firestore.rules` sunt în root.
+Eroarea apare pentru că rulezi din `whatsapp-backend/` dar `supabase.json` și `database.rules` sunt în root.
 
 ## Soluție
 
@@ -16,37 +16,37 @@ cd C:\Users\ursac\Aplicatie-SuperpartyByAi
 
 ---
 
-### 2. Deploy Firestore Rules
+### 2. Deploy Database Rules
 
 **Opțiunea A - Fără token (cu login interactiv):**
 
 ```powershell
-firebase login
-firebase deploy --only firestore
+supabase login
+supabase deploy --only database
 ```
 
-**Opțiunea B - Cu token Firebase CI:**
+**Opțiunea B - Cu token Supabase CI:**
 
 ```powershell
-firebase deploy --only firestore --token "YOUR_ACTUAL_TOKEN_HERE"
+supabase deploy --only database --token "YOUR_ACTUAL_TOKEN_HERE"
 ```
 
-⚠️ **IMPORTANT:** Înlocuiește `YOUR_ACTUAL_TOKEN_HERE` cu token-ul tău real Firebase CI.
+⚠️ **IMPORTANT:** Înlocuiește `YOUR_ACTUAL_TOKEN_HERE` cu token-ul tău real Supabase CI.
 
 ---
 
 ### 3. Deploy Hosting (aplicația React)
 
-**După ce ai deployat regulile Firestore:**
+**După ce ai deployat regulile Database:**
 
 ```powershell
-firebase deploy --only hosting
+supabase deploy --only hosting
 ```
 
 **SAU deploy complet (reguli + hosting):**
 
 ```powershell
-firebase deploy
+supabase deploy
 ```
 
 ---
@@ -55,7 +55,7 @@ firebase deploy
 
 După deploy, verifică:
 
-1. **Firestore Rules:** https://console.firebase.google.com/project/superparty-frontend/firestore/rules
+1. **Database Rules:** https://console.supabase.google.com/project/superparty-frontend/database/rules
 2. **Hosting:** https://superparty-frontend.web.app/home
 
 ---
@@ -64,12 +64,12 @@ După deploy, verifică:
 
 ```
 C:\Users\ursac\Aplicatie-SuperpartyByAi\
-├── firebase.json          ← Firebase config
-├── firestore.rules        ← Firestore rules
+├── supabase.json          ← Supabase config
+├── database.rules        ← Database rules
 ├── kyc-app/
 │   └── kyc-app/
 │       └── dist/          ← Build-ul aplicației
 └── whatsapp-backend/      ← Backend WhatsApp
 ```
 
-**Rulează comenzile firebase din ROOT (`C:\Users\ursac\Aplicatie-SuperpartyByAi\`)**
+**Rulează comenzile supabase din ROOT (`C:\Users\ursac\Aplicatie-SuperpartyByAi\`)**

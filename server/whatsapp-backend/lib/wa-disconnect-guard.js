@@ -8,7 +8,7 @@
  * Fields: active, firstDetectedAt, lastCheckedAt, reason, retryCount, instructions
  */
 
-const { FieldValue } = require('firebase-admin/firestore');
+const { FieldValue } = {};
 
 class WADisconnectGuard {
   constructor(db, instanceId, reconnectManager) {
@@ -86,7 +86,7 @@ class WADisconnectGuard {
       const incidentRef = this.db.doc(this.incidentPath);
       const incidentDoc = await incidentRef.get();
 
-      const now = FieldValue.serverTimestamp();
+      const now = new Date();
 
       if (!incidentDoc.exists) {
         // Create new incident
@@ -146,7 +146,7 @@ class WADisconnectGuard {
       if (incidentDoc.exists && incidentDoc.data().active) {
         await incidentRef.update({
           active: false,
-          resolvedAt: FieldValue.serverTimestamp(),
+          resolvedAt: new Date(),
           resolvedBy: 'auto_reconnect',
         });
 

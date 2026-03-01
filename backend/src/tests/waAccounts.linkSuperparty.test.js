@@ -8,7 +8,7 @@ jest.mock('../middleware/requireApprovedEmployee', () => ({
   requireApprovedEmployee: (req, res, next) => next(),
 }));
 
-// Mock Firestore (use in‑memory stub)
+// Mock Database (use in‑memory stub)
 const mockDocs = {};
 const mockDb = {
   collection: jest.fn(col => {
@@ -36,7 +36,7 @@ const mockDb = {
   FieldValue: { serverTimestamp: () => new Date().toISOString() },
 };
 
-jest.mock('../firebase', () => ({ db: mockDb, FieldValue: mockDb.FieldValue }));
+jest.mock('../supabase', () => ({ db: mockDb, FieldValue: mockDb.FieldValue }));
 
 // Mock sessionManager
 jest.mock('../whatsapp/sessionManager', () => ({

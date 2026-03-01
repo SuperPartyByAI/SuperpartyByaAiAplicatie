@@ -123,7 +123,7 @@ GoRoute(
 ```
 
 **Methods Found:**
-- ✅ `sendViaProxy()` - Line 64 (sends via Firebase Functions `/whatsappProxySend`)
+- ✅ `sendViaProxy()` - Line 64 (sends via Supabase Functions `/whatsappProxySend`)
 - ✅ `getAccounts()` - Line 118 (GET legacy hosting backend)
 - ✅ `addAccount()` - Line 151 (POST legacy hosting backend)
 - ✅ `regenerateQr()` - Line 189 (POST legacy hosting backend)
@@ -137,7 +137,7 @@ GoRoute(
 
 ---
 
-## 5) Firebase Functions (CRM + Proxy)
+## 5) Supabase Functions (CRM + Proxy)
 
 ### Files Found:
 
@@ -155,7 +155,7 @@ functions/index.js ✅
 
 **Trigger:** `onDocumentWritten` on `evenimente/{eventId}`
 
-**Firestore Writes:**
+**Database Writes:**
 - `clients/{phoneE164}` (upsert with transaction)
 - Updates: `lifetimeSpendPaid`, `lifetimeSpendAll`, `eventsCount`, `lastEventAt`
 
@@ -171,11 +171,11 @@ functions/index.js ✅
 
 **Output:** `{ action, draftEvent, targetEventId?, confidence, reasons }`
 
-**Firestore Reads:**
+**Database Reads:**
 - `threads/{threadId}`
 - `threads/{threadId}/messages` (query inbound)
 
-**Firestore Writes:**
+**Database Writes:**
 - `threads/{threadId}/extractions/{messageId}` (audit)
 
 ---
@@ -190,11 +190,11 @@ functions/index.js ✅
 
 **Output:** `{ answer, sources: [...] }`
 
-**Firestore Reads:**
+**Database Reads:**
 - `clients/{phoneE164}`
 - `evenimente` where `phoneE164 == phoneE164` (limit 20)
 
-**Firestore Writes:**
+**Database Writes:**
 - None (read-only)
 
 ---
@@ -226,9 +226,9 @@ exports.clientCrmAsk = require('./clientCrmAsk').clientCrmAsk; // Line 878
 
 ---
 
-## 6) Firestore Rules + Indexes
+## 6) Database Rules + Indexes
 
-### **A) `firestore.rules` (First 220 lines):**
+### **A) `database.rules` (First 220 lines):**
 
 ```javascript
 // Threads collection (NEVER DELETE)
@@ -268,7 +268,7 @@ match /evenimente/{eventId} {
 
 ---
 
-### **B) `firestore.indexes.json`:**
+### **B) `database.indexes.json`:**
 
 **Indexes Found:**
 - `threads`: `accountId ASC, lastMessageAt DESC`
@@ -280,13 +280,13 @@ match /evenimente/{eventId} {
 
 ---
 
-### **C) `firebase.json`:**
+### **C) `supabase.json`:**
 
 ```json
 {
-  "firestore": {
-    "rules": "firestore.rules",
-    "indexes": "firestore.indexes.json"
+  "database": {
+    "rules": "database.rules",
+    "indexes": "database.indexes.json"
   },
   "functions": {
     "source": "functions"
@@ -300,13 +300,13 @@ match /evenimente/{eventId} {
 
 ### ✅ **Backend CRM (COMPLETE):**
 
-**Firebase Functions:**
+**Supabase Functions:**
 - ✅ `aggregateClientStats` (trigger on `evenimente`)
 - ✅ `whatsappExtractEventFromThread` (callable)
 - ✅ `clientCrmAsk` (callable)
 - ✅ `whatsappProxy*` (4 proxy functions)
 
-**Firestore:**
+**Database:**
 - ✅ Rules: `clients/{phoneE164}` (NEVER DELETE)
 - ✅ Rules: `threads/{threadId}/messages` (NEVER DELETE)
 - ✅ Rules: `threads/{threadId}/extractions` (NEVER DELETE)

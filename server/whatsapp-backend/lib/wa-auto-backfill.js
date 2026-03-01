@@ -3,7 +3,7 @@
  *
  * - On connect: trigger initial backfill (10–40s jitter).
  * - Periodic: every WHATSAPP_BACKFILL_INTERVAL_SECONDS (or AUTO_BACKFILL_INTERVAL_MS).
- * - Distributed lock: Firestore lease on accounts/{accountId} (autoBackfillLeaseUntil, autoBackfillLeaseHolder, autoBackfillLeaseAcquiredAt).
+ * - Distributed lock: Database lease on accounts/{accountId} (autoBackfillLeaseUntil, autoBackfillLeaseHolder, autoBackfillLeaseAcquiredAt).
  * - Eligibility: sort by lastAutoBackfillAt asc; max accounts per tick, max concurrency.
  * - Cooldown: WHATSAPP_BACKFILL_COOLDOWN_MINUTES or success 1h; attempt backoff 10 min.
  * - Status: running → ok/error in lastAutoBackfillStatus / lastBackfillStatus.
@@ -38,7 +38,7 @@ function getInstanceId() {
 
 /**
  * @param {object} ctx
- * @param {import('@google-cloud/firestore').Firestore} ctx.db
+ * @param {import('@google-cloud/database').Database} ctx.db
  * @param {() => object} ctx.timestamp - returns serverTimestamp()
  * @param {string} ctx.instanceId
  * @param {() => Promise<boolean>} ctx.isPassive - true => skip scheduler

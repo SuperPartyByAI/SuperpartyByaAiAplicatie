@@ -1,4 +1,4 @@
-# 🔍 Root Cause Analysis - Firebase Deployment Failure
+# 🔍 Root Cause Analysis - Supabase Deployment Failure
 
 ## 📊 Observed Symptoms
 
@@ -9,27 +9,27 @@
    Failed to update function projects/superparty-frontend/locations/us-central1/functions/whatsapp
    ```
 
-2. **Firebase CLI Issue:**
+2. **Supabase CLI Issue:**
 
    ```
    error: unknown option '--limit'
    ```
 
-   - Firebase CLI version may be outdated or command syntax incorrect
+   - Supabase CLI version may be outdated or command syntax incorrect
 
 3. **Function Status:**
    - Old function still running (status: `logged_out`)
    - Deployment failed but didn't rollback
-   - No detailed error message from Firebase
+   - No detailed error message from Supabase
 
 ---
 
 ## 🔬 Investigation Steps
 
-### Step 1: Check Firebase CLI Version
+### Step 1: Check Supabase CLI Version
 
 ```cmd
-firebase --version
+supabase --version
 ```
 
 **Expected:** `13.x.x` or higher  
@@ -40,13 +40,13 @@ firebase --version
 ### Step 2: Get Detailed Logs (Correct Command)
 
 ```cmd
-firebase functions:log
+supabase functions:log
 ```
 
 Or for specific time range:
 
 ```cmd
-firebase functions:log --lines 50
+supabase functions:log --lines 50
 ```
 
 ---
@@ -54,7 +54,7 @@ firebase functions:log --lines 50
 ### Step 3: Check Deployment Status
 
 ```cmd
-firebase functions:list
+supabase functions:list
 ```
 
 This will show:
@@ -108,7 +108,7 @@ This checks for syntax errors without running the function.
 
 ## 🎯 Potential Root Causes
 
-### 1. **Outdated Firebase CLI**
+### 1. **Outdated Supabase CLI**
 
 **Symptoms:**
 
@@ -119,15 +119,15 @@ This checks for syntax errors without running the function.
 **Diagnosis:**
 
 ```cmd
-firebase --version
-npm list -g firebase-tools
+supabase --version
+npm list -g supabase-tools
 ```
 
 **Solution:**
 
 ```cmd
-npm install -g firebase-tools@latest
-firebase login --reauth
+npm install -g supabase-tools@latest
+supabase login --reauth
 ```
 
 ---
@@ -168,7 +168,7 @@ du -sh node_modules
 **Diagnosis:**
 
 ```cmd
-firebase functions:list
+supabase functions:list
 ```
 
 Look for state: `DEPLOYING` or `UPDATING`
@@ -176,7 +176,7 @@ Look for state: `DEPLOYING` or `UPDATING`
 **Solution:**
 
 - Wait for previous deployment to complete (timeout: 10 minutes)
-- If stuck, contact Firebase support to unlock
+- If stuck, contact Supabase support to unlock
 
 ---
 
@@ -198,7 +198,7 @@ gcloud projects get-iam-policy superparty-frontend
 **Solution:**
 
 - Verify account has `cloudfunctions.developer` role
-- Re-authenticate: `firebase login --reauth`
+- Re-authenticate: `supabase login --reauth`
 - Check project permissions in Google Cloud Console
 
 ---
@@ -222,7 +222,7 @@ Check `functions/package.json`:
 }
 ```
 
-Check `firebase.json`:
+Check `supabase.json`:
 
 ```json
 {
@@ -239,13 +239,13 @@ Check `firebase.json`:
 
 ---
 
-### 6. **Firestore/Firebase Admin SDK Issues**
+### 6. **Database/Supabase Admin SDK Issues**
 
 **Symptoms:**
 
 - Deployment succeeds but function crashes on start
 - "Cannot read properties of null" errors
-- Firebase Admin initialization fails
+- Supabase Admin initialization fails
 
 **Diagnosis:**
 Check logs for:
@@ -256,9 +256,9 @@ Error: Cannot read properties of null (reading 'collection')
 
 **Solution:**
 
-- Ensure Firebase Admin is initialized before use
+- Ensure Supabase Admin is initialized before use
 - Check service account permissions
-- Verify Firestore is enabled in project
+- Verify Database is enabled in project
 
 ---
 
@@ -267,7 +267,7 @@ Error: Cannot read properties of null (reading 'collection')
 ### Architecture
 
 ```
-GitHub → GitHub Actions → Firebase Functions
+GitHub → GitHub Actions → Supabase Functions
    ↓
    ├─ Automated Tests
    ├─ Linting & Type Checking
@@ -282,14 +282,14 @@ GitHub → GitHub Actions → Firebase Functions
 #### 1. Create `.github/workflows/deploy-functions.yml`
 
 ```yaml
-name: Deploy Firebase Functions
+name: Deploy Supabase Functions
 
 on:
   push:
     branches: [main]
     paths:
       - 'functions/**'
-      - 'firebase.json'
+      - 'supabase.json'
       - '.github/workflows/deploy-functions.yml'
 
 jobs:
@@ -326,11 +326,11 @@ jobs:
           cd functions
           npm run build
 
-      - name: Deploy to Firebase
-        uses: FirebaseExtended/action-hosting-deploy@v0
+      - name: Deploy to Supabase
+        uses: SupabaseExtended/action-hosting-deploy@v0
         with:
           repoToken: '${{ secrets.GITHUB_TOKEN }}'
-          firebaseServiceAccount: '${{ secrets.FIREBASE_SERVICE_ACCOUNT }}'
+          supabaseServiceAccount: '${{ secrets.SUPABASE_SERVICE_ACCOUNT }}'
           projectId: superparty-frontend
           channelId: live
 ```
@@ -340,8 +340,8 @@ jobs:
 Create `functions/health-check.js`:
 
 ```javascript
-const functions = require('firebase-functions');
-const admin = require('firebase-admin');
+const functions = require('supabase-functions');
+const admin = require('supabase-admin');
 
 exports.healthCheck = functions.https.onRequest(async (req, res) => {
   const checks = {
@@ -350,14 +350,14 @@ exports.healthCheck = functions.https.onRequest(async (req, res) => {
     checks: {},
   };
 
-  // Check Firestore connectivity
+  // Check Database connectivity
   try {
-    await admin.firestore().collection('_health').doc('check').set({
-      timestamp: admin.firestore.FieldValue.serverTimestamp(),
+    await admin.database().collection('_health').doc('check').set({
+      timestamp: admin.database.FieldValue.serverTimestamp(),
     });
-    checks.checks.firestore = 'ok';
+    checks.checks.database = 'ok';
   } catch (error) {
-    checks.checks.firestore = 'error: ' + error.message;
+    checks.checks.database = 'error: ' + error.message;
     checks.status = 'unhealthy';
   }
 
@@ -382,12 +382,12 @@ exports.healthCheck = functions.https.onRequest(async (req, res) => {
 Create `functions/monitoring.js`:
 
 ```javascript
-const functions = require('firebase-functions');
-const admin = require('firebase-admin');
+const functions = require('supabase-functions');
+const admin = require('supabase-admin');
 
 class DeploymentMonitor {
   constructor() {
-    this.db = admin.firestore();
+    this.db = admin.database();
   }
 
   async logDeployment(version, status, metadata = {}) {
@@ -395,7 +395,7 @@ class DeploymentMonitor {
       version,
       status,
       metadata,
-      timestamp: admin.firestore.FieldValue.serverTimestamp(),
+      timestamp: admin.database.FieldValue.serverTimestamp(),
       environment: process.env.FUNCTIONS_EMULATOR ? 'local' : 'production',
     });
   }
@@ -419,7 +419,7 @@ module.exports = new DeploymentMonitor();
 Create `functions/rollback.js`:
 
 ```javascript
-const functions = require('firebase-functions');
+const functions = require('supabase-functions');
 const { execSync } = require('child_process');
 
 exports.rollback = functions.https.onRequest(async (req, res) => {
@@ -430,9 +430,9 @@ exports.rollback = functions.https.onRequest(async (req, res) => {
   }
 
   try {
-    // Get previous version from Firestore
+    // Get previous version from Database
     const snapshot = await admin
-      .firestore()
+      .database()
       .collection('deployments')
       .where('status', '==', 'success')
       .orderBy('timestamp', 'desc')
@@ -466,20 +466,20 @@ exports.rollback = functions.https.onRequest(async (req, res) => {
 ### Phase 1: Diagnosis (15 minutes)
 
 ```cmd
-# 1. Check Firebase CLI version
-firebase --version
+# 1. Check Supabase CLI version
+supabase --version
 
 # 2. Update if needed
-npm install -g firebase-tools@latest
+npm install -g supabase-tools@latest
 
 # 3. Re-authenticate
-firebase login --reauth
+supabase login --reauth
 
 # 4. Check function status
-firebase functions:list
+supabase functions:list
 
 # 5. Get logs (correct syntax)
-firebase functions:log --lines 100
+supabase functions:log --lines 100
 ```
 
 ### Phase 2: Fix Deployment (30 minutes)
@@ -489,22 +489,22 @@ Based on diagnosis results:
 **If CLI outdated:**
 
 ```cmd
-npm install -g firebase-tools@latest
-firebase login --reauth
-firebase deploy --only functions
+npm install -g supabase-tools@latest
+supabase login --reauth
+supabase deploy --only functions
 ```
 
 **If function stuck in DEPLOYING:**
 
 - Wait 10 minutes for timeout
-- Contact Firebase support if still stuck
+- Contact Supabase support if still stuck
 
 **If IAM permission issue:**
 
 ```cmd
 gcloud auth list
 gcloud auth application-default login
-firebase deploy --only functions
+supabase deploy --only functions
 ```
 
 **If function size issue:**
@@ -512,23 +512,23 @@ firebase deploy --only functions
 ```cmd
 cd functions
 npm prune --production
-firebase deploy --only functions
+supabase deploy --only functions
 ```
 
 ### Phase 3: Implement Long-Term Solution (2-3 hours)
 
 1. **Setup CI/CD Pipeline** (1 hour)
    - Create GitHub Actions workflow
-   - Add Firebase service account secret
+   - Add Supabase service account secret
    - Test automated deployment
 
 2. **Add Health Checks** (30 minutes)
    - Implement health check endpoint
-   - Add Firestore connectivity check
+   - Add Database connectivity check
    - Add WhatsApp manager status check
 
 3. **Add Monitoring** (30 minutes)
-   - Log all deployments to Firestore
+   - Log all deployments to Database
    - Track deployment success/failure rate
    - Set up alerts for failed deployments
 
@@ -546,7 +546,7 @@ After implementing long-term solution:
 ✅ **Automated Deployments**
 
 - Push to main → automatic deployment
-- No manual `firebase deploy` needed
+- No manual `supabase deploy` needed
 
 ✅ **Health Monitoring**
 
@@ -555,7 +555,7 @@ After implementing long-term solution:
 
 ✅ **Deployment Tracking**
 
-- All deployments logged in Firestore
+- All deployments logged in Database
 - Deployment history visible in dashboard
 
 ✅ **Rollback Capability**

@@ -16,84 +16,84 @@
 
 ---
 
-### **B) Firebase Deploy (REQUIRED before UI)**
+### **B) Supabase Deploy (REQUIRED before UI)**
 
 **Commands:**
 ```bash
 # 1. List projects
-firebase projects:list
+supabase projects:list
 
 # 2. Select project
-firebase use <PROJECT_ID>
+supabase use <PROJECT_ID>
 
 # 3. Deploy rules, indexes, and functions
-firebase deploy --only firestore:rules,firestore:indexes,functions
+supabase deploy --only database:rules,database:indexes,functions
 ```
 
-**Verification in Firebase Console:**
-- [ ] Firestore Indexes = **Ready** (all indexes built)
+**Verification in Supabase Console:**
+- [ ] Database Indexes = **Ready** (all indexes built)
 - [ ] Functions = **Deployed** (check logs for errors)
 - [ ] Rules active (verify `clients/messages/threads` "never delete" policies)
 
 ---
 
-### **C) Firebase Secrets (REQUIRED for Functions)**
+### **C) Supabase Secrets (REQUIRED for Functions)**
 
 **Set secrets used by Functions.** La prompt **nu apăsa Enter gol** – lipește întotdeauna valoarea, altfel apare „Secret Payload cannot be empty”.
 
 ```bash
 # WhatsApp backend base URL (Hetzner or your backend host)
-firebase functions:secrets:set WHATSAPP_BACKEND_BASE_URL
+supabase functions:secrets:set WHATSAPP_BACKEND_BASE_URL
 # Value: http://37.27.34.179:8080 (lipit la prompt, nu Enter gol)
 
 # AI provider key (if used in extraction/ask)
-firebase functions:secrets:set OPENAI_API_KEY
+supabase functions:secrets:set OPENAI_API_KEY
 # OR: GROQ_API_KEY (depends on your AI provider in functions)
 
 # Optional: Admin emails (if using staffProfiles check)
-firebase functions:secrets:set ADMIN_EMAILS
+supabase functions:secrets:set ADMIN_EMAILS
 # Value: comma-separated emails
 ```
 
 **Verify secrets:**
 ```bash
-firebase functions:secrets:list
+supabase functions:secrets:list
 ```
 
 ---
 
-### **C') Firebase Functions deploy (Node 20 + buckets)**
+### **C') Supabase Functions deploy (Node 20 + buckets)**
 
 **Recomandat:** Rulează deploy cu **Node 20** (nvm) și bucket-uri pentru a evita CPU quota și izola eșecurile.
 
 ```bash
-# 0) Node 20 (obligatoriu pentru Firebase Functions)
+# 0) Node 20 (obligatoriu pentru Supabase Functions)
 nvm install 20
 nvm use 20
 node -v   # trebuie v20.x.x
 
 # 1) Secret backend URL – NU apăsa Enter gol! La prompt lipește valoarea.
-firebase functions:secrets:set WHATSAPP_BACKEND_BASE_URL
+supabase functions:secrets:set WHATSAPP_BACKEND_BASE_URL
 # Când cere valoarea, lipește exact: http://37.27.34.179:8080
 
 # 2) Deploy pe bucket-uri (din root repo)
 cd /Users/universparty/Aplicatie-SuperpartyByAi
-./scripts/firebase-deploy-functions-buckets.sh whatsapp-proxy
-./scripts/firebase-deploy-functions-buckets.sh whatsapp-full
-./scripts/firebase-deploy-functions-buckets.sh ai
+./scripts/supabase-deploy-functions-buckets.sh whatsapp-proxy
+./scripts/supabase-deploy-functions-buckets.sh whatsapp-full
+./scripts/supabase-deploy-functions-buckets.sh ai
 
 # 3) whatsapp Gen2 stub (doar după ștergerea Gen1 – vezi C''):
-#    firebase functions:delete whatsapp --region us-central1 --force
-#    ./scripts/firebase-deploy-functions-buckets.sh whatsapp-stub
+#    supabase functions:delete whatsapp --region us-central1 --force
+#    ./scripts/supabase-deploy-functions-buckets.sh whatsapp-stub
 ```
 
-**Bucket-uri:** `whatsapp-proxy` | `whatsapp-full` | `whatsapp-stub` | `ai` | `staff` | `all`. Vezi `scripts/firebase-deploy-functions-buckets.sh`.
+**Bucket-uri:** `whatsapp-proxy` | `whatsapp-full` | `whatsapp-stub` | `ai` | `staff` | `all`. Vezi `scripts/supabase-deploy-functions-buckets.sh`.
 
 ---
 
 ### **C'') Delete legacy Gen1 whatsapp, then create Gen2 stub**
 
-Funcția **whatsapp(us-central1)** din cod e **Gen2** stub (410 JSON). Firebase **nu permite upgrade** Gen1→Gen2; trebuie să **ștergi** mai întâi Gen1, apoi să deployezi stub-ul.
+Funcția **whatsapp(us-central1)** din cod e **Gen2** stub (410 JSON). Supabase **nu permite upgrade** Gen1→Gen2; trebuie să **ștergi** mai întâi Gen1, apoi să deployezi stub-ul.
 
 **Dacă apare „undergoing 2nd Gen upgrade … can not be deleted”:** upgrade-ul a rămas blocat. **Anulează mai întâi** upgrade-ul, apoi șterge.
 
@@ -113,7 +113,7 @@ Așteaptă câteva secunde, apoi treci la **Pasul 1**.
 gcloud functions delete whatsapp --region=us-central1 --project=superparty-frontend --quiet
 ```
 
-**B) Firebase CLI:** `firebase functions:delete whatsapp --region us-central1 --force`  
+**B) Supabase CLI:** `supabase functions:delete whatsapp --region us-central1 --force`  
 Dacă vezi `failed to delete` sau `undergoing upgrade` → rulează **Pasul 0**, apoi **A)** din nou.
 
 **C) GCP Console (dacă CLI / gcloud eșuează):**
@@ -124,11 +124,11 @@ Dacă vezi `failed to delete` sau `undergoing upgrade` → rulează **Pasul 0**,
 ```bash
 nvm use 20
 cd /Users/universparty/Aplicatie-SuperpartyByAi
-firebase deploy --only "functions:whatsapp"
-# sau: ./scripts/firebase-deploy-functions-buckets.sh whatsapp-stub
+supabase deploy --only "functions:whatsapp"
+# sau: ./scripts/supabase-deploy-functions-buckets.sh whatsapp-stub
 ```
 
-**Verificare:** `firebase functions:list` → whatsapp (2nd gen). Apoi:
+**Verificare:** `supabase functions:list` → whatsapp (2nd gen). Apoi:
 ```bash
 curl -i "https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp"
 ```
@@ -138,9 +138,9 @@ Trebuie **410** + JSON `{"success":false,"error":"deprecated","message":"This en
 **Notă:** `whatsapp-full` **nu** include `whatsapp`; deployează doar `whatsappV4` + `processOutbox`. Stub-ul `whatsapp` se deployează separat după ștergerea Gen1.
 
 **Troubleshooting (Functions):**
-- **"Secret Payload cannot be empty"** – ai apăsat Enter fără valoare. Rulează din nou `firebase functions:secrets:set WHATSAPP_BACKEND_BASE_URL` și lipește `http://37.27.34.179:8080`.
-- **"Upgrading from 1st Gen to 2nd Gen is not yet supported"** – Gen1 `whatsapp` încă există. Șterge-o cu **gcloud** sau **GCP Console** (vezi **C'')**), apoi `firebase deploy --only functions:whatsapp`. `firebase functions:delete` poate eșua → folosește Console.
-- **"Quota exceeded for total allowable CPU"** – proxy secvențial (whatsapp-proxy); `FIREBASE_DEPLOY_SLEEP=5` dacă e nevoie.
+- **"Secret Payload cannot be empty"** – ai apăsat Enter fără valoare. Rulează din nou `supabase functions:secrets:set WHATSAPP_BACKEND_BASE_URL` și lipește `http://37.27.34.179:8080`.
+- **"Upgrading from 1st Gen to 2nd Gen is not yet supported"** – Gen1 `whatsapp` încă există. Șterge-o cu **gcloud** sau **GCP Console** (vezi **C'')**), apoi `supabase deploy --only functions:whatsapp`. `supabase functions:delete` poate eșua → folosește Console.
+- **"Quota exceeded for total allowable CPU"** – proxy secvențial (whatsapp-proxy); `SUPABASE_DEPLOY_SLEEP=5` dacă e nevoie.
 
 ---
 
@@ -158,9 +158,9 @@ Trebuie **410** + JSON `{"success":false,"error":"deprecated","message":"This en
 
 | Source | Conclusion |
 |--------|------------|
-| `functions/index.js` | `exports.whatsapp` uses `onRequest` from `firebase-functions/v2/https` → **Gen2** (Cloud Run). |
+| `functions/index.js` | `exports.whatsapp` uses `onRequest` from `supabase-functions/v2/https` → **Gen2** (Cloud Run). |
 
-If it used `firebase-functions/v1` and `functions.region().https.onRequest`, it would be **Gen1**.
+If it used `supabase-functions/v1` and `functions.region().https.onRequest`, it would be **Gen1**.
 
 ---
 
@@ -169,7 +169,7 @@ If it used `firebase-functions/v1` and `functions.region().https.onRequest`, it 
 **A) In code (preferred):** `onRequest({ region, invoker: 'public', ... }, handler)`. The stub already sets `invoker: 'public'`. Redeploy:
 
 ```bash
-firebase deploy --only functions:whatsapp
+supabase deploy --only functions:whatsapp
 ```
 
 **B) Fallback (if 403 persists):** Grant Cloud Run Invoker to `allUsers`:
@@ -226,8 +226,8 @@ curl -i "https://whatsapp-168752018174.us-central1.run.app"
 
 **5) How to verify (checklist)**
 
-- [ ] `functions/index.js`: `exports.whatsapp` uses `onRequest` from `firebase-functions/v2/https` (Gen2) and `invoker: 'public'`.
-- [ ] Deploy: `firebase deploy --only functions:whatsapp`.
+- [ ] `functions/index.js`: `exports.whatsapp` uses `onRequest` from `supabase-functions/v2/https` (Gen2) and `invoker: 'public'`.
+- [ ] Deploy: `supabase deploy --only functions:whatsapp`.
 - [ ] `curl -i https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp` → **410** + JSON.
 - [ ] `curl -i https://whatsapp-168752018174.us-central1.run.app` → **410** + JSON.
 - [ ] If 403: run `gcloud run services add-iam-policy-binding whatsapp ...` (see 2B), then re-check curl.
@@ -240,13 +240,13 @@ curl -i "https://whatsapp-168752018174.us-central1.run.app"
 **Runtime:**
 - [ ] WhatsApp backend (`whatsapp-backend`) deployed on Hetzner (or your host)
 - [ ] Persistent storage for sessions (e.g. `/app/sessions`)
-- [ ] Env: `SESSIONS_PATH`, `FIREBASE_SERVICE_ACCOUNT_JSON`, etc.
+- [ ] Env: `SESSIONS_PATH`, `SUPABASE_SERVICE_ACCOUNT_JSON`, etc.
 
 **Deploy (path-agnostic):** Repo path can vary (e.g. `/opt/whatsapp/Aplicatie-SuperpartyByAi/whatsapp-backend`). Use `systemctl cat whatsapp-backend` to get `WorkingDirectory`, then deploy there. See **`whatsapp-backend/RUNBOOK_WHATSAPP_SYNC.md`** → **Deploy on Hetzner** for SSH one-liners (`git pull`, `npm ci`, `systemctl restart`, `curl …/diag`). **If `git pull` fails with `Permission denied (publickey)`:** use **Fix Hetzner deployment (git pull fails: deploy key)** in that runbook (deploy key, HTTPS+PAT, or SCP fallback). **If `curl …/diag` returns 404:** server is old; fix deploy path/restart or deploy key first.
 
 **Post-Deploy Log Checks:**
 - [ ] "sessions dir exists/writable: true"
-- [ ] "Firebase initialized"
+- [ ] "Supabase initialized"
 - [ ] `GET /health` returns 200
 - [ ] `GET /diag` returns 200 JSON (not 404)
 
@@ -255,8 +255,8 @@ curl -i "https://whatsapp-168752018174.us-central1.run.app"
 ### **E) Flutter (Post-UI) – Integration & Security**
 
 **Confirm:**
-- [ ] App uses same Firebase project as Functions/Firestore
-- [ ] Send uses `sendViaProxy()` (NOT direct Firestore outbox writes)
+- [ ] App uses same Supabase project as Functions/Database
+- [ ] Send uses `sendViaProxy()` (NOT direct Database outbox writes)
 - [ ] Event creation respects rules (`createdBy`, `schemaVersion`, `isArchived=false`)
 - [ ] Inbox/Chat queries use correct fields (`orderBy` on existing fields)
 
@@ -267,9 +267,9 @@ curl -i "https://whatsapp-168752018174.us-central1.run.app"
 **Test Setup:** 2 WhatsApp accounts (2 phones) + 1 client (1 phone)
 
 **Tests:**
-1. **Thread Isolation:** Same client → WA-01 and WA-02 → 2 separate threads in Firestore
-2. **Receive:** Client sends → appears in Chat (Firestore + UI realtime)
-3. **Send:** Send from app → client receives → status updates in Firestore
+1. **Thread Isolation:** Same client → WA-01 and WA-02 → 2 separate threads in Database
+2. **Receive:** Client sends → appears in Chat (Database + UI realtime)
+3. **Send:** Send from app → client receives → status updates in Database
 4. **CRM Extraction:** Extract Event → draft OK → Save → `evenimente/{eventId}`
 5. **CRM Ask AI:** Ask "Cât a cheltuit clientul X?" → answer consistent with aggregates
 
@@ -282,16 +282,16 @@ curl -i "https://whatsapp-168752018174.us-central1.run.app"
 # GitHub: Create PR → main, review and merge
 ```
 
-### **Step 2: Firebase Deploy**
+### **Step 2: Supabase Deploy**
 ```bash
-firebase use <PROJECT_ID>
-# Secrets: firebase functions:secrets:set WHATSAPP_BACKEND_BASE_URL → paste http://37.27.34.179:8080
+supabase use <PROJECT_ID>
+# Secrets: supabase functions:secrets:set WHATSAPP_BACKEND_BASE_URL → paste http://37.27.34.179:8080
 # Deploy rules/indexes:
-firebase deploy --only firestore:rules,firestore:indexes
+supabase deploy --only database:rules,database:indexes
 # Deploy Functions (Node 20 + buckets): vezi C') mai sus
-./scripts/firebase-deploy-functions-buckets.sh whatsapp-proxy
-./scripts/firebase-deploy-functions-buckets.sh whatsapp-full
-./scripts/firebase-deploy-functions-buckets.sh ai
+./scripts/supabase-deploy-functions-buckets.sh whatsapp-proxy
+./scripts/supabase-deploy-functions-buckets.sh whatsapp-full
+./scripts/supabase-deploy-functions-buckets.sh ai
 ```
 
 ### **Step 3: Hetzner Backend**
@@ -300,18 +300,18 @@ firebase deploy --only firestore:rules,firestore:indexes
 - Verify `GET /health` 200 and `GET /diag` 200 JSON. **If /diag returns 404,** deploy path or restart is wrong; redeploy in `WorkingDirectory` and restart.
 
 ### **Step 4: Flutter Build & Test**
-- Build Flutter app (uses Firebase project from env)
+- Build Flutter app (uses Supabase project from env)
 - Test: Pair account → Inbox → Chat → Send/Receive, CRM Extract/Save/Ask AI
 
 ### **Step 5: Acceptance Tests**
 - Run checklist F above
-- Verify Firestore Console shows correct data structures
+- Verify Database Console shows correct data structures
 
 ---
 
 ## 🚨 **Known Risks / Blockers**
 
-1. **Index Build Time:** Firestore indexes may take 10–60 minutes. Do not onboard until all are "Ready".
+1. **Index Build Time:** Database indexes may take 10–60 minutes. Do not onboard until all are "Ready".
 2. **Backend Scale:** Run **1 instance only** until ownership/lease is complete. Multiple instances can cause race conditions on outbox.
 3. **Secrets Missing:** If `WHATSAPP_BACKEND_BASE_URL` is not set, proxy functions return 500 `configuration_missing`.
 4. **Backend Health:** Backend must be healthy before Flutter can use proxy. Check `/health`.
@@ -321,12 +321,12 @@ firebase deploy --only firestore:rules,firestore:indexes
 ## ✅ **Production Readiness Checklist (Final)**
 
 - [ ] PR merged to `main`
-- [ ] Firebase deploy successful (rules/indexes/functions)
-- [ ] Firebase secrets set (`WHATSAPP_BACKEND_BASE_URL`, AI keys)
+- [ ] Supabase deploy successful (rules/indexes/functions)
+- [ ] Supabase secrets set (`WHATSAPP_BACKEND_BASE_URL`, AI keys)
 - [ ] Hetzner backend deployed (sessions + env), `/health` 200
-- [ ] Flutter app configured (Firebase project matches)
+- [ ] Flutter app configured (Supabase project matches)
 - [ ] Acceptance tests passed (2 accounts + 1 client)
-- [ ] All indexes "Ready" in Firebase Console
+- [ ] All indexes "Ready" in Supabase Console
 - [ ] No Flutter analyze errors
 - [ ] Security: Delete account uses proxy (not direct backend)
 

@@ -1,5 +1,5 @@
 # Cloud Run IAM - Make WhatsApp proxy services public (allUsers invoker)
-# Required for Firebase Functions Gen2 (Cloud Run) to be accessible from Flutter app
+# Required for Supabase Functions Gen2 (Cloud Run) to be accessible from Flutter app
 # Run this after deploying Functions to ensure IAM bindings are set
 
 param(

@@ -4,8 +4,8 @@
 This guide provides step-by-step instructions for running the complete end-to-end test suite for the WhatsApp integration system.
 
 ## Prerequisites
-- Firebase CLI installed and authenticated
-- Access to Firebase Console (superparty-frontend project)
+- Supabase CLI installed and authenticated
+- Access to Supabase Console (superparty-frontend project)
 - Access to legacy hosting dashboard
 - Flutter app installed and configured
 - Test WhatsApp account (WA-01)
@@ -20,8 +20,8 @@ bash test-whatsapp-e2e-complete.sh
 This will:
 - Check for old 1st gen WhatsApp function
 - Verify legacy hosting backend health
-- Verify Firebase Functions availability
-- Check Firestore rules protection
+- Verify Supabase Functions availability
+- Check Database rules protection
 - Generate a test report with manual test instructions
 
 ### Option 2: Manual Step-by-Step
@@ -30,17 +30,17 @@ This will:
 
 **Check for old function:**
 ```bash
-firebase functions:list | grep -i "whatsapp.*v1"
+supabase functions:list | grep -i "whatsapp.*v1"
 ```
 
 **If found:**
-1. Go to Firebase Console → Project `superparty-frontend` → Functions
+1. Go to Supabase Console → Project `superparty-frontend` → Functions
 2. Filter by "1st gen"
 3. Find function named `whatsapp`
 4. Click Delete
 5. Redeploy functions:
    ```bash
-   firebase deploy --only functions
+   supabase deploy --only functions
    ```
 
 ## Step 2: Verify Platform Configuration
@@ -54,7 +54,7 @@ curl -sS https://whats-app-ompro.ro/health
 ```json
 {
   "status": "healthy",
-  "firestore": {
+  "database": {
     "status": "connected"
   },
   "accounts": {
@@ -67,14 +67,14 @@ curl -sS https://whats-app-ompro.ro/health
 
 **Verify legacy hosting Variables (in legacy hosting dashboard):**
 - `SESSIONS_PATH=/app/sessions` ✅
-- `FIREBASE_SERVICE_ACCOUNT_JSON=...` ✅ (must be set)
+- `SUPABASE_SERVICE_ACCOUNT_JSON=...` ✅ (must be set)
 - `ADMIN_TOKEN=...` (optional, if exists)
 - **Single instance** (no scale-out) ✅
 
-### Firebase Configuration
+### Supabase Configuration
 ```bash
 # List functions
-firebase functions:list | grep -i whatsapp
+supabase functions:list | grep -i whatsapp
 
 # Expected functions:
 # - whatsappProxyGetAccounts
@@ -87,12 +87,12 @@ firebase functions:list | grep -i whatsapp
 
 **Verify secrets:**
 ```bash
-firebase functions:secrets:access LEGACY_WHATSAPP_URL
-firebase functions:secrets:access GROQ_API_KEY
+supabase functions:secrets:access LEGACY_WHATSAPP_URL
+supabase functions:secrets:access GROQ_API_KEY
 ```
 
-**Verify Firestore rules:**
-- Rules file exists: `firestore.rules`
+**Verify Database rules:**
+- Rules file exists: `database.rules`
 - Contains "NEVER DELETE" for threads/messages/clients ✅
 
 ## Step 3: Manual Tests in Flutter App
@@ -163,13 +163,13 @@ firebase functions:secrets:access GROQ_API_KEY
 - Message shows as received (inbound)
 - Message persists after app restart
 
-**Verify in Firestore:**
+**Verify in Database:**
 ```bash
 # Check thread exists
-firebase firestore:get threads --limit 1
+supabase database:get threads --limit 1
 
 # Check message exists
-firebase firestore:get threads/{threadId}/messages --limit 1
+supabase database:get threads/{threadId}/messages --limit 1
 ```
 
 **Screenshot:**
@@ -190,15 +190,15 @@ firebase firestore:get threads/{threadId}/messages --limit 1
 - Message appears in chat immediately (optimistic update)
 - Message status shows "sent" → "delivered" → "read" (if client reads)
 - Client receives message on WhatsApp
-- Message persists in Firestore
+- Message persists in Database
 
-**Verify in Firestore:**
+**Verify in Database:**
 ```bash
 # Check outbox entry
-firebase firestore:get outbox --limit 1
+supabase database:get outbox --limit 1
 
 # Check message in thread
-firebase firestore:get threads/{threadId}/messages --order-by timestamp --limit 1
+supabase database:get threads/{threadId}/messages --order-by timestamp --limit 1
 ```
 
 **Screenshot:**
@@ -269,9 +269,9 @@ firebase firestore:get threads/{threadId}/messages --order-by timestamp --limit 
 - Event document created in `evenimente` collection
 - Success message appears
 
-**Verify in Firestore:**
+**Verify in Database:**
 ```bash
-firebase firestore:get evenimente --order-by createdAt --limit 1
+supabase database:get evenimente --order-by createdAt --limit 1
 ```
 
 **6c. Verify Client Stats:**
@@ -282,9 +282,9 @@ firebase firestore:get evenimente --order-by createdAt --limit 1
 - `eventsCount` incremented
 - `lifetimeSpend` updated (if amount extracted)
 
-**Verify in Firestore:**
+**Verify in Database:**
 ```bash
-firebase firestore:get clients/{phoneE164}
+supabase database:get clients/{phoneE164}
 ```
 
 **6d. Ask AI:**
@@ -323,12 +323,12 @@ After completing all tests, update the generated report with results:
 
 ### Test 3: Receive Message
 - Status: ✅ PASS / ❌ FAIL
-- Firestore verification: ✅ / ❌
+- Database verification: ✅ / ❌
 - Notes: [any issues]
 
 ### Test 4: Send Message
 - Status: ✅ PASS / ❌ FAIL
-- Firestore verification: ✅ / ❌
+- Database verification: ✅ / ❌
 - Notes: [any issues]
 
 ### Test 5: Restart Safety
@@ -354,13 +354,13 @@ After completing all tests, update the generated report with results:
 
 ### QR Code Not Appearing
 - Verify legacy hosting backend is healthy
-- Check Firebase Functions logs
+- Check Supabase Functions logs
 - Verify `whatsappProxyRegenerateQr` function is deployed
 
 ### Messages Not Appearing
-- Check Firestore rules allow read access
+- Check Database rules allow read access
 - Verify legacy hosting backend is processing messages
-- Check Firebase Functions logs for errors
+- Check Supabase Functions logs for errors
 
 ### Account Disconnects After Restart
 - Verify `SESSIONS_PATH` is set correctly in legacy hosting
@@ -369,7 +369,7 @@ After completing all tests, update the generated report with results:
 
 ### CRM Extraction Fails
 - Verify `GROQ_API_KEY` secret is set
-- Check Firebase Functions logs
+- Check Supabase Functions logs
 - Verify thread has enough messages for extraction
 
 ## Next Steps After All Tests Pass
@@ -383,7 +383,7 @@ After completing all tests, update the generated report with results:
 
 2. **Monitor Production:**
    - Set up alerts for legacy hosting health
-   - Monitor Firestore write operations
+   - Monitor Database write operations
    - Track message delivery rates
 
 3. **Documentation:**
@@ -396,6 +396,6 @@ After completing all tests, update the generated report with results:
 If tests fail:
 1. Check the generated test report
 2. Review legacy hosting logs
-3. Review Firebase Functions logs
-4. Check Firestore rules and indexes
+3. Review Supabase Functions logs
+4. Check Database rules and indexes
 5. Verify all secrets are set correctly

@@ -11,18 +11,17 @@
  */
 
 require('dotenv').config();
-const admin = require('firebase-admin');
-const { loadServiceAccount } = require('../firebaseCredentials');
+/* supabase admin removed */
+const { loadServiceAccount } = require('../supabaseCredentials');
 
-// Initialize Firebase Admin
+// Initialize Supabase Admin
 if (!admin.apps.length) {
   const serviceAccount = loadServiceAccount();
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
+  /* init removed */,
   });
 }
 
-const db = admin.firestore();
+const db = { collection: () => ({ doc: () => ({ set: async () => {}, get: async () => ({ exists: false, data: () => ({}) }) }) }) };
 
 /**
  * Extract clientJid from threadId (format: accountId__clientJid)

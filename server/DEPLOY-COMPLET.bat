@@ -1,12 +1,12 @@
 @echo off
 echo ========================================
-echo Deploy COMPLET - Firestore + Hosting
+echo Deploy COMPLET - Database + Hosting
 echo ========================================
 echo.
 
 REM Verifica daca suntem in directorul corect
-if not exist firebase.json (
-    echo EROARE: firebase.json nu exista!
+if not exist supabase.json (
+    echo EROARE: supabase.json nu exista!
     echo Ruleaza din: C:\Users\ursac\Aplicatie-SuperpartyByAi\
     echo.
     pause
@@ -33,13 +33,13 @@ echo.
 
 cd ..\..
 
-echo [3/4] Deploy Firestore Rules...
+echo [3/4] Deploy Database Rules...
 echo.
-firebase deploy --only firestore
+supabase deploy --only database
 
 if %ERRORLEVEL% NEQ 0 (
     echo.
-    echo EROARE la deploy Firestore!
+    echo EROARE la deploy Database!
     pause
     exit /b 1
 )
@@ -49,7 +49,7 @@ echo ========================================
 echo [4/4] Deploy Hosting...
 echo ========================================
 echo.
-firebase deploy --only hosting
+supabase deploy --only hosting
 
 if %ERRORLEVEL% EQU 0 (
     echo.
@@ -57,7 +57,7 @@ if %ERRORLEVEL% EQU 0 (
     echo SUCCESS! Deploy complet finalizat!
     echo ========================================
     echo.
-    echo Firestore Rules: https://console.firebase.google.com/project/superparty-frontend/firestore/rules
+    echo Database Rules: https://console.supabase.google.com/project/superparty-frontend/database/rules
     echo Aplicatie LIVE: https://superparty-frontend.web.app/home
     echo.
     echo Deschid aplicatia in browser...

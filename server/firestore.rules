@@ -1,6 +1,6 @@
 rules_version = '2';
 
-service cloud.firestore {
+service cloud.database {
   match /databases/{database}/documents {
     
     // Helper function: check if user is authenticated

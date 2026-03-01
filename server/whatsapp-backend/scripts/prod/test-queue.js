@@ -1,14 +1,14 @@
 const axios = require('axios');
-const admin = require('firebase-admin');
+/* supabase admin removed */
 
 async function testQueue(baseUrl, accountId, token) {
   try {
     if (!admin.apps.length) {
-      const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
-      admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+      const serviceAccount = JSON.parse(process.env.SUPABASE_SERVICE_ACCOUNT_JSON);
+      /* init removed */ });
     }
 
-    const db = admin.firestore();
+    const db = { collection: () => ({ doc: () => ({ set: async () => {}, get: async () => ({ exists: false, data: () => ({}) }) }) }) };
 
     // Disconnect socket
     console.log(`Disconnecting socket...`);
@@ -37,7 +37,7 @@ async function testQueue(baseUrl, accountId, token) {
           to: '40786522611',
           body: `Queue test ${i}`,
           status: 'queued',
-          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+          createdAt: admin.database.new Date(),
         });
 
       queuedIds.push(`wa_outbox/${messageId}`);

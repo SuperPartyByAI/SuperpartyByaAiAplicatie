@@ -47,7 +47,7 @@
 | Îmbunătățire        | Beneficiu Declarat | **ADEVĂR REAL** | Explicație                                       |
 | ------------------- | ------------------ | --------------- | ------------------------------------------------ |
 | Dual connection     | Downtime -98%      | **65%**         | Backup ajută, dar nu garantează 98%              |
-| Persistent queue    | Pierdere -99%      | **80%**         | Queue funcționează, dar Firestore poate avea lag |
+| Persistent queue    | Pierdere -99%      | **80%**         | Queue funcționează, dar Database poate avea lag |
 | Adaptive keep-alive | Rate limit -90%    | **70%**         | Detectare funcționează, dar nu previne 90%       |
 | Message batching    | Performance +10x   | **85%**         | Da, batching îmbunătățește, dar nu 10x           |
 | Proactive reconnect | Downtime -95%      | **60%**         | Predictiv e greu, nu garantează 95%              |

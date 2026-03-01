@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /* eslint-disable no-console */
-const admin = require('firebase-admin');
+/* supabase admin removed */
 const fs = require('fs');
 const path = require('path');
 
@@ -92,7 +92,7 @@ async function main() {
   const dryRun = args.dryRun === true || !apply;
 
   if (!serviceAccountPath || !accountId) {
-    console.error('Usage: node tools/firestore_repair.js --serviceAccount <path> --accountId <id> [--dryRun] [--apply] [--limit 200]');
+    console.error('Usage: node tools/database_repair.js --serviceAccount <path> --accountId <id> [--dryRun] [--apply] [--limit 200]');
     process.exit(1);
   }
 
@@ -103,11 +103,10 @@ async function main() {
   }
 
   const serviceAccount = require(resolvedPath);
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
+  /* init removed */,
   });
 
-  const db = admin.firestore();
+  const db = { collection: () => ({ doc: () => ({ set: async () => {}, get: async () => ({ exists: false, data: () => ({}) }) }) }) };
   const threadsRef = db.collection('threads');
 
   console.log(`Mode: ${dryRun ? 'DRY RUN' : 'APPLY'}`);
@@ -237,7 +236,7 @@ async function main() {
         movedMessages += createOps.length;
         await loser.ref.set({
           archived: true,
-          archivedAt: admin.firestore.FieldValue.serverTimestamp(),
+          archivedAt: admin.database.new Date(),
           archiveReason: 'dedupe',
         }, { merge: true });
         archivedThreads += 1;
@@ -259,7 +258,7 @@ async function main() {
           data: {
             displayName: null,
             displayNameSource: 'repair',
-            displayNameUpdatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            displayNameUpdatedAt: admin.database.new Date(),
           },
           options: { merge: true },
         });
@@ -294,7 +293,7 @@ async function main() {
           ref: doc.ref,
           data: {
             deleted: true,
-            deletedAt: admin.firestore.FieldValue.serverTimestamp(),
+            deletedAt: admin.database.new Date(),
             deleteReason: `duplicate-outbound:${key}`,
           },
           options: { merge: true },

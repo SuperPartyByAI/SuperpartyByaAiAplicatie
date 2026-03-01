@@ -2,31 +2,31 @@
 
 ## Probleme Identificate
 
-### 1. **Sesiunea se pierde la redeploy (NU se restaurează din Firestore)**
+### 1. **Sesiunea se pierde la redeploy (NU se restaurează din Database)**
 
 **Problema:**
-- Sesiunea se salvează pe disk (`useMultiFileAuthState`) și backup în Firestore
-- **DAR:** când sesiunea de pe disk se pierde (redeploy, crash, restart), NU se restaurează automat din Firestore
-- Codul doar salvează backup în Firestore, dar nu îl folosește pentru restore
+- Sesiunea se salvează pe disk (`useMultiFileAuthState`) și backup în Database
+- **DAR:** când sesiunea de pe disk se pierde (redeploy, crash, restart), NU se restaurează automat din Database
+- Codul doar salvează backup în Database, dar nu îl folosește pentru restore
 
 **Cauză:**
 ```javascript
 // server.js:1050-1130
 // Folosește doar useMultiFileAuthState pentru disk
-// Backup în Firestore există, dar NU se restaura automat
+// Backup în Database există, dar NU se restaura automat
 const { state, saveCreds } = useMultiFileAuthState(sessionPath);
 ```
 
 **Soluție:**
 - La startup, verifica dacă sesiunea de pe disk există
-- Dacă NU există, restaurează din Firestore (`useFirestoreAuthState`)
+- Dacă NU există, restaurează din Database (`useDatabaseAuthState`)
 - Dacă există ambele, preferă disk (mai recent)
 
 ### 2. **SESSIONS_PATH nu e persistent (Hetzner persistent storage lipsește)**
 
 **Problema:**
 - Dacă `SESSIONS_PATH` nu e configurat sau nu e persistent, sesiunea se pierde la redeploy
-- Backup-ul în Firestore există, dar nu se folosește
+- Backup-ul în Database există, dar nu se folosește
 
 **Soluție:**
 - **Configură Hetzner persistent storage:**
@@ -43,7 +43,7 @@ const { state, saveCreds } = useMultiFileAuthState(sessionPath);
   # Add: Environment="SESSIONS_PATH=/var/lib/whatsapp-backend/sessions"
   ```
 
-- **SAU** implementează restore automat din Firestore dacă disk session lipsește
+- **SAU** implementează restore automat din Database dacă disk session lipsește
 
 ### 3. **Logout/BadSession șterge sesiunea complet (nu permite recovery)**
 
@@ -53,7 +53,7 @@ const { state, saveCreds } = useMultiFileAuthState(sessionPath);
 if (reason === DisconnectReason.loggedOut || 
     reason === DisconnectReason.badSession || 
     reason === DisconnectReason.unauthorized) {
-  await clearAccountSession(accountId); // Șterge disk + Firestore
+  await clearAccountSession(accountId); // Șterge disk + Database
   account.status = 'needs_qr'; // Trebuie re-pairing complet
 }
 ```
@@ -68,7 +68,7 @@ if (reason === DisconnectReason.loggedOut ||
   - Dacă e prima dată (nu s-a întâmplat recent) → poate fi temporar, păstrează backup
   - Dacă se repetă (de 2-3 ori) → logout real, șterge sesiunea
 - **Implementează retry cu backup restore:**
-  - La reconnect după logout temporar, încearcă să restaureze din Firestore
+  - La reconnect după logout temporar, încearcă să restaureze din Database
   - Dacă restore-ul funcționează → sesiunea e validă
   - Dacă restore-ul eșuează → logout real, șterge sesiunea
 
@@ -95,22 +95,22 @@ if (!waBootstrap.canStartBaileys()) {
   - Când lock e liberat, reconectează automat account-urile în "connecting"
 - **SAU** nu permite crearea de conexiuni în passive mode (returnează eroare clară)
 
-### 5. **Nu există restore automat din Firestore la startup**
+### 5. **Nu există restore automat din Database la startup**
 
 **Problema:**
 - La startup, dacă sesiunea de pe disk lipsește, se generează QR nou (re-pairing)
-- Backup-ul din Firestore există, dar nu se folosește
+- Backup-ul din Database există, dar nu se folosește
 
 **Soluție:**
 - **Implementează restore logic:**
   ```javascript
-  async function restoreSessionFromFirestore(accountId) {
+  async function restoreSessionFromDatabase(accountId) {
     // Verifică dacă disk session există
     const diskSessionExists = fs.existsSync(path.join(authDir, accountId));
     
     if (!diskSessionExists) {
-      // Restaurează din Firestore
-      const { state, saveCreds } = await useFirestoreAuthState(accountId, db);
+      // Restaurează din Database
+      const { state, saveCreds } = await useDatabaseAuthState(accountId, db);
       
       if (state.creds) {
         // Copiază sesiunea restaurată pe disk
@@ -129,11 +129,11 @@ if (!waBootstrap.canStartBaileys()) {
 **Problema:**
 - Când apare disconnect (515, 428), se încearcă reconnect
 - Dacă sesiunea de pe disk s-a pierdut între timp, reconnect-ul eșuează
-- Nu există fallback la Firestore restore în timpul reconnect-ului
+- Nu există fallback la Database restore în timpul reconnect-ului
 
 **Soluție:**
 - **La reconnect, verifică dacă sesiunea există:**
-  - Dacă NU există pe disk, restaurează din Firestore
+  - Dacă NU există pe disk, restaurează din Database
   - Apoi continuă cu reconnect normal
 
 ### 7. **Nu există verificare periodică a stabilității sesiunii**
@@ -145,13 +145,13 @@ if (!waBootstrap.canStartBaileys()) {
 **Soluție:**
 - **Implementează health check periodic:**
   - Verifică dacă socket e încă conectat
-  - Dacă nu e, încearcă reconnect cu restore din Firestore dacă e nevoie
+  - Dacă nu e, încearcă reconnect cu restore din Database dacă e nevoie
 
 ## Soluții Prioritizate
 
 ### 🔴 Prioritate ALTA (fix imediat)
 
-1. **Restore automat din Firestore la startup** dacă disk session lipsește
+1. **Restore automat din Database la startup** dacă disk session lipsește
 2. **Verifică SESSIONS_PATH e persistent** (Hetzner persistent storage configurat)
 
 ### 🟡 Prioritate MEDIE (fix în curând)
@@ -166,7 +166,7 @@ if (!waBootstrap.canStartBaileys()) {
 
 ## Implementare
 
-### Pas 1: Restore automat din Firestore
+### Pas 1: Restore automat din Database
 
 Modifică `createConnection()` în `server.js`:
 
@@ -179,13 +179,13 @@ async function createConnection(accountId, name, phone) {
   
   let state, saveCreds;
   
-  if (!diskSessionExists && firestoreAvailable) {
-    // Restaurează din Firestore
-    console.log(`🔄 [${accountId}] Disk session missing, restoring from Firestore...`);
+  if (!diskSessionExists && databaseAvailable) {
+    // Restaurează din Database
+    console.log(`🔄 [${accountId}] Disk session missing, restoring from Database...`);
     try {
-      const firestoreAuth = await useFirestoreAuthState(accountId, db);
-      state = firestoreAuth.state;
-      saveCreds = firestoreAuth.saveCreds;
+      const databaseAuth = await useDatabaseAuthState(accountId, db);
+      state = databaseAuth.state;
+      saveCreds = databaseAuth.saveCreds;
       
       // Copiază sesiunea restaurată pe disk
       if (state.creds) {
@@ -194,10 +194,10 @@ async function createConnection(accountId, name, phone) {
           path.join(sessionPath, 'creds.json'),
           JSON.stringify(state.creds, null, 2)
         );
-        console.log(`✅ [${accountId}] Session restored from Firestore to disk`);
+        console.log(`✅ [${accountId}] Session restored from Database to disk`);
       }
     } catch (error) {
-      console.error(`❌ [${accountId}] Firestore restore failed:`, error.message);
+      console.error(`❌ [${accountId}] Database restore failed:`, error.message);
       // Fallback: generează QR nou
     }
   }
@@ -241,9 +241,9 @@ Modifică handler-ul de disconnect pentru a nu șterge imediat sesiunea:
 
 ```javascript
 // La disconnect cu loggedOut:
-// 1. Salvează backup în Firestore (dacă nu există deja)
+// 1. Salvează backup în Database (dacă nu există deja)
 // 2. Marchează ca "needs_restore" în loc de "needs_qr"
-// 3. La reconnect, încearcă restore din Firestore
+// 3. La reconnect, încearcă restore din Database
 // 4. Dacă restore-ul funcționează → sesiunea e validă
 // 5. Dacă restore-ul eșuează → logout real, șterge sesiunea
 ```
@@ -253,7 +253,7 @@ Modifică handler-ul de disconnect pentru a nu șterge imediat sesiunea:
 1. **Test restore la startup:**
    - Șterge sesiunea de pe disk
    - Restart backend
-   - Verifică că se restaurează din Firestore
+   - Verifică că se restaurează din Database
 
 2. **Test Hetzner Persistent Storage:**
    - Configurează persistent storage (systemd override)
@@ -268,4 +268,4 @@ Modifică handler-ul de disconnect pentru a nu șterge imediat sesiunea:
 
 - [Baileys Auth State](https://github.com/WhiskeySockets/Baileys/blob/master/src/Utils/auth-state.ts)
 - [Hetzner Systemd Service](whatsapp-backend/UBUNTU_SYSTEMD_SESSIONS.md)
-- [Firestore Backup/Restore](whatsapp-backend/lib/persistence/firestore-auth.js)
+- [Database Backup/Restore](whatsapp-backend/lib/persistence/database-auth.js)

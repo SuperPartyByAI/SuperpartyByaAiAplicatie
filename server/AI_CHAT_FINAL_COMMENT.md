@@ -11,13 +11,13 @@ AI Chat este acum **100% funcțional** cu error handling corect și diagnostic c
 ### 1. Auth Guard
 
 - **Înainte**: Apela `chatWithAI` fără verificare → backend arunca `unauthenticated`
-- **Acum**: Verifică `FirebaseAuth.currentUser` înainte de apel
+- **Acum**: Verifică `SupabaseAuth.currentUser` înainte de apel
 - **Rezultat**: Dacă user == null → mesaj clar "Trebuie să fii logat", FĂRĂ apel către function
 
 ### 2. Error Handling
 
 - **Înainte**: Toate erorile → "Conexiune eșuată" (generic)
-- **Acum**: Mapare pe coduri `FirebaseFunctionsException`:
+- **Acum**: Mapare pe coduri `SupabaseFunctionsException`:
   - `unauthenticated` → "Trebuie să fii logat..."
   - `failed-precondition` → "AI nu este configurat (GROQ_API_KEY lipsă)..."
   - `invalid-argument` → "Cerere invalidă..."
@@ -104,13 +104,13 @@ AI Chat este acum **100% funcțional** cu error handling corect și diagnostic c
 flutter logs | grep "AIChatScreen.*User auth state"
 
 # 2. Check function deployment
-firebase functions:list | grep chatWithAI
+supabase functions:list | grep chatWithAI
 
 # 3. Check GROQ_API_KEY
-firebase functions:secrets:access GROQ_API_KEY
+supabase functions:secrets:access GROQ_API_KEY
 
 # 4. Check function logs
-firebase functions:log --only chatWithAI --lines 5
+supabase functions:log --only chatWithAI --lines 5
 ```
 
 ### Manual Test

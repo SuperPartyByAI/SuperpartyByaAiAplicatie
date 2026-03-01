@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { db, FieldValue } = require('../firebase');
+const { db, FieldValue } = require('../supabase');
 const { getSessionSocket } = require('../whatsapp/sessionManager');
 
 // List Conversations
@@ -83,7 +83,7 @@ router.post('/:id/messages', async (req, res) => {
         
         // 4. Save Outbound Message
         const messagesRef = convRef.collection('messages').doc(); // Auto-ID or use wa ID?
-        // Using Firestore Auto-ID for our internal record, store WA ID inside
+        // Using Database Auto-ID for our internal record, store WA ID inside
         await messagesRef.set({
             direction: 'outbound',
             text,

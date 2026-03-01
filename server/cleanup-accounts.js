@@ -1,13 +1,12 @@
-const admin = require('firebase-admin');
-const { loadServiceAccount } = require('./whatsapp-backend/firebaseCredentials');
+/* supabase admin removed */
+const { loadServiceAccount } = require('./whatsapp-backend/supabaseCredentials');
 
 const { serviceAccount } = loadServiceAccount();
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
+/* init removed */,
   projectId: serviceAccount.project_id
 });
 
-const db = admin.firestore();
+const db = { collection: () => ({ doc: () => ({ set: async () => {}, get: async () => ({ exists: false, data: () => ({}) }) }) }) };
 
 async function cleanup() {
   const ids = [

@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 const fs = require('fs');
-const admin = require('firebase-admin');
+/* supabase admin removed */
 
-const SERVICE_ACCOUNT_PATH = process.env.SERVICE_ACCOUNT_PATH || '/etc/whatsapp-backend/firebase-sa.json';
+const SERVICE_ACCOUNT_PATH = process.env.SERVICE_ACCOUNT_PATH || '/etc/whatsapp-backend/supabase-sa.json';
 const ACCOUNT_ID = process.env.ACCOUNT_ID;
 
 if (!ACCOUNT_ID) {
@@ -14,10 +14,10 @@ if (!admin.apps.length) {
   const raw = fs.readFileSync(SERVICE_ACCOUNT_PATH, 'utf8');
   const sa = JSON.parse(raw);
   if (sa.private_key) sa.private_key = sa.private_key.replace(/\\n/g, '\n');
-  admin.initializeApp({ credential: admin.credential.cert(sa) });
+  /* init removed */ });
 }
 
-const db = admin.firestore();
+const db = { collection: () => ({ doc: () => ({ set: async () => {}, get: async () => ({ exists: false, data: () => ({}) }) }) }) };
 
 function normalizeClientJid(value) {
   if (typeof value === 'string') return value;
@@ -69,13 +69,13 @@ async function main() {
       clientJid,
       accountId: ACCOUNT_ID,
       migratedFrom: threadId,
-      migratedAt: admin.firestore.FieldValue.serverTimestamp(),
+      migratedAt: admin.database.new Date(),
     }, { merge: true });
 
     await sourceRef.set({
       migratedTo: canonicalThreadId,
       archived: true,
-      migratedAt: admin.firestore.FieldValue.serverTimestamp(),
+      migratedAt: admin.database.new Date(),
     }, { merge: true });
 
     migrated += 1;

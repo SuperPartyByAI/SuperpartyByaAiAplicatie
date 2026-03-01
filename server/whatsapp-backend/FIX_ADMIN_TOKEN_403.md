@@ -78,4 +78,4 @@ Poți continua să rulezi **doar scriptul direct** (nu trebuie admin token):
 node whatsapp-backend/scripts/sync-contacts-to-threads.js account_prod_26ec0bfb54a6ab88cc3cd7aba6a9a443
 ```
 
-Scriptul scrie direct în Firestore; nu apelează backend-ul.
+Scriptul scrie direct în Database; nu apelează backend-ul.

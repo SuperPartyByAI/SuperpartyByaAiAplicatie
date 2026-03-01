@@ -25,8 +25,8 @@ function looksLikeWaMessageId(id) {
 
 /**
  * Extract WhatsApp key ID from message document data
- * @param {object} docData - Firestore document data
- * @param {string} docId - Firestore document ID (fallback)
+ * @param {object} docData - Database document data
+ * @param {string} docId - Database document ID (fallback)
  * @returns {{ waKeyId: string | null; source: string }}
  */
 function extractWaKeyId(docData, docId = null) {
@@ -62,8 +62,8 @@ function extractWaKeyId(docData, docId = null) {
 
 /**
  * Extract WhatsApp metadata from message document
- * @param {object} docData - Firestore document data
- * @param {string} docId - Firestore document ID
+ * @param {object} docData - Database document data
+ * @param {string} docId - Database document ID
  * @returns {{ waKeyId: string | null; waRemoteJid: string | null; waFromMe: boolean; waTimestampSec: number | null; source: string }}
  */
 function extractWaMetadata(docData, docId = null) {
@@ -93,7 +93,7 @@ function extractWaMetadata(docData, docId = null) {
   for (const ts of tsCandidates) {
     if (ts == null) continue;
     
-    // Firestore Timestamp
+    // Database Timestamp
     if (typeof ts === 'object' && typeof ts.seconds === 'number') {
       waTimestampSec = ts.seconds;
       break;
@@ -126,12 +126,12 @@ function extractWaMetadata(docData, docId = null) {
 
 /**
  * Convert timestamp value to seconds
- * @param {any} x - Timestamp value (Firestore Timestamp, number, ISO string, etc.)
+ * @param {any} x - Timestamp value (Database Timestamp, number, ISO string, etc.)
  * @returns {number | null} - Seconds since epoch, or null if invalid
  */
 function toSec(x) {
   if (x == null) return null;
-  // Firestore Timestamp { seconds, nanoseconds }
+  // Database Timestamp { seconds, nanoseconds }
   if (typeof x === 'object' && typeof x.seconds === 'number') return x.seconds;
   // ISO date string
   if (typeof x === 'string') {
@@ -148,7 +148,7 @@ function toSec(x) {
 
 /**
  * Pick oldest timestamp from message document (multiple candidate fields)
- * @param {object} messageDoc - Firestore message document data
+ * @param {object} messageDoc - Database message document data
  * @returns {number | null} - Seconds since epoch, or null if not found
  */
 function pickOldestTimestamp(messageDoc) {

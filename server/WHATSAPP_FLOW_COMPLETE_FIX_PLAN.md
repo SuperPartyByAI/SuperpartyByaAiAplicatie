@@ -79,7 +79,7 @@ enum AccountState {
 ### C) Backend: Stabilize 401 Handling
 
 #### C1. Prevent Reconnect Loop
-- Already fixed: Firestore check in `createConnection`
+- Already fixed: Database check in `createConnection`
 - Already fixed: Timeout cleared on 401
 - Verify: No reconnect scheduled after 401
 
@@ -92,7 +92,7 @@ enum AccountState {
 
 #### D1. Events Page
 - Already handles empty/error states ✅
-- Verify: Firestore query doesn't require missing indexes
+- Verify: Database query doesn't require missing indexes
 - Verify: Filters work correctly
 
 #### D2. AI Rating

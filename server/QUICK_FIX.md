@@ -1,8 +1,8 @@
-# ⚡ QUICK FIX - Firebase CLI Missing
+# ⚡ QUICK FIX - Supabase CLI Missing
 
 ## 🎯 Problema
 ```
-firebase: The term 'firebase' is not recognized...
+supabase: The term 'supabase' is not recognized...
 ```
 
 ## ✅ Soluția (2 minute)
@@ -13,15 +13,15 @@ firebase: The term 'firebase' is not recognized...
 # 1. Verifică Node.js (ar trebui să fie instalat)
 node --version
 
-# 2. Instalează Firebase CLI
-npm install -g firebase-tools
+# 2. Instalează Supabase CLI
+npm install -g supabase-tools
 
 # 3. Verifică instalare
-firebase --version
+supabase --version
 
 # 4. Login și Deploy
-firebase login
-firebase deploy --only functions
+supabase login
+supabase deploy --only functions
 ```
 
 ---
@@ -50,10 +50,10 @@ firebase deploy --only functions
 ## 📋 Checklist
 
 - [ ] Node.js instalat (`node --version` funcționează)
-- [ ] Firebase CLI instalat (`npm install -g firebase-tools`)
-- [ ] Firebase CLI verificat (`firebase --version`)
-- [ ] Login Firebase (`firebase login`)
-- [ ] Deploy (`firebase deploy --only functions`)
+- [ ] Supabase CLI instalat (`npm install -g supabase-tools`)
+- [ ] Supabase CLI verificat (`supabase --version`)
+- [ ] Login Supabase (`supabase login`)
+- [ ] Deploy (`supabase deploy --only functions`)
 
 ---
 
@@ -62,10 +62,10 @@ firebase deploy --only functions
 **Alternativă - Folosește NPX (fără instalare globală):**
 
 ```powershell
-npx firebase-tools login
-npx firebase-tools deploy --only functions
+npx supabase-tools login
+npx supabase-tools deploy --only functions
 ```
 
 ---
 
-**Documentație completă:** `INSTALL_FIREBASE_CLI.md`
+**Documentație completă:** `INSTALL_SUPABASE_CLI.md`

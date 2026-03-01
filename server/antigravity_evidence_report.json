@@ -11,7 +11,7 @@
       "whatsapp_phone": "+40769029474",
       "channel_id": "whatsapp-baileys",
       "destination": {
-        "url": "firestore://wa_accounts/K22D5aEwi4PHCDw94E1l",
+        "url": "database://wa_accounts/K22D5aEwi4PHCDw94E1l",
         "method": "POST",
         "headers": {
           "X-Route-Id": "route-K22D5aEwi4PHCDw94E1l"
@@ -46,7 +46,7 @@
           "from": "+40769029474",
           "to": "system",
           "route_id": "route-K22D5aEwi4PHCDw94E1l",
-          "destination_url": "firestore://wa_accounts/K22D5aEwi4PHCDw94E1l",
+          "destination_url": "database://wa_accounts/K22D5aEwi4PHCDw94E1l",
           "response_status": 200,
           "error_message": null,
           "latency_ms": 20
@@ -66,7 +66,7 @@
       "whatsapp_phone": "+40761103129",
       "channel_id": "whatsapp-baileys",
       "destination": {
-        "url": "firestore://wa_accounts/C7xKBICjBaeibmkmfYN8",
+        "url": "database://wa_accounts/C7xKBICjBaeibmkmfYN8",
         "method": "POST",
         "headers": {
           "X-Route-Id": "route-C7xKBICjBaeibmkmfYN8"
@@ -101,7 +101,7 @@
           "from": "+40761103129",
           "to": "system",
           "route_id": "route-C7xKBICjBaeibmkmfYN8",
-          "destination_url": "firestore://wa_accounts/C7xKBICjBaeibmkmfYN8",
+          "destination_url": "database://wa_accounts/C7xKBICjBaeibmkmfYN8",
           "response_status": 200,
           "error_message": null,
           "latency_ms": 20
@@ -121,7 +121,7 @@
       "whatsapp_phone": "+40750457600",
       "channel_id": "whatsapp-baileys",
       "destination": {
-        "url": "firestore://wa_accounts/C9mLWO3s3nx5ckQBlmUE",
+        "url": "database://wa_accounts/C9mLWO3s3nx5ckQBlmUE",
         "method": "POST",
         "headers": {
           "X-Route-Id": "route-C9mLWO3s3nx5ckQBlmUE"
@@ -156,7 +156,7 @@
           "from": "+40750457600",
           "to": "system",
           "route_id": "route-C9mLWO3s3nx5ckQBlmUE",
-          "destination_url": "firestore://wa_accounts/C9mLWO3s3nx5ckQBlmUE",
+          "destination_url": "database://wa_accounts/C9mLWO3s3nx5ckQBlmUE",
           "response_status": 200,
           "error_message": null,
           "latency_ms": 20
@@ -176,7 +176,7 @@
       "whatsapp_phone": "+40792864811",
       "channel_id": "whatsapp-baileys",
       "destination": {
-        "url": "firestore://wa_accounts/7ei5E0SiunhP686M0EVX",
+        "url": "database://wa_accounts/7ei5E0SiunhP686M0EVX",
         "method": "POST",
         "headers": {
           "X-Route-Id": "route-7ei5E0SiunhP686M0EVX"
@@ -211,7 +211,7 @@
           "from": "+40792864811",
           "to": "system",
           "route_id": "route-7ei5E0SiunhP686M0EVX",
-          "destination_url": "firestore://wa_accounts/7ei5E0SiunhP686M0EVX",
+          "destination_url": "database://wa_accounts/7ei5E0SiunhP686M0EVX",
           "response_status": 200,
           "error_message": null,
           "latency_ms": 20
@@ -231,7 +231,7 @@
       "whatsapp_phone": "+40720220445",
       "channel_id": "whatsapp-baileys",
       "destination": {
-        "url": "firestore://wa_accounts/vWPV8yMvNyCab1kl5S0U",
+        "url": "database://wa_accounts/vWPV8yMvNyCab1kl5S0U",
         "method": "POST",
         "headers": {
           "X-Route-Id": "route-vWPV8yMvNyCab1kl5S0U"
@@ -266,7 +266,7 @@
           "from": "+40720220445",
           "to": "system",
           "route_id": "route-vWPV8yMvNyCab1kl5S0U",
-          "destination_url": "firestore://wa_accounts/vWPV8yMvNyCab1kl5S0U",
+          "destination_url": "database://wa_accounts/vWPV8yMvNyCab1kl5S0U",
           "response_status": 200,
           "error_message": null,
           "latency_ms": 20
@@ -286,7 +286,7 @@
       "whatsapp_phone": "+40786893938",
       "channel_id": "whatsapp-baileys",
       "destination": {
-        "url": "firestore://wa_accounts/7MXiCIPXm1ZGeXxk5X58",
+        "url": "database://wa_accounts/7MXiCIPXm1ZGeXxk5X58",
         "method": "POST",
         "headers": {
           "X-Route-Id": "route-7MXiCIPXm1ZGeXxk5X58"
@@ -321,7 +321,7 @@
           "from": "+40786893938",
           "to": "system",
           "route_id": "route-7MXiCIPXm1ZGeXxk5X58",
-          "destination_url": "firestore://wa_accounts/7MXiCIPXm1ZGeXxk5X58",
+          "destination_url": "database://wa_accounts/7MXiCIPXm1ZGeXxk5X58",
           "response_status": 200,
           "error_message": null,
           "latency_ms": 20
@@ -341,7 +341,7 @@
       "whatsapp_phone": "+40761138140",
       "channel_id": "whatsapp-baileys",
       "destination": {
-        "url": "firestore://wa_accounts/LKvZfsJMz7IO8dBLuotj",
+        "url": "database://wa_accounts/LKvZfsJMz7IO8dBLuotj",
         "method": "POST",
         "headers": {
           "X-Route-Id": "route-LKvZfsJMz7IO8dBLuotj"
@@ -376,7 +376,7 @@
           "from": "+40761138140",
           "to": "system",
           "route_id": "route-LKvZfsJMz7IO8dBLuotj",
-          "destination_url": "firestore://wa_accounts/LKvZfsJMz7IO8dBLuotj",
+          "destination_url": "database://wa_accounts/LKvZfsJMz7IO8dBLuotj",
           "response_status": 200,
           "error_message": null,
           "latency_ms": 20
@@ -396,7 +396,7 @@
       "whatsapp_phone": "+40734032795",
       "channel_id": "whatsapp-baileys",
       "destination": {
-        "url": "firestore://wa_accounts/XANaSkgQzW5Z1VfmIvCs",
+        "url": "database://wa_accounts/XANaSkgQzW5Z1VfmIvCs",
         "method": "POST",
         "headers": {
           "X-Route-Id": "route-XANaSkgQzW5Z1VfmIvCs"
@@ -431,7 +431,7 @@
           "from": "+40734032795",
           "to": "system",
           "route_id": "route-XANaSkgQzW5Z1VfmIvCs",
-          "destination_url": "firestore://wa_accounts/XANaSkgQzW5Z1VfmIvCs",
+          "destination_url": "database://wa_accounts/XANaSkgQzW5Z1VfmIvCs",
           "response_status": 200,
           "error_message": null,
           "latency_ms": 20
@@ -451,7 +451,7 @@
       "whatsapp_phone": "+40722744377",
       "channel_id": "whatsapp-baileys",
       "destination": {
-        "url": "firestore://wa_accounts/ZHRI9O3O3Lx6yRWzqOWg",
+        "url": "database://wa_accounts/ZHRI9O3O3Lx6yRWzqOWg",
         "method": "POST",
         "headers": {
           "X-Route-Id": "route-ZHRI9O3O3Lx6yRWzqOWg"
@@ -486,7 +486,7 @@
           "from": "+40722744377",
           "to": "system",
           "route_id": "route-ZHRI9O3O3Lx6yRWzqOWg",
-          "destination_url": "firestore://wa_accounts/ZHRI9O3O3Lx6yRWzqOWg",
+          "destination_url": "database://wa_accounts/ZHRI9O3O3Lx6yRWzqOWg",
           "response_status": 200,
           "error_message": null,
           "latency_ms": 20
@@ -506,7 +506,7 @@
       "whatsapp_phone": "+40763795919",
       "channel_id": "whatsapp-baileys",
       "destination": {
-        "url": "firestore://wa_accounts/Ztj2SRhRWAflLQh7iVi5",
+        "url": "database://wa_accounts/Ztj2SRhRWAflLQh7iVi5",
         "method": "POST",
         "headers": {
           "X-Route-Id": "route-Ztj2SRhRWAflLQh7iVi5"
@@ -541,7 +541,7 @@
           "from": "+40763795919",
           "to": "system",
           "route_id": "route-Ztj2SRhRWAflLQh7iVi5",
-          "destination_url": "firestore://wa_accounts/Ztj2SRhRWAflLQh7iVi5",
+          "destination_url": "database://wa_accounts/Ztj2SRhRWAflLQh7iVi5",
           "response_status": 200,
           "error_message": null,
           "latency_ms": 20
@@ -561,7 +561,7 @@
       "whatsapp_phone": "+40773879706",
       "channel_id": "whatsapp-baileys",
       "destination": {
-        "url": "firestore://wa_accounts/hQtWagPAA490T7FD3vdb",
+        "url": "database://wa_accounts/hQtWagPAA490T7FD3vdb",
         "method": "POST",
         "headers": {
           "X-Route-Id": "route-hQtWagPAA490T7FD3vdb"
@@ -596,7 +596,7 @@
           "from": "+40773879706",
           "to": "system",
           "route_id": "route-hQtWagPAA490T7FD3vdb",
-          "destination_url": "firestore://wa_accounts/hQtWagPAA490T7FD3vdb",
+          "destination_url": "database://wa_accounts/hQtWagPAA490T7FD3vdb",
           "response_status": 200,
           "error_message": null,
           "latency_ms": 20

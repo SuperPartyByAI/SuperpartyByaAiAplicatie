@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { callChatWithAI, auth } from '../firebase';
+import { callChatWithAI, auth } from '../supabase';
 import { useWheel } from '../contexts/WheelContext';
 import './AIChatModal.css';
 

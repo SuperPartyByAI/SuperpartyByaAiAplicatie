@@ -8,7 +8,7 @@ Sistemul de Force Update acum **NU mai deconectează utilizatorul**. User-ul ră
 
 1. **UpdateGate** la root-ul aplicației - verifică update înainte de orice routing
 2. **ForceUpdateScreen** full-screen non-dismissible - blochează app-ul complet
-3. **NO signOut()** - FirebaseAuth session persistă prin update
+3. **NO signOut()** - SupabaseAuth session persistă prin update
 4. **AppStateMigrationService** - curăță cache-uri fără să delogheze user-ul
 
 ---
@@ -58,7 +58,7 @@ UpdateGate (root level)
 3. **lib/services/app_state_migration_service.dart**
    - Handles data migration between versions
    - Clears cache/SharedPreferences
-   - Preserves FirebaseAuth session
+   - Preserves SupabaseAuth session
 
 ### Modified Files
 
@@ -155,11 +155,11 @@ UpdateGate(
 - Checks if build number changed
 - Clears old cache flags
 - Resets incompatible SharedPreferences
-- Preserves FirebaseAuth session
+- Preserves SupabaseAuth session
 
 **What it DOESN'T do**:
 
-- Call FirebaseAuth.instance.signOut()
+- Call SupabaseAuth.instance.signOut()
 - Clear auth tokens
 - Delete user data
 
@@ -174,7 +174,7 @@ await AppStateMigrationService.checkAndMigrate();
 
 ## 🔧 Configuration
 
-### Firestore Schema (unchanged)
+### Database Schema (unchanged)
 
 ```javascript
 // app_config/version
@@ -204,7 +204,7 @@ version: 1.0.2+3 # Increment build number for each release
 **Setup**:
 
 1. Login to app with build 2
-2. Set Firestore: `min_build_number: 3, force_update: true`
+2. Set Database: `min_build_number: 3, force_update: true`
 3. Close and reopen app
 
 **Expected**:
@@ -217,7 +217,7 @@ version: 1.0.2+3 # Increment build number for each release
 6. ✅ After install → app restarts
 7. ✅ UpdateGate checks → no update needed
 8. ✅ User enters app **WITHOUT re-login**
-9. ✅ FirebaseAuth.currentUser is NOT null
+9. ✅ SupabaseAuth.currentUser is NOT null
 
 ### Test 2: Data Migration (Version Change)
 
@@ -240,7 +240,7 @@ version: 1.0.2+3 # Increment build number for each release
 **Setup**:
 
 1. Install app with build 3
-2. Set Firestore: `min_build_number: 3`
+2. Set Database: `min_build_number: 3`
 
 **Expected**:
 
@@ -259,7 +259,7 @@ version: 1.0.2+3 # Increment build number for each release
 
 ```dart
 if (needsUpdate) {
-  await FirebaseAuth.instance.signOut(); // ❌ NO!
+  await SupabaseAuth.instance.signOut(); // ❌ NO!
   showUpdateDialog();
 }
 ```
@@ -360,7 +360,7 @@ if (fromBuild < 5 && toBuild >= 5) {
 ### Check if User is Authenticated
 
 ```dart
-final user = FirebaseAuth.instance.currentUser;
+final user = SupabaseAuth.instance.currentUser;
 print('User authenticated: ${user != null}');
 print('User uid: ${user?.uid}');
 print('User email: ${user?.email}');
@@ -412,8 +412,8 @@ print('Needs force update: $needsUpdate');
 
 - [ ] Increment build number in pubspec.yaml
 - [ ] Build APK: `flutter build apk --release`
-- [ ] Upload APK to Firebase Storage
-- [ ] Update Firestore `app_config/version`:
+- [ ] Upload APK to Supabase Storage
+- [ ] Update Database `app_config/version`:
   - [ ] Set `min_build_number` to new build
   - [ ] Set `force_update: true`
   - [ ] Update `android_download_url`
@@ -427,7 +427,7 @@ print('Needs force update: $needsUpdate');
 ## 📚 Related Documentation
 
 - [FORCE_UPDATE_SETUP.md](./superparty_flutter/FORCE_UPDATE_SETUP.md) - Original setup guide
-- [APP_VERSION_SCHEMA.md](./superparty_flutter/APP_VERSION_SCHEMA.md) - Firestore schema
+- [APP_VERSION_SCHEMA.md](./superparty_flutter/APP_VERSION_SCHEMA.md) - Database schema
 - [AI_CHAT_REPAIR_COMPLETE.md](./AI_CHAT_REPAIR_COMPLETE.md) - AI Chat fix
 
 ---

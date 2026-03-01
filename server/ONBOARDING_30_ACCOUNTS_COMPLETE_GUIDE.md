@@ -41,8 +41,8 @@ export ADMIN_TOKEN="your-admin-token-here"  # Din legacy hosting Variables
 # CRITICAL - Must match volume mount path
 SESSIONS_PATH=/app/sessions
 
-# CRITICAL - Firebase service account JSON (ca string)
-FIREBASE_SERVICE_ACCOUNT_JSON={"type":"service_account","project_id":"...",...}
+# CRITICAL - Supabase service account JSON (ca string)
+SUPABASE_SERVICE_ACCOUNT_JSON={"type":"service_account","project_id":"...",...}
 
 # RECOMMENDED - Admin token pentru endpoint-uri protejate
 ADMIN_TOKEN=your-long-random-secret-token-here
@@ -64,13 +64,13 @@ legacy hosting logs --tail 100
 ```
 ✅ Sessions dir writable: true
 ✅ SESSIONS_PATH: /app/sessions
-✅ Firebase Admin initialized
+✅ Supabase Admin initialized
 ✅ Server running on port 8080
 ```
 
 **Test Health Endpoint:**
 ```bash
-curl -s "https://your-service.legacy hosting.app/health" | jq '{ok, sessions_dir_writable, status, firestore}'
+curl -s "https://your-service.legacy hosting.app/health" | jq '{ok, sessions_dir_writable, status, database}'
 ```
 
 **Așteptat:**
@@ -79,7 +79,7 @@ curl -s "https://your-service.legacy hosting.app/health" | jq '{ok, sessions_dir
   "ok": true,
   "sessions_dir_writable": true,
   "status": "healthy",
-  "firestore": {
+  "database": {
     "status": "connected"
   }
 }
@@ -442,13 +442,13 @@ curl -sS "${BASE_URL}/api/status/dashboard" | jq '.summary'
 ```
 
 **Așteptat după restart:**
-- Boot sequence: Firestore restore → Disk scan → Staggered connect
+- Boot sequence: Database restore → Disk scan → Staggered connect
 - Toate conturile devin `connected` automat (fără re-scanare)
 - Logs arată: `✅ Account restore complete: 30 accounts loaded`
 
 ---
 
-## 3. Verificare Firestore Collections
+## 3. Verificare Database Collections
 
 ### Colecții Folosite (Confirmate din Cod)
 
@@ -457,13 +457,13 @@ curl -sS "${BASE_URL}/api/status/dashboard" | jq '.summary'
 
 **Verificare:**
 ```bash
-# Nu există endpoint public pentru a lista direct Firestore
+# Nu există endpoint public pentru a lista direct Database
 # Dar poți verifica prin:
 curl -sS "${BASE_URL}/api/whatsapp/accounts" | jq '.accounts[] | {id, status, phone}'
 ```
 
-**În Firebase Console:**
-- Firestore → Data → Collection `accounts`
+**În Supabase Console:**
+- Database → Data → Collection `accounts`
 - Vezi documente cu ID = `account_prod_...`
 - Câmpuri: `status`, `phone`, `phoneE164`, `waJid`, `createdAt`, `updatedAt`, etc.
 
@@ -473,11 +473,11 @@ curl -sS "${BASE_URL}/api/whatsapp/accounts" | jq '.accounts[] | {id, status, ph
 **Verificare Admin (dacă ai endpoint):**
 ```bash
 # Endpoint admin există (linia 3962)
-curl -sS "${BASE_URL}/api/admin/firestore/sessions?token=${ADMIN_TOKEN}" | jq .
+curl -sS "${BASE_URL}/api/admin/database/sessions?token=${ADMIN_TOKEN}" | jq .
 ```
 
-**În Firebase Console:**
-- Firestore → Data → Collection `wa_sessions`
+**În Supabase Console:**
+- Database → Data → Collection `wa_sessions`
 - Document ID = `account_prod_...`
 - Câmpuri: `files` (object cu creds.json, pre-key-*.json), `updatedAt`, `schemaVersion`
 
@@ -490,8 +490,8 @@ curl -sS "${BASE_URL}/api/admin/firestore/sessions?token=${ADMIN_TOKEN}" | jq .
 curl -sS "${BASE_URL}/api/whatsapp/messages?limit=10" | jq .
 ```
 
-**În Firebase Console:**
-- Firestore → Data → Collection `threads`
+**În Supabase Console:**
+- Database → Data → Collection `threads`
 - Document ID format: `{accountId}__{clientJid}`
 - Subcolecție: `messages` (mesaje per thread)
 
@@ -504,8 +504,8 @@ curl -sS "${BASE_URL}/api/whatsapp/messages?limit=10" | jq .
 curl -sS "${BASE_URL}/api/whatsapp/messages?accountId={accountId}&limit=50" | jq .
 ```
 
-**În Firebase Console:**
-- Firestore → Data → Collection `threads` → `{threadId}` → Subcolecție `messages`
+**În Supabase Console:**
+- Database → Data → Collection `threads` → `{threadId}` → Subcolecție `messages`
 - Document ID = WhatsApp message ID
 - Câmpuri: `accountId`, `clientJid`, `direction`, `body`, `waMessageId`, `tsClient`, `tsServer`
 
@@ -513,7 +513,7 @@ curl -sS "${BASE_URL}/api/whatsapp/messages?accountId={accountId}&limit=50" | jq
 **Scop:** Coadă mesaje când contul nu e connected
 
 **Verificare Admin (nu există endpoint public):**
-- În Firebase Console: Firestore → Data → Collection `outbox`
+- În Supabase Console: Database → Data → Collection `outbox`
 - Documente cu `status: queued | processing | sent | failed`
 - Câmpuri: `accountId`, `toJid`, `body`, `status`, `attemptCount`, `nextAttemptAt`
 
@@ -521,7 +521,7 @@ curl -sS "${BASE_URL}/api/whatsapp/messages?accountId={accountId}&limit=50" | jq
 **Scop:** Deduplicare mesaje inbound
 
 **Verificare:**
-- În Firebase Console: Firestore → Data → Collection `inboundDedupe`
+- În Supabase Console: Database → Data → Collection `inboundDedupe`
 - Document ID format: `{accountId}__{messageId}`
 - Câmpuri: `accountId`, `providerMessageId`, `processedAt`, `expiresAt` (TTL 7 zile)
 
@@ -529,18 +529,18 @@ curl -sS "${BASE_URL}/api/whatsapp/messages?accountId={accountId}&limit=50" | jq
 **Scop:** Log incidente (qr_generation_failed, max_reconnect_attempts, logged_out)
 
 **Verificare:**
-- În Firebase Console: Firestore → Data → Collection `incidents`
+- În Supabase Console: Database → Data → Collection `incidents`
 - Document ID: `{type}_{timestamp}_{random}`
 - Câmpuri: `accountId`, `type`, `severity`, `details`, `ts`
 
 ---
 
-### Verificare Rapidă în Firebase Console
+### Verificare Rapidă în Supabase Console
 
 **Pași:**
-1. Deschide: [Firebase Console](https://console.firebase.google.com/)
+1. Deschide: [Supabase Console](https://console.supabase.google.com/)
 2. Selectează proiectul
-3. Firestore → Data
+3. Database → Data
 
 **Confirmă:**
 
@@ -554,10 +554,10 @@ curl -sS "${BASE_URL}/api/whatsapp/messages?accountId={accountId}&limit=50" | jq
 
 **Dacă nu vezi date:**
 
-❌ **Firestore nu e activ:**
-- Verifică `FIREBASE_SERVICE_ACCOUNT_JSON` în legacy hosting Variables
-- Verifică logs pentru erori: `Firestore not available`
-- Test health: `curl "${BASE_URL}/health" | jq .firestore`
+❌ **Database nu e activ:**
+- Verifică `SUPABASE_SERVICE_ACCOUNT_JSON` în legacy hosting Variables
+- Verifică logs pentru erori: `Database not available`
+- Test health: `curl "${BASE_URL}/health" | jq .database`
 
 ❌ **Nu există mesaje/threads:**
 - Normal dacă nu ai trimis/primit mesaje încă
@@ -650,8 +650,8 @@ curl -sS -X POST "${BASE_URL}/api/admin/account/{accountId}/reconnect" \
 curl -sS -X POST "${BASE_URL}/api/admin/accounts/{accountId}/reset-session" \
   -H "Authorization: Bearer ${ADMIN_TOKEN}" | jq .
 
-# Admin: Firestore sessions
-curl -sS "${BASE_URL}/api/admin/firestore/sessions?token=${ADMIN_TOKEN}" | jq .
+# Admin: Database sessions
+curl -sS "${BASE_URL}/api/admin/database/sessions?token=${ADMIN_TOKEN}" | jq .
 ```
 
 ---
@@ -695,8 +695,8 @@ curl -sS "${BASE_URL}/api/status/dashboard" | jq '.storage'
 # 2. Verifică logs pentru restore
 # Caută: "Account restore complete: X accounts loaded"
 
-# 3. Verifică Firestore backup
-# Firebase Console → wa_sessions → Confirmă că există backup-uri
+# 3. Verifică Database backup
+# Supabase Console → wa_sessions → Confirmă că există backup-uri
 ```
 
 ### Problem: QR nu apare
@@ -712,20 +712,20 @@ curl -sS "${BASE_URL}/api/whatsapp/accounts" | jq '.accounts[] | select(.id == "
 curl -sS -X POST "${BASE_URL}/api/whatsapp/regenerate-qr/{accountId}"
 ```
 
-### Problem: Firestore nu scrie
+### Problem: Database nu scrie
 
 **Verificare:**
 ```bash
 # 1. Health endpoint
-curl -sS "${BASE_URL}/health" | jq .firestore
+curl -sS "${BASE_URL}/health" | jq .database
 
 # Trebuie: {"status": "connected"}
 
 # 2. Verifică env var
-# legacy hosting → Variables → FIREBASE_SERVICE_ACCOUNT_JSON (trebuie setat)
+# legacy hosting → Variables → SUPABASE_SERVICE_ACCOUNT_JSON (trebuie setat)
 
-# 3. Verifică logs pentru erori Firestore
-# Caută: "Firestore not available" sau "Firestore save failed"
+# 3. Verifică logs pentru erori Database
+# Caută: "Database not available" sau "Database save failed"
 ```
 
 ---

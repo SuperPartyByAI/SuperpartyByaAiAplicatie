@@ -1,5 +1,5 @@
 #!/bin/bash
-export FIREBASE_SERVICE_ACCOUNT_PATH=/root/whatsapp-integration-v6/firebaseServiceAccount.json
+export SUPABASE_SERVICE_ACCOUNT_PATH=/root/whatsapp-integration-v6/supabaseServiceAccount.json
 WORKDIR=/root/whatsapp-integration-v6
 REPORT_DIR=/var/log/wa_checks
 mkdir -p "$REPORT_DIR"

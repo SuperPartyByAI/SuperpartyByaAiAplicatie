@@ -8,7 +8,7 @@
     "to": "2026-02-25T11:50:36Z",
     "out": "./replay_report_dryrun.json",
     "dry_run": true,
-    "$0": "admin/replay_baileys_to_firestore.js"
+    "$0": "admin/replay_baileys_to_database.js"
   },
   "total": 0,
   "inserted": [],

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { db } from '../firebase';
+import { db } from '../supabase';
 import {
   collection,
   addDoc,
@@ -9,7 +9,7 @@ import {
   deleteDoc,
   doc,
   serverTimestamp,
-} from 'firebase/firestore';
+} from 'supabase/database';
 
 function SoferiScreen() {
   const navigate = useNavigate();

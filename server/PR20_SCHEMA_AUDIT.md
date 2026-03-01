@@ -37,7 +37,7 @@
 
 **Status:** ✅ Consistent use of `evidenceState` collection
 
-### 4. Firestore WHERE clauses
+### 4. Database WHERE clauses
 
 **`.where('category')`:**
 
@@ -51,7 +51,7 @@
 
 **Status:** ✅ All queries use `category` field
 
-### 5. Firestore Rules (firestore.rules)
+### 5. Database Rules (database.rules)
 
 **Lines 57-58:**
 
@@ -68,7 +68,7 @@ match /dovezi_meta/{categorie} {
 
 **Status:** ❌ CRITICAL - Rules still reference old schema (`dovezi_meta` + `categorie` field)
 
-### 6. Firestore Indexes (firestore.indexes.json)
+### 6. Database Indexes (database.indexes.json)
 
 **Indexes on `categorie` field:**
 
@@ -82,21 +82,21 @@ match /dovezi_meta/{categorie} {
 ### ✅ Migrated Successfully
 
 - All Dart service code uses `category` parameter
-- All Firestore queries use `.where('category')`
+- All Database queries use `.where('category')`
 - All collection references use `evidenceState`
 
 ### ❌ Needs Migration
 
-1. **firestore.rules** - References `dovezi_meta` collection and `categorie` field
-2. **firestore.indexes.json** - Indexes on `categorie` field instead of `category`
+1. **database.rules** - References `dovezi_meta` collection and `categorie` field
+2. **database.indexes.json** - Indexes on `categorie` field instead of `category`
 3. **local_evidence_cache_service.dart** - SQL schema uses `categorie` (but service is unused)
 
 ### ⚠️ Backward Compatibility Risk
 
 Current code writes `category` field but:
 
-- Firestore rules check `categorie` field
-- Firestore indexes are on `categorie` field
+- Database rules check `categorie` field
+- Database indexes are on `categorie` field
 - This will cause:
   - Lock checks to fail (rules can't find field)
   - Queries to be slow/fail (no matching index)

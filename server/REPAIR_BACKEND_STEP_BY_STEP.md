@@ -82,7 +82,7 @@ Dacă backend-ul încă nu pornește:
 # 1. Verifică legacy hosting backend
 curl https://whats-app-ompro.ro/health
 
-# 2. Verifică Firebase Functions proxy (necesită auth)
+# 2. Verifică Supabase Functions proxy (necesită auth)
 curl https://us-central1-superparty-frontend.cloudfunctions.net/whatsappProxyGetAccounts
 
 # 3. Verifică local (dacă rulezi backend local)

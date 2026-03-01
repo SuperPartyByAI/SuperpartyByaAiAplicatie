@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { auth, db } from '../firebase';
+import { auth, db } from '../supabase';
 import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   sendEmailVerification,
-} from 'firebase/auth';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+} from 'supabase/auth';
+import { doc, setDoc, serverTimestamp } from 'supabase/database';
 
 function AuthScreen() {
   const [isRegister, setIsRegister] = useState(false);
@@ -29,14 +29,14 @@ function AuthScreen() {
         if (!password2) throw new Error('Confirmă parola.');
         if (password !== password2) throw new Error('Parolele nu coincid.');
 
-        // Creează user în Firebase Auth
+        // Creează user în Supabase Auth
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
 
         // Trimite email de verificare
         await sendEmailVerification(user);
 
-        // Creează document în Firestore
+        // Creează document în Database
         await setDoc(doc(db, 'users', user.uid), {
           uid: user.uid,
           email: email,
@@ -48,12 +48,12 @@ function AuthScreen() {
 
         window.location.href = '/';
       } else {
-        // Login cu Firebase
+        // Login cu Supabase
         await signInWithEmailAndPassword(auth, email, password);
         window.location.href = '/';
       }
     } catch (err) {
-      // Traducere erori Firebase în română
+      // Traducere erori Supabase în română
       let errorMessage = err.message;
 
       // Erori de autentificare

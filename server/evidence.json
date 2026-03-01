@@ -1,6 +1,6 @@
 {
   "generated_at": "2025-12-29T11:12:00Z",
-  "environment": "Firebase Functions whatsappV3",
+  "environment": "Supabase Functions whatsappV3",
   "evidence": [
     {
       "id": "version-check",
@@ -8,7 +8,7 @@
       "status": "CONFIRMAT",
       "evidence_type": "command_output",
       "reproduce_command": "curl -sS https://us-central1-superparty-frontend.cloudfunctions.net/whatsappV3/",
-      "raw_output_excerpt": "{\"status\":\"online\",\"service\":\"SuperParty WhatsApp on Firebase\",\"version\":\"5.2.0\",\"deployed\":\"2025-12-29T11:10:09.439Z\",\"accounts\":3}",
+      "raw_output_excerpt": "{\"status\":\"online\",\"service\":\"SuperParty WhatsApp on Supabase\",\"version\":\"5.2.0\",\"deployed\":\"2025-12-29T11:10:09.439Z\",\"accounts\":3}",
       "source_path": "/tmp/version-check.txt"
     },
     {
@@ -81,7 +81,7 @@
       "claim": "Logged out detection works",
       "status": "CONFIRMAT",
       "evidence_type": "logs",
-      "reproduce_command": "firebase functions:log --project superparty-frontend | grep 'Logged out'",
+      "reproduce_command": "supabase functions:log --project superparty-frontend | grep 'Logged out'",
       "raw_output_excerpt": "2025-12-29T11:10:15.160279Z ? whatsappV3: ❌ [account_1767003050123] Logged out - generating new QR/pairing...",
       "source_path": "/tmp/logs-raw.txt",
       "timestamp_range": {
@@ -94,7 +94,7 @@
       "claim": "Fallback QR generation triggered",
       "status": "CONFIRMAT",
       "evidence_type": "logs",
-      "reproduce_command": "firebase functions:log --project superparty-frontend | grep 'Generating new QR'",
+      "reproduce_command": "supabase functions:log --project superparty-frontend | grep 'Generating new QR'",
       "raw_output_excerpt": "2025-12-29T11:10:16.132703Z ? whatsappV3: 🔄 [account_1767002931111] Generating new QR/pairing code...",
       "source_path": "/tmp/logs-raw.txt",
       "timestamp_range": {
@@ -107,7 +107,7 @@
       "claim": "Incident logging works",
       "status": "CONFIRMAT",
       "evidence_type": "logs",
-      "reproduce_command": "firebase functions:log --project superparty-frontend | grep 'Incident logged'",
+      "reproduce_command": "supabase functions:log --project superparty-frontend | grep 'Incident logged'",
       "raw_output_excerpt": "2025-12-29T11:10:15.397904Z ? whatsappV3: 📝 [Monitor] Incident logged: logged_out for account_1767003050123",
       "source_path": "/tmp/logs-raw.txt",
       "timestamp_range": {
@@ -120,7 +120,7 @@
       "claim": "Connection timeout appears in logs",
       "status": "FALS",
       "evidence_type": "logs",
-      "reproduce_command": "firebase functions:log --project superparty-frontend | grep 'Connection timeout'",
+      "reproduce_command": "supabase functions:log --project superparty-frontend | grep 'Connection timeout'",
       "raw_output_excerpt": "(no matches)",
       "source_path": "/tmp/logs-raw.txt",
       "timestamp_range": {
@@ -133,7 +133,7 @@
       "claim": "Connection open event in logs",
       "status": "FALS",
       "evidence_type": "logs",
-      "reproduce_command": "firebase functions:log --project superparty-frontend | grep 'Connected\\|connection.*open'",
+      "reproduce_command": "supabase functions:log --project superparty-frontend | grep 'Connected\\|connection.*open'",
       "raw_output_excerpt": "(no matches)",
       "source_path": "/tmp/logs-raw.txt",
       "timestamp_range": {
@@ -194,7 +194,7 @@
       "claim": "DoD-6: Monitoring + alerting",
       "status": "CONFIRMAT",
       "evidence_type": "logs",
-      "reproduce_command": "firebase functions:log --project superparty-frontend | grep 'Monitor\\|Incident logged'",
+      "reproduce_command": "supabase functions:log --project superparty-frontend | grep 'Monitor\\|Incident logged'",
       "raw_output_excerpt": "2025-12-29T11:10:15.397904Z ? whatsappV3: 📝 [Monitor] Incident logged: logged_out for account_1767003050123",
       "source_path": "/tmp/logs-raw.txt"
     }

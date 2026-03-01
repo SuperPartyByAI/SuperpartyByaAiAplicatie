@@ -84,7 +84,7 @@ class WhatsAppManager {
 
 ---
 
-### Îmbunătățire 2: PERSISTENT MESSAGE QUEUE (Firestore)
+### Îmbunătățire 2: PERSISTENT MESSAGE QUEUE (Database)
 
 **Problema:**
 
@@ -100,15 +100,15 @@ class WhatsAppManager {
     // Add to memory queue
     this.messageQueue.push({ accountId, chatId, message });
 
-    // ÎMBUNĂTĂȚIRE: Save queue to Firestore every 10 messages
+    // ÎMBUNĂTĂȚIRE: Save queue to Database every 10 messages
     if (this.messageQueue.length % 10 === 0) {
-      await firestore.saveQueue(accountId, this.messageQueue);
+      await database.saveQueue(accountId, this.messageQueue);
     }
   }
 
   async restoreQueue() {
     // ÎMBUNĂTĂȚIRE: Restore queue on startup
-    const savedQueue = await firestore.getQueue(accountId);
+    const savedQueue = await database.getQueue(accountId);
     if (savedQueue && savedQueue.length > 0) {
       console.log(`📦 Restored ${savedQueue.length} messages from queue`);
       this.messageQueue = savedQueue;
@@ -125,13 +125,13 @@ class WhatsAppManager {
 
 **Cost:**
 
-- Mai multe write-uri Firestore (cost $)
+- Mai multe write-uri Database (cost $)
 - Latency +10ms per mesaj
 
 **Adevăr:** **95%**
 
 - ✅ Funcționează garantat
-- ⚠️ 5% fail când Firestore e down (rar)
+- ⚠️ 5% fail când Database e down (rar)
 
 **Eficiență:** **+90%** (pierdere 0.5% → 0.05%)
 
@@ -203,13 +203,13 @@ class WhatsAppManager {
 
 ---
 
-### Îmbunătățire 4: MESSAGE BATCHING (Firestore Optimization)
+### Îmbunătățire 4: MESSAGE BATCHING (Database Optimization)
 
 **Problema:**
 
-- 1 mesaj = 1 Firestore write
+- 1 mesaj = 1 Database write
 - Slow pentru volume mari (100ms per mesaj)
-- Cost Firestore mare
+- Cost Database mare
 
 **Soluție:**
 
@@ -240,10 +240,10 @@ class WhatsAppManager {
   async flushBatch() {
     if (this.messageBatch.length === 0) return;
 
-    const batch = firestore.batch();
+    const batch = database.batch();
 
     this.messageBatch.forEach(({ accountId, chatId, messageData }) => {
-      const ref = firestore.doc(`accounts/${accountId}/chats/${chatId}/messages/${messageData.id}`);
+      const ref = database.doc(`accounts/${accountId}/chats/${chatId}/messages/${messageData.id}`);
       batch.set(ref, messageData);
     });
 
@@ -259,7 +259,7 @@ class WhatsAppManager {
 **Beneficiu:**
 
 - Latency: 100ms → 10ms per mesaj (-90%)
-- Cost Firestore: -80% (10 mesaje = 1 write)
+- Cost Database: -80% (10 mesaje = 1 write)
 - Throughput: 10 msg/s → 100 msg/s (+900%)
 
 **Cost:**
@@ -442,8 +442,8 @@ class WhatsAppMonitor {
   }
 
   async logEvent(type, data) {
-    // ÎMBUNĂTĂȚIRE: Log to Firestore
-    await firestore.collection('monitoring').add({
+    // ÎMBUNĂTĂȚIRE: Log to Database
+    await database.collection('monitoring').add({
       type,
       data,
       timestamp: Date.now(),
@@ -504,7 +504,7 @@ class WhatsAppMonitor {
 **Cost:**
 
 - Setup email/Slack (30 min)
-- Storage Firestore pentru logs
+- Storage Database pentru logs
 
 **Adevăr:** **100%**
 
@@ -569,7 +569,7 @@ Vizibilitate:         100% (+100%) ⬆️⬆️⬆️⬆️⬆️
 ### TIER 3 Complet:
 
 **Efort total:** 12 ore
-**Cost lunar:** +$10 (multi-region) + $5 (Firestore logs) = $15/lună
+**Cost lunar:** +$10 (multi-region) + $5 (Database logs) = $15/lună
 
 **Beneficiu:**
 

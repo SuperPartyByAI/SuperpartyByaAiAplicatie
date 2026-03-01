@@ -3,7 +3,7 @@
 ## Findings
 
 ### Evidence from Production Logs
-1. **Backend is running**: Service active, Firestore available, DB exists
+1. **Backend is running**: Service active, Database available, DB exists
 2. **Messages are being received**: `📨 Processing X message(s) in real-time` appears
 3. **Only protocol messages**: All processed messages are `protocolMessage` (historySyncNotification, type=5)
 4. **No real text messages**: Zero messages with `hasConversation=true` or `hasExtendedText=true` in last 30 minutes
@@ -157,7 +157,7 @@ curl -s http://localhost:8080/health | python3 -c "import sys,json; d=json.load(
    ✅ Message saved successfully: ...
    ```
 
-3. **Check Firestore** (within 60s):
+3. **Check Database** (within 60s):
    - Collection: `threads/{threadId}/messages`
    - Should see new message doc with `body="test-realtime-123"`
    - Thread `lastMessageAtMs` should update

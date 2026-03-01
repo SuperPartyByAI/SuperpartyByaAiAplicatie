@@ -7,7 +7,7 @@
 ```
 Utilizator deschide pagina "Evenimente"
     ↓
-App face 15 request-uri la Firebase
+App face 15 request-uri la Supabase
     ↓
 Așteaptă 2-3 secunde
     ↓
@@ -32,7 +32,7 @@ Așteaptă din nou...
 
 - Utilizatorul vede loading spinners peste tot
 - Aplicația este lentă
-- Firebase citește aceleași date de 10 ori
+- Supabase citește aceleași date de 10 ori
 - Plătești pentru aceleași date de 10 ori
 - Experiență proastă pentru utilizator
 
@@ -43,7 +43,7 @@ Așteaptă din nou...
 ```
 Utilizator deschide pagina "Evenimente"
     ↓
-App face 15 request-uri la Firebase (prima dată)
+App face 15 request-uri la Supabase (prima dată)
     ↓
 TanStack Query salvează datele în cache
     ↓
@@ -68,7 +68,7 @@ Dacă sunt, le actualizează automat
 
 - Utilizatorul vede datele INSTANT
 - Aplicația este rapidă
-- Firebase citește datele o singură dată
+- Supabase citește datele o singură dată
 - Plătești de 10 ori mai puțin
 - Experiență excelentă pentru utilizator
 
@@ -80,7 +80,7 @@ Dacă sunt, le actualizează automat
 
 **Utilizator tipic într-o zi:**
 
-- Deschide app-ul: 15 citiri Firebase
+- Deschide app-ul: 15 citiri Supabase
 - Navighează la Evenimente: 10 citiri
 - Navighează la Chat: 8 citiri
 - Se întoarce la Evenimente: 10 citiri (DUPLICATE!)
@@ -88,13 +88,13 @@ Dacă sunt, le actualizează automat
 - Se întoarce la Evenimente: 10 citiri (DUPLICATE DIN NOU!)
 - Etc...
 
-**Total pe zi per utilizator: 100-200 citiri Firebase**
+**Total pe zi per utilizator: 100-200 citiri Supabase**
 
 **Cu 100 utilizatori activi:**
 
 - 10,000-20,000 citiri/zi
 - 300,000-600,000 citiri/lună
-- **Cost: $15-30/lună** (Firebase Firestore pricing)
+- **Cost: $15-30/lună** (Supabase Database pricing)
 
 ---
 
@@ -102,7 +102,7 @@ Dacă sunt, le actualizează automat
 
 **Utilizator tipic într-o zi:**
 
-- Deschide app-ul: 15 citiri Firebase
+- Deschide app-ul: 15 citiri Supabase
 - Navighează la Evenimente: 0 citiri (din cache!)
 - Navighează la Chat: 8 citiri (noi)
 - Se întoarce la Evenimente: 0 citiri (din cache!)
@@ -110,7 +110,7 @@ Dacă sunt, le actualizează automat
 - Se întoarce la Evenimente: 0 citiri (din cache!)
 - Etc...
 
-**Total pe zi per utilizator: 30-50 citiri Firebase (70% reducere!)**
+**Total pe zi per utilizator: 30-50 citiri Supabase (70% reducere!)**
 
 **Cu 100 utilizatori activi:**
 
@@ -203,7 +203,7 @@ Utilizator: Wow, ce rapid!
 
 ---
 
-### 3. Costuri Firebase
+### 3. Costuri Supabase
 
 **Înainte:**
 
@@ -285,7 +285,7 @@ Pagina 3: ████████ (2s loading)
 Înapoi la Pagina 1: ████████ (2s loading DIN NOU!)
 
 Total timp pierdut: 10 secunde
-Firebase citiri: 50
+Supabase citiri: 50
 Cost: $0.25
 ```
 
@@ -299,7 +299,7 @@ Pagina 3: ████████ (2s loading - prima dată)
 Înapoi la Pagina 1: █ (0.1s - din cache!)
 
 Total timp pierdut: 4.3 secunde (57% mai rapid!)
-Firebase citiri: 15 (70% mai puțin!)
+Supabase citiri: 15 (70% mai puțin!)
 Cost: $0.075 (70% economie!)
 ```
 
@@ -320,11 +320,11 @@ Utilizatorii văd loading spinners peste tot. Asta înseamnă:
 
 ---
 
-### 2. Plătești Prea Mult pentru Firebase
+### 2. Plătești Prea Mult pentru Supabase
 
 Citești aceleași date de 10 ori. Asta înseamnă:
 
-- Costuri Firebase de 10x mai mari
+- Costuri Supabase de 10x mai mari
 - Bani aruncați pe fereastră
 - Scalare scumpă
 
@@ -350,7 +350,7 @@ Fiecare component trebuie să gestioneze:
 
 Cu 1000 utilizatori:
 
-- 6,000,000 citiri Firebase/lună
+- 6,000,000 citiri Supabase/lună
 - $300/lună doar pentru citiri
 - Aplicație foarte lentă
 - Utilizatori nemulțumiți
@@ -372,7 +372,7 @@ function WhatsAppChatScreen() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Face request la Firebase
+    // Face request la Supabase
     fetchMessages().then(data => {
       setMessages(data);
       setLoading(false);
@@ -449,7 +449,7 @@ function WhatsAppChatScreen() {
    - Zero loading spinners pentru date cached
 
 2. **Costuri:**
-   - 70% reducere Firebase reads
+   - 70% reducere Supabase reads
    - $10-20/lună economie
    - $120-240/an economie
 
@@ -572,7 +572,7 @@ function EvenimenteScreen() {
 
 **Răspuns:** $120-240/an + timp + UX mai bun
 
-- Firebase: $10-20/lună economie
+- Supabase: $10-20/lună economie
 - Timp dezvoltare: 50% mai puțin cod
 - UX: Utilizatori fericiți = mai mulți clienți
 

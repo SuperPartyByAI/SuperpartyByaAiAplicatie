@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 /**
- * Check Firestore thread history per account — de ce atât de puțin istoric?
+ * Check Database thread history per account — de ce atât de puțin istoric?
  *
  * Pentru fiecare --accountId:
- *   - Numără threads (limit 2000) în Firestore
+ *   - Numără threads (limit 2000) în Database
  *   - Citește accounts/{id}: lastBackfillAt, lastHistorySyncAt, phone, status
  *
  * Usage (from project root):
- *   node scripts/check_firestore_history.mjs --project superparty-frontend \
+ *   node scripts/check_database_history.mjs --project superparty-frontend \
  *     --accountId account_prod_001c8f49ede5230e1c5fe283315ec24a \
  *     --accountId account_prod_135bba7ab1e5bc09d81f0c28f2688958 \
  *     --accountId account_prod_f869ce13d00bc7d7aa13ef18c16f3bd5
@@ -20,7 +20,7 @@ import { readFileSync, existsSync } from 'fs';
 import path from 'path';
 
 const require = createRequire(import.meta.url);
-const admin = require('firebase-admin');
+const admin = require('supabase-admin');
 
 function loadServiceAccount() {
   const cwd = process.cwd();
@@ -45,10 +45,10 @@ function loadServiceAccount() {
     const v = tryPath(gac);
     if (v) return { serviceAccount: v, source: 'GOOGLE_APPLICATION_CREDENTIALS' };
   }
-  const fpath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH;
+  const fpath = process.env.SUPABASE_SERVICE_ACCOUNT_PATH;
   if (fpath) {
     const v = tryPath(fpath);
-    if (v) return { serviceAccount: v, source: 'FIREBASE_SERVICE_ACCOUNT_PATH' };
+    if (v) return { serviceAccount: v, source: 'SUPABASE_SERVICE_ACCOUNT_PATH' };
   }
   for (const rel of [
     'functions/serviceAccountKey.json',
@@ -88,7 +88,7 @@ function formatTs(v) {
 async function main() {
   const { project, accountIds } = parseArgs();
   if (!project || accountIds.length === 0) {
-    console.error('Usage: node scripts/check_firestore_history.mjs --project <id> --accountId <id> [--accountId <id> ...]');
+    console.error('Usage: node scripts/check_database_history.mjs --project <id> --accountId <id> [--accountId <id> ...]');
     process.exit(1);
   }
 
@@ -106,16 +106,16 @@ async function main() {
       });
     }
   } catch (e) {
-    console.error('❌ Firebase Admin init failed:', e.message);
+    console.error('❌ Supabase Admin init failed:', e.message);
     console.error('Use GOOGLE_APPLICATION_CREDENTIALS or gcloud auth application-default login.');
     process.exit(1);
   }
 
-  const db = admin.firestore();
+  const db = admin.database();
   const LIMIT = 2000;
 
   console.log('');
-  console.log('🔍 Firestore istoric – threads per account + lastBackfill / lastHistorySync');
+  console.log('🔍 Database istoric – threads per account + lastBackfill / lastHistorySync');
   console.log('─'.repeat(70));
   console.log(`   Project: ${project}`);
   console.log(`   AccountIds: ${accountIds.length}`);
@@ -155,7 +155,7 @@ async function main() {
     } catch (e) {
       console.error(`❌ threads query failed for ${accountId}:`, e.message);
       if (/failed-precondition|index/i.test(String(e.message))) {
-        console.error('   → Missing Firestore index: threads (accountId ASC, lastMessageAt DESC).');
+        console.error('   → Missing Database index: threads (accountId ASC, lastMessageAt DESC).');
       }
     }
 
@@ -299,7 +299,7 @@ async function main() {
       console.log('   • lastBackfillAt lipsă → backfill nu a fost rulat pentru acel account.');
     }
     console.log('   • Rulează backfill per account (Manage Accounts → Backfill sau POST /api/whatsapp/backfill/:accountId).');
-    console.log('   • Verifică backend Hetzner: waMode=active, firestore connected, messaging-history.set în logs.');
+    console.log('   • Verifică backend Hetzner: waMode=active, database connected, messaging-history.set în logs.');
     console.log('');
   }
 

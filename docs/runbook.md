@@ -51,22 +51,22 @@ cat /opt/superparty/logs/backend.log | jq 'select(.requestId == "request-id-here
 
 ### Din Flutter (debug)
 
-- Crashlytics: Firebase Console → Crashlytics → click pe crash → Custom Keys → `lastRequestId`
+- Crashlytics: Supabase Console → Crashlytics → click pe crash → Custom Keys → `lastRequestId`
 
 ---
 
-## Cum restaurezi din backup Firestore
+## Cum restaurezi din backup Database
 
 ```bash
 # 1. Listează backup-uri
 gsutil ls gs://superparty-frontend-backups/
 
 # 2. Restaurează
-gcloud firestore import gs://superparty-frontend-backups/2026-02-26_0200 \
+gcloud database import gs://superparty-frontend-backups/2026-02-26_0200 \
   --project=superparty-frontend
 
 # 3. Verifică status
-gcloud firestore operations list --project=superparty-frontend
+gcloud database operations list --project=superparty-frontend
 ```
 
 ---
@@ -137,6 +137,6 @@ docker compose -f /opt/superparty/infra/docker-compose.observability.yml restart
 | Componenta       | Detalii                                                         |
 | ---------------- | --------------------------------------------------------------- |
 | Server Hetzner   | 46.225.182.127                                                  |
-| Firebase Console | https://console.firebase.google.com/project/superparty-frontend |
+| Supabase Console | https://console.supabase.google.com/project/superparty-frontend |
 | Grafana          | https://api.superparty.ro/grafana/                              |
 | GitHub Actions   | Repository → Actions tab                                        |

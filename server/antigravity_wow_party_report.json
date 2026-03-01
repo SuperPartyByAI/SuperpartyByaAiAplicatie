@@ -9,7 +9,7 @@
         "channel_id": "whatsapp-baileys"
       },
       "destination": {
-        "url": "firestore://wa_accounts/K22D5aEwi4PHCDw94E1l",
+        "url": "database://wa_accounts/K22D5aEwi4PHCDw94E1l",
         "method": "POST",
         "headers": {
           "X-Route-Id": "route-K22D5aEwi4PHCDw94E1l"

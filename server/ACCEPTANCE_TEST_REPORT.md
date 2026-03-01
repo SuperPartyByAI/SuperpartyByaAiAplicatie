@@ -17,17 +17,17 @@
   ```
   e34cab54 fix(flutter): update callable region to europe-west1
   6c28a6f5 docs: add EU region deployment guide with commands
-  585d6aa4 feat: migrate Firestore-heavy functions to europe-west1 (Option A)
+  585d6aa4 feat: migrate Database-heavy functions to europe-west1 (Option A)
   ```
 
 ### 0.2 Tooling Versions
 - **Node.js**: v25.3.0 ✅
 - **npm**: 11.7.0 ✅
-- **Firebase CLI**: 15.3.1 ✅
+- **Supabase CLI**: 15.3.1 ✅
 - **Flutter**: 3.38.7 (stable) ✅
 - **Dart**: 3.10.7 ✅
 
-### 0.3 Firebase Setup
+### 0.3 Supabase Setup
 - **Authenticated as**: superpartybyai@gmail.com ✅
 - **Active Project**: superparty-frontend ✅
 - **Project Number**: 168752018174
@@ -37,7 +37,7 @@ All critical functions deployed successfully:
 
 | Function | Version | Trigger | Location | Memory | Runtime |
 |----------|---------|---------|----------|--------|---------|
-| aggregateClientStats | v2 | firestore.written | us-central1 | 256MB | nodejs20 |
+| aggregateClientStats | v2 | database.written | us-central1 | 256MB | nodejs20 |
 | clientCrmAsk | v2 | callable | us-central1 | 512MB | nodejs20 |
 | whatsappExtractEventFromThread | v2 | callable | us-central1 | 512MB | nodejs20 |
 | whatsappProxyAddAccount | v2 | https | us-central1 | 256MB | nodejs20 |
@@ -67,7 +67,7 @@ All critical functions deployed successfully:
     "needs_qr": 0,
     "max": 30
   },
-  "firestore": {
+  "database": {
     "status": "connected",
     "policy": {
       "collections": [
@@ -95,7 +95,7 @@ All critical functions deployed successfully:
 ### 1.1 Old 1st Gen Function "whatsapp"
 **Status**: ✅ **NOT FOUND** - No blocker exists
 
-The old v1 "whatsapp" function has been removed or never existed. No manual cleanup needed in Firebase Console.
+The old v1 "whatsapp" function has been removed or never existed. No manual cleanup needed in Supabase Console.
 
 ---
 
@@ -206,7 +206,7 @@ The old v1 "whatsapp" function has been removed or never existed. No manual clea
 
 3. **Expected Result**:
    - Message appears in Chat screen ✅
-   - Firestore persisted:
+   - Database persisted:
      - `threads/{accountId}__{remoteJid}` document exists
      - `threads/{threadId}/messages/{messageId}` document exists
      - direction: "inbound"
@@ -217,7 +217,7 @@ The old v1 "whatsapp" function has been removed or never existed. No manual clea
 - [ ] messageId: `_________________`
 - [ ] Client phone (E.164): `_________________`
 
-**Firestore Verification** (via Firebase Console):
+**Database Verification** (via Supabase Console):
 ```
 Path: threads/{accountId}__{remoteJid}
 Expected fields: accountId, remoteJid, lastMessageTimestamp, unreadCount
@@ -242,7 +242,7 @@ Expected fields: accountId, remoteJid, lastMessageTimestamp, unreadCount
    - Verify: Message received in WhatsApp ✅
 
 3. **Expected Result**:
-   - Message persisted in Firestore:
+   - Message persisted in Database:
      - direction: "outbound"
      - status: queued → sent → delivered (possibly read)
    - Hetzner logs show send success
@@ -251,9 +251,9 @@ Expected fields: accountId, remoteJid, lastMessageTimestamp, unreadCount
 - [ ] Screenshot: Message sent in app
 - [ ] Screenshot: Message received on client phone
 - [ ] messageId: `_________________`
-- [ ] Final status in Firestore: `_________________`
+- [ ] Final status in Database: `_________________`
 
-**Firestore Verification** (via Firebase Console):
+**Database Verification** (via Supabase Console):
 ```
 Path: threads/{threadId}/messages/{messageId}
 Expected fields: direction="outbound", status="sent"/"delivered"/"read"
@@ -277,7 +277,7 @@ Expected fields: direction="outbound", status="sent"/"delivered"/"read"
    ```bash
    curl -sS https://whats-app-ompro.ro/health | jq
    ```
-   - Expected: `status: "healthy"`, `firestore: "connected"`
+   - Expected: `status: "healthy"`, `database: "connected"`
 
 3. **In Flutter App**:
    - Verify: Account still shows status "connected" (no new QR needed)
@@ -297,7 +297,7 @@ Expected fields: direction="outbound", status="sent"/"delivered"/"read"
 
 **Expected Result**:
 - ✅ Account reconnects automatically (no QR scan)
-- ✅ Old messages remain visible (Firestore is source of truth)
+- ✅ Old messages remain visible (Database is source of truth)
 - ✅ New messages send/receive successfully
 
 **EVIDENCE TO COLLECT**:
@@ -331,7 +331,7 @@ Expected fields: direction="outbound", status="sent"/"delivered"/"read"
 **EVIDENCE TO COLLECT**:
 - [ ] Screenshot: Draft event JSON/UI
 - [ ] draftEvent fields populated: YES/NO
-- [ ] Audit write exists in Firestore:
+- [ ] Audit write exists in Database:
    - Path: `threads/{threadId}/extractions/{extractionId}`
 
 **PASS/FAIL**: ⬜ PENDING
@@ -359,10 +359,10 @@ Expected fields: direction="outbound", status="sent"/"delivered"/"read"
 
 **EVIDENCE TO COLLECT**:
 - [ ] eventId: `_________________`
-- [ ] Firestore path: `evenimente/{eventId}`
+- [ ] Database path: `evenimente/{eventId}`
 - [ ] Screenshot: Event saved confirmation
 
-**Firestore Verification** (via Firebase Console):
+**Database Verification** (via Supabase Console):
 ```
 Collection: evenimente
 Doc ID: {eventId}
@@ -382,12 +382,12 @@ Expected: phoneE164, accountId, threadId, isArchived=false
   - `lifetimeSpend` updated (if suma exists)
 
 **EVIDENCE TO COLLECT**:
-- [ ] Firestore path: `clients/{phoneE164}`
+- [ ] Database path: `clients/{phoneE164}`
 - [ ] Screenshot: Client document fields
 - [ ] eventsCount: `_________________`
 - [ ] lifetimeSpend: `_________________`
 
-**Firestore Verification** (via Firebase Console):
+**Database Verification** (via Supabase Console):
 ```
 Collection: clients
 Doc ID: {phoneE164} (e.g., +40712345678)
@@ -396,7 +396,7 @@ Expected fields: eventsCount >= 1, lifetimeSpend updated
 
 **Logs to Check** (if failure):
 ```bash
-firebase functions:log --only aggregateClientStats --lines 200
+supabase functions:log --only aggregateClientStats --lines 200
 ```
 
 **PASS/FAIL**: ⬜ PENDING
@@ -422,11 +422,11 @@ firebase functions:log --only aggregateClientStats --lines 200
 **EVIDENCE TO COLLECT**:
 - [ ] Screenshot: AI response
 - [ ] Answer text: `_________________`
-- [ ] Matches Firestore lifetimeSpend: YES/NO
+- [ ] Matches Database lifetimeSpend: YES/NO
 
 **Logs to Check** (if failure):
 ```bash
-firebase functions:log --only clientCrmAsk --lines 200
+supabase functions:log --only clientCrmAsk --lines 200
 ```
 
 **PASS/FAIL**: ⬜ PENDING
@@ -442,7 +442,7 @@ firebase functions:log --only clientCrmAsk --lines 200
 
 ### Manual Cleanup (if needed):
 ```javascript
-// Firebase Console → Firestore → evenimente/{eventId}
+// Supabase Console → Database → evenimente/{eventId}
 // Update field: isArchived = true
 ```
 

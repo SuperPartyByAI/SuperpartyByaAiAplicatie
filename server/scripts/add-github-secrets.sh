@@ -25,13 +25,13 @@ echo "🔑 Adăugare KEYSTORE_PASSWORD..."
 echo "SuperParty2024!" | gh secret set KEYSTORE_PASSWORD --repo "$REPO"
 echo "✅ KEYSTORE_PASSWORD adăugat"
 
-# 3. FIREBASE_SERVICE_ACCOUNT
-echo "🔥 Adăugare FIREBASE_SERVICE_ACCOUNT..."
-if [ -f /tmp/firebase_service_account.json ]; then
-    gh secret set FIREBASE_SERVICE_ACCOUNT --repo "$REPO" < /tmp/firebase_service_account.json
-    echo "✅ FIREBASE_SERVICE_ACCOUNT adăugat"
+# 3. SUPABASE_SERVICE_ACCOUNT
+echo "🔥 Adăugare SUPABASE_SERVICE_ACCOUNT..."
+if [ -f /tmp/supabase_service_account.json ]; then
+    gh secret set SUPABASE_SERVICE_ACCOUNT --repo "$REPO" < /tmp/supabase_service_account.json
+    echo "✅ SUPABASE_SERVICE_ACCOUNT adăugat"
 else
-    echo "❌ Fișier /tmp/firebase_service_account.json nu există"
+    echo "❌ Fișier /tmp/supabase_service_account.json nu există"
     exit 1
 fi
 

@@ -43,9 +43,9 @@ Duplicates:      1% → 0% (-100%)
 src/
 ├── whatsapp/
 │   ├── manager.js          ✅ WhatsApp Manager cu îmbunătățiri
-│   └── session-store.js    ✅ Session persistence Firestore
-├── firebase/
-│   └── firestore.js        ✅ Firestore service cu deduplication
+│   └── session-store.js    ✅ Session persistence Database
+├── supabase/
+│   └── database.js        ✅ Database service cu deduplication
 whatsapp-server.js          ✅ Server complet cu graceful shutdown
 WHATSAPP-SETUP-COMPLETE.md  ✅ Ghid setup detaliat
 ```
@@ -59,7 +59,7 @@ WHATSAPP-SETUP-COMPLETE.md  ✅ Ghid setup detaliat
 ```bash
 cd /workspaces/Aplicatie-SuperpartyByAi
 
-git add src/whatsapp/ src/firebase/ whatsapp-server.js package.json
+git add src/whatsapp/ src/supabase/ whatsapp-server.js package.json
 git commit -m "Add WhatsApp system with improvements
 
 - Keep-alive: 10s (detection -33%)
@@ -74,11 +74,11 @@ Co-authored-by: Ona <no-reply@ona.com>"
 git push origin main
 ```
 
-### Pas 2: Firebase Setup (5 min)
+### Pas 2: Supabase Setup (5 min)
 
-1. Accesează [Firebase Console](https://console.firebase.google.com)
+1. Accesează [Supabase Console](https://console.supabase.google.com)
 2. Creează/Selectează proiect
-3. Activează Firestore Database
+3. Activează Database Database
 4. Generează Service Account key
 5. Copiază JSON content
 
@@ -87,7 +87,7 @@ git push origin main
 1. Accesează [legacy hosting Dashboard](https://legacy hosting.app)
 2. Găsește serviciul tău
 3. Variables → New Variable:
-   - Name: `FIREBASE_SERVICE_ACCOUNT`
+   - Name: `SUPABASE_SERVICE_ACCOUNT`
    - Value: [paste JSON]
 4. Așteaptă redeploy (~30s)
 
@@ -153,7 +153,7 @@ legacy hosting Dashboard → Logs
 
 **Ce să cauți:**
 
-- ✅ `Firebase initialized` - Firebase OK
+- ✅ `Supabase initialized` - Supabase OK
 - ✅ `Connected` - WhatsApp conectat
 - ✅ `Message saved successfully` - Mesaje salvate
 - ⚠️ `Keep-alive failed` - Probleme conexiune (reconnect automat)
@@ -181,7 +181,7 @@ legacy hosting Dashboard → Logs
 - Multi-account (până la 20 conturi)
 - QR Code login
 - Pairing Code login (alternativă)
-- Session persistence (Firestore)
+- Session persistence (Database)
 - Auto-restore după restart
 - Message queue (1000 mesaje)
 - Real-time Socket.io events
@@ -227,7 +227,7 @@ Vezi [WHATSAPP-SETUP-COMPLETE.md](./WHATSAPP-SETUP-COMPLETE.md) pentru:
 
 ## 🎉 REZULTATE AȘTEPTATE
 
-După deploy și configurare Firebase:
+După deploy și configurare Supabase:
 
 ```
 ✅ Downtime redus cu 60%

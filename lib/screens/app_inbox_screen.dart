@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 
 class AppInboxScreen extends StatelessWidget {
@@ -8,15 +6,13 @@ class AppInboxScreen extends StatelessWidget {
 
   void _markAsRead(String docId, List<dynamic> currentReadBy, String uid) async {
     if (!currentReadBy.contains(uid)) {
-      await FirebaseFirestore.instance.collection('app_inbox').doc(docId).update({
-        'readBy': FieldValue.arrayUnion([uid])
-      });
+      await /* Removed */ ;
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser;
+    final user = (Supabase.instance.client.auth.currentUser);
     if (user == null) {
       return const Scaffold(body: Center(child: Text('Trebuie să fii autentificat.')));
     }
@@ -29,15 +25,8 @@ class AppInboxScreen extends StatelessWidget {
         iconTheme: const IconThemeData(color: Colors.white),
       ),
       backgroundColor: Colors.grey[100],
-      body: FutureBuilder<QuerySnapshot>(
-        future: FirebaseFirestore.instance
-            .collection('app_inbox')
-            .orderBy('timestamp', descending: true)
-            .limit(50)
-            .get(const GetOptions(source: Source.serverAndCache)),
-        builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return const Center(child: Text('Eroare la încărcarea mesajelor.'));
+      body: FutureBuilder<dynamic>(
+        future: /* Removed */ ;
           }
 
           if (snapshot.connectionState == ConnectionState.waiting) {
@@ -69,7 +58,7 @@ class AppInboxScreen extends StatelessWidget {
               final String title = data['title'] ?? 'Mesaj Fără Titlu';
               final String body = data['body'] ?? '';
               final String type = data['type'] ?? 'info';
-              final Timestamp? timestamp = data['timestamp'] as Timestamp?;
+              final dynamic? timestamp = data['timestamp'] as dynamic?;
               final List<dynamic> readBy = data['readBy'] ?? [];
               
               final bool isUnread = !readBy.contains(currentUid);

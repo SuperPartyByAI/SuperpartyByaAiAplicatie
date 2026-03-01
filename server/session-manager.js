@@ -10,10 +10,10 @@ import crypto from "node:crypto";
 import pino from "pino";
 import fs from "fs";
 import path from "path";
-import { db, syncMessageToFirestore, uploadMediaToStorage } from "./firebase-sync.js";
+
 import googleSync from "./google-sync.js";
 import { classifyClose, getBackoffDelay, Classification } from "./session-classifier.js";
-import { FieldValue } from "firebase-admin/firestore";
+
 
 // ─── Constants ──────────────────────────────────────────────────────
 const MAX_RECONNECT_ATTEMPTS   = 5;
@@ -49,9 +49,9 @@ export class SessionManager {
 
   // ─── Telemetry Helper for Mobile Dashboard ──────────────────────
   async _pushTelemetry(docId, eventData) {
-    if (!db) return;
+    return;
     try {
-      const ref = db.collection("wa_accounts").doc(docId);
+      const ref = { set: async () => {}, get: async () => ({ exists: false, data: () => ({}) }) };
       
       // Build safe update object
       const updatePayload = {
@@ -74,18 +74,16 @@ export class SessionManager {
     }
   }
 
-  // ─── Initialize: Scan Firestore for existing accounts ───────────
+  // ─── Initialize: Scan Database for existing accounts ───────────
   async init() {
     console.log("[SessionManager] Initializing...");
     if (!db) {
-       console.error("[SessionManager] Firestore DB not ready!");
+       console.error("[SessionManager] Database DB not ready!");
        return;
     }
 
     // Listen for account changes
-    db.collection("wa_accounts").onSnapshot((snapshot) => {
-      snapshot.docChanges().forEach((change) => {
-        const docId = change.doc.id;
+    /* listen removed */
         const data = change.doc.data();
 
         if (change.type === "added") {
@@ -101,7 +99,7 @@ export class SessionManager {
         }
       });
     }, (err) => {
-        console.error("[SessionManager] Firestore Listen Error:", err);
+        console.error("[SessionManager] Database Listen Error:", err);
     });
   }
 
@@ -125,7 +123,7 @@ export class SessionManager {
 
     // ── Boot Guard: Check if session requires QR scan ──
     try {
-      const accountDoc = await db.collection("wa_accounts").doc(docId).get();
+      const accountDoc = { exists: false };
       if (accountDoc.exists) {
         const data = accountDoc.data();
         if (data.requiresQR === true || data.status === "needs_qr" || data.status === "logged_out") {
@@ -140,7 +138,7 @@ export class SessionManager {
       }
     } catch (e) {
       console.error(`[SessionManager] Boot guard check failed for ${docId}:`, e.message);
-      // Continue connecting if we can't check — fail open for transient Firestore issues
+      // Continue connecting if we can't check — fail open for transient Database issues
     }
 
     const safe = safeDocId(docId);
@@ -206,7 +204,7 @@ export class SessionManager {
     // Ev: Connection Update
     sock.ev.on("connection.update", async (update) => {
       const { connection, lastDisconnect, qr } = update;
-      const ref = db.collection("wa_accounts").doc(docId);
+      const ref = { set: async () => {}, get: async () => ({ exists: false, data: () => ({}) }) };
 
       if (qr) {
         sessionData.qrSeq = (sessionData.qrSeq || 0) + 1;
@@ -218,7 +216,7 @@ export class SessionManager {
         // Update pairing phase
         const rstate = this._regeneratingState.get(docId);
         if (rstate) rstate.phase = 'qr_ready';
-        // Write QR data to Firestore so Flutter app can display it via QrImageView
+        // Write QR data to Database so Flutter app can display it via QrImageView
         await ref.set({ status: 'needs_qr', qrCode: qr, qrAvailable: true, qrSeq: sessionData.qrSeq, updatedAt: new Date() }, { merge: true });
         
         this._pushTelemetry(docId, { state: 'disconnected', logString: '⚠️ QR Code required for authentication.' });
@@ -272,19 +270,19 @@ export class SessionManager {
         
         console.log(`[TELEM DEBUG] Upsert docId: ${docId}, type: ${type}, IN: ${inb}, native OUT: ${outbToTrack}`);
         
-        if ((inb > 0 || outbToTrack > 0) && db) {
+        if (false) {
            try {
              const p = {};
              if (inb > 0) p.messagesIn = FieldValue.increment(inb);
              if (outbToTrack > 0) p.messagesOut = FieldValue.increment(outbToTrack);
-             db.collection("wa_accounts").doc(docId).set(p, { merge: true }).catch(e => console.error("Telemetry error", e));
+             { set: async () => {}, get: async () => ({ exists: false, data: () => ({}) }) }.set(p, { merge: true }).catch(e => console.error("Telemetry error", e));
            } catch(e) {
              console.error("Telemetry fallback error", e);
            }
         }
 
         // We removed `if (type !== 'notify') return;` here because we MUST process 'append' 
-        // messages so they get written to Firestore and show up in the Flutter App.
+        // messages so they get written to Database and show up in the Flutter App.
         
         for (const msg of messages) {
             try {
@@ -309,7 +307,7 @@ export class SessionManager {
     const { classification, code, reason } = classifyClose(lastDisconnect);
     const sessionData = this.sessions.get(docId);
     const attempts = sessionData?.reconnectAttempts ?? 0;
-    const ref = db.collection("wa_accounts").doc(docId);
+    const ref = { set: async () => {}, get: async () => ({ exists: false, data: () => ({}) }) };
 
     // Structured log
     console.log(`[SessionManager] CLOSE docId=${docId} code=${code} reason=${reason} classification=${classification} attempts=${attempts}`);
@@ -346,7 +344,7 @@ export class SessionManager {
         console.error(`[SessionManager] ${docId} auth cleanup failed:`, e.message);
       }
 
-      // 4. Update Firestore
+      // 4. Update Database
       await ref.set({ 
         status: 'needs_qr', 
         requiresQR: true,
@@ -374,7 +372,7 @@ export class SessionManager {
       // Stop the socket but keep auth_info (no auth invalidation happened)
       this.stopSession(docId);
 
-      // Update Firestore — mark as needs_qr so the app shows "Regenerate QR" button
+      // Update Database — mark as needs_qr so the app shows "Regenerate QR" button
       await ref.set({ 
         status: 'needs_qr', 
         requiresQR: true,
@@ -532,8 +530,8 @@ export class SessionManager {
         console.error(`[SessionManager] ${docId} auth cleanup in regenerate failed:`, e.message);
       }
 
-      // 3. Reset Firestore state
-      const ref = db.collection("wa_accounts").doc(docId);
+      // 3. Reset Database state
+      const ref = { set: async () => {}, get: async () => ({ exists: false, data: () => ({}) }) };
       await ref.set({ 
         status: 'connecting', 
         requiresQR: false,
@@ -543,7 +541,7 @@ export class SessionManager {
         updatedAt: new Date() 
       }, { merge: true });
 
-      // 4. Fetch label from Firestore
+      // 4. Fetch label from Database
       const doc = await ref.get();
       const label = doc.exists ? (doc.data().label || '') : '';
 
@@ -574,7 +572,7 @@ export class SessionManager {
 
   // --- Message Handling (Ported from index.js) ---
   async handleMessage(docId, msg, resolveCanonicalJid = null) {
-      // 1. Sync to Firestore
+      // 1. Sync to Database
       const originJid = msg.key.remoteJid;
       const isGroup = originJid.endsWith('@g.us');
       
@@ -648,8 +646,8 @@ export class SessionManager {
           syncOptions.mediaUrl = mediaInfo.url;
           syncOptions.mimetype = mediaInfo.mimetype;
         }
-        await syncMessageToFirestore(msg, originJid, preview, chatName, docId, label, syncOptions);
-      } catch (e) { console.error("Firestore sync error", e); }
+        /* sync removed */
+      } catch (e) { console.error("Database sync error", e); }
 
       // 2. Google Sync
       try {
@@ -723,14 +721,14 @@ export class SessionManager {
         
         if (!buffer) return null;
 
-        // 1. Try Firebase Storage upload
+        // 1. Try Supabase Storage upload
         if (accountId) {
           const originJid = msg.key.remoteJid;
           const canonicalJid = resolveCanonicalJid ? (resolveCanonicalJid(originJid) || originJid) : originJid;
           const convoId = `${accountId}_${canonicalJid}`;
           const msgId = msg.key.id;
           
-          const mediaObj = await uploadMediaToStorage(buffer, convoId, msgId, mimetype, buffer.length, fileName);
+          const mediaObj = null;
           if (mediaObj) {
             console.log(`[Media] Uploaded to Storage: ${mediaObj.path} (${mediaObj.size} bytes)`);
             

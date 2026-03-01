@@ -54,7 +54,7 @@ app.get('/', (req, res) => {
       tier2: ['Retry logic: 3 attempts', 'Graceful shutdown: enabled'],
       tier3: [
         'Dual connection (backup)',
-        'Persistent queue (Firestore)',
+        'Persistent queue (Database)',
         'Adaptive keep-alive (rate limit protection)',
         'Message batching (10x faster)',
         'Proactive reconnect (predictive)',
@@ -103,8 +103,8 @@ app.get('/api/metrics', (req, res) => {
 app.get('/api/events', async (req, res) => {
   try {
     const limit = parseInt(req.query.limit) || 100;
-    const firestore = require('./src/firebase/firestore');
-    const events = await firestore.getEvents(limit);
+    
+    const events = await database.getEvents(limit);
     res.json({ success: true, events });
   } catch (error) {
     res.status(500).json({ success: false, error: error.message });
@@ -473,7 +473,7 @@ server.listen(PORT, () => {
   console.log('║                                                           ║');
   console.log('║  🚀 TIER 3 ÎMBUNĂTĂȚIRI (NOU):                           ║');
   console.log('║  • Dual connection (backup) - downtime -94%              ║');
-  console.log('║  • Persistent queue (Firestore) - pierdere -90%          ║');
+  console.log('║  • Persistent queue (Database) - pierdere -90%          ║');
   console.log('║  • Adaptive keep-alive - risc ban -75%                   ║');
   console.log('║  • Message batching - latency -90%                       ║');
   console.log('║  • Proactive reconnect - downtime -76%                   ║');
@@ -491,13 +491,7 @@ server.listen(PORT, () => {
   console.log('╚═══════════════════════════════════════════════════════════╝');
   console.log('');
 
-  if (!process.env.FIREBASE_SERVICE_ACCOUNT) {
-    console.log('⚠️  WARNING: FIREBASE_SERVICE_ACCOUNT not set');
-    console.log('   Messages will NOT be saved to Firestore');
-    console.log('   Sessions will NOT persist after restart');
-    console.log('   Set FIREBASE_SERVICE_ACCOUNT to enable persistence');
-    console.log('');
-  }
+  
 });
 
 module.exports = { app, server, whatsappManager };

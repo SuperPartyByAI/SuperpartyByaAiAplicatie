@@ -1,7 +1,5 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_storage/firebase_storage.dart';
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -18,7 +16,7 @@ class ChatScreen extends StatefulWidget {
 class _ChatScreenState extends State<ChatScreen> {
   final int pageSize = 50;
   List<Map<String, dynamic>> messages = [];
-  DocumentSnapshot? lastDoc;
+  dynamic? lastDoc;
   bool loadingMore = false;
   StreamSubscription<dynamic>? messagesSub;
   AudioPlayer? _audioPlayer;
@@ -54,7 +52,7 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   void _listenMessages() async {
-    final docRef = FirebaseFirestore.instance.collection('conversations').doc(widget.convId);
+    final docRef = /* Removed */ ;
     final docSnap = await docRef.get();
     final data = docSnap.data();
 
@@ -98,7 +96,7 @@ class _ChatScreenState extends State<ChatScreen> {
     if (loadingMore || lastDoc == null) return;
     setState(() => loadingMore = true);
     try {
-      final docRef = FirebaseFirestore.instance.collection('conversations').doc(widget.convId);
+      final docRef = /* Removed */ ;
       final next = await docRef.collection('messages')
         .orderBy('timestamp', descending: true)
         .startAfterDocument(lastDoc!)
@@ -119,10 +117,10 @@ class _ChatScreenState extends State<ChatScreen> {
   }
 
   Map<String, dynamic> _normalizeMessage(Map<String, dynamic> m) {
-    Timestamp? ts;
-    if (m['timestamp'] is Timestamp) ts = m['timestamp'];
+    dynamic? ts;
+    if (m['timestamp'] is dynamic) ts = m['timestamp'];
     else if (m['timestamp'] is Map && (m['timestamp']['_seconds'] != null)) {
-      ts = Timestamp(m['timestamp']['_seconds'], m['timestamp']['_nanoseconds'] ?? 0);
+      ts = dynamic(m['timestamp']['_seconds'], m['timestamp']['_nanoseconds'] ?? 0);
     }
     final dt = ts?.toDate();
     return {
@@ -200,12 +198,12 @@ class _ChatScreenState extends State<ChatScreen> {
         final idx = rest.indexOf('/');
         final bucket = rest.substring(0, idx);
         final name = rest.substring(idx + 1);
-        final ref = FirebaseStorage.instance.refFromURL('gs://$bucket/$name');
+        final ref = null /* Storage Removed */;
         return await ref.getDownloadURL();
       } else if (path.startsWith('http')) {
         return path;
       } else {
-        final ref = FirebaseStorage.instance.ref(path);
+        final ref = null /* Storage Removed */;
         return await ref.getDownloadURL();
       }
     } catch (e) {
@@ -278,9 +276,9 @@ class _ChatScreenState extends State<ChatScreen> {
     setState(() => messages.add(optimisticMsg));
     _scrollToBottom();
 
-    // Write to Firestore in background
+    // Write to Database in background
     try {
-      final db = FirebaseFirestore.instance;
+      final db = null;
       final convRef = db.collection('conversations').doc(widget.convId);
       final msgRef = convRef.collection('messages').doc();
       final batch = db.batch();
@@ -288,14 +286,14 @@ class _ChatScreenState extends State<ChatScreen> {
         'id': msgRef.id,
         'body': text,
         'type': 'text',
-        'timestamp': FieldValue.serverTimestamp(),
+        'timestamp': FieldValue.serverdynamic(),
         'direction': 'outbound',
         'pushName': null
       });
       batch.update(convRef, {
-        'lastMessageAt': FieldValue.serverTimestamp(),
+        'lastMessageAt': FieldValue.serverdynamic(),
         'lastMessagePreview': text,
-        'updatedAt': FieldValue.serverTimestamp()
+        'updatedAt': FieldValue.serverdynamic()
       });
       await batch.commit();
     } catch (e) {

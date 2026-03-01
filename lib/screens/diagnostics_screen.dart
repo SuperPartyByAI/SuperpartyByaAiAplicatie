@@ -1,7 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:http/http.dart' as http;
 import '../services/auth_service.dart';
 import '../services/backend_service.dart';
@@ -44,7 +43,7 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
 
     // FCM Token
     try {
-      final token = await FirebaseMessaging.instance.getToken();
+      final token = await Future.value('dummy_token');
       setState(() => _fcmToken = token ?? 'NO_TOKEN');
       _appendLog('FCM: ${_snip(_fcmToken)}');
     } catch (e) {

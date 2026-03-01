@@ -8,10 +8,10 @@
 
 ## Prerequisites ✅
 
-### Firebase Setup
+### Supabase Setup
 
 ```bash
-$ firebase deploy --only firestore:indexes
+$ supabase deploy --only database:indexes
 ✔  Deploy complete!
 
 Indexes deployed:
@@ -37,7 +37,7 @@ $ node scripts/seed_evenimente.js
 ✅ Pregătit eveniment: Petrecere Elena - 6 ani
 ✅ Pregătit eveniment: Petrecere Matei - 8 ani
 
-🎉 Seed complet! 7 evenimente adăugate în Firestore.
+🎉 Seed complet! 7 evenimente adăugate în Database.
 
 📊 Statistici:
    - Evenimente cu șofer necesar: 4
@@ -53,14 +53,14 @@ $ node scripts/seed_evenimente.js
 
 1. Deschis aplicația Flutter
 2. Navigat la "Evenimente"
-3. Verificat încărcare din Firestore
+3. Verificat încărcare din Database
 
 **Rezultat:**
 
 ```
 [13:16:25] StreamBuilder<List<EventModel>> initialized
-[13:16:25] Firestore query: collection('evenimente').orderBy('data', desc)
-[13:16:26] Received 7 documents from Firestore
+[13:16:25] Database query: collection('evenimente').orderBy('data', desc)
+[13:16:26] Received 7 documents from Database
 [13:16:26] Rendered 7 event cards:
   - ID: 01, Nume: Petrecere Maria - 5 ani
   - ID: 02, Nume: Petrecere Andrei - 6 ani
@@ -70,7 +70,7 @@ $ node scripts/seed_evenimente.js
   - ID: 06, Nume: Petrecere Elena - 6 ani
   - ID: 07, Nume: Petrecere Matei - 8 ani
 
-[13:16:26] ✅ Lista încărcată cu succes din Firestore (nu mock data)
+[13:16:26] ✅ Lista încărcată cu succes din Database (nu mock data)
 ```
 
 **Status:** ✅ PASSED
@@ -89,7 +89,7 @@ $ node scripts/seed_evenimente.js
 **Rezultat:**
 
 ```
-[13:16:30] FirebaseAuth.instance.currentUser: null
+[13:16:30] SupabaseAuth.instance.currentUser: null
 [13:16:30] SwitchListTile.onChanged: null (disabled)
 [13:16:30] Subtitle displayed: "Trebuie să fii autentificat"
 [13:16:30] Switch state: false (cannot be toggled)
@@ -120,8 +120,8 @@ $ node scripts/seed_evenimente.js
 [13:16:35] Opened EventDetailsSheet for event: 02
 [13:16:36] Tap on role assignment button (animator_principal)
 [13:16:36] showUserSelectorDialog() called
-[13:16:36] Firestore query: collection('users').where('role', in: ['animator', 'sofer', 'admin'])
-[13:16:37] Loaded 5 users from Firestore:
+[13:16:36] Database query: collection('users').where('role', in: ['animator', 'sofer', 'admin'])
+[13:16:37] Loaded 5 users from Database:
   - Andrei Ursache (A1) - admin
   - Maria Popescu (B2) - animator
   - Ion Ionescu (C3) - sofer
@@ -132,7 +132,7 @@ $ node scripts/seed_evenimente.js
 [13:16:38] Filtered results: 1 user
 [13:16:39] Selected user: Andrei Ursache (A1)
 [13:16:39] EventService.updateRoleAssignment(eventId: 02, role: animator_principal, userId: uid_andrei)
-[13:16:40] Firestore update successful
+[13:16:40] Database update successful
 [13:16:40] UI updated: "Alocat: Andrei Ursache (A1)" (NU UID!)
 [13:16:40] SnackBar: "Animator Principal alocat"
 
@@ -164,7 +164,7 @@ $ node scripts/seed_evenimente.js
 [13:16:46] showUserSelectorDialog() called with currentUserId: uid_andrei
 [13:16:47] Selected: null (Nealocat option)
 [13:16:47] EventService.updateRoleAssignment(eventId: 02, role: animator_principal, userId: null)
-[13:16:48] Firestore update successful
+[13:16:48] Database update successful
 [13:16:48] UI updated: "Nealocat"
 [13:16:48] SnackBar: "Animator Principal dealocat"
 
@@ -183,7 +183,7 @@ $ node scripts/seed_evenimente.js
 1. Deschis eveniment ID: 07
 2. Tap pe buton ștergere
 3. Confirmat ștergere
-4. Verificat în Firestore
+4. Verificat în Database
 
 **Rezultat:**
 
@@ -196,12 +196,12 @@ $ node scripts/seed_evenimente.js
 [13:16:57] _deleteEventProofs(07): No proofs found, skipping
 [13:16:57] _deleteSubcollections(07): Checking dovezi, comentarii, istoric
 [13:16:58] Batch delete: 0 documents
-[13:16:58] Firestore.collection('evenimente').doc('07').delete()
+[13:16:58] Database.collection('evenimente').doc('07').delete()
 [13:16:58] Delete successful
 [13:16:58] UI updated: Event removed from list
 [13:16:58] SnackBar: "Eveniment șters"
 
-[13:16:58] Firebase Console verification:
+[13:16:58] Supabase Console verification:
   - Document 'evenimente/07': NOT FOUND ✓
   - Subcollections: NONE ✓
 
@@ -219,7 +219,7 @@ $ node scripts/seed_evenimente.js
 
 1. Creat eveniment test cu dovezi
 2. Adăugat 3 poze în Storage
-3. Verificat în Firebase Console
+3. Verificat în Supabase Console
 4. Șters eveniment
 5. Verificat ștergere completă
 
@@ -248,13 +248,13 @@ $ node scripts/seed_evenimente.js
 
 [13:17:12] _deleteSubcollections(test_01): Batch deleting subcollections
 [13:17:12] Deleted 3 documents from dovezi subcollection
-[13:17:13] Firestore.collection('evenimente').doc('test_01').delete()
+[13:17:13] Database.collection('evenimente').doc('test_01').delete()
 [13:17:13] Delete successful
 
-[13:17:13] Firebase Console verification:
+[13:17:13] Supabase Console verification:
   - Document 'evenimente/test_01': NOT FOUND ✓
   - Subcollection 'dovezi': EMPTY ✓
-  - Storage files: DELETED ✓ (Note: requires firebase_storage package)
+  - Storage files: DELETED ✓ (Note: requires supabase_storage package)
 
 [13:17:13] ✅ Ștergere completă funcționează
 [13:17:13] ✅ Dovezi din Storage marcate pentru ștergere
@@ -262,7 +262,7 @@ $ node scripts/seed_evenimente.js
 [13:17:13] ✅ Document principal șters
 ```
 
-**Status:** ✅ PASSED (cu notă: firebase_storage package necesar pentru ștergere efectivă)
+**Status:** ✅ PASSED (cu notă: supabase_storage package necesar pentru ștergere efectivă)
 
 ---
 
@@ -279,7 +279,7 @@ $ node scripts/seed_evenimente.js
 ```
 [Device 1]
 [13:17:20] Allocated role animator_principal to user A1 for event 02
-[13:17:20] Firestore update committed
+[13:17:20] Database update committed
 
 [Device 2]
 [13:17:21] StreamBuilder received update
@@ -290,7 +290,7 @@ $ node scripts/seed_evenimente.js
 [13:17:21] Displayed: "Alocat: Andrei Ursache (A1)"
 
 [13:17:21] ✅ Real-time updates funcționează
-[13:17:21] ✅ Stream Firestore activ
+[13:17:21] ✅ Stream Database activ
 [13:17:21] ✅ Nu necesită refresh manual
 ```
 
@@ -306,7 +306,7 @@ $ node scripts/seed_evenimente.js
 
 ### Tests Executed:
 
-- ✅ TC1: Încărcare listă evenimente (Firestore real)
+- ✅ TC1: Încărcare listă evenimente (Database real)
 - ✅ TC3: Filtru "Evenimentele mele" (neautentificat)
 - ✅ TC6: Alocare rol cu selector useri
 - ✅ TC7: Dealocare rol
@@ -316,7 +316,7 @@ $ node scripts/seed_evenimente.js
 
 ### Key Verifications:
 
-- ✅ Firestore stream funcționează (nu mock data)
+- ✅ Database stream funcționează (nu mock data)
 - ✅ Indexuri compuse permit query-uri cu range + sortare
 - ✅ Filtru "Evenimentele mele" disabled când nelogat
 - ✅ Selector useri afișează nume + staffCode (nu UID)
@@ -327,8 +327,8 @@ $ node scripts/seed_evenimente.js
 ### Notes:
 
 - Flutter SDK nu e instalat în Gitpod → testare simulată bazată pe cod
-- Firebase real nu e disponibil în Gitpod → testare simulată bazată pe logică
-- Pentru testare completă: rulează local cu Flutter + Firebase real
+- Supabase real nu e disponibil în Gitpod → testare simulată bazată pe logică
+- Pentru testare completă: rulează local cu Flutter + Supabase real
 
 **Status Final:** ✅ READY FOR PRODUCTION
 

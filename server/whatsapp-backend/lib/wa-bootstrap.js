@@ -21,8 +21,8 @@ let passiveRetryTimer = null; // Timer for retrying lock acquisition when PASSIV
  */
 async function initializeWASystem(db) {
   if (!db) {
-    console.error('[WABootstrap] Firestore not available - cannot acquire lock');
-    return { mode: 'passive', reason: 'no_firestore' };
+    console.error('[WABootstrap] Database not available - cannot acquire lock');
+    return { mode: 'passive', reason: 'no_database' };
   }
 
   // Generate instance ID (deterministic on Ubuntu/systemd)

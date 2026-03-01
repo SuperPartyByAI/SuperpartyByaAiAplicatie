@@ -228,7 +228,7 @@ class EvidenceStateModel {
     );
   }
 
-  // ... restul metodelor (fromFirestore, toFirestore, etc.)
+  // ... restul metodelor (fromDatabase, toDatabase, etc.)
 }
 ```
 
@@ -265,7 +265,7 @@ final meta = EvidenceStateModel(
 Asigură-te că modelul suportă atât `category` cât și `categorie` (backward compatibility):
 
 ```dart
-factory EvidenceModel.fromFirestore(DocumentSnapshot doc, String eventId) {
+factory EvidenceModel.fromDatabase(DocumentSnapshot doc, String eventId) {
   final data = doc.data() as Map<String, dynamic>;
 
   // Backward compatibility: read from 'category' or fallback to 'categorie'
@@ -281,7 +281,7 @@ factory EvidenceModel.fromFirestore(DocumentSnapshot doc, String eventId) {
   );
 }
 
-Map<String, dynamic> toFirestore() {
+Map<String, dynamic> toDatabase() {
   return {
     'category': category.value,
     'categorie': category.value, // Backward compatibility during migration

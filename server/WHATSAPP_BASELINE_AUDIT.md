@@ -20,7 +20,7 @@
 
 ## Current Send Paths
 
-1. **Client → Direct Firestore write** (kyc-app)
+1. **Client → Direct Database write** (kyc-app)
    - ❌ Bypasses server-side validation
    - ❌ Violates server-only rule
 
@@ -39,7 +39,7 @@
    - ❌ Duplicate path, causes duplicates
    - **Action**: REMOVE
 
-## Firestore Rules Status
+## Database Rules Status
 
 - **Current**: `allow create: if isAuthenticated() && (isAdmin() || request.resource.data.accountId in getUserAllowedAccounts())`
 - **Required**: `allow create, update, delete: if false` (server-only)

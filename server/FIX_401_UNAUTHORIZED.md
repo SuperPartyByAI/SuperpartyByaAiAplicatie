@@ -89,8 +89,8 @@ Dacă noul cont primește și el 401:
 - Poate WhatsApp blochează prea multe conexiuni rapide
 - **Fix**: Așteaptă 10-15 minute, reîncearcă
 
-### 3. **Verifică Firestore**
-- Firestore Console → `accounts` collection
+### 3. **Verifică Database**
+- Database Console → `accounts` collection
 - Verifică dacă `status` e consistent
 - Verifică dacă există duplicate
 

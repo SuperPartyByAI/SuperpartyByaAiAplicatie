@@ -70,7 +70,7 @@ curl https://whats-app-ompro.ro/health
 curl -H "Authorization: Bearer $ADMIN_TOKEN" \
   https://whats-app-ompro.ro/api/longrun/status-now
 
-# 3. Accounts (via Functions proxy with Firebase token)
+# 3. Accounts (via Functions proxy with Supabase token)
 # Tested in Flutter app
 ```
 
@@ -93,7 +93,7 @@ curl -H "Authorization: Bearer $ADMIN_TOKEN" \
 - ✅ Periodic lock status logging (every 5 min)
 
 **File:** `whatsapp-backend/server.js`
-- ✅ `createConnection`: Saves passive status to Firestore
+- ✅ `createConnection`: Saves passive status to Database
 - ✅ Logs passive mode reason when blocking connection
 
 **Evidence:**
@@ -142,9 +142,9 @@ curl -H "Authorization: Bearer $ADMIN_TOKEN" \
 - ✅ Added: `passive` state (backend not active)
 
 **QR Updates:**
-- ✅ Flutter reads from Firestore `accounts/{accountId}` collection
+- ✅ Flutter reads from Database `accounts/{accountId}` collection
 - ✅ `StreamBuilder` not used (polling via `_loadAccounts()`)
-- ⚠️ **Enhancement:** Consider Firestore snapshots for real-time QR updates
+- ⚠️ **Enhancement:** Consider Database snapshots for real-time QR updates
 
 **Passive Mode UI:**
 - ✅ Purple badge for `passive` status
@@ -177,7 +177,7 @@ curl -H "Authorization: Bearer $ADMIN_TOKEN" \
 
 **Query:**
 ```dart
-FirebaseFirestore.instance.collection('evenimente').snapshots()
+SupabaseDatabase.instance.collection('evenimente').snapshots()
 ```
 
 **Filters:**
@@ -207,7 +207,7 @@ FirebaseFirestore.instance.collection('evenimente').snapshots()
 
 **Fix:**
 - ✅ Lock loss handler restarts passive retry loop
-- ✅ `createConnection` saves passive status to Firestore
+- ✅ `createConnection` saves passive status to Database
 - ✅ Flutter displays passive mode warning
 
 **Verification:**
@@ -252,7 +252,7 @@ curl -H "Authorization: Bearer $ADMIN_TOKEN" \
 # - Add account → QR appears
 # - If 515 occurs → QR clears → new QR appears after reconnect
 
-# 3. Check Firestore
+# 3. Check Database
 # accounts/{accountId}: status changes: connecting → qr_ready → (515) → connecting → qr_ready
 ```
 
@@ -301,7 +301,7 @@ adb -s emulator-5554 logcat | grep -iE "WhatsAppAccountsScreen|whatsapp"
 # Input: { userMessage: "Notează evenimentele pe 15 martie", staffCode: "AB" }
 # Expected: { success: true, notatedEvents: [...] }
 
-# 2. Check Firestore
+# 2. Check Database
 # evenimente/{eventId}: cineNoteaza = "AB"
 ```
 
@@ -324,7 +324,7 @@ adb -s emulator-5554 logcat | grep -iE "WhatsAppAccountsScreen|whatsapp"
 adb -s emulator-5554 logcat | grep -iE "EvenimenteScreen"
 
 # Expected:
-# [EvenimenteScreen] Loaded 10 events from Firestore
+# [EvenimenteScreen] Loaded 10 events from Database
 # [EvenimenteScreen] Events with isArchived=false: 8
 # [EvenimenteScreen] Filtered events count: 5
 ```
@@ -357,7 +357,7 @@ git apply E2E_WHATSAPP_COMPLETE_FIX.patch
 ```bash
 # Terminal 1: Start emulators
 export WHATSAPP_BACKEND_BASE_URL='https://whats-app-ompro.ro'
-firebase emulators:start --only firestore,functions,auth
+supabase emulators:start --only database,functions,auth
 
 # Terminal 2: Run Flutter
 cd superparty_flutter
@@ -368,7 +368,7 @@ adb -s emulator-5554 logcat | grep -iE "WhatsApp|whatsapp|endpoint|tokenPresent|
 ```
 
 **Test Steps:**
-1. ✅ Login (Firebase Auth)
+1. ✅ Login (Supabase Auth)
 2. ✅ Navigate to WhatsApp Accounts
 3. ✅ List accounts → Check logs for endpoint, token presence, status codes
 4. ✅ Add account → Should create + show QR (check logs)
@@ -421,7 +421,7 @@ curl -H "Authorization: Bearer $ADMIN_TOKEN" \
 
 **Expected Logs:**
 ```
-[EvenimenteScreen] Loaded 10 events from Firestore
+[EvenimenteScreen] Loaded 10 events from Database
 [EvenimenteScreen] Events with isArchived=false: 8
 [EvenimenteScreen] Filtered events count: 5
 ```
@@ -434,13 +434,13 @@ curl -H "Authorization: Bearer $ADMIN_TOKEN" \
 ```bash
 # legacy hosting environment variables
 ADMIN_TOKEN=<your-admin-token>
-FIREBASE_SERVICE_ACCOUNT_JSON=<firebase-credentials>
+SUPABASE_SERVICE_ACCOUNT_JSON=<supabase-credentials>
 WHATSAPP_BACKEND_BASE_URL=https://whats-app-ompro.ro  # Not needed (internal)
 ```
 
-### Firebase Functions:
+### Supabase Functions:
 ```bash
-firebase functions:secrets:set WHATSAPP_BACKEND_BASE_URL
+supabase functions:secrets:set WHATSAPP_BACKEND_BASE_URL
 # Value: https://whats-app-ompro.ro
 ```
 
@@ -506,7 +506,7 @@ export WHATSAPP_BACKEND_BASE_URL='https://whats-app-ompro.ro'
 1. Apply patch
 2. Test in emulator
 3. Deploy backend to legacy hosting
-4. Deploy Functions to Firebase
+4. Deploy Functions to Supabase
 5. Test in production
 6. Monitor logs for 515 and passive mode transitions
 

@@ -20,7 +20,7 @@
 - Operator accounts: 3 connected
 - Probe sender: account_1767047506600 (40786522611) connected
 
-### Firestore Schema
+### Database Schema
 
 ```
 wa_metrics/longrun/config/current

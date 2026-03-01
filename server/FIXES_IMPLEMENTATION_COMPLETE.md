@@ -42,7 +42,7 @@
 
 ### Test 1: Black Screen Fix (Auth Timeout)
 ```bash
-# 1. Start Flutter WITHOUT Firebase emulators
+# 1. Start Flutter WITHOUT Supabase emulators
 flutter run -d emulator-5554
 
 # Expected: Shows "Connection Timeout" screen (orange icon, retry button)

@@ -45,7 +45,7 @@ keytool -genkey -v -keystore superparty-release-key.jks \
 **Ce face:**
 
 1. Build APK semnat automat la fiecare push pe `main`
-2. Upload APK în Firebase Storage
+2. Upload APK în Supabase Storage
 3. Face APK-ul public
 
 ---
@@ -68,9 +68,9 @@ base64 superparty-release-key.jks
 
 **Valoare:** `SuperParty2024!`
 
-### 3. FIREBASE_SERVICE_ACCOUNT
+### 3. SUPABASE_SERVICE_ACCOUNT
 
-**Valoare:** Conținutul fișierului `firebase-adminsdk.json`
+**Valoare:** Conținutul fișierului `service-account.json`
 
 ---
 
@@ -91,8 +91,8 @@ base64 superparty-release-key.jks
    - Value: `SuperParty2024!`
 
    **Secret 3:**
-   - Name: `FIREBASE_SERVICE_ACCOUNT`
-   - Value: (conținutul din `firebase-adminsdk.json`)
+   - Name: `SUPABASE_SERVICE_ACCOUNT`
+   - Value: (conținutul din `service-account.json`)
 
 ---
 
@@ -103,7 +103,7 @@ base64 superparty-release-key.jks
 1. Faci modificări în `superparty_flutter/`
 2. Commit + push pe `main`
 3. GitHub Action se declanșează automat
-4. APK semnat se uploadează în Firebase Storage
+4. APK semnat se uploadează în Supabase Storage
 5. Angajații descarcă APK-ul fără warning "virus"
 
 ### Manual:
@@ -118,7 +118,7 @@ base64 superparty-release-key.jks
 
 ## ✅ Rezultat
 
-După ce APK-ul semnat este în Firebase Storage:
+După ce APK-ul semnat este în Supabase Storage:
 
 ✅ **NU mai apare warning "virus"**
 ✅ **Google Play Protect recunoaște aplicația**
@@ -155,7 +155,7 @@ cp superparty-release-key.jks /path/to/secure/backup/
 
 După ce APK-ul semnat este live, angajații pot descărca fără probleme:
 
-1. Click pe link: https://firebasestorage.googleapis.com/v0/b/superparty-frontend.firebasestorage.app/o/apk%2Fapp-release.apk?alt=media
+1. Click pe link: https://supabasestorage.googleapis.com/v0/b/superparty-frontend.supabasestorage.app/o/apk%2Fapp-release.apk?alt=media
 2. Descarcă APK-ul
 3. Instalează (fără warning "virus")
 4. Gata! 🎉
@@ -179,14 +179,14 @@ După ce APK-ul semnat este live, angajații pot descărca fără probleme:
 **Soluție:**
 
 1. Verifică că GitHub Action s-a rulat cu succes
-2. Verifică că APK-ul din Firebase Storage e cel nou (check timestamp)
+2. Verifică că APK-ul din Supabase Storage e cel nou (check timestamp)
 3. Șterge cache browser și reîncearcă descărcarea
 
 ### Cum verific că APK-ul e semnat?
 
 ```bash
 # Descarcă APK-ul
-curl -o app-release.apk "https://firebasestorage.googleapis.com/..."
+curl -o app-release.apk "https://supabasestorage.googleapis.com/..."
 
 # Verifică semnătura
 jarsigner -verify -verbose -certs app-release.apk

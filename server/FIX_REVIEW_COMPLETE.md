@@ -4,7 +4,7 @@
 
 ### ✅ Fix Aplicat: `whatsapp-backend/server.js`
 
-**Linia 2481** - `requireFirebaseAuth` (pentru app clients):
+**Linia 2481** - `requireSupabaseAuth` (pentru app clients):
 ```javascript
 if (!authHeader || !authHeader.startsWith('Bearer ')) {
   return res.status(401).json({ 
@@ -131,7 +131,7 @@ if (!_hasRunAutoBackfill && _employeeAccountIds.isNotEmpty) {
 #### Implementare `_runAutoBackfillForAccounts` (liniile 217-268):
 ```dart
 Future<void> _runAutoBackfillForAccounts() async {
-  if (FirebaseAuth.instance.currentUser == null) return;  // ✅ Check auth
+  if (SupabaseAuth.instance.currentUser == null) return;  // ✅ Check auth
   if (_isBackfilling) return;  // ✅ Prevent parallel execution
   
   // Get account details to check status
@@ -164,7 +164,7 @@ Future<void> _runAutoBackfillForAccounts() async {
 
 ### ✅ Verificări:
 
-1. **Auth check:** ✅ `FirebaseAuth.instance.currentUser == null` → return early
+1. **Auth check:** ✅ `SupabaseAuth.instance.currentUser == null` → return early
 2. **Trigger timing:** ✅ După `_employeeAccountIds` e populat (linia 87)
 3. **Run-once:** ✅ `_hasRunAutoBackfill` flag previne re-execuție
 4. **Fire-and-forget:** ✅ `.catchError()` fără `await` (non-blocking)
@@ -180,7 +180,7 @@ Future<void> _runAutoBackfillForAccounts() async {
 
 ---
 
-## 4. Fix Firestore Query (Employee Inbox)
+## 4. Fix Database Query (Employee Inbox)
 
 ### ✅ Fix Aplicat: `superparty_flutter/lib/screens/whatsapp/employee_inbox_screen.dart`
 
@@ -188,7 +188,7 @@ Future<void> _runAutoBackfillForAccounts() async {
 ```dart
 // NOTE: We don't use orderBy in query to avoid requiring composite index
 // Instead, we sort in memory in _rebuildThreads()
-_threadSubscriptions[accountId] = FirebaseFirestore.instance
+_threadSubscriptions[accountId] = SupabaseDatabase.instance
     .collection('threads')
     .where('accountId', isEqualTo: accountId)
     // ✅ orderBy eliminat
@@ -214,7 +214,7 @@ visibleThreads.sort((a, b) {
 });
 ```
 
-**Status:** ✅ **PASS** - Nu mai necesită index compus Firestore
+**Status:** ✅ **PASS** - Nu mai necesită index compus Database
 
 ---
 
@@ -223,7 +223,7 @@ visibleThreads.sort((a, b) {
 ### ⚠️ Notă: Nu e fix de cod, ci configurare
 
 Eroarea 500 apare când:
-- `WHATSAPP_BACKEND_URL` sau `WHATSAPP_BACKEND_BASE_URL` lipsesc din Firebase Functions env vars
+- `WHATSAPP_BACKEND_URL` sau `WHATSAPP_BACKEND_BASE_URL` lipsesc din Supabase Functions env vars
 - Backend-ul returnează efectiv 500
 
 ### ✅ Cod Client (deja corect):
@@ -239,7 +239,7 @@ if (data != null && data['error'] == 'configuration_missing') {
 ```
 
 **Verificare necesară:**
-- ✅ Firebase Functions env vars setate corect
+- ✅ Supabase Functions env vars setate corect
 - ✅ Backend URL valid în runtime
 
 ---
@@ -261,13 +261,13 @@ if (data != null && data['error'] == 'configuration_missing') {
 - [x] Fire-and-forget (non-blocking)
 - [x] Silent fail cu debug logging
 
-### ✅ Firestore Query
+### ✅ Database Query
 - [x] `orderBy` eliminat (nu mai necesită index)
 - [x] Sortare în memorie implementată
-- [x] Eroarea Firestore va dispărea
+- [x] Eroarea Database va dispărea
 
 ### ⚠️ Configurare (Manual)
-- [ ] Verifică `WHATSAPP_BACKEND_URL` în Firebase Functions
+- [ ] Verifică `WHATSAPP_BACKEND_URL` în Supabase Functions
 - [ ] Testează endpoint-ul backend direct (curl)
 
 ---

@@ -9,7 +9,7 @@ Verificare implementare politică **NEVER DELETE** în SuperParty.
 ## ✅ Checklist Pre-Test
 
 - [x] Cod actualizat: `.delete()` înlocuit cu `.update(isArchived=true)`
-- [x] Firestore Rules: `allow delete: if false` pe colecții relevante
+- [x] Database Rules: `allow delete: if false` pe colecții relevante
 - [x] Storage Rules: `allow delete: if false` pe foldere relevante
 - [x] Model EventModel: câmpuri `isArchived`, `archivedAt`, `archivedBy`, `archiveReason`
 - [x] EventService: metode `archiveEvent()`, `unarchiveEvent()`, `getArchivedEventsStream()`
@@ -36,15 +36,15 @@ Verificare implementare politică **NEVER DELETE** în SuperParty.
 **Rezultat așteptat:**
 
 - ✅ Eveniment dispare din listă principală
-- ✅ Document în Firestore are `isArchived=true`
+- ✅ Document în Database are `isArchived=true`
 - ✅ Câmpuri `archivedAt`, `archivedBy`, `archiveReason` populate
-- ✅ Documentul NU este șters (verifică în Firebase Console)
+- ✅ Documentul NU este șters (verifică în Supabase Console)
 - ✅ Subcolecții (dovezi, comentarii) rămân intacte
 
-**Verificare Firebase Console:**
+**Verificare Supabase Console:**
 
 ```javascript
-// Firestore
+// Database
 evenimente/{eventId}
 {
   "isArchived": true,
@@ -86,17 +86,17 @@ evenimente/{eventId}
 
 - ✅ Eveniment dispare din lista arhivate
 - ✅ Eveniment reapare în lista principală
-- ✅ Document în Firestore are `isArchived=false`
+- ✅ Document în Database are `isArchived=false`
 - ✅ Câmpuri `archivedAt`, `archivedBy`, `archiveReason` șterse
 
 ---
 
-### TC4: Tentativă Ștergere prin Firestore Rules
+### TC4: Tentativă Ștergere prin Database Rules
 
 **Pași:**
 
-1. Deschide Firebase Console
-2. Navighează la Firestore → `evenimente/{eventId}`
+1. Deschide Supabase Console
+2. Navighează la Database → `evenimente/{eventId}`
 3. Încearcă să ștergi documentul manual
 
 **Rezultat așteptat:**
@@ -119,7 +119,7 @@ match /evenimente/{eventId} {
 
 **Pași:**
 
-1. Deschide Firebase Console
+1. Deschide Supabase Console
 2. Navighează la Storage → `evenimente/{eventId}/dovezi/{file}`
 3. Încearcă să ștergi fișierul manual
 
@@ -152,14 +152,14 @@ match /evenimente/{eventId}/dovezi/{fileName} {
 **Rezultat așteptat:**
 
 - ✅ Dovada dispare din listă (dacă filtru `isArchived=false`)
-- ✅ Document în Firestore are `isArchived=true`
+- ✅ Document în Database are `isArchived=true`
 - ✅ Fișierul din Storage rămâne intact (verifică `storagePath`)
 - ✅ `downloadUrl` funcționează în continuare
 
-**Verificare Firebase Console:**
+**Verificare Supabase Console:**
 
 ```javascript
-// Firestore
+// Database
 evenimente/{eventId}/dovezi/{proofId}
 {
   "isArchived": true,
@@ -187,14 +187,14 @@ evenimente/{eventId}/dovezi/{file}.jpg // ← Fișier există
 
 - ✅ Lista afișează doar 3 evenimente active
 - ✅ Cele 2 arhivate NU apar
-- ✅ Query Firestore conține `where('isArchived', isEqualTo: false)`
+- ✅ Query Database conține `where('isArchived', isEqualTo: false)`
 
 **Verificare Cod:**
 
 ```dart
 // lib/services/event_service.dart
 Stream<List<EventModel>> getEventsStream(EventFilters filters) {
-  Query query = _firestore.collection('evenimente');
+  Query query = _database.collection('evenimente');
 
   // ← Verifică că există această linie
   query = query.where('isArchived', isEqualTo: false);
@@ -209,8 +209,8 @@ Stream<List<EventModel>> getEventsStream(EventFilters filters) {
 
 **Pași:**
 
-1. Deschide Firebase Console
-2. Navighează la Firestore → Settings
+1. Deschide Supabase Console
+2. Navighează la Database → Settings
 3. Verifică "TTL Policies"
 
 **Rezultat așteptat:**
@@ -236,7 +236,7 @@ grep -rn "\.delete()" superparty_flutter/lib --include="*.dart" | \
 
 **Rezultat așteptat:**
 
-- ✅ Nu există apeluri `.delete()` pe Firestore collections
+- ✅ Nu există apeluri `.delete()` pe Database collections
 - ✅ Nu există apeluri `.delete()` pe Storage refs
 - ✅ Doar `FieldValue.delete()` (pentru ștergere câmpuri) și `file.delete()` (fișiere locale)
 
@@ -246,7 +246,7 @@ grep -rn "\.delete()" superparty_flutter/lib --include="*.dart" | \
 
 **Pași:**
 
-1. Verifică evenimente existente în Firestore
+1. Verifică evenimente existente în Database
 2. Rulează script migrare (dacă există evenimente fără `isArchived`)
 3. Verifică că toate documentele au câmpul `isArchived`
 
@@ -254,9 +254,9 @@ grep -rn "\.delete()" superparty_flutter/lib --include="*.dart" | \
 
 ```javascript
 // scripts/migrate_archiving_fields.js
-const admin = require('firebase-admin');
+const admin = require('supabase-admin');
 admin.initializeApp();
-const db = admin.firestore();
+const db = admin.database();
 
 async function migrateCollection(collectionName) {
   const snapshot = await db.collection(collectionName).get();
@@ -300,7 +300,7 @@ migrateCollection('evenimente');
 | TC1: Arhivare eveniment           | ⏳ Pending | -    |
 | TC2: Vizualizare arhivate         | ⏳ Pending | -    |
 | TC3: Dezarhivare eveniment        | ⏳ Pending | -    |
-| TC4: Firestore Rules block delete | ⏳ Pending | -    |
+| TC4: Database Rules block delete | ⏳ Pending | -    |
 | TC5: Storage Rules block delete   | ⏳ Pending | -    |
 | TC6: Arhivare dovadă              | ⏳ Pending | -    |
 | TC7: Query exclude arhivate       | ⏳ Pending | -    |
@@ -315,18 +315,18 @@ migrateCollection('evenimente');
 ### 1. Deploy Rules
 
 ```bash
-# Firestore Rules
-firebase deploy --only firestore:rules
+# Database Rules
+supabase deploy --only database:rules
 
 # Storage Rules
-firebase deploy --only storage
+supabase deploy --only storage
 ```
 
 ### 2. Migrare Date (dacă necesar)
 
 ```bash
 cd scripts
-npm install firebase-admin
+npm install supabase-admin
 node migrate_archiving_fields.js
 ```
 
@@ -337,9 +337,9 @@ cd superparty_flutter
 flutter run
 ```
 
-### 4. Verificare Firebase Console
+### 4. Verificare Supabase Console
 
-- **Firestore:** Verifică documente au `isArchived` field
+- **Database:** Verifică documente au `isArchived` field
 - **Storage:** Verifică fișiere există după "arhivare"
 - **Rules:** Încearcă ștergere manuală (trebuie să eșueze)
 
@@ -351,7 +351,7 @@ flutter run
 
 1. ✅ Toate TC1-TC10 sunt PASSED
 2. ✅ Nu există `.delete()` în cod (excepție: fișiere locale)
-3. ✅ Firestore Rules blochează delete
+3. ✅ Database Rules blochează delete
 4. ✅ Storage Rules blochează delete
 5. ✅ Query-uri exclud arhivate implicit
 6. ✅ UI permite arhivare/dezarhivare

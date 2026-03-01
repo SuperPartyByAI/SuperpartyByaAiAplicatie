@@ -11,8 +11,8 @@
 - Backend returnează 500 în loc de 202 "already_in_progress"
 
 **Fix Aplicat:**
-- ✅ Backend verifică și în Firestore pentru `regeneratingQr` flag
-- ✅ Returnează 202 "already_in_progress" dacă găsește flag-ul în Firestore
+- ✅ Backend verifică și în Database pentru `regeneratingQr` flag
+- ✅ Returnează 202 "already_in_progress" dacă găsește flag-ul în Database
 
 ### 2. Client Guard - Treat 202 as Success
 **Symptom:** Client trata 202 ca error și seta cooldown, cauzând buclă.
@@ -36,7 +36,7 @@
 - GET /accounts include accounts cu status `disconnected`, dar UI-ul poate să nu-l afișeze corect
 
 **Status:**
-- ✅ GET /accounts include TOATE accounts din Firestore (inclusiv `disconnected`)
+- ✅ GET /accounts include TOATE accounts din Database (inclusiv `disconnected`)
 - ✅ UI-ul afișează accounts cu status `disconnected`
 - ⚠️ **LIPSĂ:** Verificare de ce conexiunea se închide după QR generation
 
@@ -49,12 +49,12 @@
 
 ```javascript
 // IDEMPOTENCY: Check if regenerate is already in progress
-// Check both in-memory and Firestore for regenerating flag
+// Check both in-memory and Database for regenerating flag
 let isRegenerating = false;
 if (account && connections.has(accountId)) {
   isRegenerating = account.regeneratingQr === true || account.status === 'connecting';
-} else if (firestoreAvailable && db) {
-  // Check Firestore if not in memory
+} else if (databaseAvailable && db) {
+  // Check Database if not in memory
   try {
     const accountDoc = await db.collection('accounts').doc(accountId).get();
     if (accountDoc.exists) {
@@ -62,7 +62,7 @@ if (account && connections.has(accountId)) {
       isRegenerating = data.regeneratingQr === true || data.status === 'connecting';
     }
   } catch (error) {
-    console.error(`⚠️  [${accountId}/${requestId}] Failed to check regenerating flag in Firestore:`, error.message);
+    console.error(`⚠️  [${accountId}/${requestId}] Failed to check regenerating flag in Database:`, error.message);
   }
 }
 
@@ -157,18 +157,18 @@ if (response.statusCode < 200 || response.statusCode >= 300) {
 
 ## Files Modified
 
-1. ✅ `whatsapp-backend/server.js:3685-3700` - regenerateQr idempotency (Firestore check)
+1. ✅ `whatsapp-backend/server.js:3685-3700` - regenerateQr idempotency (Database check)
 2. ✅ `superparty_flutter/lib/services/whatsapp_api_service.dart:340-354` - Client guard (treat 202 as success)
 
 ---
 
 ## Root Cause Summary
 
-1. **regenerateQr 500 loop:** Backend nu verifica Firestore pentru `regeneratingQr` flag → returnează 500 în loc de 202
+1. **regenerateQr 500 loop:** Backend nu verifica Database pentru `regeneratingQr` flag → returnează 500 în loc de 202
 2. **Client guard:** Client trata 202 ca error → seta cooldown → buclă
 3. **Account disappearing:** Connection closes după QR → timeout → status `disconnected` → GET /accounts îl include, dar UI-ul poate să nu-l afișeze corect (de verificat)
 
 **Fix:** 
-- ✅ Backend verifică Firestore pentru `regeneratingQr` flag
+- ✅ Backend verifică Database pentru `regeneratingQr` flag
 - ✅ Client tratează 202 ca success
 - ⚠️ **TODO:** Investigate de ce conexiunea se închide după QR generation

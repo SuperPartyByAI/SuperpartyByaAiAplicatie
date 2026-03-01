@@ -1,12 +1,12 @@
 @echo off
 echo ========================================
-echo Deploy Firestore Rules - AUTOMATIC
+echo Deploy Database Rules - AUTOMATIC
 echo ========================================
 echo.
 
 REM Verifica daca suntem in directorul corect
-if not exist firebase.json (
-    echo EROARE: firebase.json nu exista in directorul curent!
+if not exist supabase.json (
+    echo EROARE: supabase.json nu exista in directorul curent!
     echo Ruleaza acest script din: C:\Users\ursac\Aplicatie-SuperpartyByAi\
     echo.
     pause
@@ -16,9 +16,9 @@ if not exist firebase.json (
 echo Directorul corect detectat!
 echo.
 
-REM Deschide Firebase Console
-echo Deschid Firebase Console...
-start https://console.firebase.google.com/project/superparty-frontend/firestore/rules
+REM Deschide Supabase Console
+echo Deschid Supabase Console...
+start https://console.supabase.google.com/project/superparty-frontend/database/rules
 
 echo.
 echo Astept 3 secunde...
@@ -26,11 +26,11 @@ timeout /t 3 /nobreak >nul
 
 echo.
 echo ========================================
-echo Rulez: firebase deploy --only firestore
+echo Rulez: supabase deploy --only database
 echo ========================================
 echo.
 
-firebase deploy --only firestore
+supabase deploy --only database
 
 if %ERRORLEVEL% EQU 0 (
     echo.
@@ -38,7 +38,7 @@ if %ERRORLEVEL% EQU 0 (
     echo SUCCESS! Regulile au fost deployate!
     echo ========================================
     echo.
-    echo Verifica: https://console.firebase.google.com/project/superparty-frontend/firestore/rules
+    echo Verifica: https://console.supabase.google.com/project/superparty-frontend/database/rules
     echo Aplicatie: https://superparty-frontend.web.app/home
     echo.
 ) else (
@@ -48,8 +48,8 @@ if %ERRORLEVEL% EQU 0 (
     echo ========================================
     echo.
     echo Incearca deploy manual:
-    echo 1. Deschide: https://console.firebase.google.com/project/superparty-frontend/firestore/rules
-    echo 2. Copiaza continutul din firestore.rules
+    echo 1. Deschide: https://console.supabase.google.com/project/superparty-frontend/database/rules
+    echo 2. Copiaza continutul din database.rules
     echo 3. Lipeste in editor
     echo 4. Click "Publish"
     echo.

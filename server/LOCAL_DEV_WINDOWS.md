@@ -5,15 +5,15 @@ Quick reference for running the app locally on Windows PowerShell.
 ## Prerequisites
 
 - Node.js 20+ (or use `.nvmrc` with `nvm use`)
-- Firebase CLI: `npm i -g firebase-tools`
-- Java 17+ (for Firestore emulator): `winget install EclipseAdoptium.Temurin.17.JDK`
+- Supabase CLI: `npm i -g supabase-tools`
+- Java 17+ (for Database emulator): `winget install EclipseAdoptium.Temurin.17.JDK`
 - Flutter (optional, for Flutter app): Install from [flutter.dev](https://flutter.dev)
 
 ## Quick Commands (3-5 max)
 
-### 1. Android + Firebase Emulators: One-Command Setup (Recommended)
+### 1. Android + Supabase Emulators: One-Command Setup (Recommended)
 
-**For Flutter Android development with Firebase emulators:**
+**For Flutter Android development with Supabase emulators:**
 
 ```powershell
 # One command: Starts emulators + waits for ports + sets up adb reverse
@@ -21,7 +21,7 @@ npm run emu:android
 ```
 
 This script will:
-- Start Firebase emulators in a new window
+- Start Supabase emulators in a new window
 - Wait for all ports to be ready (8082, 9098, 5002, 4001)
 - Configure `adb reverse` for Android emulator
 - Print next steps to run Flutter app
@@ -57,17 +57,17 @@ npm run emu:check
 # Terminal 1: Start emulators
 npm run emu
 
-# Terminal 2: Seed Firestore (wait for emulators to start)
+# Terminal 2: Seed Database (wait for emulators to start)
 npm run seed:emu
 ```
 
-**URL-uri (from firebase.json - single source of truth):**
-- Firestore: http://127.0.0.1:8082
+**URL-uri (from supabase.json - single source of truth):**
+- Database: http://127.0.0.1:8082
 - Functions: http://127.0.0.1:5002
 - Auth: http://127.0.0.1:9098
 - UI: http://127.0.0.1:4001
 
-**Note:** All scripts read ports from `firebase.json`. To change ports, edit `firebase.json` only.
+**Note:** All scripts read ports from `supabase.json`. To change ports, edit `supabase.json` only.
 
 ### 2. Build Functions (if changed TypeScript)
 
@@ -99,9 +99,9 @@ flutter run --dart-define=USE_EMULATORS=true --dart-define=USE_ADB_REVERSE=true
 npm run functions:deploy
 ```
 
-Builds and deploys to Firebase (requires `firebase login` and project access).
+Builds and deploys to Supabase (requires `supabase login` and project access).
 
-### Deploy Firestore Rules
+### Deploy Database Rules
 
 ```powershell
 npm run rules:deploy
@@ -112,13 +112,13 @@ npm run rules:deploy
 ### Emulators
 
 ```powershell
-firebase.cmd emulators:start --only firestore,functions,auth --project demo-test
+supabase.cmd emulators:start --only database,functions,auth --project demo-test
 ```
 
 ### Seed
 
 ```powershell
-node tools/seed_firestore.js --emulator --project demo-test
+node tools/seed_database.js --emulator --project demo-test
 ```
 
 ### Functions Build
@@ -135,7 +135,7 @@ cd ..
 ```powershell
 # After creating user in Auth emulator UI
 node tools/set_admin_claim.js --project demo-test --email admin@local.dev
-# OR manually in Firestore emulator UI: users/{uid} with {role: "admin"}
+# OR manually in Database emulator UI: users/{uid} with {role: "admin"}
 ```
 
 ## Flutter App (with Emulators)
@@ -150,11 +150,11 @@ The app will automatically connect to emulators if `USE_EMULATORS=true` and `kDe
 
 ## Troubleshooting
 
-### Firebase Init Timeout / "No Firebase App '[DEFAULT]' has been created"
+### Supabase Init Timeout / "No Supabase App '[DEFAULT]' has been created"
 
-**Symptom:** App shows "Firebase Initialization Failed" screen or timeout error.
+**Symptom:** App shows "Supabase Initialization Failed" screen or timeout error.
 
-**Root Cause:** Firebase emulators are not running or ports are not accessible.
+**Root Cause:** Supabase emulators are not running or ports are not accessible.
 
 **Fix:**
 1. **Start emulators and setup adb reverse:**
@@ -202,28 +202,28 @@ npm run emu:check    # uses npm script
 3. **Or exclude build folders:**
    - Right-click `superparty_flutter\build` → OneDrive → "Always keep on this device"
 
-### Java not found (Firestore emulator)
+### Java not found (Database emulator)
 
 ```powershell
 winget install EclipseAdoptium.Temurin.17.JDK
 java -version
 ```
 
-### Firebase CLI not found
+### Supabase CLI not found
 
 ```powershell
-npm i -g firebase-tools
-# Scripts folosesc deja firebase.cmd
+npm i -g supabase-tools
+# Scripts folosesc deja supabase.cmd
 ```
 
 ### Port already in use
 
-Verifică porturile în `firebase.json`:
-- Firestore: 8082
+Verifică porturile în `supabase.json`:
+- Database: 8082
 - Functions: 5002
 - Auth: 9098
 
-Stop procesul care folosește portul sau schimbă portul în `firebase.json`.
+Stop procesul care folosește portul sau schimbă portul în `supabase.json`.
 
 **Check what's using a port:**
 ```powershell
@@ -238,28 +238,28 @@ Verifică că rulezi cu `--dart-define`:
 flutter run --dart-define=USE_EMULATORS=true --dart-define=USE_ADB_REVERSE=true
 ```
 
-Nu edita manual `firebase_service.dart` - este automat prin dart-define.
+Nu edita manual `supabase_service.dart` - este automat prin dart-define.
 
 ### Port Inconsistency / Seed fails with wrong port
 
-**Symptom:** `npm run seed:emu` shows `[seed] Using Firestore emulator at 127.0.0.1:8080` (wrong port).
+**Symptom:** `npm run seed:emu` shows `[seed] Using Database emulator at 127.0.0.1:8080` (wrong port).
 
-**Root Cause:** Scripts were hardcoding old ports (8080, 5001, 9099, 4000) instead of reading from `firebase.json`.
+**Root Cause:** Scripts were hardcoding old ports (8080, 5001, 9099, 4000) instead of reading from `supabase.json`.
 
-**Fix:** All scripts now read ports from `firebase.json` (single source of truth):
-- `tools/seed_firestore.js` reads from `firebase.json` or `FIRESTORE_EMULATOR_HOST` env var
-- `scripts/check_emu_ports.ps1` reads from `firebase.json`
-- `scripts/adb_reverse_emulators.ps1` reads from `firebase.json`
-- `package.json` uses `--config .\firebase.json` for emulator startup
+**Fix:** All scripts now read ports from `supabase.json` (single source of truth):
+- `tools/seed_database.js` reads from `supabase.json` or `DATABASE_EMULATOR_HOST` env var
+- `scripts/check_emu_ports.ps1` reads from `supabase.json`
+- `scripts/adb_reverse_emulators.ps1` reads from `supabase.json`
+- `package.json` uses `--config .\supabase.json` for emulator startup
 
 **Validation:**
 ```powershell
-# 1. Start emulators (uses firebase.json ports)
+# 1. Start emulators (uses supabase.json ports)
 npm run emu
 
 # 2. Verify seed uses correct port
 npm run seed:emu
-# Expected: [seed] Using Firestore emulator at 127.0.0.1:8082
+# Expected: [seed] Using Database emulator at 127.0.0.1:8082
 
 # 3. Check all ports are open
 npm run emu:check
@@ -268,7 +268,7 @@ npm run emu:check
 # 4. Run Flutter (should not timeout)
 cd superparty_flutter
 flutter run --dart-define=USE_EMULATORS=true --dart-define=USE_ADB_REVERSE=true
-# Expected: [FirebaseService] ✅ Emulators configured: host=127.0.0.1 Firestore:8082 Auth:9098 Functions:5002 UI:4001
+# Expected: [SupabaseService] ✅ Emulators configured: host=127.0.0.1 Database:8082 Auth:9098 Functions:5002 UI:4001
 ```
 
 ### ADB Reverse Not Working
@@ -311,5 +311,5 @@ npm.cmd run build
 ## Notes
 
 - All scripts use `.cmd` extensions for Windows compatibility
-- Emulator data is stored in `.firebase/` (gitignored)
-- Use `demo-test` project for local development (no real Firebase project needed)
+- Emulator data is stored in `.supabase/` (gitignored)
+- Use `demo-test` project for local development (no real Supabase project needed)

@@ -5,20 +5,20 @@
 **Status:**
 
 - ✅ Cod fix aplicat (`functions/index.js` - QR codes only)
-- ✅ Firebase CLI instalat
+- ✅ Supabase CLI instalat
 - ✅ Proiect configurat (`superparty-frontend`)
-- ❌ Trebuie autentificare Firebase
+- ❌ Trebuie autentificare Supabase
 
 ---
 
 ## 📋 PAȘI (5 minute)
 
-### Pas 1: Autentificare Firebase
+### Pas 1: Autentificare Supabase
 
 **În terminal, rulează:**
 
 ```bash
-firebase login --no-localhost
+supabase login --no-localhost
 ```
 
 **Output:**
@@ -34,7 +34,7 @@ Waiting for authentication...
 
 1. **Copiază URL-ul** din terminal
 2. **Deschide în browser** (tab nou)
-3. **Selectează contul Google** (cel cu acces la Firebase)
+3. **Selectează contul Google** (cel cu acces la Supabase)
 4. **Aprobă permisiunile**
 5. **Copiază token-ul** din browser
 6. **Paste în terminal**
@@ -51,7 +51,7 @@ Waiting for authentication...
 
 ```bash
 cd /workspaces/Aplicatie-SuperpartyByAi
-firebase deploy --only functions
+supabase deploy --only functions
 ```
 
 **Output așteptat:**
@@ -72,7 +72,7 @@ i  functions: updating Node.js 20 function whatsapp(us-central1)...
 
 ✔  Deploy complete!
 
-Project Console: https://console.firebase.google.com/project/superparty-frontend/overview
+Project Console: https://console.supabase.google.com/project/superparty-frontend/overview
 Function URL (whatsapp): https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp
 ```
 
@@ -92,7 +92,7 @@ curl https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp
 ```json
 {
   "status": "online",
-  "service": "SuperParty WhatsApp on Firebase",
+  "service": "SuperParty WhatsApp on Supabase",
   "version": "5.0.0",
   "accounts": 0
 }
@@ -167,9 +167,9 @@ curl https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp/api/wha
 
 După acești pași:
 
-- ✅ WhatsApp deployed pe Firebase
+- ✅ WhatsApp deployed pe Supabase
 - ✅ QR codes funcționează 100%
-- ✅ Sessions persistă în Firestore
+- ✅ Sessions persistă în Database
 - ✅ Conturile rămân în listă
 - ✅ Gata pentru 20 conturi
 
@@ -180,8 +180,8 @@ După acești pași:
 ### Deploy:
 
 ```bash
-firebase login --no-localhost
-firebase deploy --only functions
+supabase login --no-localhost
+supabase deploy --only functions
 ```
 
 ### Test:
@@ -213,7 +213,7 @@ După primul cont conectat:
 1. Adaugă restul conturilor (până la 20)
 2. Testează trimitere mesaje
 3. Verifică că sessions persistă (restart function)
-4. Monitorizează în Firebase Console → Functions → Logs
+4. Monitorizează în Supabase Console → Functions → Logs
 
 **Function URL:** https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp
 

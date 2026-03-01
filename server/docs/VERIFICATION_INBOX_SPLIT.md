@@ -5,7 +5,7 @@
 - **Inbox Admin** = only 0737571397. Shown to admin; route `/whatsapp/inbox`.
 - **Inbox Angajați** = all accounts except 0737571397. Shown to admin and employees; route `/whatsapp/inbox-staff`.
 - **getAccountsStaff** filters out admin phone server-side.
-- **Firestore rules**: employees cannot read `threads` / `messages` / `extractions` for `accountId` in `config/whatsapp_inbox.adminOnlyAccountIds`.
+- **Database rules**: employees cannot read `threads` / `messages` / `extractions` for `accountId` in `config/whatsapp_inbox.adminOnlyAccountIds`.
 
 ## Copy-paste commands
 
@@ -18,11 +18,11 @@ cd /Users/universparty/Aplicatie-SuperpartyByAi
 node scripts/set_admin_only_account.mjs --project superparty-frontend
 
 # 2) Deploy rules
-firebase use superparty-frontend
-firebase deploy --only firestore:rules
+supabase use superparty-frontend
+supabase deploy --only database:rules
 
 # 3) Deploy functions (getAccountsStaff filter)
-firebase deploy --only functions
+supabase deploy --only functions
 ```
 
 ## Manual checklist
@@ -39,7 +39,7 @@ firebase deploy --only functions
 - `superparty_flutter/lib/screens/whatsapp/whatsapp_inbox_screen.dart` (use `isAdminPhone`)
 - `superparty_flutter/lib/screens/whatsapp/whatsapp_screen.dart` (tiles: Inbox Admin, Inbox Angajați)
 - `superparty_flutter/lib/screens/whatsapp/staff_inbox_screen.dart` (use `isAdminPhone`)
-- `firestore.rules` (config + threads/messages/extractions adminOnlyAccountIds)
+- `database.rules` (config + threads/messages/extractions adminOnlyAccountIds)
 - `scripts/set_admin_only_account.mjs` (new)
 
 ## Logs
@@ -49,7 +49,7 @@ firebase deploy --only functions
 
 ## Debug "nu se sincronizează conversațiile"
 
-**Cauza** e în **pipeline-ul de ingestie** (backend → Firestore), nu în UI. Inbox citește doar din Firestore; dacă backend-ul n-a scris threads/messages (history sync, backfill), vezi 0 conversații.
+**Cauza** e în **pipeline-ul de ingestie** (backend → Database), nu în UI. Inbox citește doar din Database; dacă backend-ul n-a scris threads/messages (history sync, backfill), vezi 0 conversații.
 
 → **Detalii complete:** `docs/INGESTION_PIPELINE_INBOX.md` (cele 3 cauze, loguri, health/dashboard, aliniere Railway vs Hetzner).
 

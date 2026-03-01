@@ -21,7 +21,7 @@
   - legacy hosting.json push (ignored without manual config)
 - **Rezultat:** legacy hosting service returnează 404, needs manual config
 
-### 2. Firebase Functions - PARTIAL
+### 2. Supabase Functions - PARTIAL
 
 - **Status:** Deployed și funcțional (v5.2.0)
 - **Health:** ✅ PASS
@@ -33,7 +33,7 @@
 
 - **Încercat:** server-prod-simple.js, server-prod-local.js
 - **Rezultat:** Process killed, timeout, port conflicts
-- **Root Cause:** Environment limitations (Firebase init slow, process management issues)
+- **Root Cause:** Environment limitations (Supabase init slow, process management issues)
 
 ---
 
@@ -41,7 +41,7 @@
 
 | DoD                       | Status     | Evidence                     | Blocker              |
 | ------------------------- | ---------- | ---------------------------- | -------------------- |
-| DoD-1: Deploy + Health    | ✅ PASS    | Firebase Functions health OK | -                    |
+| DoD-1: Deploy + Health    | ✅ PASS    | Supabase Functions health OK | -                    |
 | DoD-2: QR/Pairing REAL    | ❌ FAIL    | All accounts qrCode=null     | QR generation broken |
 | DoD-3: Min 1 Connected    | ❌ BLOCKED | Cannot connect without QR    | DoD-2                |
 | DoD-4: MTTR < 60s P95     | ❌ BLOCKED | Needs connected account      | DoD-3                |
@@ -54,7 +54,7 @@
 
 ## EVIDENCE - RAW DATA
 
-### Firebase Functions Accounts (2025-12-29T12:50:00Z)
+### Supabase Functions Accounts (2025-12-29T12:50:00Z)
 
 ```json
 {
@@ -126,7 +126,7 @@ Response: {"status":"error","code":404,"message":"Application not found"}
 ### Local Server Attempts
 
 ```
-Attempt 1: server-prod-local.js - Firebase init timeout
+Attempt 1: server-prod-local.js - Supabase init timeout
 Attempt 2: server-prod-simple.js - Process killed
 Attempt 3: exec_preview - Timeout waiting for service
 ```
@@ -137,7 +137,7 @@ Attempt 3: exec_preview - Timeout waiting for service
 
 ## ROOT CAUSES
 
-### 1. QR Generation Broken in Firebase Functions
+### 1. QR Generation Broken in Supabase Functions
 
 **Code deployed:** v5.2.0  
 **Expected:** fetchLatestBaileysVersion fix applied  
@@ -152,7 +152,7 @@ Attempt 3: exec_preview - Timeout waiting for service
 **Hypothesis:**
 
 - Fix not deployed (old version still running)
-- OR Firebase Functions cold start breaks socket initialization
+- OR Supabase Functions cold start breaks socket initialization
 - OR Baileys version mismatch despite fix
 
 ### 2. legacy hosting Configuration Requires Manual Action
@@ -171,7 +171,7 @@ Attempt 3: exec_preview - Timeout waiting for service
 ### 3. Environment Limitations
 
 - Background processes killed
-- Firebase Admin init slow (timeout)
+- Supabase Admin init slow (timeout)
 - Port conflicts
 - Process management issues
 
@@ -183,13 +183,13 @@ Attempt 3: exec_preview - Timeout waiting for service
 2. ✅ QR generation in local tests (18/18 accounts, 100% success)
 3. ✅ fetchLatestBaileysVersion fix (verified in code)
 4. ✅ Multi-account support (18 simultaneous)
-5. ✅ Firebase Functions deployment (health endpoint OK)
+5. ✅ Supabase Functions deployment (health endpoint OK)
 
 ---
 
 ## WHAT DOESN'T WORK (VERIFIED)
 
-1. ❌ QR generation in Firebase Functions production
+1. ❌ QR generation in Supabase Functions production
 2. ❌ legacy hosting deployment (needs manual config)
 3. ❌ Local server stability (process management)
 4. ❌ Account connection (blocked by QR issue)
@@ -200,7 +200,7 @@ Attempt 3: exec_preview - Timeout waiting for service
 
 **Cannot achieve 100% DoD due to:**
 
-1. QR generation broken in production (Firebase Functions)
+1. QR generation broken in production (Supabase Functions)
 2. legacy hosting deployment blocked (no API token)
 3. Local server unstable (environment limitations)
 
@@ -218,7 +218,7 @@ Attempt 3: exec_preview - Timeout waiting for service
 
 **To unblock:**
 
-1. Fix Firebase Functions QR generation (redeploy with correct fix)
+1. Fix Supabase Functions QR generation (redeploy with correct fix)
 2. OR Configure legacy hosting manually (1 click in dashboard)
 3. OR Provide LEGACY_TOKEN for programmatic config
 

@@ -9,8 +9,8 @@ Auto-reply-ul pentru WhatsApp a fost implementat complet end-to-end cu toate gat
 ### 1. Mesaje Inbound
 - **Handler**: `handleMessagesUpsert` (linia 758)
 - **Trigger**: Event `messages.upsert` de la Baileys
-- **Persistență**: `saveMessageToFirestore` (linia 1571)
-- **Schema Firestore**:
+- **Persistență**: `saveMessageToDatabase` (linia 1571)
+- **Schema Database**:
   - Colecție: `threads/{threadId}/messages/{messageId}`
   - Câmpuri: `accountId`, `threadId`, `messageId`, `body`, `type`, `fromMe`, `tsSort`, `createdAt`
 
@@ -56,9 +56,9 @@ Auto-reply-ul pentru WhatsApp a fost implementat complet end-to-end cu toate gat
 - Skip dacă nu are `body` sau `type` nu este `conversation` sau `extendedText`
 - **Log**: `[AutoReply] ⏭️  Gate 6 FAIL: no text or wrong type`
 
-### Gate 7: Firestore disponibil
-- Skip dacă Firestore nu este disponibil
-- **Log**: `[AutoReply] ⏭️  Gate 7 FAIL: firestoreAvailable={} db={}`
+### Gate 7: Database disponibil
+- Skip dacă Database nu este disponibil
+- **Log**: `[AutoReply] ⏭️  Gate 7 FAIL: databaseAvailable={} db={}`
 
 ### Gate 8: Auto-reply enabled
 - Verifică `accounts/{accountId}.autoReplyEnabled` (account-level)
@@ -93,7 +93,7 @@ Auto-reply-ul pentru WhatsApp a fost implementat complet end-to-end cu toate gat
 ```
 1. Mesaj inbound primit
    ↓
-2. handleMessagesUpsert() → saveMessageToFirestore()
+2. handleMessagesUpsert() → saveMessageToDatabase()
    ↓
 3. FCM notification (non-blocking)
    ↓
@@ -107,7 +107,7 @@ Auto-reply-ul pentru WhatsApp a fost implementat complet end-to-end cu toate gat
    ↓
 8. Trimite răspuns via sock.sendMessage()
    ↓
-9. Salvează mesaj outbound în Firestore
+9. Salvează mesaj outbound în Database
    ↓
 10. Actualizează cooldown-uri (thread + clientJid)
 ```
@@ -152,7 +152,7 @@ Auto-reply-ul pentru WhatsApp a fost implementat complet end-to-end cu toate gat
 [AutoReply] Stack: {stack}
 ```
 
-### Firestore Fields
+### Database Fields
 
 **Thread Document** (`threads/{threadId}`):
 - `aiEnabled`: boolean (thread-level override)
@@ -177,7 +177,7 @@ Auto-reply-ul pentru WhatsApp a fost implementat complet end-to-end cu toate gat
 - **WhatsApp Inbox Screen** → Settings → **Auto-Reply Toggle**
 - **AI Settings Screen** → Configurează prompt-ul
 
-Sau direct în Firestore:
+Sau direct în Database:
 ```javascript
 // Account-level (pentru toate thread-urile)
 await db.collection('accounts').doc(accountId).set({
@@ -197,7 +197,7 @@ await db.collection('threads').doc(threadId).set({
 Pe server (Hetzner):
 ```bash
 # Setează în environment file
-echo "GROQ_API_KEY=gsk_YOUR_GROQ_API_KEY_HERE" | sudo tee -a /etc/whatsapp-backend/firebase-sa.env
+echo "GROQ_API_KEY=gsk_YOUR_GROQ_API_KEY_HERE" | sudo tee -a /etc/whatsapp-backend/supabase-sa.env
 
 # Restart service
 sudo systemctl restart whatsapp-backend
@@ -291,7 +291,7 @@ const AI_FRESH_WINDOW_MS = 2 * 60 * 1000;      // 2 minute
 1. ❌ **Funcția `maybeHandleAiAutoReply` nu era apelată** - Rezolvat: trigger adăugat în `handleMessagesUpsert`
 2. ❌ **Lipsea cooldown per clientJid** - Rezolvat: adăugat `autoReplyLastClientReplyAt`
 3. ❌ **Lipsea logging detaliat** - Rezolvat: logging structurat pentru fiecare gate
-4. ❌ **Lipsea salvarea mesajelor outbound** - Rezolvat: mesajele auto-reply sunt salvate în Firestore
+4. ❌ **Lipsea salvarea mesajelor outbound** - Rezolvat: mesajele auto-reply sunt salvate în Database
 5. ❌ **Lipsea error handling robust** - Rezolvat: try-catch complet cu logging
 
 ### Implementări Noi:
@@ -299,7 +299,7 @@ const AI_FRESH_WINDOW_MS = 2 * 60 * 1000;      // 2 minute
 2. ✅ **Cooldown dual** - per thread și per clientJid
 3. ✅ **Logging structurat** - pentru observabilitate completă
 4. ✅ **Error handling** - nu oprește procesarea altor mesaje
-5. ✅ **Persistență outbound** - mesajele auto-reply sunt salvate în Firestore
+5. ✅ **Persistență outbound** - mesajele auto-reply sunt salvate în Database
 
 ## 🚀 Cum Activezi Feature-ul
 
@@ -310,7 +310,7 @@ const AI_FRESH_WINDOW_MS = 2 * 60 * 1000;      // 2 minute
 4. Activează **Auto-Reply Toggle**
 5. (Opțional) Configurează prompt-ul în **AI Settings**
 
-### Opțiunea 2: Firestore Direct
+### Opțiunea 2: Database Direct
 ```javascript
 // Account-level (toate thread-urile)
 db.collection('accounts').doc('account_prod_26ec0bfb54a6ab88cc3cd7aba6a9a443').set({

@@ -1,7 +1,7 @@
 # ROLLOUT_FINAL_STEPS.md
 
-**Scope:** GitHub → Firebase (rules/indexes/functions + secrets) → legacy hosting (volume+env+redeploy) → Flutter (cap-coadă) → Acceptance → Onboarding 30 conturi  
-**Obiectiv:** Pair QR din app → sync conversații în Firestore → chat send/receive din app → CRM (extract event, save event, profil client, ask AI)
+**Scope:** GitHub → Supabase (rules/indexes/functions + secrets) → legacy hosting (volume+env+redeploy) → Flutter (cap-coadă) → Acceptance → Onboarding 30 conturi  
+**Obiectiv:** Pair QR din app → sync conversații în Database → chat send/receive din app → CRM (extract event, save event, profil client, ask AI)
 
 ---
 
@@ -37,41 +37,41 @@ Dacă remote are `main` dar local nu: `git fetch origin main:refs/remotes/origin
 
 ---
 
-## 2) Firebase deploy (secrets + rules/indexes/functions)
+## 2) Supabase deploy (secrets + rules/indexes/functions)
 
 Proxy-ul către backend folosește un secret cu URL-ul backend, ex. `WHATSAPP_BACKEND_BASE_URL` (recomandat) sau `WHATSAPP_BACKEND_URL` (legacy).
 Pentru AI extraction/ask se menționează cheie `GROQ_API_KEY` (`DEPLOY_MANUAL`).
 
 ### 2.1 Select proiect
 ```bash
-firebase projects:list
-firebase use <PROJECT_ID>
+supabase projects:list
+supabase use <PROJECT_ID>
 ```
-**Notă:** Înlocuiește `<PROJECT_ID>` cu ID-ul real al proiectului Firebase.
+**Notă:** Înlocuiește `<PROJECT_ID>` cu ID-ul real al proiectului Supabase.
 
 ### 2.2 Set secrets (minim)
 Setează URL-ul backend (valoare: `https://<backend-host>`):
 ```bash
-firebase functions:secrets:set LEGACY_WHATSAPP_URL
+supabase functions:secrets:set LEGACY_WHATSAPP_URL
 # sau/și:
-firebase functions:secrets:set WHATSAPP_BACKEND_BASE_URL
+supabase functions:secrets:set WHATSAPP_BACKEND_BASE_URL
 ```
 **Notă:** Înlocuiește `<backend-host>` cu domeniul backend real.
 
 AI provider key (dacă folosești Groq):
 ```bash
-firebase functions:secrets:set GROQ_API_KEY
+supabase functions:secrets:set GROQ_API_KEY
 ```
 
 ### 2.3 Deploy complet (recomandat)
 ```bash
-firebase deploy --only firestore:rules,firestore:indexes,functions
+supabase deploy --only database:rules,database:indexes,functions
 ```
 
-### 2.4 Verificări în Firebase Console
-- [ ] **Firestore → Indexes:** Status = **Ready**
+### 2.4 Verificări în Supabase Console
+- [ ] **Database → Indexes:** Status = **Ready**
 - [ ] **Functions:** toate = **Deployed**
-- [ ] **Firestore → Rules:** active și fără erori de compilare
+- [ ] **Database → Rules:** active și fără erori de compilare
 
 ---
 
@@ -85,7 +85,7 @@ legacy hosting → Service (whatsapp-backend) → Volumes → Add Volume:
 ### 3.2 Env vars (minim)
 legacy hosting → Variables:
 - `SESSIONS_PATH=/app/sessions` (trebuie să bată cu mount path)
-- `FIREBASE_SERVICE_ACCOUNT_JSON=<json complet>`
+- `SUPABASE_SERVICE_ACCOUNT_JSON=<json complet>`
 - (dacă e folosit) `ADMIN_TOKEN=<random-lung>`
 
 **Opțional (pentru sync best-effort):**
@@ -96,7 +96,7 @@ legacy hosting → Variables:
 ### 3.3 Verificări în logs (după redeploy)
 Caută:
 - ✅ `"sessions dir ... writable"` / `"write-test"` (startup fail-fast indică să verifici `SESSIONS_PATH` și volume)
-- ✅ `"Session restored from disk"` / `"Session restored from Firestore"` (după redeploy)
+- ✅ `"Session restored from disk"` / `"Session restored from Database"` (după redeploy)
 - ✅ `"messaging-history.set"` (history sync)
 - ❌ `"needs_qr"` (dacă apare după scanare = problemă)
 - ✅ `/health 200` + `sessions_dir_writable=true`
@@ -154,7 +154,7 @@ curl -sS -X POST "$BASE/api/whatsapp/regenerate-qr/<accountId>"
 curl -sS -X POST "$BASE/api/whatsapp/backfill/<accountId>"
 ```
 
-### 4.8 Verificări Firestore (după pairing)
+### 4.8 Verificări Database (după pairing)
 Colecții așteptate (exemple): `accounts`, `threads`, `threads/{threadId}/messages`, `outbox` (server-side), `clients`, `evenimente`.
 
 Exemplu: `outbox` doc shape este descris (`accountId`, `threadId`, `to`, `body`, `status`, `timestamps` etc.).
@@ -176,7 +176,7 @@ Exemplu: `outbox` doc shape este descris (`accountId`, `threadId`, `to`, `body`,
 - ✅ **success:** `connected` / `session saved` / (opțional) `messaging-history.set`
 - ❌ **error:** `needs_qr` imediat după scan / loop reconnect
 
-**Firestore checks:**
+**Database checks:**
 - `accounts/<accountId>` există, `status=connected`
 - `threads/*` încep să apară (best-effort)
 
@@ -189,7 +189,7 @@ Exemplu: `outbox` doc shape este descris (`accountId`, `threadId`, `to`, `body`,
 2. App → Inbox → select WA-01 → intră pe thread
 3. Mesajul apare (realtime)
 
-**Firestore:**
+**Database:**
 - `threads/<threadId>`
 - `threads/<threadId>/messages/<messageId>`
 
@@ -202,7 +202,7 @@ Exemplu: `outbox` doc shape este descris (`accountId`, `threadId`, `to`, `body`,
 2. Clientul primește mesajul pe WhatsApp
 3. În UI: status outbound evoluează (`queued`/`sent`/`delivered`/`read` dacă receipts active)
 
-**Firestore:**
+**Database:**
 - mesaj outbound persistat în `threads/.../messages/...`
 - status actualizat
 
@@ -228,7 +228,7 @@ Exemplu: `outbox` doc shape este descris (`accountId`, `threadId`, `to`, `body`,
 2. „Save Event” → creează document nou în `evenimente`
 3. Repeți o a doua comandă → trebuie să creeze al doilea eveniment
 
-**Firestore:**
+**Database:**
 - `evenimente/<eventId>` nou (de fiecare dată)
 - trigger agregare actualizează `clients/<phoneE164>` (`eventsCount`, `lifetimeSpend` etc.)
 
@@ -241,7 +241,7 @@ Exemplu: `outbox` doc shape este descris (`accountId`, `threadId`, `to`, `body`,
 2. Întrebi: „Câți bani a cheltuit clientul +40…?”
 3. Primești răspuns bazat pe `clients` + `evenimente`
 
-**Firestore:**
+**Database:**
 - `clients/<phoneE164>` există și nu se șterge
 - `evenimente` listate corect desc (index)
 
@@ -274,7 +274,7 @@ Dacă e OK: continui până la 30.
 1. Pentru fiecare: Add account → QR → scan → connected
 2. **Checkpoint după fiecare 5 conturi:**
    - verifici logs (nu ai reconnect loops)
-   - verifici Firestore (threads/messages se populează)
+   - verifici Database (threads/messages se populează)
 3. **După 10/20/30:**
    - redeploy legacy hosting (1–2 ori) → confirmi că NU cere re-pair (sessions persist pe volume)
 
@@ -282,7 +282,7 @@ Dacă e OK: continui până la 30.
 
 ## 8) „Never lose data” checks (critice)
 
-### Firestore:
+### Database:
 Confirmi că NU ai TTL/cleanup pe `threads`/`messages`/`clients`/`evenimente` (Console → TTL).
 
 ### Rules:
@@ -304,7 +304,7 @@ Nu implementa delete pentru `threads`/`messages`/`client profile`.
 - verifică logs pentru `"not writable"`
 
 ### Problemă: „missing index”
-- rulează: `firebase deploy --only firestore:indexes`
+- rulează: `supabase deploy --only database:indexes`
 - așteaptă „Ready” în Console → Indexes
 
 ### Problemă: proxy nu ajunge la backend
@@ -324,7 +324,7 @@ BASE="https://<legacy hosting-domain>"
 curl -sS "$BASE/health"
 curl -sS "$BASE/api/whatsapp/accounts"
 # după pairing:
-# verifică în Firestore: threads/<threadId>/messages/*
+# verifică în Database: threads/<threadId>/messages/*
 ```
 
 ---

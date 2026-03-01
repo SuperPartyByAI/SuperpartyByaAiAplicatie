@@ -4,7 +4,7 @@
 
 Această documentație descrie modificările complete pentru sistemul de auto-reply WhatsApp, incluzând:
 - Canonicalizare threadId pentru eliminarea duplicatelor
-- Mutarea promptului AI în Firestore (fără hardcode)
+- Mutarea promptului AI în Database (fără hardcode)
 - Îmbunătățirea contextului AI cu contact info și metadata
 - Name capture logic cu gestionare nume multiple
 - Logging complet fără emoji cu traceId
@@ -40,9 +40,9 @@ Această documentație descrie modificările complete pentru sistemul de auto-re
   - Apelează `findExistingThreadByPhone` pentru a găsi thread existent
   - Dacă găsește, folosește `actualThreadId` = thread-ul găsit
   - Loghează `pickedExistingThread=true`
-- Toate scrierile în Firestore folosesc `actualThreadId` (nu `threadId` vechi)
+- Toate scrierile în Database folosesc `actualThreadId` (nu `threadId` vechi)
 
-### B) Prompt AI doar în Firestore (fără hardcode)
+### B) Prompt AI doar în Database (fără hardcode)
 
 #### Prioritatea promptului:
 
@@ -51,7 +51,7 @@ Această documentație descrie modificările complete pentru sistemul de auto-re
 3. `process.env.AI_DEFAULT_SYSTEM_PROMPT` (fallback de urgență)
 4. Dacă nu există niciuna => **throw Error** (nu mai există hardcoded fallback)
 
-#### Auto-set prompt în Firestore:
+#### Auto-set prompt în Database:
 
 - Când `accountDoc.autoReplyPrompt` lipsește sau e gol:
   - Încearcă să încarce din `process.env.AI_SECURITY_PROMPT_TEMPLATE`
@@ -139,13 +139,13 @@ Această documentație descrie modificările complete pentru sistemul de auto-re
 - **Fără emoji în tag-uri**: `[AutoReply][Trace]`, `[AutoReply][Skip]`, `[AutoReply][Name]`, `[AutoReply][Prompt]`, `[AutoReply][AI]`, `[AutoReply][Send]`, `[AutoReply][Error]`
 - **Fiecare mesaj inbound are `traceId`**: `messageId` sau `trace_${timestamp}_${random}`
 
-#### Loguri înainte de Firestore read:
+#### Loguri înainte de Database read:
 
 ```
 [AutoReply][Trace] traceId=... accountId=... incomingRemoteJid=... canonicalKey=... phoneDigits=... phoneE164=... canonicalThreadId=... computedThreadId=...
 ```
 
-#### Loguri după Firestore read:
+#### Loguri după Database read:
 
 ```
 [AutoReply][Trace] traceId=... threadDataLoaded actualThreadId=... exists=true|false pickedExisting=true|false hasFirstName=true|false hasDisplayName=true|false hasPendingNameRequest=true|false hasPendingPreferredName=true|false
@@ -175,7 +175,7 @@ Ordinea exactă a gate-urilor în `maybeHandleAiAutoReply`:
 6. **Fresh message check** (în ultimele 2 minute)
 7. **Dedupe check** (idempotency)
 8. **Text message check** (doar conversation/extendedText)
-9. **Firestore available check**
+9. **Database available check**
 10. **Load thread data + fallback anti-duplicate**
 11. **Settings check** (auto-reply enabled)
 12. **Name capture gates** (înainte de AI):
@@ -219,7 +219,7 @@ journalctl -u whatsapp-backend -f | grep -E '\[AutoReply\]|\[Trace\]|\[Name\]'
 **Verificare:**
 - Thread-ul este creat cu `phoneE164` și `phoneDigits` salvate
 - Mesajul "Salut! Cum te numești? 😊" este trimis
-- `pendingNameRequest=true` în Firestore
+- `pendingNameRequest=true` în Database
 
 ### Test 2: Răspuns cu nume (1-2 cuvinte)
 
@@ -234,8 +234,8 @@ journalctl -u whatsapp-backend -f | grep -E '\[AutoReply\]|\[Trace\]|\[Name\]'
 ```
 
 **Verificare:**
-- `firstName=Ion` în Firestore
-- `fullName=Ion Popescu` în Firestore
+- `firstName=Ion` în Database
+- `fullName=Ion Popescu` în Database
 - `pendingNameRequest=false`
 - Mesajul "Mulțumesc, Ion! 😊" este trimis
 
@@ -344,7 +344,7 @@ journalctl -u whatsapp-backend -f | grep -E '\[AutoReply\]|\[Trace\]|\[Name\]'
 ### Test 9: Fallback anti-duplicate
 
 **Pași:**
-1. Creează manual un thread în Firestore cu `phoneE164=+40768098268` dar `threadId` diferit de canonical
+1. Creează manual un thread în Database cu `phoneE164=+40768098268` dar `threadId` diferit de canonical
 2. Trimite mesaj de la același telefon
 3. Verifică că se găsește thread-ul existent
 
@@ -405,11 +405,11 @@ journalctl -u whatsapp-backend --since '10 minutes ago' | grep -E '\[Name\]|need
 journalctl -u whatsapp-backend --since '10 minutes ago' | grep -E 'promptSource|promptHash|autoSetSecurityPrompt'
 ```
 
-## Verificare Firestore
+## Verificare Database
 
 ### Verificare thread cu phone fields:
 ```javascript
-// În Firebase Console sau script
+// În Supabase Console sau script
 const threadDoc = await db.collection('threads').doc('account_prod_xxx__40768098268@s.whatsapp.net').get();
 const data = threadDoc.data();
 console.log({
@@ -460,8 +460,8 @@ ssh -i ~/.ssh/hetzner_whatsapp root@37.27.34.179 "journalctl -u whatsapp-backend
 ### Variabile necesare:
 
 - `GROQ_API_KEY` - Cheia API pentru Groq (obligatoriu)
-- `AI_DEFAULT_SYSTEM_PROMPT` - Fallback prompt dacă nu există în Firestore (opțional, dar recomandat)
-- `AI_SECURITY_PROMPT_TEMPLATE` - Template pentru auto-set prompt în Firestore (opțional)
+- `AI_DEFAULT_SYSTEM_PROMPT` - Fallback prompt dacă nu există în Database (opțional, dar recomandat)
+- `AI_SECURITY_PROMPT_TEMPLATE` - Template pentru auto-set prompt în Database (opțional)
 - `AI_CONTEXT_MESSAGE_LIMIT` - Număr mesaje în context (default: 50)
 - `AI_REPLY_MIN_CHARS` - Min caractere pentru răspuns (default: 50)
 - `AI_REPLY_MAX_CHARS` - Max caractere pentru răspuns (default: 240)
@@ -472,7 +472,7 @@ ssh -i ~/.ssh/hetzner_whatsapp root@37.27.34.179 "journalctl -u whatsapp-backend
 ### Exemplu 1: Contact nou, name request
 ```
 [AutoReply][Trace] traceId=ABC123 accountId=hash:8 incomingRemoteJid=hash:15 canonicalKey=40768098268@s.whatsapp.net phoneDigits=40768098268 phoneE164=+40768098268 canonicalThreadId=hash:50 computedThreadId=hash:50
-[AutoReply][Trace] traceId=ABC123 firestoreQueriesCompleted threadDocPath=threads/account_prod_xxx__40768098268@s.whatsapp.net threadDocExists=false
+[AutoReply][Trace] traceId=ABC123 databaseQueriesCompleted threadDocPath=threads/account_prod_xxx__40768098268@s.whatsapp.net threadDocExists=false
 [AutoReply][Trace] traceId=ABC123 threadDocMissing attemptingFallback phoneDigits=40768098268 phoneE164=+40768098268
 [AutoReply][Trace] traceId=ABC123 noExistingThreadFound phoneDigits=40768098268 phoneE164=+40768098268 willCreateNew
 [AutoReply][Trace] traceId=ABC123 threadDataLoaded actualThreadId=hash:50 exists=false pickedExisting=false hasFirstName=false hasDisplayName=false hasPendingNameRequest=false hasPendingPreferredName=false
@@ -518,7 +518,7 @@ ssh -i ~/.ssh/hetzner_whatsapp root@37.27.34.179 "journalctl -u whatsapp-backend
 **Verificare:**
 1. Verifică logurile pentru `skipReason`
 2. Verifică că `GROQ_API_KEY` este setat
-3. Verifică că promptul există în Firestore sau env
+3. Verifică că promptul există în Database sau env
 4. Verifică că `autoReplyEnabled=true` în account sau `aiEnabled=true` în thread
 
 ### Problemă: Name capture nu funcționează
@@ -532,14 +532,14 @@ ssh -i ~/.ssh/hetzner_whatsapp root@37.27.34.179 "journalctl -u whatsapp-backend
 
 **Verificare:**
 1. Verifică că nu mai există fallback hardcodat în cod (doar în env)
-2. Verifică că `AI_DEFAULT_SYSTEM_PROMPT` este setat în env dacă nu există prompt în Firestore
+2. Verifică că `AI_DEFAULT_SYSTEM_PROMPT` este setat în env dacă nu există prompt în Database
 3. Verifică logurile pentru `promptSource` - ar trebui să fie `account`, `thread`, sau `env`, nu `fallback`
 
 ## Concluzie
 
 Toate cerințele au fost implementate:
 - ✅ Thread canonicalization cu anti-duplicate fallback
-- ✅ Prompt doar în Firestore (fără hardcode, cu auto-set)
+- ✅ Prompt doar în Database (fără hardcode, cu auto-set)
 - ✅ Context AI îmbunătățit cu contact info și metadata
 - ✅ Name capture logic complet cu gestionare nume multiple
 - ✅ Logging complet fără emoji cu traceId

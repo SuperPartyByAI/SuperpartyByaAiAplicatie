@@ -97,19 +97,19 @@ $ cd superparty_flutter && grep -R "\.data()!" lib --include="*.dart" | wc -l
 **Status:** NOT IMPLEMENTED  
 **Current State:**
 ```bash
-$ cd superparty_flutter && grep -n "while (!FirebaseService.isInitialized)" lib/main.dart
-109:    while (!FirebaseService.isInitialized) {
+$ cd superparty_flutter && grep -n "while (!SupabaseService.isInitialized)" lib/main.dart
+109:    while (!SupabaseService.isInitialized) {
 ```
 
 **Required Changes:**
-- Remove polling loop in `_waitForFirebase()`
+- Remove polling loop in `_waitForSupabase()`
 - Add `BootstrapStatus` enum (loading/success/failed)
 - Add error UI with Retry button (max 3 retries)
 - Implement exponential backoff
-- Update FirebaseService to report status
+- Update SupabaseService to report status
 
 **Files to Modify:**
-- `lib/services/firebase_service.dart`
+- `lib/services/supabase_service.dart`
 - `lib/main.dart`
 
 ### 5. ❌ Add runZonedGuarded
@@ -154,7 +154,7 @@ $ cd superparty_flutter && grep -R "\.data()!" lib --include="*.dart" | wc -l
 $ cd superparty_flutter && grep -R "0x1AFFFFFFF" lib --include="*.dart" | wc -l
 0  ✅
 
-$ cd superparty_flutter && grep -R "while (!FirebaseService.isInitialized)" lib --include="*.dart" | wc -l
+$ cd superparty_flutter && grep -R "while (!SupabaseService.isInitialized)" lib --include="*.dart" | wc -l
 1  ❌ (should be 0)
 ```
 
@@ -197,7 +197,7 @@ $ cd superparty_flutter && grep -R "while (!FirebaseService.isInitialized)" lib 
 
 ### Immediate (Required for Testing)
 1. **Implement BootstrapStatus** (30-45 min)
-   - Add enum to firebase_service.dart
+   - Add enum to supabase_service.dart
    - Remove while loop from main.dart
    - Add error UI with retry logic
 

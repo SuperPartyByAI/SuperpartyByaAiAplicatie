@@ -1,6 +1,6 @@
 import { useEffect, useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { auth, db } from '../firebase';
+import { auth, db } from '../supabase';
 import { 
   collection, 
   query, 
@@ -11,7 +11,7 @@ import {
   addDoc,
   serverTimestamp,
   orderBy 
-} from 'firebase/firestore';
+} from 'supabase/database';
 
 function WhatsAppChatScreen() {
   const navigate = useNavigate();

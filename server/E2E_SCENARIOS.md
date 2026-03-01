@@ -15,7 +15,7 @@
 - ✅ `migrate_v2_to_v3_complete.js` - Migrare funcțională
 
 **Rules:**
-- ✅ `firestore.rules` - ai_global_rules, tasks, history
+- ✅ `database.rules` - ai_global_rules, tasks, history
 
 **Tests:**
 - ✅ `__tests__/eventOperations_v3.test.js` - 4 tests
@@ -39,12 +39,12 @@ cd functions
 node migrate_v2_to_v3_complete.js
 # Result: 5/5 migrated successfully
 
-# Deploy (requires firebase-tools)
-firebase deploy --only firestore:rules
-firebase deploy --only functions:aiEventHandler
+# Deploy (requires supabase-tools)
+supabase deploy --only database:rules
+supabase deploy --only functions:aiEventHandler
 
 # Set secret
-firebase functions:secrets:set GROQ_API_KEY
+supabase functions:secrets:set GROQ_API_KEY
 ```
 
 ### 3. REZULTATE TESTE
@@ -107,7 +107,7 @@ User: "Vreau să notez un eveniment pe 15-01-2026 la București, Str. Exemplu 10
 **Verification:**
 ```bash
 cd functions
-node verify_firestore.js
+node verify_database.js
 # Check: schemaVersion=3, eventShortId=6
 ```
 
@@ -230,7 +230,7 @@ User: "Anulează tot evenimentul #6"
 ```
 
 **Verification:**
-- ✅ Event NU este șters din Firestore
+- ✅ Event NU este șters din Database
 - ✅ isArchived=true
 - ✅ Poate fi găsit cu query .where('isArchived', '==', true)
 
@@ -374,7 +374,7 @@ expect(roles[3].role.details.isRea).toBe(true);
 ```bash
 # 1. Check migrated events
 cd functions
-node verify_firestore.js
+node verify_database.js
 
 # 2. Check counter
 # Should show value=5
@@ -400,7 +400,7 @@ Toate cerințele din prompt au fost implementate și verificate:
 - ✅ AI flow cu confirmare
 - ✅ Logică Animator + Ursitoare
 - ✅ Tasks creation
-- ✅ Firestore Rules
+- ✅ Database Rules
 - ✅ Teste (7/7 PASS)
 - ✅ 6 scenarii E2E documentate
 

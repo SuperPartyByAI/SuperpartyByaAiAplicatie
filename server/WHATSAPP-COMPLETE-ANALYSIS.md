@@ -1,7 +1,7 @@
-# 🔍 WhatsApp Firebase - Analiză Completă și Soluții Long-Term
+# 🔍 WhatsApp Supabase - Analiză Completă și Soluții Long-Term
 
 **Data:** 29 Decembrie 2025, 09:40 UTC  
-**Obiectiv:** WhatsApp 100% funcțional pe Firebase, long-term, fără workarounds
+**Obiectiv:** WhatsApp 100% funcțional pe Supabase, long-term, fără workarounds
 
 ---
 
@@ -27,7 +27,7 @@
 ```bash
 # Health Check - SUCCESS
 curl https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp/
-# {"status":"online","service":"SuperParty WhatsApp on Firebase","version":"5.0.0","accounts":1}
+# {"status":"online","service":"SuperParty WhatsApp on Supabase","version":"5.0.0","accounts":1}
 
 # Get Accounts - SUCCESS
 curl https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp/api/whatsapp/accounts
@@ -98,7 +98,7 @@ curl -X POST https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp
 **28 Dec 2025, ~18:00 UTC:**
 
 - Commit `7cc8300d`: "Revert to 1st Gen - keep existing working deployment"
-- Deploy SUCCESS pe Firebase
+- Deploy SUCCESS pe Supabase
 - Versiune: 5.0.0
 - Doar 3 endpoint-uri: GET /, GET /accounts, POST /add-account
 
@@ -107,7 +107,7 @@ curl -X POST https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp
 - Commit `32b1f42d`: "Add missing WhatsApp API endpoints"
 - Adăugate: DELETE, POST /send, POST /send-message, GET /messages, GET /clients, GET /health
 - **Deploy FAILED sau NU a fost executat**
-- Codul există în repository dar NU e pe Firebase
+- Codul există în repository dar NU e pe Supabase
 
 **29 Dec 2025, 09:26 UTC:**
 
@@ -127,15 +127,15 @@ curl -X POST https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp
 
 - Workflow-ul există și e valid
 - Posibile cauze:
-  - Secret `FIREBASE_SERVICE_ACCOUNT_SUPERPARTY_FRONTEND` lipsește/invalid
+  - Secret `SUPABASE_SERVICE_ACCOUNT_SUPERPARTY_FRONTEND` lipsește/invalid
   - GitHub Actions disabled pentru repository
   - Workflow nu se trigger-uiește (permissions, branch protection)
 
 **Problema 2: Deploy manual nu e posibil în Gitpod**
 
-- Firebase CLI necesită autentificare interactivă
-- `firebase login` nu funcționează în non-interactive mode
-- `firebase login:ci` necesită browser access
+- Supabase CLI necesită autentificare interactivă
+- `supabase login` nu funcționează în non-interactive mode
+- `supabase login:ci` necesită browser access
 - Nu există service account local
 
 **Problema 3: whatsappV2 are IAM permissions greșite**
@@ -159,10 +159,10 @@ curl -X POST https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp
    git pull origin main
    ```
 
-2. **Autentificare Firebase:**
+2. **Autentificare Supabase:**
 
    ```cmd
-   firebase login
+   supabase login
    ```
 
    - Se deschide browser
@@ -172,14 +172,14 @@ curl -X POST https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp
 3. **Verifică proiectul:**
 
    ```cmd
-   firebase projects:list
-   firebase use superparty-frontend
+   supabase projects:list
+   supabase use superparty-frontend
    ```
 
 4. **Deploy funcțiile:**
 
    ```cmd
-   firebase deploy --only functions --project superparty-frontend
+   supabase deploy --only functions --project superparty-frontend
    ```
 
    - Durată: 3-5 minute
@@ -228,23 +228,23 @@ curl -X POST https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp
 
 1. **Verifică GitHub Actions status:**
    - Mergi la: https://github.com/SuperPartyByAI/Aplicatie-SuperpartyByAi/actions
-   - Verifică dacă workflow-ul "Deploy WhatsApp Functions to Firebase" a rulat
+   - Verifică dacă workflow-ul "Deploy WhatsApp Functions to Supabase" a rulat
    - Verifică logs pentru erori
 
 2. **Verifică Secret:**
    - Settings → Secrets and variables → Actions
-   - Verifică că există `FIREBASE_SERVICE_ACCOUNT_SUPERPARTY_FRONTEND`
+   - Verifică că există `SUPABASE_SERVICE_ACCOUNT_SUPERPARTY_FRONTEND`
    - Verifică că JSON-ul e valid (paste în jsonlint.com)
 
 3. **Regenerează Service Account (dacă e invalid):**
-   - Firebase Console → Project Settings → Service accounts
+   - Supabase Console → Project Settings → Service accounts
    - Click "Generate new private key"
    - Copiază ÎNTREGUL JSON
-   - GitHub → Settings → Secrets → Edit `FIREBASE_SERVICE_ACCOUNT_SUPERPARTY_FRONTEND`
+   - GitHub → Settings → Secrets → Edit `SUPABASE_SERVICE_ACCOUNT_SUPERPARTY_FRONTEND`
    - Paste JSON-ul
 
 4. **Trigger manual workflow:**
-   - Actions → "Deploy WhatsApp Functions to Firebase"
+   - Actions → "Deploy WhatsApp Functions to Supabase"
    - Click "Run workflow" → Select "main" → "Run workflow"
    - Așteaptă 3-5 minute
    - Verifică logs
@@ -316,15 +316,15 @@ curl -X POST https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp
 
 ### Faza 1: Deploy Urgent (ACUM - 5 minute)
 
-**Obiectiv:** Deploy codul nou pe Firebase
+**Obiectiv:** Deploy codul nou pe Supabase
 
 **Metoda:** Deploy manual de pe Windows
 
 **Pași:**
 
 1. Git pull
-2. Firebase login
-3. Firebase deploy --only functions
+2. Supabase login
+3. Supabase deploy --only functions
 4. Verificare versiune 5.2.0
 5. Test toate endpoint-urile
 
@@ -344,7 +344,7 @@ curl -X POST https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp
 **Pași:**
 
 1. Verifică GitHub Actions logs
-2. Verifică/regenerează Firebase Service Account
+2. Verifică/regenerează Supabase Service Account
 3. Test manual trigger
 4. Verifică că deploy-ul automat funcționează
 
@@ -386,7 +386,7 @@ curl -X POST https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp
 4. **Receive Message:**
    - Trimite mesaj de pe telefon
    - Verifică în logs că mesajul e primit
-   - Verifică în Firestore că mesajul e salvat
+   - Verifică în Database că mesajul e salvat
 
 5. **Delete Account:**
 
@@ -398,7 +398,7 @@ curl -X POST https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp
 6. **Session Persistence:**
    - Așteaptă 15 minute (cold start)
    - Verifică că contul e încă "connected"
-   - Verifică că sesiunea s-a restaurat din Firestore
+   - Verifică că sesiunea s-a restaurat din Database
 
 **Success criteria:**
 
@@ -417,8 +417,8 @@ curl -X POST https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp
 
 1. **Setup Monitoring:**
    - UptimeRobot pentru health checks (GRATIS)
-   - Firebase Console pentru logs
-   - Firestore pentru session tracking
+   - Supabase Console pentru logs
+   - Database pentru session tracking
 
 2. **Documentație:**
    - Update README cu endpoint-uri noi
@@ -427,8 +427,8 @@ curl -X POST https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp
 
 3. **Cleanup:**
    - Șterge conturi de test
-   - Verifică Firestore storage usage
-   - Verifică Firebase Functions usage
+   - Verifică Database storage usage
+   - Verifică Supabase Functions usage
 
 **Success criteria:**
 
@@ -480,9 +480,9 @@ curl -X POST https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp
 
 **Impact:** Nu știm dacă sessions persistă după cold start
 
-**Cauză:** Nu am access la Firebase Console pentru verificare
+**Cauză:** Nu am access la Supabase Console pentru verificare
 
-**Soluție:** Test după deploy + verificare în Firestore Console
+**Soluție:** Test după deploy + verificare în Database Console
 
 **Priority:** P3 - LOW
 
@@ -495,12 +495,12 @@ curl -X POST https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp
 - [x] Cod verificat în repository (commit d9419c4b)
 - [x] Workflow GitHub Actions creat
 - [x] Documentație completă creată
-- [ ] Firebase login pe Windows
+- [ ] Supabase login pe Windows
 - [ ] Git pull pe Windows
 
 ### Deploy:
 
-- [ ] `firebase deploy --only functions` executat
+- [ ] `supabase deploy --only functions` executat
 - [ ] Deploy SUCCESS (fără erori)
 - [ ] Versiune 5.2.0 confirmată
 - [ ] Toate endpoint-urile disponibile
@@ -522,7 +522,7 @@ curl -X POST https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp
 - [ ] Add account → QR/pairing generated
 - [ ] Connect WhatsApp → status "connected"
 - [ ] Send message → success
-- [ ] Receive message → saved in Firestore
+- [ ] Receive message → saved in Database
 - [ ] Delete account → success
 - [ ] Session persistence → verified after cold start
 
@@ -536,8 +536,8 @@ curl -X POST https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp
 ### Monitoring:
 
 - [ ] UptimeRobot configurat
-- [ ] Firebase logs verificate
-- [ ] Firestore sessions verificate
+- [ ] Supabase logs verificate
+- [ ] Database sessions verificate
 - [ ] Documentație actualizată
 
 ---
@@ -547,15 +547,15 @@ curl -X POST https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp
 **ACUM (5 minute):**
 
 1. Pe Windows: `git pull`
-2. `firebase login`
-3. `firebase deploy --only functions`
+2. `supabase login`
+3. `supabase deploy --only functions`
 4. Verifică versiunea 5.2.0
 
 **După deploy (10 minute):**
 
 1. Test toate endpoint-urile
 2. Test flow complet
-3. Verifică Firestore sessions
+3. Verifică Database sessions
 
 **După teste (15 minute):**
 
@@ -589,4 +589,4 @@ curl -X POST https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp
 
 ---
 
-**Când toate checklist-urile sunt bifate → WhatsApp e 100% funcțional pe Firebase, long-term!** ✅
+**Când toate checklist-urile sunt bifate → WhatsApp e 100% funcțional pe Supabase, long-term!** ✅

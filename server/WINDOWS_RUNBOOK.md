@@ -8,7 +8,7 @@
 ## Prerequisites (One-Time Setup)
 
 ```powershell
-# Install Java 17 (for Firestore emulator)
+# Install Java 17 (for Database emulator)
 winget install EclipseAdoptium.Temurin.17.JDK
 
 # Verify
@@ -19,7 +19,7 @@ java -version
 
 ## Run Locally
 
-### Option 1: Android + Firebase Emulators (One-Command Setup)
+### Option 1: Android + Supabase Emulators (One-Command Setup)
 
 **For Flutter Android development, automated setup:**
 
@@ -28,8 +28,8 @@ npm run emu:android
 ```
 
 This will:
-- Start Firebase emulators (Firestore:8082, Auth:9098, Functions:5002, UI:4001)
-- Seed Firestore with teams + code pools
+- Start Supabase emulators (Database:8082, Auth:9098, Functions:5002, UI:4001)
+- Seed Database with teams + code pools
 - Configure `adb reverse` for Android emulator
 - Print next steps
 
@@ -59,12 +59,12 @@ npm run emu
 ```
 **Wait for:** `✔  All emulators ready!`  
 **Ports:**
-- Firestore: http://127.0.0.1:8082
+- Database: http://127.0.0.1:8082
 - Functions: http://127.0.0.1:5002
 - Auth: http://127.0.0.1:9098
 - UI: http://127.0.0.1:4001
 
-**Terminal 2: Seed Firestore (after emulators start)**
+**Terminal 2: Seed Database (after emulators start)**
 ```powershell
 npm run seed:emu
 ```
@@ -81,7 +81,7 @@ flutter run --dart-define=USE_EMULATORS=true --dart-define=USE_ADB_REVERSE=true
 ```
 
 **Expected:** App connects to emulators, logs show:
-- `[FirebaseService] ✅ Emulators configured: host=127.0.0.1, Firestore:8082, Auth:9098, Functions:5002`
+- `[SupabaseService] ✅ Emulators configured: host=127.0.0.1, Database:8082, Auth:9098, Functions:5002`
 
 **Alternative (without adb reverse):**
 ```powershell
@@ -94,20 +94,20 @@ This uses `10.0.2.2` automatically (Android emulator special IP) - works without
 
 ## Port Configuration (Single Source of Truth)
 
-**firebase.json:**
+**supabase.json:**
 ```json
 {
   "emulators": {
     "auth": { "port": 9098 },
-    "firestore": { "port": 8082 },
+    "database": { "port": 8082 },
     "functions": { "port": 5002 },
     "ui": { "port": 4001 }
   }
 }
 ```
 
-**superparty_flutter/lib/services/firebase_service.dart:**
-- Firestore: 8082
+**superparty_flutter/lib/services/supabase_service.dart:**
+- Database: 8082
 - Auth: 9098
 - Functions: 5002
 
@@ -117,11 +117,11 @@ This uses `10.0.2.2` automatically (Android emulator special IP) - works without
 
 ## Troubleshooting
 
-### Firebase Init Timeout / "No Firebase App '[DEFAULT]' has been created"
+### Supabase Init Timeout / "No Supabase App '[DEFAULT]' has been created"
 
-**Symptom:** App shows "Firebase Initialization Failed" or timeout error.
+**Symptom:** App shows "Supabase Initialization Failed" or timeout error.
 
-**Root Cause:** Firebase emulators are not running or ports are not accessible from Android emulator.
+**Root Cause:** Supabase emulators are not running or ports are not accessible from Android emulator.
 
 **Fix:**
 
@@ -167,7 +167,7 @@ netstat -ano | findstr :5002
 netstat -ano | findstr :9098
 ```
 
-Stop the process or change port in `firebase.json` (then update `firebase_service.dart`).
+Stop the process or change port in `supabase.json` (then update `supabase_service.dart`).
 
 ### OneDrive Path Issues
 

@@ -88,8 +88,8 @@ ReactDOM.createRoot(document.getElementById('root')).render(
 
 ```javascript
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { collection, getDocs, doc, updateDoc, addDoc } from 'firebase/firestore';
-import { db } from '../firebase';
+import { collection, getDocs, doc, updateDoc, addDoc } from 'supabase/database';
+import { db } from '../supabase';
 
 // Fetch all events
 export const useEvents = () => {
@@ -163,8 +163,8 @@ export const useCreateEvent = () => {
 
 ```javascript
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { doc, getDoc, updateDoc } from 'firebase/firestore';
-import { db } from '../firebase';
+import { doc, getDoc, updateDoc } from 'supabase/database';
+import { db } from '../supabase';
 
 export const useProfile = userId => {
   return useQuery({
@@ -203,8 +203,8 @@ export const useUpdateProfile = () => {
 
 ```javascript
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
-import { db } from '../firebase';
+import { collection, query, where, getDocs, orderBy } from 'supabase/database';
+import { db } from '../supabase';
 
 // Fetch conversations
 export const useConversations = () => {
@@ -628,7 +628,7 @@ const queryClient = new QueryClient({
 - [ ] Test all features
 - [ ] Check DevTools for cache behavior
 - [ ] Adjust staleTime values
-- [ ] Monitor Firebase read reduction
+- [ ] Monitor Supabase read reduction
 
 ---
 
@@ -638,7 +638,7 @@ const queryClient = new QueryClient({
 
 ```
 Page Load:
-- 10-20 Firebase reads
+- 10-20 Supabase reads
 - 2-4 seconds load time
 - Loading spinners everywhere
 
@@ -647,7 +647,7 @@ Navigation:
 - 1-2 seconds per navigation
 - Poor UX
 
-Daily Firebase Reads:
+Daily Supabase Reads:
 - 10,000-50,000 reads
 - $5-20/month cost
 ```
@@ -656,7 +656,7 @@ Daily Firebase Reads:
 
 ```
 Page Load:
-- 2-5 Firebase reads (70% reduction)
+- 2-5 Supabase reads (70% reduction)
 - 0.5-1 second load time
 - Instant UI with cached data
 
@@ -665,7 +665,7 @@ Navigation:
 - 0.1-0.3 seconds per navigation
 - Excellent UX
 
-Daily Firebase Reads:
+Daily Supabase Reads:
 - 3,000-15,000 reads (70% reduction)
 - $1.50-6/month cost (70% savings)
 ```
@@ -676,7 +676,7 @@ Daily Firebase Reads:
 
 1. **Implement TanStack Query** (follow this guide)
 2. **Test thoroughly** (use DevTools)
-3. **Monitor Firebase usage** (should see 50-80% reduction)
+3. **Monitor Supabase usage** (should see 50-80% reduction)
 4. **Consider IndexedDB** (for offline support)
 5. **Upgrade Service Worker** (with Workbox)
 

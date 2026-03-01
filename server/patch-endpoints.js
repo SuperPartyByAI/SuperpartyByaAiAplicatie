@@ -343,7 +343,7 @@ app.post("/api/admin/regenerate-all", requireAdminToken, async (req, res) => {
     }
   });
 
-  // Also check Firestore for accounts not in sessions map
+  // Also check Database for accounts not in sessions map
   try {
     const snap = await db.collection('wa_accounts').where('status', 'in', ['needs_qr', 'disconnected', 'logged_out']).get();
     snap.forEach(doc => {
@@ -352,7 +352,7 @@ app.post("/api/admin/regenerate-all", requireAdminToken, async (req, res) => {
       }
     });
   } catch (e) {
-    console.error('[regenerate-all] Firestore query error:', e.message);
+    console.error('[regenerate-all] Database query error:', e.message);
   }
 
   console.log(\`[Admin] regenerate-all: \${accountsToRegenerate.length} accounts, concurrency=\${concurrency}\`);
@@ -396,7 +396,7 @@ app.post("/api/admin/regenerate-all", requireAdminToken, async (req, res) => {
 });
 `;
 
-  // Insert before the verifyFirebaseToken function
+  // Insert before the verifySupabaseToken function
   const insertPoint = code.indexOf('/* ===== SECURE AUTH MIDDLEWARE');
   if (insertPoint > 0) {
     code = code.slice(0, insertPoint) + bulkEndpoint + '\n' + code.slice(insertPoint);

@@ -1,4 +1,4 @@
-# Region Optimization Analysis - Firestore EUR3 vs Functions US-CENTRAL1
+# Region Optimization Analysis - Database EUR3 vs Functions US-CENTRAL1
 
 **Date:** 2026-01-18  
 **Branch:** `audit-whatsapp-30`  
@@ -8,7 +8,7 @@
 
 ## 🔍 Current State
 
-### Firestore Location
+### Database Location
 - **Region:** `eur3` (Europe multi-region)
 - **Trigger Region:** `eur3` (confirmed in Cloud Audit Log)
 - **Evidence:** `triggerRegion: "eur3"` in aggregateClientStats deployment log
@@ -22,27 +22,27 @@
 
 ## ⚠️ Impact of Cross-Region Configuration
 
-### Current Setup: US Functions → EU Firestore
+### Current Setup: US Functions → EU Database
 
 **Latency:**
-- ~100-150ms additional round-trip time per Firestore operation
+- ~100-150ms additional round-trip time per Database operation
 - Compounded for functions with multiple reads/writes
 
 **Egress Costs:**
-- Data transfer from US (Cloud Functions) → EU (Firestore) is billable
+- Data transfer from US (Cloud Functions) → EU (Database) is billable
 - Estimated: $0.08-0.12 per GB (inter-region GCP egress)
 
 **Performance:**
-- Firestore triggers (Eventarc) run in `eur3` but invoke functions in `us-central1`
+- Database triggers (Eventarc) run in `eur3` but invoke functions in `us-central1`
 - Additional hop introduces latency for event-driven functions
 
 ---
 
-## 📊 Firestore-Heavy Functions Identified
+## 📊 Database-Heavy Functions Identified
 
-### **Critical** (High Firestore I/O)
+### **Critical** (High Database I/O)
 
-1. **`aggregateClientStats`** (Firestore trigger)
+1. **`aggregateClientStats`** (Database trigger)
    - Trigger: `evenimente/{eventId}` writes
    - Reads: `evenimente` docs
    - Writes: `clients/{phoneE164}` aggregates
@@ -55,7 +55,7 @@
    - Writes: `evenimente/{eventId}` (new events)
    - Writes: `clients/{phoneE164}` (via aggregateClientStats trigger)
    - **Current region:** `us-central1`
-   - **Impact:** Every extraction reads/writes multiple Firestore docs
+   - **Impact:** Every extraction reads/writes multiple Database docs
 
 3. **`clientCrmAsk`** (AI queries about clients)
    - Reads: `clients/{phoneE164}`
@@ -64,7 +64,7 @@
    - **Current region:** `us-central1`
    - **Impact:** Every AI query reads multiple collections
 
-### **Moderate** (Some Firestore I/O)
+### **Moderate** (Some Database I/O)
 
 4. **`whatsappProxyGetAccounts`**
    - Reads: `accounts` collection (caching helps)
@@ -78,19 +78,19 @@
    - Writes: `outbox` docs
    - **Current region:** `us-central1`
 
-### **Low** (Minimal Firestore I/O)
+### **Low** (Minimal Database I/O)
 
 7. Old AI functions (`archiveEventAI`, `getEventeAI`, etc.)
    - Read/write `evenimente` but rarely used
    - **Current region:** `us-central1`
 
 8. **`chatWithAI`**
-   - Moderate Firestore usage (depends on context)
+   - Moderate Database usage (depends on context)
    - **Current region:** `us-central1`
 
 9. **`whatsappV4`** (Express app)
    - Lazy-loads WhatsApp manager (in-memory heavy)
-   - Firestore usage depends on manager operations
+   - Database usage depends on manager operations
    - **Current region:** `us-central1`
 
 ---
@@ -98,8 +98,8 @@
 ## 🌍 Recommended Region: `europe-west1`
 
 **Why `europe-west1`?**
-- **Closest to `eur3`** (Firestore multi-region: Belgium, Netherlands, Frankfurt)
-- **Low latency:** ~1-5ms to Firestore (vs ~100-150ms from US)
+- **Closest to `eur3`** (Database multi-region: Belgium, Netherlands, Frankfurt)
+- **Low latency:** ~1-5ms to Database (vs ~100-150ms from US)
 - **No egress costs** within same region family (EU)
 - **Stable:** Mature GCP region with good SLA
 - **Alternative:** `europe-west3` (Frankfurt) also works
@@ -110,14 +110,14 @@
 
 ### Option A: Move ONLY Critical Functions to EU (✅ APPLIED)
 
-**Changed region for Firestore-heavy functions:**
+**Changed region for Database-heavy functions:**
 - `aggregateClientStats` → `europe-west1` ✅
 - `whatsappExtractEventFromThread` → `europe-west1` ✅
 - `clientCrmAsk` → `europe-west1` ✅
 
 **Kept in US:**
 - `whatsappV4` (HTTPS app, latency less critical)
-- `whatsappProxy*` (HTTPS, lightweight Firestore ops)
+- `whatsappProxy*` (HTTPS, lightweight Database ops)
 - Old AI functions (rarely used)
 
 **✅ Flutter Changes Required (APPLIED):**
@@ -145,7 +145,7 @@
 - `setGlobalOptions({ region: 'europe-west1' })`
 
 **Pros:**
-- All functions co-located with Firestore
+- All functions co-located with Database
 - Zero egress costs
 - Consistent configuration
 
@@ -168,7 +168,7 @@
 - Already deployed and working
 
 **Cons:**
-- Cross-region latency (~100-150ms per Firestore op)
+- Cross-region latency (~100-150ms per Database op)
 - Egress costs (estimated $0.08-0.12 per GB)
 - Slower CRM features (AI extraction, aggregation)
 
@@ -178,7 +178,7 @@
 
 ## 🎯 Recommended Action: **Option A**
 
-Move only critical Firestore-heavy functions to `europe-west1`:
+Move only critical Database-heavy functions to `europe-west1`:
 
 ### Files to Change
 
@@ -215,7 +215,7 @@ Move only critical Firestore-heavy functions to `europe-west1`:
 cd /Users/universparty/Aplicatie-SuperpartyByAi
 
 # After manual deletion of old whatsapp function
-firebase deploy --only functions
+supabase deploy --only functions
 ```
 
 **Expected behavior:**
@@ -228,7 +228,7 @@ firebase deploy --only functions
 
 ## 📊 Performance Comparison
 
-| Scenario | Firestore Read Latency | Firestore Write Latency | Egress Cost |
+| Scenario | Database Read Latency | Database Write Latency | Egress Cost |
 |----------|------------------------|-------------------------|-------------|
 | **Current (US)** | ~120ms | ~130ms | $0.10/GB |
 | **Option A (EU for critical)** | ~2-5ms | ~3-7ms | $0 (same region) |

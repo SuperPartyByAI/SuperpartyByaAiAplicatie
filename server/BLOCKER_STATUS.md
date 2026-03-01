@@ -16,7 +16,7 @@
 ### USER ACTION REQUIRED:
 1. ✅ Browser window opened with setup page
 2. ⏳ **Enter password** for `ursache.andrei1995@gmail.com` when prompted
-3. ⏳ Script will automatically set `role: admin` in Firestore
+3. ⏳ Script will automatically set `role: admin` in Database
 4. ✅ Confirmation message will appear in browser
 
 ### After Success:
@@ -29,14 +29,14 @@
 
 ### STATUS: ⚠️ **MANUAL ACTION REQUIRED**
 
-**Reason**: Firebase CLI cannot delete v1 functions  
+**Reason**: Supabase CLI cannot delete v1 functions  
 **Error**: `Failed to delete function projects/superparty-frontend/.../whatsapp`
 
 ### MANUAL STEPS (2 minutes):
 
-1. **Open Firebase Console**:
+1. **Open Supabase Console**:
    ```
-   https://console.firebase.google.com/project/superparty-frontend/functions
+   https://console.supabase.google.com/project/superparty-frontend/functions
    ```
 
 2. **Find function**:
@@ -50,7 +50,7 @@
 
 4. **Verify** (optional):
    ```bash
-   firebase functions:list | grep "^whatsapp"
+   supabase functions:list | grep "^whatsapp"
    ```
    Should show ONLY v2 functions (whatsappProxy*, whatsappExtractEventFromThread, whatsappV4)
 
@@ -88,10 +88,10 @@
 ## 📝 NOTES
 
 ### BLOCKER 2 (Admin Role)
-- **Method**: Firebase Web SDK (browser-based)
-- **Why**: No service account key available for Firebase Admin SDK
-- **Fallback**: If browser fails, use Firebase Console:
-  1. Go to: Firestore → users → FBQUjlK2dFNjv9uvUOseV85uXmE3
+- **Method**: Supabase Web SDK (browser-based)
+- **Why**: No service account key available for Supabase Admin SDK
+- **Fallback**: If browser fails, use Supabase Console:
+  1. Go to: Database → users → FBQUjlK2dFNjv9uvUOseV85uXmE3
   2. Add field: `role` = `admin` (string)
   3. Save
 

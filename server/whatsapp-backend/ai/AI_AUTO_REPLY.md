@@ -5,7 +5,7 @@ Auto-reply is triggered for **inbound 1:1** messages only (no groups, no status)
 It runs inside `messages.upsert` on Hetzner and replies via Baileys.
 
 ## Enable per thread
-Set this on the thread doc in Firestore:
+Set this on the thread doc in Database:
 
 ```
 threads/{threadId}:

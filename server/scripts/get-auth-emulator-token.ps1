@@ -1,4 +1,4 @@
-# Get Firebase Auth Emulator ID Token
+# Get Supabase Auth Emulator ID Token
 # Usage: $token = .\scripts\get-auth-emulator-token.ps1
 #        OR: .\scripts\get-auth-emulator-token.ps1 [email] [password]
 
@@ -17,7 +17,7 @@ $VerbosePreference = "SilentlyContinue"
 try {
     $testConnection = Test-NetConnection -ComputerName 127.0.0.1 -Port 9098 -InformationLevel Quiet -WarningAction SilentlyContinue
     if (-not $testConnection) {
-        Write-Error "Auth Emulator not running on port 9098. Start emulators first: firebase.cmd emulators:start --only auth" -ErrorAction Stop
+        Write-Error "Auth Emulator not running on port 9098. Start emulators first: supabase.cmd emulators:start --only auth" -ErrorAction Stop
     }
 } catch {
     Write-Error "Cannot check Auth Emulator: $_" -ErrorAction Stop

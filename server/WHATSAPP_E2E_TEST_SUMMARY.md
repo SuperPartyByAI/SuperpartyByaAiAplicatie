@@ -9,10 +9,10 @@
 
 1. **legacy hosting Health Check** ✅
    - Status: `healthy`
-   - Firestore: `connected`
+   - Database: `connected`
    - Accounts: 0 total, 0 connected (ready for pairing)
 
-2. **Firebase Functions Available** ✅
+2. **Supabase Functions Available** ✅
    - All WhatsApp proxy functions deployed:
      - `whatsappProxyGetAccounts`
      - `whatsappProxyAddAccount`
@@ -21,23 +21,23 @@
      - `whatsappProxySend`
      - `whatsappExtractEventFromThread`
 
-3. **Firestore Rules Protection** ✅
+3. **Database Rules Protection** ✅
    - Rules file exists
    - Threads/messages/clients protected with "NEVER DELETE"
 
 ### ⚠️ MANUAL ACTION REQUIRED (1 item)
 
 1. **Old WhatsApp 1st gen Function Cleanup** ⚠️
-   - **Action:** Delete old `whatsapp` v1 function via Firebase Console
-   - **Location:** Firebase Console → Project `superparty-frontend` → Functions → Filter "1st gen" → Find `whatsapp` → Delete
-   - **After deletion:** Run `firebase deploy --only functions`
+   - **Action:** Delete old `whatsapp` v1 function via Supabase Console
+   - **Location:** Supabase Console → Project `superparty-frontend` → Functions → Filter "1st gen" → Find `whatsapp` → Delete
+   - **After deletion:** Run `supabase deploy --only functions`
 
 ### ⚠️ MANUAL CHECK REQUIRED (1 item)
 
 1. **legacy hosting Variables** ⚠️
    - Verify in legacy hosting dashboard:
      - `SESSIONS_PATH=/app/sessions` ✅
-     - `FIREBASE_SERVICE_ACCOUNT_JSON=...` ✅ (must be set)
+     - `SUPABASE_SERVICE_ACCOUNT_JSON=...` ✅ (must be set)
      - `ADMIN_TOKEN=...` (optional)
      - Single instance (no scale-out) ✅
 
@@ -76,30 +76,30 @@ bash test-whatsapp-e2e-complete.sh
 
 ### Check legacy hosting Health
 ```bash
-curl -sS https://whats-app-ompro.ro/health | jq '.status, .firestore.status'
+curl -sS https://whats-app-ompro.ro/health | jq '.status, .database.status'
 ```
 
-### List Firebase Functions
+### List Supabase Functions
 ```bash
-firebase functions:list | grep -i whatsapp
+supabase functions:list | grep -i whatsapp
 ```
 
-### Check Firestore Data
+### Check Database Data
 ```bash
 # Check threads
-firebase firestore:get threads --limit 5
+supabase database:get threads --limit 5
 
 # Check messages in a thread
-firebase firestore:get threads/{threadId}/messages --limit 5
+supabase database:get threads/{threadId}/messages --limit 5
 
 # Check clients
-firebase firestore:get clients --limit 5
+supabase database:get clients --limit 5
 ```
 
 ## Next Steps
 
 1. **Immediate:**
-   - [ ] Delete old `whatsapp` v1 function from Firebase Console
+   - [ ] Delete old `whatsapp` v1 function from Supabase Console
    - [ ] Verify legacy hosting variables in dashboard
    - [ ] Run manual tests 5-10 in Flutter app
 
@@ -124,6 +124,6 @@ firebase firestore:get clients --limit 5
 For issues:
 1. Check test report: `cat WHATSAPP_E2E_TEST_REPORT_*.md`
 2. Review legacy hosting logs in dashboard
-3. Check Firebase Functions logs
-4. Verify Firestore rules and indexes
+3. Check Supabase Functions logs
+4. Verify Database rules and indexes
 5. Confirm all secrets are set

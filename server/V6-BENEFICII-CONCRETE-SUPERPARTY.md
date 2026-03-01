@@ -234,7 +234,7 @@ v6.0 AGI:
   - Database: 100ms ✅
   - Voice service: 50ms ✅
   - Network: 1800ms ❌
-→ Root cause: Firestore region (US) vs users (EU)
+→ Root cause: Database region (US) vs users (EU)
 → Creative solution: Add Redis cache în EU
 → Auto-implement: Deploy Redis, update code
 → Rezultat: 2s → 0.2s

@@ -268,7 +268,7 @@ String _getBackendUrl() {
 **Integration:**
 - Service reads URL from `Env.whatsappBackendUrl`
 - Used for direct legacy hosting backend calls (e.g., QR endpoint URLs)
-- Most operations go through **Firebase Functions proxy** (see Section 6)
+- Most operations go through **Supabase Functions proxy** (see Section 6)
 
 ---
 
@@ -322,7 +322,7 @@ cd superparty_flutter && flutter build apk --release --dart-define=WHATSAPP_BACK
 
 ### Cloud Functions Endpoints
 
-The app uses Firebase Cloud Functions as a **proxy layer** between Flutter and the legacy hosting backend.
+The app uses Supabase Cloud Functions as a **proxy layer** between Flutter and the legacy hosting backend.
 
 **Functions Region:** `us-central1`  
 **Base URL Pattern:** `https://us-central1-{projectId}.cloudfunctions.net`  
@@ -338,31 +338,31 @@ The app uses Firebase Cloud Functions as a **proxy layer** between Flutter and t
 
 1. **`/whatsappProxyGetAccounts`**
    - **Type:** GET
-   - **Auth:** Bearer token (Firebase ID token)
+   - **Auth:** Bearer token (Supabase ID token)
    - **Purpose:** List WhatsApp accounts
    - **Line:** 140
 
 2. **`/whatsappProxyAddAccount`**
    - **Type:** POST
-   - **Auth:** Bearer token (Firebase ID token)
+   - **Auth:** Bearer token (Supabase ID token)
    - **Purpose:** Add new WhatsApp account
    - **Line:** 194
 
 3. **`/whatsappProxyRegenerateQr`**
    - **Type:** POST (with query param `?accountId=...`)
-   - **Auth:** Bearer token (Firebase ID token)
+   - **Auth:** Bearer token (Supabase ID token)
    - **Purpose:** Regenerate QR code for pairing
    - **Line:** 249
 
 4. **`/whatsappProxyDeleteAccount`**
    - **Type:** DELETE (with query param `?accountId=...`)
-   - **Auth:** Bearer token (Firebase ID token)
+   - **Auth:** Bearer token (Supabase ID token)
    - **Purpose:** Delete WhatsApp account (super-admin only)
    - **Line:** 319
 
 5. **`/whatsappProxySend`**
    - **Type:** POST
-   - **Auth:** Bearer token (Firebase ID token)
+   - **Auth:** Bearer token (Supabase ID token)
    - **Purpose:** Send WhatsApp message
    - **Line:** 87
 
@@ -372,12 +372,12 @@ The app uses Firebase Cloud Functions as a **proxy layer** between Flutter and t
 
 **Code Excerpt (`whatsapp_api_service.dart:74-89`):**
 ```dart
-final user = FirebaseAuth.instance.currentUser;
+final user = SupabaseAuth.instance.currentUser;
 if (user == null) {
   throw UnauthorizedException();
 }
 
-// Get Firebase ID token
+// Get Supabase ID token
 final token = await user.getIdToken();
 final functionsUrl = _getFunctionsUrl();
 
@@ -385,7 +385,7 @@ final functionsUrl = _getFunctionsUrl();
 final response = await http.post(
   Uri.parse('$functionsUrl/whatsappProxySend'),
   headers: {
-    'Authorization': 'Bearer $token',  // ← Firebase ID token
+    'Authorization': 'Bearer $token',  // ← Supabase ID token
     'Content-Type': 'application/json',
     'X-Request-ID': requestId,
   },
@@ -394,8 +394,8 @@ final response = await http.post(
 ```
 
 **Auth Flow:**
-1. Flutter app gets current Firebase Auth user
-2. Extracts Firebase ID token via `user.getIdToken()`
+1. Flutter app gets current Supabase Auth user
+2. Extracts Supabase ID token via `user.getIdToken()`
 3. Sends token in `Authorization: Bearer {token}` header
 4. Functions proxy (`functions/whatsappProxy.js`) verifies token server-side
 5. Proxy then forwards request to legacy hosting backend with appropriate auth
@@ -410,7 +410,7 @@ final response = await http.post(
 
 **Token Verification (lines 51-70):**
 ```javascript
-// Extract Firebase ID token from request
+// Extract Supabase ID token from request
 function extractIdToken(req) {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -419,7 +419,7 @@ function extractIdToken(req) {
   return authHeader.substring(7);
 }
 
-// Verify Firebase ID token
+// Verify Supabase ID token
 async function verifyIdToken(token) {
   if (!token) return null;
   try {
@@ -475,7 +475,7 @@ async function verifyIdToken(token) {
 
 ✅ **Correctly Configured:**
 - All proxy endpoints use Bearer token authentication ✅
-- Token is extracted from Firebase Auth ✅
+- Token is extracted from Supabase Auth ✅
 - Functions proxy verifies tokens server-side ✅
 - Functions URL resolution works for both emulator and production ✅
 

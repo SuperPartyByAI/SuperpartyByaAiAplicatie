@@ -3,7 +3,7 @@ index eeda969c..e238efe8 100644
 --- a/superparty_flutter/lib/models/evidence_model.dart
 +++ b/superparty_flutter/lib/models/evidence_model.dart
 @@ -39,10 +39,13 @@ class EvidenceModel {
-   factory EvidenceModel.fromFirestore(DocumentSnapshot doc, String eventId) {
+   factory EvidenceModel.fromDatabase(DocumentSnapshot doc, String eventId) {
      final data = doc.data() as Map<String, dynamic>;
      
 +    // Backward compatibility: read from 'category' or fallback to 'categorie'
@@ -18,7 +18,7 @@ index eeda969c..e238efe8 100644
        storagePath: data['storagePath'] as String? ?? '',
        fileName: data['fileName'] as String? ?? '',
 @@ -59,6 +62,7 @@ class EvidenceModel {
-   Map<String, dynamic> toFirestore() {
+   Map<String, dynamic> toDatabase() {
      return {
        'category': category.value,
 +      'categorie': category.value, // Backward compatibility during migration
@@ -76,7 +76,7 @@ index 8e1627a6..3077aba6 100644
 --- a/superparty_flutter/lib/services/evidence_service.dart
 +++ b/superparty_flutter/lib/services/evidence_service.dart
 @@ -36,7 +36,7 @@ class EvidenceService {
-   /// Upload imagine în Storage + creează doc în Firestore
+   /// Upload imagine în Storage + creează doc în Database
    Future<EvidenceUploadResult> uploadEvidence({
      required String eventId,
 -    required EvidenceCategory categorie,
@@ -104,7 +104,7 @@ index 8e1627a6..3077aba6 100644
        final uploadTask = _storage.ref(storagePath).putFile(imageFile);
 @@ -71,7 +71,7 @@ class EvidenceService {
        final evidence = EvidenceModel(
-         id: '', // Will be set by Firestore
+         id: '', // Will be set by Database
          eventId: eventId,
 -        categorie: categorie,
 +        category: category,
@@ -112,7 +112,7 @@ index 8e1627a6..3077aba6 100644
          storagePath: storagePath,
          uploadedBy: currentUser.uid,
 @@ -88,7 +88,7 @@ class EvidenceService {
-           .add(evidence.toFirestore());
+           .add(evidence.toDatabase());
  
        // Update category metadata
 -      await _updateCategoryPhotoCount(eventId, categorie, increment: true);
@@ -127,7 +127,7 @@ index 8e1627a6..3077aba6 100644
 -    EvidenceCategory? categorie,
 +    EvidenceCategory? category,
    }) {
-     Query query = _firestore
+     Query query = _database
          .collection('evenimente')
 @@ -114,8 +114,8 @@ class EvidenceService {
      // Exclude dovezi arhivate implicit (politica: never delete)
@@ -147,7 +147,7 @@ index 8e1627a6..3077aba6 100644
 -    EvidenceCategory? categorie,
 +    EvidenceCategory? category,
    }) {
-     Query query = _firestore
+     Query query = _database
          .collection('evenimente')
 @@ -139,8 +139,8 @@ class EvidenceService {
  
@@ -168,7 +168,7 @@ index 8e1627a6..3077aba6 100644
 +    EvidenceCategory? category,
    }) async {
      try {
-       Query query = _firestore
+       Query query = _database
 @@ -166,8 +166,8 @@ class EvidenceService {
        // Exclude dovezi arhivate implicit
        query = query.where('isArchived', isEqualTo: false);
@@ -255,14 +255,14 @@ index 8e1627a6..3077aba6 100644
          locked: true,
          updatedAt: DateTime.now(),
 @@ -292,8 +292,8 @@ class EvidenceService {
-       await _firestore
+       await _database
            .collection('evenimente')
            .doc(eventId)
 -          .collection('dovezi_meta')
 -          .doc(categorie.value)
 +          .collection('evidenceState')
 +          .doc(category.value)
-           .set(meta.toFirestore());
+           .set(meta.toDatabase());
      } catch (e) {
        throw Exception('Eroare la blocarea categoriei: $e');
 @@ -303,7 +303,7 @@ class EvidenceService {
@@ -297,14 +297,14 @@ index 8e1627a6..3077aba6 100644
 +        updatedBy: currentUser.uid,
        );
  
-       await _firestore
+       await _database
            .collection('evenimente')
            .doc(eventId)
 -          .collection('dovezi_meta')
 -          .doc(categorie.value)
 +          .collection('evidenceState')
 +          .doc(category.value)
-           .set(meta.toFirestore());
+           .set(meta.toDatabase());
      } catch (e) {
        throw Exception('Eroare la deblocarea categoriei: $e');
 @@ -339,22 +341,22 @@ class EvidenceService {
@@ -315,7 +315,7 @@ index 8e1627a6..3077aba6 100644
 +    required EvidenceCategory category,
    }) async {
      try {
-       final doc = await _firestore
+       final doc = await _database
            .collection('evenimente')
            .doc(eventId)
 -          .collection('dovezi_meta')
@@ -324,7 +324,7 @@ index 8e1627a6..3077aba6 100644
 +          .doc(category.value)
            .get();
  
-       return EvidenceStateModel.fromFirestore(doc);
+       return EvidenceStateModel.fromDatabase(doc);
      } catch (e) {
        // Returnează metadata default dacă nu există
        return EvidenceStateModel(
@@ -342,7 +342,7 @@ index 8e1627a6..3077aba6 100644
 -    required EvidenceCategory categorie,
 +    required EvidenceCategory category,
    }) {
-     return _firestore
+     return _database
          .collection('evenimente')
          .doc(eventId)
 -        .collection('dovezi_meta')
@@ -350,7 +350,7 @@ index 8e1627a6..3077aba6 100644
 +        .collection('evidenceState')
 +        .doc(category.value)
          .snapshots()
-         .map((doc) => EvidenceStateModel.fromFirestore(doc));
+         .map((doc) => EvidenceStateModel.fromDatabase(doc));
    }
 @@ -380,15 +382,15 @@ class EvidenceService {
    /// Update photo count pentru o categorie
@@ -361,7 +361,7 @@ index 8e1627a6..3077aba6 100644
      required bool increment,
    }) async {
      try {
-       final docRef = _firestore
+       final docRef = _database
            .collection('evenimente')
            .doc(eventId)
 -          .collection('dovezi_meta')

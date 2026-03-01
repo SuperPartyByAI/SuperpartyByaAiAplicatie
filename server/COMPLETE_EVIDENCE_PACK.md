@@ -2,7 +2,7 @@
 
 **Date:** 2026-01-17  
 **Branch:** `audit-whatsapp-30`  
-**Goal:** Complete read-only evidence of Flutter UI, legacy hosting backend, and Firebase/Functions CRM
+**Goal:** Complete read-only evidence of Flutter UI, legacy hosting backend, and Supabase/Functions CRM
 
 ---
 
@@ -43,11 +43,11 @@ superparty_flutter/lib/services/whatsapp_api_service.dart ✅
 superparty_flutter/lib/services/whatsapp_service.dart ✅
 ```
 
-**Firestore:**
+**Database:**
 ```
-firestore.rules ✅ (with clients/{phoneE164} rules)
-firestore.indexes.json ✅ (with evenimente indexes)
-firebase.json ✅
+database.rules ✅ (with clients/{phoneE164} rules)
+database.indexes.json ✅ (with evenimente indexes)
+supabase.json ✅
 ```
 
 ---
@@ -59,15 +59,15 @@ firebase.json ✅
 ```javascript
 'use strict';
 
-const {onDocumentWritten} = require('firebase-functions/v2/firestore');
-const admin = require('firebase-admin');
+const {onDocumentWritten} = require('supabase-functions/v2/database');
+const admin = require('supabase-admin');
 
 // Init admin once
 if (!admin.apps.length) {
   admin.initializeApp();
 }
 
-const db = admin.firestore();
+const db = admin.database();
 
 /**
  * Aggregate client statistics when events are created/updated
@@ -151,13 +151,13 @@ exports.aggregateClientStats = onDocumentWritten(
           lifetimeSpendPaid: Math.max(0, lifetimeSpendPaid + deltaPaid),
           lifetimeSpendAll: Math.max(0, lifetimeSpendAll + deltaAll),
           eventsCount: Math.max(0, eventsCount + deltaCount),
-          lastEventAt: admin.firestore.FieldValue.serverTimestamp(),
-          updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+          lastEventAt: admin.database.FieldValue.serverTimestamp(),
+          updatedAt: admin.database.FieldValue.serverTimestamp(),
         };
 
         // Set createdAt if new client
         if (!clientDoc.exists) {
-          updates.createdAt = admin.firestore.FieldValue.serverTimestamp();
+          updates.createdAt = admin.database.FieldValue.serverTimestamp();
         }
 
         transaction.set(clientRef, updates, {merge: true});
@@ -174,7 +174,7 @@ exports.aggregateClientStats = onDocumentWritten(
 );
 ```
 
-**Firestore Writes:**
+**Database Writes:**
 - Writes to: `clients/{phoneE164}` (upsert with transaction)
 - Updates: `lifetimeSpendPaid`, `lifetimeSpendAll`, `eventsCount`, `lastEventAt`
 
@@ -185,9 +185,9 @@ exports.aggregateClientStats = onDocumentWritten(
 ```javascript
 'use strict';
 
-const {onCall, HttpsError} = require('firebase-functions/v2/https');
-const {defineSecret} = require('firebase-functions/params');
-const admin = require('firebase-admin');
+const {onCall, HttpsError} = require('supabase-functions/v2/https');
+const {defineSecret} = require('supabase-functions/params');
+const admin = require('supabase-admin');
 const crypto = require('crypto');
 
 // Groq SDK
@@ -206,7 +206,7 @@ if (!admin.apps.length) {
   admin.initializeApp();
 }
 
-const db = admin.firestore();
+const db = admin.database();
 
 /**
  * Extract event booking from WhatsApp thread messages
@@ -287,7 +287,7 @@ exports.whatsappExtractEventFromThread = onCall(
         action,
         targetEventId,
         clientRequestId,
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        createdAt: admin.database.FieldValue.serverTimestamp(),
       }, {merge: true});
 
       return result;
@@ -302,11 +302,11 @@ exports.whatsappExtractEventFromThread = onCall(
 );
 ```
 
-**Firestore Reads:**
+**Database Reads:**
 - Reads: `threads/{threadId}` (verify exists)
 - Reads: `threads/{threadId}/messages` (query inbound messages)
 
-**Firestore Writes:**
+**Database Writes:**
 - Writes to: `threads/{threadId}/extractions/{messageId}` (audit trail)
 
 **Does NOT write to `evenimente` directly** (returns `draftEvent` for Flutter to call `chatEventOps`)
@@ -318,9 +318,9 @@ exports.whatsappExtractEventFromThread = onCall(
 ```javascript
 'use strict';
 
-const {onCall, HttpsError} = require('firebase-functions/v2/https');
-const {defineSecret} = require('firebase-functions/params');
-const admin = require('firebase-admin');
+const {onCall, HttpsError} = require('supabase-functions/v2/https');
+const {defineSecret} = require('supabase-functions/params');
+const admin = require('supabase-admin');
 
 // Groq SDK
 const Groq = require('groq-sdk');
@@ -333,7 +333,7 @@ if (!admin.apps.length) {
   admin.initializeApp();
 }
 
-const db = admin.firestore();
+const db = admin.database();
 
 /**
  * Answer AI questions about a client based on structured data (clients + evenimente)
@@ -406,11 +406,11 @@ exports.clientCrmAsk = onCall(
 );
 ```
 
-**Firestore Reads:**
+**Database Reads:**
 - Reads: `clients/{phoneE164}` (client profile)
 - Reads: `evenimente` where `phoneE164 == phoneE164` (client events, limit 20)
 
-**Firestore Writes:**
+**Database Writes:**
 - None (read-only function)
 
 ---
@@ -437,9 +437,9 @@ exports.clientCrmAsk = require('./clientCrmAsk').clientCrmAsk;
 
 ---
 
-### 3) Firestore Schema + "NEVER DELETE" Protections
+### 3) Database Schema + "NEVER DELETE" Protections
 
-#### **firestore.rules (Lines 213-394, excerpt):**
+#### **database.rules (Lines 213-394, excerpt):**
 
 ```javascript
 // Threads (WhatsApp Conversations) - USED BY BACKEND - POLITICA: NEVER DELETE
@@ -477,7 +477,7 @@ match /evenimente/{eventId} {
 }
 ```
 
-#### **firestore.indexes.json (Excerpt):**
+#### **database.indexes.json (Excerpt):**
 
 ```json
 {
@@ -503,13 +503,13 @@ match /evenimente/{eventId} {
 }
 ```
 
-#### **firebase.json:**
+#### **supabase.json:**
 
 ```json
 {
-  "firestore": {
-    "rules": "firestore.rules",
-    "indexes": "firestore.indexes.json"
+  "database": {
+    "rules": "database.rules",
+    "indexes": "database.indexes.json"
   },
   "functions": {
     "source": "functions"
@@ -631,8 +631,8 @@ class _WhatsAppAccountsScreenState extends State<WhatsAppAccountsScreen> {
 ```dart
 import 'dart:convert';
 import 'dart:math';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:firebase_core/firebase_core.dart';
+import 'package:supabase_auth/supabase_auth.dart';
+import 'package:supabase_core/supabase_core.dart';
 import 'package:flutter/foundation.dart' show kDebugMode;
 import 'package:http/http.dart' as http;
 
@@ -663,7 +663,7 @@ class WhatsAppApiService {
     }
     
     try {
-      final app = Firebase.app();
+      final app = Supabase.app();
       final projectId = app.options.projectId;
       if (projectId.isNotEmpty) {
         return 'https://$region-$projectId.cloudfunctions.net';
@@ -688,7 +688,7 @@ class WhatsAppApiService {
     required String clientMessageId,
   }) async {
     return retryWithBackoff(() async {
-      final user = FirebaseAuth.instance.currentUser;
+      final user = SupabaseAuth.instance.currentUser;
       if (user == null) {
         throw UnauthorizedException();
       }
@@ -828,9 +828,9 @@ mountPath = "/app/sessions"
 - `functions/clientCrmAsk.js` ✅
 - `functions/index.js` (MODIFIED, exports added) ✅
 
-**Firestore:**
-- `firestore.rules` (MODIFIED, added `clients/{phoneE164}`) ✅
-- `firestore.indexes.json` (MODIFIED, added `evenimente` indexes) ✅
+**Database:**
+- `database.rules` (MODIFIED, added `clients/{phoneE164}`) ✅
+- `database.indexes.json` (MODIFIED, added `evenimente` indexes) ✅
 
 **Documentation:**
 - `RUNBOOK_CRM_WHATSAPP.md` ✅
@@ -848,19 +848,19 @@ mountPath = "/app/sessions"
 ### What to Deploy:
 
 ```bash
-# 1. Firestore Rules + Indexes
-firebase deploy --only firestore
+# 1. Database Rules + Indexes
+supabase deploy --only database
 
 # 2. Cloud Functions (CRM)
-firebase deploy --only functions:aggregateClientStats,functions:whatsappExtractEventFromThread,functions:clientCrmAsk
+supabase deploy --only functions:aggregateClientStats,functions:whatsappExtractEventFromThread,functions:clientCrmAsk
 
 # Or deploy all functions:
-firebase deploy --only functions
+supabase deploy --only functions
 ```
 
 **legacy hosting:**
-- No code changes needed (backend CRM functions are Firebase Functions, not legacy hosting)
-- Ensure env vars: `SESSIONS_PATH=/app/sessions`, `FIREBASE_SERVICE_ACCOUNT_JSON=...`
+- No code changes needed (backend CRM functions are Supabase Functions, not legacy hosting)
+- Ensure env vars: `SESSIONS_PATH=/app/sessions`, `SUPABASE_SERVICE_ACCOUNT_JSON=...`
 
 ---
 
@@ -871,8 +871,8 @@ firebase deploy --only functions
 - `aggregateClientStats` trigger ✅
 - `whatsappExtractEventFromThread` callable ✅
 - `clientCrmAsk` callable ✅
-- Firestore Rules (NEVER DELETE) ✅
-- Firestore Indexes ✅
+- Database Rules (NEVER DELETE) ✅
+- Database Indexes ✅
 
 ### ❌ Flutter UI CRM (Missing):
 - Inbox screen ❌

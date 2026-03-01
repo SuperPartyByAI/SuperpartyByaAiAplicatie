@@ -9,7 +9,7 @@
 
 ## Executive Summary
 
-Repo-ul are o bază solidă de stabilitate (idempotency, guards UI, retry policy, Firestore rules corecte), dar există **10 riscuri identificate** care pot cauza "se rupe când modifici" dacă nu sunt adresate. Prioritatea este **HIGH** pentru CI/CD automation și **MEDIUM** pentru test coverage și migrarea de date.
+Repo-ul are o bază solidă de stabilitate (idempotency, guards UI, retry policy, Database rules corecte), dar există **10 riscuri identificate** care pot cauza "se rupe când modifici" dacă nu sunt adresate. Prioritatea este **HIGH** pentru CI/CD automation și **MEDIUM** pentru test coverage și migrarea de date.
 
 ---
 
@@ -54,19 +54,19 @@ Repo-ul are o bază solidă de stabilitate (idempotency, guards UI, retry policy
 **Fix**:
 - Implementează script migrare idempotent (poate fi rulat de mai multe ori)
 - Adaugă compatibilitate la citire: suport v1/v2 până se confirmă 100% migrare
-- Actualizează Firestore rules + indexes pentru schema nouă
+- Actualizează Database rules + indexes pentru schema nouă
 - Adaugă logging/monitoring pentru erori de parsing/fields lipsă
 
-**Commit sugerat**: `feat(firestore): complete evidence schema migration v1→v2`
+**Commit sugerat**: `feat(database): complete evidence schema migration v1→v2`
 
 ---
 
 #### 4. **Test Coverage Insuficient pentru Servicii** ⚠️
-**Risc**: Schimbări în servicii (Firestore reads/writes, upload dovezi) nu sunt testate  
+**Risc**: Schimbări în servicii (Database reads/writes, upload dovezi) nu sunt testate  
 **Fișiere**: `superparty_flutter/test/` (lipsește coverage pentru services)  
 **Impact**: Regressions în servicii nu sunt detectate  
 **Fix**:
-- Adaugă teste unitare pentru servicii critice (mock Firestore/Storage)
+- Adaugă teste unitare pentru servicii critice (mock Database/Storage)
 - Adaugă teste de integrare pentru 2-3 fluxuri critice:
   - Login / bootstrap
   - Listă evenimente → detalii
@@ -134,7 +134,7 @@ Repo-ul are o bază solidă de stabilitate (idempotency, guards UI, retry policy
 **Risc**: Porturi inconsistente în documentație pot confuza developeri  
 **Fișiere**: `LOCAL_DEV_WINDOWS.md`, `WINDOWS_RUNBOOK.md`, `MANUAL_VERIFICATION_10_STEPS.md`  
 **Impact**: DX redus  
-**Status**: ✅ **VERIFICAT** - Toate porturile sunt consistente (Firestore:8082, Functions:5002, Auth:9098, UI:4001)
+**Status**: ✅ **VERIFICAT** - Toate porturile sunt consistente (Database:8082, Functions:5002, Auth:9098, UI:4001)
 
 ---
 
@@ -148,7 +148,7 @@ Repo-ul are o bază solidă de stabilitate (idempotency, guards UI, retry policy
 
 ## Verificări de Securitate (✅ PASSED)
 
-### Firestore Rules
+### Database Rules
 ✅ **VERIFICAT** - Nu există "allow write: if true" în colecțiile sensibile:
 - `threads/**`: `allow create, update: if false` ✅
 - `whatsapp_messages`: `allow create, update: if false` ✅
@@ -173,7 +173,7 @@ Repo-ul are o bază solidă de stabilitate (idempotency, guards UI, retry policy
 ### Tools Disponibile în PATH
 - ❌ `npm` - NU este în PATH (necesită instalare Node.js sau folosire `npm.cmd`)
 - ❌ `flutter` - NU este în PATH (necesită instalare Flutter)
-- ❌ `java` - NU este în PATH (necesită instalare JDK 17 pentru Firestore emulator)
+- ❌ `java` - NU este în PATH (necesită instalare JDK 17 pentru Database emulator)
 
 ### Functions Build
 ✅ **VERIFICAT** - `functions/dist/index.js` există și exportă callables:
@@ -186,7 +186,7 @@ Repo-ul are o bază solidă de stabilitate (idempotency, guards UI, retry policy
 ### Recomandări pentru Validare Manuală
 1. **Flutter**: Rulează `flutter pub get`, `flutter analyze`, `flutter test`, `flutter build apk --debug`
 2. **Functions**: Rulează `cd functions && npm ci && npm test && npm run build`
-3. **Emulators**: Rulează `npm run emu` și verifică că pornesc (Firestore:8082, Functions:5002, Auth:9098)
+3. **Emulators**: Rulează `npm run emu` și verifică că pornesc (Database:8082, Functions:5002, Auth:9098)
 
 ---
 

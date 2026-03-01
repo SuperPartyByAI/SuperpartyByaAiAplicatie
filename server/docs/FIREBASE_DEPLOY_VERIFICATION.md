@@ -1,13 +1,13 @@
-# Firebase deploy – pași CLI + link-uri verificare (iPhone Safari)
+# Supabase deploy – pași CLI + link-uri verificare (iPhone Safari)
 
 **Proiect:** `superparty-frontend`  
 **Regiune Functions WhatsApp:** `us-central1`
 
 ---
 
-## 1. Proiect Firebase
+## 1. Proiect Supabase
 
-### Alias → projectId (din `.firebaserc`)
+### Alias → projectId (din `.supabaserc`)
 
 | Alias    | projectId           |
 |----------|---------------------|
@@ -26,22 +26,22 @@
 
 ---
 
-## 2. Link-uri Firebase Console (copy/paste, iPhone Safari)
+## 2. Link-uri Supabase Console (copy/paste, iPhone Safari)
 
 - **Overview:**  
-  https://console.firebase.google.com/project/superparty-frontend/overview
+  https://console.supabase.google.com/project/superparty-frontend/overview
 
 - **Functions:**  
-  https://console.firebase.google.com/project/superparty-frontend/functions
+  https://console.supabase.google.com/project/superparty-frontend/functions
 
-- **Firestore → Indexes:**  
-  https://console.firebase.google.com/project/superparty-frontend/firestore/indexes
+- **Database → Indexes:**  
+  https://console.supabase.google.com/project/superparty-frontend/database/indexes
 
-- **Firestore → Data:**  
-  https://console.firebase.google.com/project/superparty-frontend/firestore
+- **Database → Data:**  
+  https://console.supabase.google.com/project/superparty-frontend/database
 
 - **Project Settings:**  
-  https://console.firebase.google.com/project/superparty-frontend/settings/general
+  https://console.supabase.google.com/project/superparty-frontend/settings/general
 
 - **Secret Manager (GCP):**  
   https://console.cloud.google.com/security/secret-manager?project=superparty-frontend
@@ -51,25 +51,25 @@
 ## 3. Pași CLI (copy/paste)
 
 ```bash
-firebase --version
+supabase --version
 ```
 
 ```bash
-firebase login
+supabase login
 ```
 
 ```bash
-firebase projects:list
+supabase projects:list
 ```
 
 ```bash
-firebase use default
+supabase use default
 ```
 
-(proiectul `superparty-frontend` e setat ca `default` în `.firebaserc`)
+(proiectul `superparty-frontend` e setat ca `default` în `.supabaserc`)
 
 ```bash
-firebase functions:list | grep whatsapp
+supabase functions:list | grep whatsapp
 ```
 
 ---
@@ -91,7 +91,7 @@ firebase functions:list | grep whatsapp
 Setează **cel puțin unul** dintre cele două:
 
 ```bash
-firebase functions:secrets:set WHATSAPP_BACKEND_URL
+supabase functions:secrets:set WHATSAPP_BACKEND_URL
 ```
 
 (la prompt introdu ex. `http://37.27.34.179:8080`)
@@ -99,7 +99,7 @@ firebase functions:secrets:set WHATSAPP_BACKEND_URL
 **SAU:**
 
 ```bash
-firebase functions:secrets:set WHATSAPP_BACKEND_BASE_URL
+supabase functions:secrets:set WHATSAPP_BACKEND_BASE_URL
 ```
 
 (aceeași valoare)
@@ -108,9 +108,9 @@ Alte secrets folosite în proiect (nu obligatorii pentru WhatsApp minimal): `GRO
 
 ---
 
-## 5. Firestore indexes
+## 5. Database indexes
 
-În `firestore.indexes.json` există deja `fieldOverrides` pentru:
+În `database.indexes.json` există deja `fieldOverrides` pentru:
 
 - **collectionGroup:** `messages`
 - **fieldPath:** `tsClient`
@@ -119,7 +119,7 @@ Alte secrets folosite în proiect (nu obligatorii pentru WhatsApp minimal): `GRO
 Deploy:
 
 ```bash
-firebase deploy --only firestore:indexes
+supabase deploy --only database:indexes
 ```
 
 ---
@@ -140,13 +140,13 @@ firebase deploy --only firestore:indexes
 ### Comandă deploy (listă completă)
 
 ```bash
-firebase deploy --only functions:whatsappProxySend,functions:whatsappProxyGetAccounts,functions:whatsappProxyAddAccount,functions:whatsappProxyRegenerateQr,functions:whatsappProxyGetThreads,functions:whatsappProxyDeleteAccount,functions:whatsappProxyBackfillAccount,functions:processOutbox
+supabase deploy --only functions:whatsappProxySend,functions:whatsappProxyGetAccounts,functions:whatsappProxyAddAccount,functions:whatsappProxyRegenerateQr,functions:whatsappProxyGetThreads,functions:whatsappProxyDeleteAccount,functions:whatsappProxyBackfillAccount,functions:processOutbox
 ```
 
 ### Deploy rules (opțional dar recomandat)
 
 ```bash
-firebase deploy --only firestore:rules
+supabase deploy --only database:rules
 ```
 
 ---
@@ -168,15 +168,15 @@ curl -sS -o /dev/null -w "%{http_code}" -X POST "https://us-central1-superparty-
 
 ### 7.2. `whatsappProxyGetMessages` – 404 este OK
 
-`whatsappProxyGetMessages` **nu mai există**. Mesajele vin doar din Firestore `threads/{threadId}/messages`. Flutter nu o mai apelează. Dacă apelezi manual și primești **404**, e comportament așteptat.
+`whatsappProxyGetMessages` **nu mai există**. Mesajele vin doar din Database `threads/{threadId}/messages`. Flutter nu o mai apelează. Dacă apelezi manual și primești **404**, e comportament așteptat.
 
 ### 7.3. Smoke send (cu token)
 
-Înlocuiești `YOUR_FIREBASE_ID_TOKEN` cu un ID token Firebase (ex. din app după login).
+Înlocuiești `YOUR_SUPABASE_ID_TOKEN` cu un ID token Supabase (ex. din app după login).
 
 ```bash
 curl -sS -X POST "https://us-central1-superparty-frontend.cloudfunctions.net/whatsappProxySend" \
-  -H "Authorization: Bearer YOUR_FIREBASE_ID_TOKEN" \
+  -H "Authorization: Bearer YOUR_SUPABASE_ID_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
     "threadId": "UN_THREAD_ID_REAL",
@@ -199,32 +199,32 @@ curl -sS -X POST "https://us-central1-superparty-frontend.cloudfunctions.net/wha
 
 ### Ce se deployează
 
-1. **Firestore indexes** – `messages.tsClient` (ASC/DESC), etc.
-2. **Firestore rules** – (opțional)
+1. **Database indexes** – `messages.tsClient` (ASC/DESC), etc.
+2. **Database rules** – (opțional)
 3. **Functions** – proxy-uri WhatsApp + `processOutbox`.
 4. **Secrets** – `WHATSAPP_BACKEND_URL` (sau `WHATSAPP_BACKEND_BASE_URL`).
 
 ### Ordine recomandată
 
-1. `firebase login` + `firebase use default`
-2. `firebase functions:secrets:set WHATSAPP_BACKEND_URL`
-3. `firebase deploy --only firestore:indexes`
-4. `firebase deploy --only firestore:rules`
-5. `firebase deploy --only functions:whatsappProxySend,...` (comanda din secțiunea 6)
-6. `firebase functions:list | grep whatsapp`
+1. `supabase login` + `supabase use default`
+2. `supabase functions:secrets:set WHATSAPP_BACKEND_URL`
+3. `supabase deploy --only database:indexes`
+4. `supabase deploy --only database:rules`
+5. `supabase deploy --only functions:whatsappProxySend,...` (comanda din secțiunea 6)
+6. `supabase functions:list | grep whatsapp`
 7. Verificare curl (7.1 și 7.3).
 
 ### Checklist test în app (iPhone)
 
 - [ ] Deschizi app → WhatsApp → Accounts: lista de conturi se încarcă (fără crash).
 - [ ] WhatsApp → Inbox: alegi cont → lista de conversații se încarcă.
-- [ ] Inbox → deschizi un thread → Chat: mesajele apar din Firestore (sau „No messages yet”).
+- [ ] Inbox → deschizi un thread → Chat: mesajele apar din Database (sau „No messages yet”).
 - [ ] Trimiți un mesaj → „Message sent!”; mesajul apare în chat.
 - [ ] Dacă ceva e în fundal (ex. status), nu apare 404/HTML pentru GetMessages (nu se mai folosește).
 
 ### Link-uri rapide (iPhone Safari)
 
-- Overview: https://console.firebase.google.com/project/superparty-frontend/overview  
-- Functions: https://console.firebase.google.com/project/superparty-frontend/functions  
-- Firestore Indexes: https://console.firebase.google.com/project/superparty-frontend/firestore/indexes  
+- Overview: https://console.supabase.google.com/project/superparty-frontend/overview  
+- Functions: https://console.supabase.google.com/project/superparty-frontend/functions  
+- Database Indexes: https://console.supabase.google.com/project/superparty-frontend/database/indexes  
 - Secret Manager: https://console.cloud.google.com/security/secret-manager?project=superparty-frontend  

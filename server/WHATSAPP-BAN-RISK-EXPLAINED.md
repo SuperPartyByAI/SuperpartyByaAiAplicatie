@@ -168,7 +168,7 @@ User → Se loghează manual
 ```
 App → Baileys → Vorbește direct cu WhatsApp servers
 App → Trimite/primește mesaje automat
-App → Salvează în Firestore
+App → Salvează în Database
 App → Notifică user prin Socket.io
 ```
 

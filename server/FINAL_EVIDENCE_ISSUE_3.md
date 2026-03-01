@@ -43,7 +43,7 @@
     "needs_qr": 0,
     "max": 18
   },
-  "firestore": "connected"
+  "database": "connected"
 }
 ```
 
@@ -194,7 +194,7 @@ curl -X POST https://whats-app-ompro.ro/api/whatsapp/send \
 ## 🎉 SUCCESS CRITERIA MET
 
 ✅ Backend healthy and running  
-✅ Firestore connected  
+✅ Database connected  
 ✅ Accounts persist across restarts  
 ✅ QR generation works  
 ✅ At least 1 account connected  

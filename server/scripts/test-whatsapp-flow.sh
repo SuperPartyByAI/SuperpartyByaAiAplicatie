@@ -53,7 +53,7 @@ fi
 
 if [ "$RESP_WA_MODE" = "passive" ]; then
   echo "   ⚠️  Backend în PASSIVE mode (lockReason: $RESP_LOCK_REASON)"
-  echo "   ℹ️  Accounts pot fi 0 dacă nu există în Firestore"
+  echo "   ℹ️  Accounts pot fi 0 dacă nu există în Database"
 fi
 
 echo "   ✅ Get accounts passed"

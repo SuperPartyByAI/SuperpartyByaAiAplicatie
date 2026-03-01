@@ -1,6 +1,6 @@
 # 💾 Unde se salvează datele
 
-## Storage Hybrid: Local Disk + Firestore Cloud
+## Storage Hybrid: Local Disk + Database Cloud
 
 Aplicația folosește un sistem **hybrid** de storage pentru durabilitate maximă:
 
@@ -20,24 +20,24 @@ Aplicația folosește un sistem **hybrid** de storage pentru durabilitate maxim�
 - Alte fișiere necesare pentru autentificare Baileys
 
 ### Backup:
-- **Firestore Collection:** `wa_sessions/{accountId}`
+- **Database Collection:** `wa_sessions/{accountId}`
 - **Ce:** Backup automat al tuturor fișierelor de sesiune
 - **Când:** La fiecare `saveCreds()` (automatic după autentificare/modificări)
 
 ### Persistență:
 - ✅ **Persistă la restart/redeploy** (volume persistent)
-- ✅ **Backup în cloud** (Firestore)
-- ✅ **Restore automat** din Firestore dacă local lipsește
+- ✅ **Backup în cloud** (Database)
+- ✅ **Restore automat** din Database dacă local lipsește
 
 ---
 
-## ☁️ 2. Metadata & Mesaje (Firestore - Cloud)
+## ☁️ 2. Metadata & Mesaje (Database - Cloud)
 
 ### Unde:
-- **Platformă:** Google Cloud Firestore
-- **Configurație:** Variabilă `FIREBASE_SERVICE_ACCOUNT_JSON`
+- **Platformă:** Google Cloud Database
+- **Configurație:** Variabilă `SUPABASE_SERVICE_ACCOUNT_JSON`
 
-### Collections Firestore:
+### Collections Database:
 
 #### 📋 `accounts` - Metadata Conturi
 - **Ce:** Informații despre fiecare cont WhatsApp
@@ -93,10 +93,10 @@ Aplicația folosește un sistem **hybrid** de storage pentru durabilitate maxim�
 
 | Tip Date | Locație Primară | Backup | Persistență |
 |----------|----------------|--------|-------------|
-| **Sesiuni WhatsApp** | `/app/sessions` (Volume) | Firestore `wa_sessions` | ✅ Persistent |
-| **Metadata Conturi** | Firestore `accounts` | N/A (cloud) | ✅ Cloud |
-| **Mesaje** | Firestore `threads/messages` | N/A (cloud) | ✅ Cloud |
-| **Queue Mesaje** | Firestore `outbox` | N/A (cloud) | ✅ Cloud |
+| **Sesiuni WhatsApp** | `/app/sessions` (Volume) | Database `wa_sessions` | ✅ Persistent |
+| **Metadata Conturi** | Database `accounts` | N/A (cloud) | ✅ Cloud |
+| **Mesaje** | Database `threads/messages` | N/A (cloud) | ✅ Cloud |
+| **Queue Mesaje** | Database `outbox` | N/A (cloud) | ✅ Cloud |
 | **Cache** | Redis | N/A | ❌ Temporary |
 
 ---
@@ -105,12 +105,12 @@ Aplicația folosește un sistem **hybrid** de storage pentru durabilitate maxim�
 
 ### Sesiuni WhatsApp:
 - ✅ Stocate **local** în volume persistent (encrypted de Baileys)
-- ✅ Backup în **Firestore** (encrypted)
+- ✅ Backup în **Database** (encrypted)
 - ✅ **NU** sunt în Git (ignorate)
 
 ### Metadata/Mesaje:
-- ✅ Stocate în **Firestore** (encrypted in-transit)
-- ✅ Access control prin Firebase Admin SDK
+- ✅ Stocate în **Database** (encrypted in-transit)
+- ✅ Access control prin Supabase Admin SDK
 - ✅ Backup automat de către Google Cloud
 
 ---
@@ -125,10 +125,10 @@ Aplicația folosește un sistem **hybrid** de storage pentru durabilitate maxim�
 - Status: Active
 ```
 
-### Firestore:
+### Database:
 ```bash
 # Verifică health endpoint:
-curl https://whats-app-ompro.ro/health | jq .firestore
+curl https://whats-app-ompro.ro/health | jq .database
 
 # Așteptat:
 {
@@ -139,7 +139,7 @@ curl https://whats-app-ompro.ro/health | jq .firestore
 
 ### Verificare Variabile:
 - `SESSIONS_PATH=/app/sessions` ✅
-- `FIREBASE_SERVICE_ACCOUNT_JSON=***` ✅
+- `SUPABASE_SERVICE_ACCOUNT_JSON=***` ✅
 - `REDIS_URL=***` (opțional)
 
 ---
@@ -147,11 +147,11 @@ curl https://whats-app-ompro.ro/health | jq .firestore
 ## ⚠️ Important
 
 ### Dacă Volume-ul se pierde:
-1. ✅ Aplicația va încerca să restaureze din Firestore `wa_sessions`
-2. ✅ Backup-urile sunt automat în Firestore
+1. ✅ Aplicația va încerca să restaureze din Database `wa_sessions`
+2. ✅ Backup-urile sunt automat în Database
 3. ⚠️ Dar ar trebui să eviți ștergerea volume-ului!
 
-### Dacă Firestore cade:
+### Dacă Database cade:
 1. ✅ Sesiunile locale funcționează (volume persistent)
 2. ⚠️ Backup-ul nu se face până se revine
 3. ✅ Mesajele noi nu se salvează până se revine
@@ -165,4 +165,4 @@ curl https://whats-app-ompro.ro/health | jq .firestore
 
 **Concluzie:** Datele sunt salvate în **2 locuri** pentru durabilitate maximă:
 - **Local** (Volume Persistent) - rapid, persistent
-- **Cloud** (Firestore) - backup, scalabil
+- **Cloud** (Database) - backup, scalabil

@@ -1,18 +1,18 @@
-# 🚀 Firebase Deploy Instructions (După `firebase login`)
+# 🚀 Supabase Deploy Instructions (După `supabase login`)
 
-**Status:** Am modificat `firestore.rules` și `firestore.indexes.json` pentru CRM collections.
+**Status:** Am modificat `database.rules` și `database.indexes.json` pentru CRM collections.
 
 ---
 
 ## ✅ **Ce Am Modificat:**
 
-### 1. **Firestore Rules (`firestore.rules`):**
+### 1. **Database Rules (`database.rules`):**
 - ✅ Adăugat `customers/{customerId}` collection (NEVER DELETE)
 - ✅ Adăugat `customers/{customerId}/orders/{orderId}` subcollection (NEVER DELETE)
 - ✅ Adăugat `customers/{customerId}/events/{eventId}` subcollection (NEVER DELETE)
 - ✅ Adăugat `threads/{threadId}/extractions/{messageId}` subcollection (AI audit, NEVER DELETE)
 
-### 2. **Firestore Indexes (`firestore.indexes.json`):**
+### 2. **Database Indexes (`database.indexes.json`):**
 - ✅ Adăugat index pentru `customers` query: `accountId ASC, lastMessageAt DESC`
 - ✅ Adăugat index pentru `orders` query: `customerId ASC, createdAt DESC`
 - ✅ Adăugat index pentru `orders` query: `customerId ASC, status ASC, createdAt DESC`
@@ -22,45 +22,45 @@
 
 ## 🔐 **Pași pentru Deploy:**
 
-### **Step 1: Autentificare Firebase CLI**
+### **Step 1: Autentificare Supabase CLI**
 
 ```bash
 cd /Users/universparty/Aplicatie-SuperpartyByAi
-firebase login
+supabase login
 ```
 
 **Ce se întâmplă:**
 - Se deschide browser automat
-- Selectează contul Google asociat cu Firebase
+- Selectează contul Google asociat cu Supabase
 - Confirmă permisiunile
 
 **Verificare:**
 ```bash
-firebase projects:list
+supabase projects:list
 # Trebuie să vezi: superparty-frontend
 ```
 
-### **Step 2: Deploy Firestore Rules + Indexes**
+### **Step 2: Deploy Database Rules + Indexes**
 
 ```bash
 cd /Users/universparty/Aplicatie-SuperpartyByAi
-firebase use default  # sau firebase use superparty-frontend
-firebase deploy --only firestore
+supabase use default  # sau supabase use superparty-frontend
+supabase deploy --only database
 ```
 
 **Sau separatel:**
 ```bash
 # Doar rules
-firebase deploy --only firestore:rules
+supabase deploy --only database:rules
 
 # Doar indexes
-firebase deploy --only firestore:indexes
+supabase deploy --only database:indexes
 ```
 
 ### **Step 3: Verificare (Opțional)**
 
-**În Firebase Console:**
-1. Deschide: https://console.firebase.google.com/project/superparty-frontend/firestore
+**În Supabase Console:**
+1. Deschide: https://console.supabase.google.com/project/superparty-frontend/database
 2. Verifică:
    - **Rules** → Ar trebui să vezi `customers` și `threads/extractions` rules
    - **Indexes** → Ar trebui să vezi noile indexuri pentru `customers` și `orders`
@@ -75,11 +75,11 @@ firebase deploy --only firestore:indexes
 - **NEVER DELETE** policy pentru toate CRM collections ✅
 
 ### **Indexes:**
-- Indexurile pot dura câteva minute să se construiască (Firebase face build în background)
+- Indexurile pot dura câteva minute să se construiască (Supabase face build în background)
 - Până atunci, queries complexe pot da eroare → folosește queries simple
 
 ### **Backend Code:**
-- Codul backend (`whatsapp-backend/server.js`) **nu necesită deploy Firebase**
+- Codul backend (`whatsapp-backend/server.js`) **nu necesită deploy Supabase**
 - Se deploy-ează normal pe legacy hosting (commit + push → legacy hosting redeploy)
 
 ---
@@ -88,20 +88,20 @@ firebase deploy --only firestore:indexes
 
 ```bash
 # Verifică rules
-firebase firestore:rules:get
+supabase database:rules:get
 
 # Verifică indexes
-firebase firestore:indexes:list
+supabase database:indexes:list
 ```
 
 ---
 
 ## 📋 **Checklist:**
 
-- [ ] `firebase login` executat ✅
-- [ ] `firebase projects:list` arată `superparty-frontend` ✅
-- [ ] `firebase deploy --only firestore` executat ✅
-- [ ] Verificare în Firebase Console (rules + indexes) ✅
+- [ ] `supabase login` executat ✅
+- [ ] `supabase projects:list` arată `superparty-frontend` ✅
+- [ ] `supabase deploy --only database` executat ✅
+- [ ] Verificare în Supabase Console (rules + indexes) ✅
 
 ---
 

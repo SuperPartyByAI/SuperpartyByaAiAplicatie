@@ -10,38 +10,38 @@ Am commit-at toate optimizările AI chat:
 
 ## 🚀 Cum să Deploy
 
-### 1. Deploy Firebase Functions (Backend)
+### 1. Deploy Supabase Functions (Backend)
 
-#### Opțiunea A: Cu Firebase Token (Recomandat pentru CI/CD)
+#### Opțiunea A: Cu Supabase Token (Recomandat pentru CI/CD)
 
 ```bash
 # Generează token (doar prima dată)
-firebase login:ci
+supabase login:ci
 
 # Copiază token-ul afișat, apoi:
 cd functions
-npx firebase-tools deploy --only functions:chatWithAI --token "TOKENUL_TAU"
+npx supabase-tools deploy --only functions:chatWithAI --token "TOKENUL_TAU"
 ```
 
 #### Opțiunea B: Login Interactiv
 
 ```bash
 # Login
-firebase login
+supabase login
 
 # Deploy
 cd functions
-firebase deploy --only functions:chatWithAI
+supabase deploy --only functions:chatWithAI
 ```
 
 #### Verificare Deploy
 
 ```bash
-# Check Firebase Console
-https://console.firebase.google.com/project/superparty-frontend/functions
+# Check Supabase Console
+https://console.supabase.google.com/project/superparty-frontend/functions
 
 # Verifică logs
-firebase functions:log --only chatWithAI
+supabase functions:log --only chatWithAI
 ```
 
 ---
@@ -63,10 +63,10 @@ flutter build apk --release
 # superparty_flutter/build/app/outputs/flutter-apk/app-release.apk
 ```
 
-#### Distribute via Firebase App Distribution:
+#### Distribute via Supabase App Distribution:
 
 ```bash
-firebase appdistribution:distribute \
+supabase appdistribution:distribute \
   build/app/outputs/flutter-apk/app-release.apk \
   --app 1:YOUR_APP_ID:android:YOUR_APP_ID \
   --groups testers \
@@ -86,7 +86,7 @@ git push origin main
 
 ## 📊 Ce se va Întâmpla După Deploy
 
-### Firebase Functions (Backend)
+### Supabase Functions (Backend)
 
 **Înainte:**
 
@@ -122,7 +122,7 @@ git push origin main
 
 ## 🧪 Testing După Deploy
 
-### 1. Test Firebase Function
+### 1. Test Supabase Function
 
 ```bash
 # Test cu curl
@@ -180,7 +180,7 @@ curl -X POST https://us-central1-superparty-frontend.cloudfunctions.net/chatWith
 
 ## 📈 Monitoring
 
-### Firebase Console
+### Supabase Console
 
 1. **Functions → chatWithAI → Metrics**
    - Execution time: Ar trebui să scadă la 1-3s
@@ -190,7 +190,7 @@ curl -X POST https://us-central1-superparty-frontend.cloudfunctions.net/chatWith
 2. **Logs**
 
    ```bash
-   firebase functions:log --only chatWithAI
+   supabase functions:log --only chatWithAI
    ```
 
    Caută:
@@ -212,16 +212,16 @@ print('Hit rate: ${stats['valid'] / stats['total'] * 100}%');
 
 ## 🔧 Troubleshooting
 
-### Problem: Firebase deploy eșuează
+### Problem: Supabase deploy eșuează
 
 **Solution:**
 
 ```bash
 # Re-login
-firebase login --reauth
+supabase login --reauth
 
 # Sau cu token
-firebase login:ci
+supabase login:ci
 # Copiază token nou
 ```
 
@@ -251,7 +251,7 @@ await AICacheService.getCacheStats(); // Verifică
 
 **Solution:**
 
-1. Verifică Firebase Function logs
+1. Verifică Supabase Function logs
 2. Verifică Groq API status
 3. Verifică network latency
 4. Verifică cache hit rate
@@ -268,7 +268,7 @@ await AICacheService.getCacheStats(); // Verifică
 
 ### Deploy Backend
 
-- [ ] Login Firebase
+- [ ] Login Supabase
 - [ ] Deploy functions:chatWithAI
 - [ ] Verifică logs
 - [ ] Test cu curl
@@ -278,7 +278,7 @@ await AICacheService.getCacheStats(); // Verifică
 - [ ] flutter pub get
 - [ ] flutter build apk
 - [ ] Test pe device
-- [ ] Distribute via Firebase
+- [ ] Distribute via Supabase
 
 ### Post-Deploy
 
@@ -314,7 +314,7 @@ await AICacheService.getCacheStats(); // Verifică
 ## 💡 Tips
 
 1. **Cache Warm-up**: Întreabă cele mai comune întrebări după deploy
-2. **Monitor Logs**: Verifică Firebase logs pentru erori
+2. **Monitor Logs**: Verifică Supabase logs pentru erori
 3. **User Feedback**: Întreabă userii despre viteză
 4. **Iterate**: Ajustează parametrii dacă e nevoie
 
@@ -324,7 +324,7 @@ await AICacheService.getCacheStats(); // Verifică
 
 Dacă întâmpini probleme:
 
-1. Verifică Firebase Console logs
+1. Verifică Supabase Console logs
 2. Verifică Flutter app logs
 3. Verifică documentația:
    - `AI_CHAT_OPTIMIZATIONS_SUMMARY.md`

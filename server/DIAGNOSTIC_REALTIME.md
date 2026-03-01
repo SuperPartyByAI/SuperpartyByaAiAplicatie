@@ -68,13 +68,13 @@ PY
 #### Live monitoring (recomandat)
 ```bash
 sudo journalctl -u whatsapp-backend -f --no-pager \
-| egrep -i "Processing|Attempting to save|Message saved|Dedupe|already processed|Skipping message|Firestore write FAIL|error|exception|warn|📨|📩|💾|✅|❌|⚠️"
+| egrep -i "Processing|Attempting to save|Message saved|Dedupe|already processed|Skipping message|Database write FAIL|error|exception|warn|📨|📩|💾|✅|❌|⚠️"
 ```
 
 #### Log-uri recente (după mesaj)
 ```bash
 sudo journalctl -u whatsapp-backend --since "2 min ago" -n 200 --no-pager \
-| egrep -i "Processing|Attempting to save|Message saved|Dedupe|already processed|Skipping message|Firestore write FAIL|error|exception|warn|📨|📩|💾|✅|❌|⚠️"
+| egrep -i "Processing|Attempting to save|Message saved|Dedupe|already processed|Skipping message|Database write FAIL|error|exception|warn|📨|📩|💾|✅|❌|⚠️"
 ```
 
 **Interpretare**:
@@ -86,14 +86,14 @@ sudo journalctl -u whatsapp-backend --since "2 min ago" -n 200 --no-pager \
 💾 Attempting to save message: ...
 ✅ Message saved successfully: ...
 ```
-→ Ingest + write în Firestore e OK. Dacă NU apare în app → problemă pe Flutter/Firestore stream.
+→ Ingest + write în Database e OK. Dacă NU apare în app → problemă pe Flutter/Database stream.
 
 ❌ **Caz 2: Vezi până la 💾, dar apoi ❌**
 ```
 💾 Attempting to save message: ...
-❌ Firestore write FAIL: ...
+❌ Database write FAIL: ...
 ```
-→ Problemă de Firestore credentials / path / permisiuni. Trebuie snippet-ul exact de eroare.
+→ Problemă de Database credentials / path / permisiuni. Trebuie snippet-ul exact de eroare.
 
 ❌ **Caz 3: Nu vezi deloc 📨/📩**
 → Sesiunea WhatsApp e "connected" în health, dar nu mai livrează evenimente (Baileys blocat). 
@@ -115,7 +115,7 @@ Thread stream update ... threads=200
 ```
 
 Dacă vezi `✅ Message saved successfully` în backend dar NU apare în app:
-→ Problemă pe Flutter/Firestore stream (query/filtru/cache).
+→ Problemă pe Flutter/Database stream (query/filtru/cache).
 
 ## Ce să trimiți pentru diagnostic complet
 
@@ -138,10 +138,10 @@ Cu logging-ul îmbunătățit, vei vedea:
 - `📨 Processing X message(s) in real-time` → Mesajele ajung la handler
 - `📩 Processing message: remote=... fromMe=... msg=... ts=...` → Mesajele sunt procesate
 - `💾 Attempting to save message: ...` → Se încearcă salvarea
-- `✅ Message saved successfully: ...` → Mesajul este salvat în Firestore
+- `✅ Message saved successfully: ...` → Mesajul este salvat în Database
 - `⏭️ already processed (dedupe)` → Mesajul este duplicat (normal pentru retry-uri)
 - `⚠️ Skipping message - no content` → Mesajul este filtrat
-- `❌ Firestore write FAIL` → Eroare la salvare
+- `❌ Database write FAIL` → Eroare la salvare
 
 ## Rezumat Fix-uri Aplicate
 

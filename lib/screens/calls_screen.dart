@@ -2,8 +2,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
 import 'package:http/http.dart' as http;
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:audioplayers/audioplayers.dart';
@@ -50,7 +48,7 @@ class _CallsScreenState extends State<CallsScreen> {
   }
 
   Future<String?> _getToken() async {
-    return await FirebaseAuth.instance.currentUser?.getIdToken();
+    return await Future.value(Supabase.instance.client.auth.currentSession?.accessToken);
   }
 
   Future<void> _loadCalls() async {
@@ -256,12 +254,8 @@ class _CallsScreenState extends State<CallsScreen> {
     String? foundDocId;
     String? foundName;
     try {
-      final q = await FirebaseFirestore.instance
-          .collection('conversations')
-          .where('jid', isEqualTo: jid)
-          .limit(1)
-          .get();
-      debugPrint('[WA] Firestore query: ${q.docs.length} docs');
+      final q = await /* Removed */ ;
+      debugPrint('[WA] Database query: ${q.docs.length} docs');
       if (q.docs.isNotEmpty) {
         foundDocId = q.docs.first.id;
         final data = q.docs.first.data();
@@ -284,10 +278,7 @@ class _CallsScreenState extends State<CallsScreen> {
 
     // 3) Create via backend
     try {
-      final accountsSnap = await FirebaseFirestore.instance
-          .collection('wa_accounts')
-          .where('status', isEqualTo: 'connected')
-          .get();
+      final accountsSnap = await /* Removed */ ;
       debugPrint('[WA] Connected accounts: ${accountsSnap.docs.length}');
 
       if (accountsSnap.docs.isEmpty) {

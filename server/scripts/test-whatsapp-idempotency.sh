@@ -7,7 +7,7 @@ if [[ -z "${FUNCTIONS_URL:-}" ]]; then
 fi
 
 if [[ -z "${ID_TOKEN:-}" ]]; then
-  echo "Missing ID_TOKEN (Firebase ID token for an authenticated user)"
+  echo "Missing ID_TOKEN (Supabase ID token for an authenticated user)"
   exit 1
 fi
 

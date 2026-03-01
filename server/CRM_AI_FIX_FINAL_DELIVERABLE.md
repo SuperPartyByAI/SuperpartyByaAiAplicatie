@@ -20,7 +20,7 @@ region: 'europe-west1'
 region: 'europe-west1'
 ```
 
-**Actually Deployed** (verified via `firebase functions:list`):
+**Actually Deployed** (verified via `supabase functions:list`):
 ```
 whatsappExtractEventFromThread → us-central1 ✅
 clientCrmAsk → us-central1 ✅
@@ -29,15 +29,15 @@ clientCrmAsk → us-central1 ✅
 **Flutter Calls** (verified in `whatsapp_api_service.dart`):
 ```dart
 // Line 293
-final functions = FirebaseFunctions.instanceFor(region: 'us-central1');
+final functions = SupabaseFunctions.instanceFor(region: 'us-central1');
 
 // Line 352
-final functions = FirebaseFunctions.instanceFor(region: 'us-central1');
+final functions = SupabaseFunctions.instanceFor(region: 'us-central1');
 ```
 
 ### Why It's a Problem
 **Current state**: Works (functions in us-central1, Flutter calls us-central1)  
-**Risk**: Next `firebase deploy` would **move functions to europe-west1** (per code declaration) → **BREAK all CRM AI features**
+**Risk**: Next `supabase deploy` would **move functions to europe-west1** (per code declaration) → **BREAK all CRM AI features**
 
 **Impact**:
 - "Extract Event" button → ❌ Function not found
@@ -56,13 +56,13 @@ final functions = FirebaseFunctions.instanceFor(region: 'us-central1');
 
 **Change**:
 ```diff
-- region: 'europe-west1', // Co-located with Firestore (eur3) for low latency
+- region: 'europe-west1', // Co-located with Database (eur3) for low latency
 + region: 'us-central1', // Match deployment region and Flutter callable invocation
 ```
 
 **Deployment**:
 ```bash
-firebase deploy --only functions:whatsappExtractEventFromThread,functions:clientCrmAsk
+supabase deploy --only functions:whatsappExtractEventFromThread,functions:clientCrmAsk
 # Result:
 ✔ functions[clientCrmAsk(us-central1)] Successful update operation.
 ✔ functions[whatsappExtractEventFromThread(us-central1)] Successful update operation.
@@ -70,11 +70,11 @@ firebase deploy --only functions:whatsappExtractEventFromThread,functions:client
 
 **Verification**:
 ```bash
-firebase functions:log --only whatsappExtractEventFromThread --lines 50
-firebase functions:log --only clientCrmAsk --lines 50
+supabase functions:log --only whatsappExtractEventFromThread --lines 50
+supabase functions:log --only clientCrmAsk --lines 50
 # Both show:
 - ✅ Starting new instance (DEPLOYMENT_ROLLOUT)
-- ✅ Firebase Functions starting
+- ✅ Supabase Functions starting
 - ✅ Default STARTUP TCP probe succeeded
 - ✅ GROQ_API_KEY present (version 9)
 - ⚠️  Calling setGlobalOptions twice (harmless - index.js + function define)
@@ -99,8 +99,8 @@ From prior session + this fix, admin permanence is now complete:
 2. Calls `bootstrapAdmin` callable (checks email allowlist)
 3. Sets:
    - Custom claim: `admin=true` (persists in JWT)
-   - Firestore: `users/{uid}.role="admin"` (merge, never overwritten)
-4. User signs out/in → Still admin (no manual Firestore edits needed)
+   - Database: `users/{uid}.role="admin"` (merge, never overwritten)
+4. User signs out/in → Still admin (no manual Database edits needed)
 
 **Allowlist**:
 - `superpartybyai@gmail.com`
@@ -112,7 +112,7 @@ From prior session + this fix, admin permanence is now complete:
 
 **Created**: `scripts/set_admin_role.js`  
 **Purpose**: Auto-detect user from allowlist and set admin role locally  
-**Note**: Requires `firebase-admin` (run from `functions/` directory OR use app's auto-bootstrap)
+**Note**: Requires `supabase-admin` (run from `functions/` directory OR use app's auto-bootstrap)
 
 ---
 
@@ -123,7 +123,7 @@ From prior session + this fix, admin permanence is now complete:
 functions/whatsappExtractEventFromThread.js     (region fix)
 functions/clientCrmAsk.js                       (region fix)
 functions/src/index.ts                          (bootstrap export)
-firebase.json                                   (predeploy hooks)
+supabase.json                                   (predeploy hooks)
 superparty_flutter/lib/main.dart                (bootstrap integration)
 superparty_flutter/lib/screens/auth/login_screen.dart (merge fix)
 superparty_flutter/lib/services/whatsapp_api_service.dart (already correct)
@@ -143,7 +143,7 @@ CRM_AI_FIX_COMPLETE.md                         (this report)
 
 ### iOS/macOS Build Fixes (from prior session)
 ```
-superparty_flutter/ios/Podfile                 (arm64 simulator + Firebase fixes)
+superparty_flutter/ios/Podfile                 (arm64 simulator + Supabase fixes)
 superparty_flutter/ios/Podfile.lock            (updated)
 superparty_flutter/macos/* (4 files)           (build artifacts)
 ```
@@ -156,16 +156,16 @@ superparty_flutter/macos/* (4 files)           (build artifacts)
 ```bash
 node -v                                        # v25.3.0
 npm -v                                         # 11.7.0
-firebase --version                             # 15.3.1
+supabase --version                             # 15.3.1
 flutter --version                              # 3.38.7
-firebase use superparty-frontend
+supabase use superparty-frontend
 cd functions && npm ci                         # 814 packages
 cd superparty_flutter && flutter clean && flutter pub get
 ```
 
 ### Phase 1: Identify Issue
 ```bash
-firebase functions:list | grep -E "whatsappExtract|clientCrmAsk"
+supabase functions:list | grep -E "whatsappExtract|clientCrmAsk"
 # Result: Both in us-central1 ✅
 
 grep -n "region:" functions/whatsappExtractEventFromThread.js | head -1
@@ -179,24 +179,24 @@ grep -n "region:" functions/clientCrmAsk.js | head -1
 ```bash
 # Modified both files (europe-west1 → us-central1)
 cd functions && npm run build                  # TypeScript compile
-firebase deploy --only functions:whatsappExtractEventFromThread,functions:clientCrmAsk
+supabase deploy --only functions:whatsappExtractEventFromThread,functions:clientCrmAsk
 # Result: ✅ Both updated successfully
 ```
 
 ### Phase 3: Verify
 ```bash
-firebase functions:log --only whatsappExtractEventFromThread --lines 50
-firebase functions:log --only clientCrmAsk --lines 50
+supabase functions:log --only whatsappExtractEventFromThread --lines 50
+supabase functions:log --only clientCrmAsk --lines 50
 # Result: Clean startup, no errors
 
-firebase functions:secrets:access GROQ_API_KEY --project superparty-frontend
+supabase functions:secrets:access GROQ_API_KEY --project superparty-frontend
 # Result: gsk_0XbrEDBPAHqgKgCs3u2mWGdyb3FYk0E9tsm4KxmTBnNgGn... ✅
 
 flutter analyze
 # Result: 1 deprecation warning (non-blocking)
 
 curl https://whats-app-ompro.ro/health | jq
-# Result: { "status": "healthy", "firestore": { "status": "connected" } }
+# Result: { "status": "healthy", "database": { "status": "connected" } }
 ```
 
 ### Phase 4: Commit + Push
@@ -232,13 +232,13 @@ Analyzing superparty_flutter...
 ```
 whatsappExtractEventFromThread:
 - Starting new instance (BUILD_SHA=whatsappextracteventfromthread-00005-dog)
-- Firebase Functions starting
+- Supabase Functions starting
 - Default STARTUP TCP probe succeeded
 - secretEnvironmentVariables: GROQ_API_KEY (version 9) ✅
 
 clientCrmAsk:
 - Starting new instance (BUILD_SHA=clientcrmask-00005-yew)
-- Firebase Functions starting
+- Supabase Functions starting
 - Default STARTUP TCP probe succeeded
 - secretEnvironmentVariables: GROQ_API_KEY (version 9) ✅
 ```
@@ -248,7 +248,7 @@ clientCrmAsk:
 ```json
 {
   "status": "healthy",
-  "firestore": { "status": "connected" },
+  "database": { "status": "connected" },
   "accounts": { "total": 0, "connected": 0, "max": 30 }
 }
 ```
@@ -322,11 +322,11 @@ See `ACCEPTANCE_TEST_REPORT.md` for detailed steps.
 - ✅ "Extract Event" must work (whatsappExtractEventFromThread callable)
 - ✅ "Ask AI" must work (clientCrmAsk callable)
 - ✅ Must be stable and not depend on session-only admin
-- ✅ Admin must be permanent (custom claims + Firestore role, auto-bootstrap)
+- ✅ Admin must be permanent (custom claims + Database role, auto-bootstrap)
 
 **Non-Negotiables**:
-- ✅ Do NOT require user to open Firebase Console to set admin
-- ✅ Do NOT require user to manually edit Firestore docs
+- ✅ Do NOT require user to open Supabase Console to set admin
+- ✅ Do NOT require user to manually edit Database docs
 - ✅ Keep "NEVER DELETE" for threads/messages/clients
 - ✅ If old v1 "whatsapp" function deletion needed, prepare exact steps (documented in BLOCKER_STATUS.md)
 

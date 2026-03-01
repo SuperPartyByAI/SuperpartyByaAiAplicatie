@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
-import { auth, db } from '../firebase';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
-import { signOut } from 'firebase/auth';
+import { auth, db } from '../supabase';
+import { doc, setDoc, serverTimestamp } from 'supabase/database';
+import { signOut } from 'supabase/auth';
 
 function WaitingScreen() {
   const navigate = useNavigate();

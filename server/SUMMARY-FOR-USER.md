@@ -73,11 +73,10 @@
 4. Configure:
    - **Root directory:** `whatsapp-backend`
    - **Start command:** `node server.js` (auto-detected)
-5. Add environment variables (from Firebase Console):
+5. Add environment variables (from Supabase Console):
    ```
-   FIREBASE_PROJECT_ID=superparty-frontend
-   FIREBASE_PRIVATE_KEY=<your-private-key>
-   FIREBASE_CLIENT_EMAIL=<your-client-email>
+   SUPABASE_PRIVATE_KEY=<your-private-key>
+   SUPABASE_CLIENT_EMAIL=<your-client-email>
    NODE_ENV=production
    PORT=8080
    ```
@@ -203,7 +202,7 @@ If you encounter issues:
 
 1. Check `LEGACY_HOSTING-DEPLOY-INSTRUCTIONS.md` for troubleshooting
 2. Review legacy hosting logs for specific errors
-3. Verify Firebase credentials are correct
+3. Verify Supabase credentials are correct
 4. Check that root directory is set to `whatsapp-backend`
 
 **Common issues and solutions are documented in the deployment guide.**

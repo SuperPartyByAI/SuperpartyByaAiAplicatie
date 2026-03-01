@@ -2,7 +2,7 @@
 // Centralized config to avoid hardcoded values
 
 export const CONFIG = {
-  // Admin email - should match the email in Firestore users collection with role='admin'
+  // Admin email - should match the email in Database users collection with role='admin'
   ADMIN_EMAIL: 'ursache.andrei1995@gmail.com',
 
   // Rate limits

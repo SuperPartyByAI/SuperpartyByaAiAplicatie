@@ -1,7 +1,7 @@
-const { processBaileysMessage, initFirebase } = require('../firestore-sync');
+const { processBaileysMessage, initSupabase } = require('../database-sync');
 
-// Ensure firebase is initialized (safe to call multiple times with singleton check)
-initFirebase();
+// Ensure supabase is initialized (safe to call multiple times with singleton check)
+initSupabase();
 
 async function handleMessageUpsert(accountId, { messages, type }) {
   // Only process if type is notify (live messages) or if we want to process all

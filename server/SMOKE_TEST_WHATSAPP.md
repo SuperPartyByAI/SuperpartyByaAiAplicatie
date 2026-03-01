@@ -25,7 +25,7 @@ Verify that WhatsApp integration is stable and production-ready:
 
 - legacy hosting deployment running
 - Redis connected
-- Firebase configured
+- Supabase configured
 - WhatsApp account ready for testing
 
 ### Tools Needed
@@ -85,8 +85,8 @@ curl https://whats-app-ompro.ro/health
 **Expected Result:**
 
 ```
-🔄 Restoring accounts from Firestore...
-📦 Found 1 connected accounts in Firestore
+🔄 Restoring accounts from Database...
+📦 Found 1 connected accounts in Database
 ✅ [account_XXX] Session restored from disk
 ✅ [account_XXX] Connected (no QR needed)
 ```
@@ -186,7 +186,7 @@ curl https://whats-app-ompro.ro/health
 
 ## TEST 3: Inbox Deduplication
 
-**Objective:** Verify same message creates only ONE Firestore document
+**Objective:** Verify same message creates only ONE Database document
 
 ### Steps:
 
@@ -195,12 +195,12 @@ curl https://whats-app-ompro.ro/health
 1. From WhatsApp mobile, send message to test account
 2. Message: "TEST_DEDUP_001"
 3. Wait 5 seconds
-4. Check Firestore
+4. Check Database
 
 **Expected Result:**
 
 ```
-Firestore: threads/{threadId}/messages/{messageId}
+Database: threads/{threadId}/messages/{messageId}
 - waMessageId: unique_id_from_baileys
 - content: "TEST_DEDUP_001"
 - timestamp: ...
@@ -215,13 +215,13 @@ Firestore: threads/{threadId}/messages/{messageId}
 
 ```
 📨 [account_XXX] PROCESSING: INBOUND message msg_abc123 from +40XXX
-💾 [account_XXX] Saving to Firestore: threads/thread_123/messages/msg_abc123
+💾 [account_XXX] Saving to Database: threads/thread_123/messages/msg_abc123
 ✅ Message saved
 ```
 
 #### 3.3 Verify No Duplicates
 
-1. Query Firestore for messages with same content
+1. Query Database for messages with same content
 2. Count documents
 
 **Expected Result:**
@@ -231,7 +231,7 @@ Firestore: threads/{threadId}/messages/{messageId}
 
 ### Pass Criteria:
 
-- ✅ Same message = 1 Firestore document
+- ✅ Same message = 1 Database document
 - ✅ messageId is unique and deterministic
 - ✅ No duplicate documents created
 
@@ -267,7 +267,7 @@ curl -X POST https://whats-app-ompro.ro/api/whatsapp/send \
 
 #### 4.2 Verify Status Transition
 
-1. Check Firestore `wa_outbox` collection
+1. Check Database `wa_outbox` collection
 2. Find document with messageId
 3. Observe status changes
 
@@ -280,7 +280,7 @@ After processing: status = "sent"
 
 #### 4.3 Simulate Retry
 
-1. Manually set status back to "queued" in Firestore
+1. Manually set status back to "queued" in Database
 2. Wait for worker to process
 3. Check status again
 
@@ -328,7 +328,7 @@ No duplicate messages sent
 (Same ID as before)
 ```
 
-#### 5.3 Check Firestore
+#### 5.3 Check Database
 
 1. Query `wa_accounts` collection
 2. Count documents for this phone number
@@ -341,7 +341,7 @@ No duplicate messages sent
 ### Pass Criteria:
 
 - ✅ accountId is deterministic (same phone = same ID)
-- ✅ No duplicate accounts in Firestore
+- ✅ No duplicate accounts in Database
 - ✅ Account data persists across restarts
 
 ---
@@ -372,7 +372,7 @@ curl https://whats-app-ompro.ro/health
     "connecting": 0,
     "needs_qr": 0
   },
-  "firestore": "connected"
+  "database": "connected"
 }
 ```
 
@@ -386,7 +386,7 @@ curl https://whats-app-ompro.ro/health
 ```
 ✅ [account_XXX] Connected
 📨 [account_XXX] PROCESSING: INBOUND message
-💾 [account_XXX] Saved to Firestore
+💾 [account_XXX] Saved to Database
 ⚠️ [account_XXX] Connection lost
 🔄 [account_XXX] Attempting reconnect
 ```
@@ -458,13 +458,13 @@ curl https://whats-app-ompro.ro/api/cache/stats
 
 1. Check network connectivity
 2. Review backoff logic in code
-3. Check Firestore for retry count
+3. Check Database for retry count
 4. Verify no infinite loops
 
 ### If Deduplication Fails:
 
 1. Check messageId generation
-2. Verify Firestore document IDs
+2. Verify Database document IDs
 3. Review message processing logic
 4. Check for race conditions
 
@@ -482,7 +482,7 @@ curl https://whats-app-ompro.ro/api/cache/stats
 **Issues?**
 
 - Check legacy hosting logs first
-- Review Firestore data
+- Review Database data
 - Check environment variables
 - Contact: dev team
 

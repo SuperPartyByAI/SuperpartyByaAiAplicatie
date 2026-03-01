@@ -1,8 +1,8 @@
-# Firestore Index Setup pentru Recent-Sync
+# Database Index Setup pentru Recent-Sync
 
 ## Problema
 
-Recent-sync folosește un query Firestore care necesită un index compus:
+Recent-sync folosește un query Database care necesită un index compus:
 
 ```javascript
 db
@@ -23,11 +23,11 @@ FAILED_PRECONDITION: The query requires an index
 
 ### Opțiunea 1: Folosind link-ul din log (Recomandat)
 
-Când vezi eroarea în logs, Firestore oferă un link direct pentru crearea indexului:
+Când vezi eroarea în logs, Database oferă un link direct pentru crearea indexului:
 
 ```
 FAILED_PRECONDITION: The query requires an index. You can create it here: 
-https://console.firebase.google.com/v1/r/project/superparty-frontend/firestore/indexes?create_composite=...
+https://console.supabase.google.com/v1/r/project/superparty-frontend/database/indexes?create_composite=...
 ```
 
 **Pași:**
@@ -36,11 +36,11 @@ https://console.firebase.google.com/v1/r/project/superparty-frontend/firestore/i
 3. Click "Create Index"
 4. Așteaptă ~1-5 minute pentru index să fie creat
 
-### Opțiunea 2: Creare manuală în Firebase Console
+### Opțiunea 2: Creare manuală în Supabase Console
 
-1. Deschide [Firebase Console](https://console.firebase.google.com/)
+1. Deschide [Supabase Console](https://console.supabase.google.com/)
 2. Selectează proiectul `superparty-frontend`
-3. Mergi la **Firestore Database** → **Indexes**
+3. Mergi la **Database Database** → **Indexes**
 4. Click **Create Index**
 5. Configurează:
    - **Collection ID**: `threads`
@@ -51,9 +51,9 @@ https://console.firebase.google.com/v1/r/project/superparty-frontend/firestore/i
    - **Query scope**: Collection
 6. Click **Create**
 
-### Opțiunea 3: Folosind Firebase CLI
+### Opțiunea 3: Folosind Supabase CLI
 
-Creează fișierul `firestore.indexes.json`:
+Creează fișierul `database.indexes.json`:
 
 ```json
 {
@@ -82,7 +82,7 @@ Creează fișierul `firestore.indexes.json`:
 
 Apoi deploy:
 ```bash
-firebase deploy --only firestore:indexes
+supabase deploy --only database:indexes
 ```
 
 ## Verificare

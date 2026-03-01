@@ -5,8 +5,8 @@
 Staff Inbox (Inbox Angajați) requires:
 1. **Cloud Run IAM** - Services must be publicly invokable (allUsers -> roles/run.invoker)
 2. **Functions Proxy** - Must forward Authorization header to Hetzner backend
-3. **Flutter** - Must send Firebase ID token in Authorization header
-4. **RBAC** - User must have staff profile in Firestore (`staffProfiles/{uid}`) or be admin
+3. **Flutter** - Must send Supabase ID token in Authorization header
+4. **RBAC** - User must have staff profile in Database (`staffProfiles/{uid}`) or be admin
 
 ## Quick Setup
 
@@ -14,8 +14,8 @@ Staff Inbox (Inbox Angajați) requires:
 
 ```bash
 cd /Users/universparty/Aplicatie-SuperpartyByAi
-firebase use superparty-frontend
-firebase deploy --only functions:whatsappProxyGetAccountsStaff,functions:whatsappProxyGetInbox
+supabase use superparty-frontend
+supabase deploy --only functions:whatsappProxyGetAccountsStaff,functions:whatsappProxyGetInbox
 ```
 
 ### 2. Apply Cloud Run IAM (REQUIRED)
@@ -79,10 +79,10 @@ If you get 403 `employee_only`, user needs staff profile:
 
 ```bash
 # Check if user has staff profile
-firebase firestore:get staffProfiles/{USER_UID}
+supabase database:get staffProfiles/{USER_UID}
 
 # Or create one (if you have admin access)
-# In Firestore console: Create document at staffProfiles/{USER_UID} with:
+# In Database console: Create document at staffProfiles/{USER_UID} with:
 # {
 #   "role": "staff" | "gm" | "admin",
 #   "createdAt": <timestamp>,
@@ -90,7 +90,7 @@ firebase firestore:get staffProfiles/{USER_UID}
 # }
 ```
 
-**Admin emails** (auto-allowed, no Firestore doc needed):
+**Admin emails** (auto-allowed, no Database doc needed):
 - `ursache.andrei1995@gmail.com` (super admin)
 - Emails in `ADMIN_EMAILS` env var (comma-separated)
 
@@ -105,8 +105,8 @@ firebase firestore:get staffProfiles/{USER_UID}
 After opening Staff Inbox in app:
 
 ```bash
-firebase functions:log --only whatsappProxyGetAccountsStaff --lines 60
-firebase functions:log --only whatsappProxyGetInbox --lines 60
+supabase functions:log --only whatsappProxyGetAccountsStaff --lines 60
+supabase functions:log --only whatsappProxyGetInbox --lines 60
 ```
 
 **Expected logs:**
@@ -141,7 +141,7 @@ curl -s http://37.27.34.179:8080/health
   "service": "whatsapp-backend",
   "version": "2.0.0",
   "commit": "...",
-  "firestore": "connected",
+  "database": "connected",
   ...
 }
 ```
@@ -164,7 +164,7 @@ curl -s http://37.27.34.179:8080/health
 **Check:**
 - Flutter logs show `tokenPresent=true` in BEFORE request
 - `_requireIdToken()` is called before request
-- User is logged in (`FirebaseAuth.instance.currentUser != null`)
+- User is logged in (`SupabaseAuth.instance.currentUser != null`)
 
 ### Problem: 401 "unauthorized" / "Missing token" (from Hetzner)
 
@@ -181,16 +181,16 @@ curl -s http://37.27.34.179:8080/health
 **Cause:** User not in staffProfiles or admin list
 
 **Fix:**
-1. Add user to `staffProfiles/{uid}` in Firestore with `role: "staff"` (or "gm"/"admin")
+1. Add user to `staffProfiles/{uid}` in Database with `role: "staff"` (or "gm"/"admin")
 2. OR add user email to `ADMIN_EMAILS` env var in Functions
 3. OR user email is `ursache.andrei1995@gmail.com` (super admin)
 
 ### Problem: 503 from Hetzner
 
-**Cause:** Backend in PASSIVE mode or Firestore unavailable
+**Cause:** Backend in PASSIVE mode or Database unavailable
 
 **Check:**
-- `curl http://37.27.34.179:8080/health` → `firestore: "connected"`
+- `curl http://37.27.34.179:8080/health` → `database: "connected"`
 - `curl http://37.27.34.179:8080/ready` → `mode: "active"`
 
 ## Outputs for Verification
@@ -209,7 +209,7 @@ gcloud run services get-iam-policy whatsappproxygetaccountsstaff --region us-cen
 curl -i https://us-central1-superparty-frontend.cloudfunctions.net/whatsappProxyGetAccountsStaff
 
 # 4. Functions logs (after opening Staff Inbox in app)
-firebase functions:log --only whatsappProxyGetAccountsStaff --lines 60
+supabase functions:log --only whatsappProxyGetAccountsStaff --lines 60
 
 # 5. Backend health
 curl -s http://37.27.34.179:8080/health

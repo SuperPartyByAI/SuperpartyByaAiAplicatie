@@ -13,8 +13,8 @@ ssh root@37.27.34.179 "journalctl -u whatsapp-backend --since '60 minutes ago' -
 ```
 
 **Dacă vezi erori de `create_composite` pentru threads:**
-- Indexul nu este "Ready/Enabled" în Firebase Console
-- Trebuie creat/activat indexul în Firebase Console → Firestore → Indexes
+- Indexul nu este "Ready/Enabled" în Supabase Console
+- Trebuie creat/activat indexul în Supabase Console → Database → Indexes
 
 ### Pasul 2: Inițiază re-pair (regenerare QR)
 
@@ -26,7 +26,7 @@ cd /Users/universparty/Aplicatie-SuperpartyByAi/whatsapp-backend
 
 **Sau manual:**
 ```bash
-export FIREBASE_API_KEY="AIzaSyDcMXO6XdFZE_tVnJ1M4Wrt8Aw7Yh1o0K0"
+export SUPABASE_API_KEY="AIzaSyDcMXO6XdFZE_tVnJ1M4Wrt8Aw7Yh1o0K0"
 cd /Users/universparty/Aplicatie-SuperpartyByAi/whatsapp-backend
 
 # Obține token-ul
@@ -78,7 +78,7 @@ Trebuie să vezi ceva de tip:
 
 **Sau manual:**
 ```bash
-export FIREBASE_API_KEY="AIzaSyDcMXO6XdFZE_tVnJ1M4Wrt8Aw7Yh1o0K0"
+export SUPABASE_API_KEY="AIzaSyDcMXO6XdFZE_tVnJ1M4Wrt8Aw7Yh1o0K0"
 TOKEN=$(node scripts/get-id-token-terminal.js superpartybyai@gmail.com 2>/dev/null | grep -E "^eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$" | head -n 1)
 ACCOUNT_ID="account_prod_26ec0bfb54a6ab88cc3cd7aba6a9a443"
 
@@ -122,7 +122,7 @@ ssh root@37.27.34.179 "journalctl -u whatsapp-backend --since '30 minutes ago' -
 1. **`re-pair-history-sync.sh`** - Proces complet automatizat (pașii 1-4)
 2. **`monitor-history-sync.sh`** - Monitorizare History Sync (pasul 4)
 3. **`run-backfill.sh`** - Rulare backfill (pasul 5)
-4. **`get-and-use-token.sh`** - Obținere și utilizare token Firebase
+4. **`get-and-use-token.sh`** - Obținere și utilizare token Supabase
 
 ## Troubleshooting
 
@@ -137,5 +137,5 @@ ssh root@37.27.34.179 "journalctl -u whatsapp-backend --since '30 minutes ago' -
 
 **Backfill nu funcționează:**
 - Asigură-te că History Sync s-a terminat complet
-- Verifică indexurile Firestore
+- Verifică indexurile Database
 - Verifică logurile pentru erori

@@ -6,12 +6,12 @@
 
 ## ⚠️ DE CE MANUAL?
 
-Firebase deploy necesită autentificare interactivă (`firebase login`) care nu funcționează în Gitpod/headless environments.
+Supabase deploy necesită autentificare interactivă (`supabase login`) care nu funcționează în Gitpod/headless environments.
 
 **Soluții**:
 1. ✅ **Deploy local** (recomandat) - clonează repo și deploy de pe laptop
 2. ✅ **Deploy din GitHub Actions** - setup CI/CD cu service account
-3. ✅ **Deploy din Firebase Console** - upload manual (nu recomandat)
+3. ✅ **Deploy din Supabase Console** - upload manual (nu recomandat)
 
 ---
 
@@ -20,7 +20,7 @@ Firebase deploy necesită autentificare interactivă (`firebase login`) care nu 
 ### Prerequisite:
 - Node.js 20+
 - Git
-- Firebase CLI
+- Supabase CLI
 
 ### Pași:
 
@@ -32,32 +32,32 @@ cd Aplicatie-SuperpartyByAi
 # 2. Pull latest changes
 git pull origin main
 
-# 3. Install Firebase CLI (dacă nu e instalat)
-npm install -g firebase-tools
+# 3. Install Supabase CLI (dacă nu e instalat)
+npm install -g supabase-tools
 
-# 4. Login Firebase
-firebase login
+# 4. Login Supabase
+supabase login
 
 # 5. Set project
-firebase use superparty-frontend
+supabase use superparty-frontend
 
 # 6. Install dependencies
 cd functions
 npm install
 
-# 7. Deploy Firestore Rules
+# 7. Deploy Database Rules
 cd ..
-firebase deploy --only firestore:rules
+supabase deploy --only database:rules
 
 # 8. Deploy Functions
-firebase deploy --only functions
+supabase deploy --only functions
 
 # 9. Set GROQ API Key (dacă nu e setat)
-firebase functions:secrets:set GROQ_API_KEY
+supabase functions:secrets:set GROQ_API_KEY
 # Paste your Groq API key when prompted
 
 # 10. Verify
-firebase functions:list
+supabase functions:list
 ```
 
 ---
@@ -67,7 +67,7 @@ firebase functions:list
 ### 1. Check Functions Deployed
 
 ```bash
-firebase functions:list
+supabase functions:list
 ```
 
 **Expected output:**
@@ -83,10 +83,10 @@ firebase functions:list
 └────────────────────┴────────────┴─────────────┘
 ```
 
-### 2. Check Firestore Rules
+### 2. Check Database Rules
 
 ```bash
-firebase firestore:rules:list
+supabase database:rules:list
 ```
 
 **Expected**: Latest rules with ai_global_rules, tasks, history
@@ -105,7 +105,7 @@ curl -X POST \
 ### 4. Check Logs
 
 ```bash
-firebase functions:log --only aiEventHandler
+supabase functions:log --only aiEventHandler
 ```
 
 ---
@@ -115,7 +115,7 @@ firebase functions:log --only aiEventHandler
 **Dacă nu e setat deja:**
 
 ```bash
-firebase functions:secrets:set GROQ_API_KEY
+supabase functions:secrets:set GROQ_API_KEY
 ```
 
 **Paste key când e cerut:**
@@ -125,7 +125,7 @@ firebase functions:secrets:set GROQ_API_KEY
 
 **Verify:**
 ```bash
-firebase functions:secrets:access GROQ_API_KEY
+supabase functions:secrets:access GROQ_API_KEY
 ```
 
 ---
@@ -136,8 +136,8 @@ firebase functions:secrets:access GROQ_API_KEY
 
 **Solution:**
 ```bash
-firebase login --reauth
-firebase use superparty-frontend
+supabase login --reauth
+supabase use superparty-frontend
 ```
 
 ### Issue: "Functions deploy failed"
@@ -149,31 +149,31 @@ firebase use superparty-frontend
 
 **Retry:**
 ```bash
-firebase deploy --only functions --force
+supabase deploy --only functions --force
 ```
 
-### Issue: "Firestore rules invalid"
+### Issue: "Database rules invalid"
 
 **Validate:**
 ```bash
-firebase firestore:rules:validate
+supabase database:rules:validate
 ```
 
 **Fix and redeploy:**
 ```bash
-firebase deploy --only firestore:rules
+supabase deploy --only database:rules
 ```
 
 ### Issue: "GROQ_API_KEY not found"
 
 **Set secret:**
 ```bash
-firebase functions:secrets:set GROQ_API_KEY
+supabase functions:secrets:set GROQ_API_KEY
 ```
 
 **Redeploy functions:**
 ```bash
-firebase deploy --only functions
+supabase deploy --only functions
 ```
 
 ---
@@ -183,10 +183,10 @@ firebase deploy --only functions
 ### Checklist:
 
 - [ ] Functions deployed (aiEventHandler, setStaffCode, processFollowUps)
-- [ ] Firestore Rules deployed
+- [ ] Database Rules deployed
 - [ ] GROQ_API_KEY secret set
 - [ ] Test create event via app
-- [ ] Check Firestore: schemaVersion=3, eventShortId numeric
+- [ ] Check Database: schemaVersion=3, eventShortId numeric
 - [ ] Check history subcollection exists
 - [ ] Check tasks collection accessible
 - [ ] No errors in logs
@@ -195,14 +195,14 @@ firebase deploy --only functions
 
 ```bash
 # 1. List functions
-firebase functions:list
+supabase functions:list
 
 # 2. Check logs
-firebase functions:log --lines 50
+supabase functions:log --lines 50
 
-# 3. Test Firestore access
+# 3. Test Database access
 cd functions
-node verify_firestore.js
+node verify_database.js
 
 # 4. Check counter
 # Should show value=5 (after migration)
@@ -214,13 +214,13 @@ node verify_firestore.js
 
 ```bash
 # List previous deployments
-firebase functions:list --versions
+supabase functions:list --versions
 
 # Rollback specific function
-firebase functions:rollback aiEventHandler --version [previous-version]
+supabase functions:rollback aiEventHandler --version [previous-version]
 
 # Rollback all functions
-firebase deploy --only functions --version [previous-version]
+supabase deploy --only functions --version [previous-version]
 ```
 
 ---
@@ -235,7 +235,7 @@ firebase deploy --only functions --version [previous-version]
 - `processFollowUps` - Scheduler (runs every hour)
 - `chatEventOps` - Existing chat operations (kept for compatibility)
 
-**Firestore Rules:**
+**Database Rules:**
 - `ai_global_rules` - read: employee, write: super admin
 - `tasks` - read: assigned/open, write: backend
 - `history` - read: employee, write: backend
@@ -250,7 +250,7 @@ firebase deploy --only functions --version [previous-version]
 ## ✅ DEPLOYMENT COMPLETE WHEN:
 
 1. ✅ All functions show "DEPLOYED" status
-2. ✅ Firestore rules updated
+2. ✅ Database rules updated
 3. ✅ GROQ_API_KEY secret set
 4. ✅ Test event creation works
 5. ✅ No errors in logs
@@ -262,8 +262,8 @@ firebase deploy --only functions --version [previous-version]
 
 **If deploy fails:**
 
-1. Check Firebase Console: https://console.firebase.google.com/project/superparty-frontend
-2. Check logs: `firebase functions:log`
+1. Check Supabase Console: https://console.supabase.google.com/project/superparty-frontend
+2. Check logs: `supabase functions:log`
 3. Verify service account permissions
 4. Contact: ursache.andrei1995@gmail.com
 

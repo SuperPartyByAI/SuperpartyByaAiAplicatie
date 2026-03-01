@@ -84,7 +84,7 @@ GET https://whats-app-ompro.ro/api/voice/token
 **Headers așteptate:**
 
 ```
-Authorization: Bearer [Firebase ID Token]
+Authorization: Bearer [Supabase ID Token]
 ```
 
 **Response așteptat (200 OK):**

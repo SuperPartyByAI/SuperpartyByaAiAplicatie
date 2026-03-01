@@ -1,4 +1,4 @@
-# Run Flutter App on Android Emulator with Firebase Emulators
+# Run Flutter App on Android Emulator with Supabase Emulators
 
 ## Quick Start
 
@@ -12,7 +12,7 @@ npm run emu:android
 ```
 
 This will:
-- Start Firebase emulators in a new window
+- Start Supabase emulators in a new window
 - Wait for all ports (8082, 9098, 5002, 4001) to be ready
 - Configure `adb reverse` for Android emulator
 - Print next steps
@@ -44,7 +44,7 @@ npm run emu:check
 
 ### Option 2: Android Studio
 
-1. **Start Firebase emulators** (use automated script):
+1. **Start Supabase emulators** (use automated script):
    ```powershell
    npm run emu:android
    ```
@@ -56,7 +56,7 @@ npm run emu:check
 ### Option 3: Manual Command Line
 
 ```powershell
-# Terminal 1: Start Firebase emulators
+# Terminal 1: Start Supabase emulators
 $root = git rev-parse --show-toplevel
 cd $root
 npm run emu
@@ -110,7 +110,7 @@ After running, check the **Run** tab at bottom:
 
 ## Manual Steps
 
-### 1. Start Firebase Emulators
+### 1. Start Supabase Emulators
 
 ```powershell
 $root = git rev-parse --show-toplevel
@@ -133,7 +133,7 @@ $adb = "$env:LOCALAPPDATA\Android\Sdk\platform-tools\adb.exe"
 & $adb devices
 
 # Setup port forwarding
-& $adb reverse tcp:8082 tcp:8082  # Firestore
+& $adb reverse tcp:8082 tcp:8082  # Database
 & $adb reverse tcp:9098 tcp:9098  # Auth
 & $adb reverse tcp:5002 tcp:5002  # Functions
 ```
@@ -173,13 +173,13 @@ This uses `10.0.2.2` instead of `127.0.0.1` (Android emulator special IP).
 **Fix:** 
 - Ensure `USE_EMULATORS=true` is set
 - Verify `adb reverse` is configured (step 2)
-- Check `firebase_service.dart` uses `127.0.0.1` (not `10.0.2.2`)
+- Check `supabase_service.dart` uses `127.0.0.1` (not `10.0.2.2`)
 
 ### Problem: App hangs on splash screen / Blank white screen with Flutter logo
 
 **Causes:**
 1. **Wrong entrypoint** (most common): Android Studio running plugin example instead of your app
-2. **Firestore connection timeout**: Emulator not available or `adb reverse` not configured
+2. **Database connection timeout**: Emulator not available or `adb reverse` not configured
 
 **Fix:**
 
@@ -212,8 +212,8 @@ If missing, run:
 - Or click **Hot Restart** button (circular arrow icon)
 
 **Step 4: Check Logs**
-- Look for: `[FirebaseService] ✅ Emulators configured`
-- Look for: `[Main] ✅ Firebase initialized successfully`
+- Look for: `[SupabaseService] ✅ Emulators configured`
+- Look for: `[Main] ✅ Supabase initialized successfully`
 - If you see `ECONNABORTED` or `UNAVAILABLE` → emulator connection issue
 
 ### Problem: "No Android emulator found"
@@ -267,8 +267,8 @@ flutter run --dart-define=USE_EMULATORS=true --dart-define=USE_ADB_REVERSE=true
 
 **Expected logs:**
 ```
-[FirebaseService] ✅ Emulators configured: host=127.0.0.1 Firestore:8082 Auth:9098 Functions:5002 UI:4001
-[Main] ✅ Firebase initialized successfully
+[SupabaseService] ✅ Emulators configured: host=127.0.0.1 Database:8082 Auth:9098 Functions:5002 UI:4001
+[Main] ✅ Supabase initialized successfully
 ```
 
 **PASS:** App starts normally, no timeout, connects to emulators.
@@ -290,10 +290,10 @@ flutter run --dart-define=USE_EMULATORS=true --dart-define=USE_ADB_REVERSE=true
 ```
 
 **Expected:**
-- App shows "Firebase Initialization Failed" screen
-- Error message: "Firebase initialization failed or timed out"
-- Button "Retry Firebase Initialization" available
-- Logs show: `[Main] ❌ Firebase initialization failed: TimeoutException`
+- App shows "Supabase Initialization Failed" screen
+- Error message: "Supabase initialization failed or timed out"
+- Button "Retry Supabase Initialization" available
+- Logs show: `[Main] ❌ Supabase initialization failed: TimeoutException`
 
 **PASS:** App shows error screen (doesn't hang), retry button works.
 
@@ -312,8 +312,8 @@ flutter run --dart-define=USE_EMULATORS=true --dart-define=USE_ADB_REVERSE=false
 
 **Expected logs:**
 ```
-[FirebaseService] ✅ Emulators configured: host=10.0.2.2 Firestore:8082 Auth:9098 Functions:5002 UI:4001
-[Main] ✅ Firebase initialized successfully
+[SupabaseService] ✅ Emulators configured: host=10.0.2.2 Database:8082 Auth:9098 Functions:5002 UI:4001
+[Main] ✅ Supabase initialized successfully
 ```
 
 **PASS:** App connects via `10.0.2.2` automatically, no timeout, no adb reverse needed.
@@ -330,7 +330,7 @@ flutter run --dart-define=USE_EMULATORS=true --dart-define=USE_ADB_REVERSE=false
 
 ## Flags
 
-- `USE_EMULATORS=true`: Enable Firebase emulator mode
+- `USE_EMULATORS=true`: Enable Supabase emulator mode
 - `USE_ADB_REVERSE=true` (default): Use `127.0.0.1` with adb reverse
 - `USE_ADB_REVERSE=false`: Use `10.0.2.2` without adb reverse (Android emulator only)
 - `EMULATOR_HOST_IP=<ip>`: Explicit host IP for physical Android devices (required if not emulator)

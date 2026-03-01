@@ -439,10 +439,10 @@ Monitor these metrics:
 ### Deployment Commands
 
 ```bash
-# Frontend (Firebase Hosting)
+# Frontend (Supabase Hosting)
 npm run deploy:frontend
 
-# WhatsApp Functions (Firebase Functions)
+# WhatsApp Functions (Supabase Functions)
 npm run deploy:whatsapp
 
 # WhatsApp Backend (legacy hosting)

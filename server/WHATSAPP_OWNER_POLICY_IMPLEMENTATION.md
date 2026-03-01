@@ -11,7 +11,7 @@
 Implemented secure WhatsApp message sending via Functions proxy with:
 - **Owner/co-writer policy**: First send sets `ownerUid`, only owner/co-writers can send
 - **Idempotency**: Deterministic `requestId` (sha256) prevents duplicate sends
-- **Server-only writes**: Client cannot write to `outbox` directly (Firestore rules)
+- **Server-only writes**: Client cannot write to `outbox` directly (Database rules)
 - **Atomic transactions**: Sets `ownerUid` and creates `outbox` doc atomically
 
 ---
@@ -21,7 +21,7 @@ Implemented secure WhatsApp message sending via Functions proxy with:
 ### Commit 1: Functions Proxy (`53f2c282`)
 1. `functions/whatsappProxy.js` (NEW)
    - `POST /whatsappProxy/send` endpoint
-   - Firebase ID token authentication
+   - Supabase ID token authentication
    - Owner/co-writer policy enforcement
    - Idempotency with deterministic `requestId`
    - Atomic transaction for `ownerUid` + `outbox` creation
@@ -32,15 +32,15 @@ Implemented secure WhatsApp message sending via Functions proxy with:
 3. `functions/test/whatsappProxy.test.js` (NEW)
    - Unit tests: owner policy, co-writer access, idempotency, validation
 
-4. `functions/__tests__/firestoreRulesEmulator.test.js` (NEW)
-   - Firestore rules emulator tests (skipped if emulator not available)
+4. `functions/__tests__/databaseRulesEmulator.test.js` (NEW)
+   - Database rules emulator tests (skipped if emulator not available)
 
 5. `superparty_flutter/lib/services/whatsapp_api_service.dart` (NEW)
    - `sendViaProxy()` method
-   - Calls Functions proxy with Firebase ID token
+   - Calls Functions proxy with Supabase ID token
 
-### Commit 2: Firestore Rules (`<commit-sha>`)
-1. `firestore.rules`
+### Commit 2: Database Rules (`<commit-sha>`)
+1. `database.rules`
    - Outbox: `allow read: if isEmployee()`
    - Outbox: `allow create, update, delete: if false` (server-only)
 
@@ -89,7 +89,7 @@ await db.runTransaction(async (transaction) => {
   if (shouldSetOwner && !latestThreadData?.ownerUid) {
     transaction.update(threadRef, {
       ownerUid: uid,
-      coWriterUids: admin.firestore.FieldValue.arrayUnion(),
+      coWriterUids: admin.database.FieldValue.arrayUnion(),
     });
   }
 
@@ -112,7 +112,7 @@ await db.runTransaction(async (transaction) => {
     payload: { text },
     status: 'queued',
     attempts: 0,
-    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    createdAt: admin.database.FieldValue.serverTimestamp(),
     createdByUid: uid,
   };
 
@@ -130,7 +130,7 @@ Future<Map<String, dynamic>> sendViaProxy({
   required String text,
   required String clientMessageId,
 }) async {
-  final user = FirebaseAuth.instance.currentUser;
+  final user = SupabaseAuth.instance.currentUser;
   if (user == null) throw Exception('Not authenticated');
 
   final token = await user.getIdToken();
@@ -160,7 +160,7 @@ Future<Map<String, dynamic>> sendViaProxy({
 }
 ```
 
-### Firestore Rules (firestore.rules)
+### Database Rules (database.rules)
 
 ```javascript
 // Outbox - WhatsApp message queue - POLITICA: NEVER DELETE
@@ -190,9 +190,9 @@ npm test -- whatsappProxy.test.js
 - ✅ Idempotency tests pass
 - ✅ Validation tests pass
 
-### Firestore Rules Tests (Optional - requires emulator)
+### Database Rules Tests (Optional - requires emulator)
 ```bash
-firebase emulators:exec --only firestore "npm --prefix functions test -- firestoreRulesEmulator.test.js"
+supabase emulators:exec --only database "npm --prefix functions test -- databaseRulesEmulator.test.js"
 ```
 
 **Note:** Tests are skipped if emulator not available (no Java).
@@ -215,13 +215,13 @@ flutter test
    - Type message in chat input
    - Press send
    - **Verify:**
-     - Functions proxy receives request with Firebase ID token
+     - Functions proxy receives request with Supabase ID token
      - Thread document gets `ownerUid` set to current user
      - Outbox document created with `status='queued'`
      - Response: `{ success: true, requestId: "...", duplicate: false }`
 
 3. **Verify Outbox Doc Created by Server**
-   - Check Firestore Console: `outbox/{requestId}`
+   - Check Database Console: `outbox/{requestId}`
    - **Verify fields:**
      - `requestId`: sha256 hash
      - `threadId`: matches thread
@@ -268,11 +268,11 @@ Threads collection now includes:
 
 ## Security Notes
 
-1. **Client cannot write outbox**: Firestore rules deny create/update/delete
-2. **Functions proxy uses Admin SDK**: Bypasses Firestore rules
+1. **Client cannot write outbox**: Database rules deny create/update/delete
+2. **Functions proxy uses Admin SDK**: Bypasses Database rules
 3. **Owner set atomically**: Transaction ensures only first sender becomes owner
 4. **Idempotency**: Deterministic `requestId` prevents duplicate sends
-5. **Auth required**: Firebase ID token verified on every request
+5. **Auth required**: Supabase ID token verified on every request
 
 ---
 
@@ -281,7 +281,7 @@ Threads collection now includes:
 ✅ **Implementation complete**  
 ✅ **3 commits created**  
 ✅ **Tests added**  
-✅ **Firestore rules updated**
+✅ **Database rules updated**
 
 **Next steps:**
 - Integrate `sendViaProxy` in Flutter chat screen UI (when chat screen is implemented)

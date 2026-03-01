@@ -29,9 +29,9 @@
 - **Lines:** 4265-4600 (outbox worker loop)
 - **Current:** Processes queued messages from `outbox` collection
 
-### Firestore Helper Functions
+### Database Helper Functions
 - **File:** `whatsapp-backend/server.js`
-- **Function:** `saveAccountToFirestore()` (lines 451-472)
+- **Function:** `saveAccountToDatabase()` (lines 451-472)
 - **Function:** `logIncident()` (lines 475-497)
 
 ---

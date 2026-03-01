@@ -1,26 +1,26 @@
 #!/usr/bin/env node
 
 /**
- * Script simplu pentru a genera Firebase ID token
+ * Script simplu pentru a genera Supabase ID token
  * Rulează: node scripts/generate-token-simple.js <email> <password>
  */
 
 const https = require('https');
 
-const FIREBASE_API_KEY = process.env.FIREBASE_API_KEY || 'AIzaSyC...'; // Setează API key-ul tău
-const FIREBASE_PROJECT_ID = 'superparty-frontend';
+const SUPABASE_API_KEY = process.env.SUPABASE_API_KEY || 'AIzaSyC...'; // Setează API key-ul tău
+const SUPABASE_PROJECT_ID = 'superparty-frontend';
 
-async function getFirebaseIdToken(email, password) {
-  if (!FIREBASE_API_KEY || FIREBASE_API_KEY === 'AIzaSyC...') {
-    console.error('❌ Setează FIREBASE_API_KEY!');
-    console.error('Obține-l din: https://console.firebase.google.com/project/superparty-frontend/settings/general');
-    console.error('Apoi rulează: export FIREBASE_API_KEY="your-key"');
+async function getSupabaseIdToken(email, password) {
+  if (!SUPABASE_API_KEY || SUPABASE_API_KEY === 'AIzaSyC...') {
+    console.error('❌ Setează SUPABASE_API_KEY!');
+    console.error('Obține-l din: https://console.supabase.google.com/project/superparty-frontend/settings/general');
+    console.error('Apoi rulează: export SUPABASE_API_KEY="your-key"');
     process.exit(1);
   }
 
   try {
     // Step 1: Sign in with email/password
-    const signInUrl = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${FIREBASE_API_KEY}`;
+    const signInUrl = `https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword?key=${SUPABASE_API_KEY}`;
     
     const signInData = JSON.stringify({
       email: email,
@@ -39,7 +39,7 @@ async function getFirebaseIdToken(email, password) {
       if (error.error?.message?.includes('INVALID_PASSWORD') || error.error?.message?.includes('EMAIL_NOT_FOUND')) {
         console.error('\n💡 Sugestii:');
         console.error('1. Verifică că email-ul și parola sunt corecte');
-        console.error('2. Dacă nu ai parolă, resetează-o din Firebase Console');
+        console.error('2. Dacă nu ai parolă, resetează-o din Supabase Console');
         console.error('3. Sau folosește metoda din browser (F12 → Console)');
       }
       process.exit(1);
@@ -112,14 +112,14 @@ if (!email || !password) {
   console.error('\nUsage:');
   console.error('  node scripts/generate-token-simple.js <email> <password>');
   console.error('\nSau cu variabile de mediu:');
-  console.error('  export FIREBASE_API_KEY="your-api-key"');
+  console.error('  export SUPABASE_API_KEY="your-api-key"');
   console.error('  node scripts/generate-token-simple.js your@email.com yourpassword');
-  console.error('\n💡 Obține FIREBASE_API_KEY din:');
-  console.error('   https://console.firebase.google.com/project/superparty-frontend/settings/general');
+  console.error('\n💡 Obține SUPABASE_API_KEY din:');
+  console.error('   https://console.supabase.google.com/project/superparty-frontend/settings/general');
   process.exit(1);
 }
 
-getFirebaseIdToken(email, password).catch((error) => {
+getSupabaseIdToken(email, password).catch((error) => {
   console.error('Fatal error:', error);
   process.exit(1);
 });

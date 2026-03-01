@@ -17,7 +17,7 @@ import { readFileSync, existsSync } from 'fs';
 import path from 'path';
 
 const require = createRequire(import.meta.url);
-const admin = require('firebase-admin');
+const admin = require('supabase-admin');
 
 function loadServiceAccount() {
   const cwd = process.cwd();
@@ -35,7 +35,7 @@ function loadServiceAccount() {
     const v = tryPath(gac);
     if (v) return v;
   }
-  const fpath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH;
+  const fpath = process.env.SUPABASE_SERVICE_ACCOUNT_PATH;
   if (fpath) {
     const v = tryPath(fpath);
     if (v) return v;
@@ -121,7 +121,7 @@ async function main() {
 
   const cred = loadServiceAccount();
   if (!cred) {
-    console.error('Missing Firebase credentials. Set GOOGLE_APPLICATION_CREDENTIALS or serviceAccountKey.json.');
+    console.error('Missing Supabase credentials. Set GOOGLE_APPLICATION_CREDENTIALS or serviceAccountKey.json.');
     process.exit(1);
   }
 
@@ -131,7 +131,7 @@ async function main() {
       projectId: project,
     });
   }
-  const db = admin.firestore();
+  const db = admin.database();
 
   console.log(`Mode: ${dryRun ? 'dry-run' : 'migrate'}${hideAfter ? ' + hide-after' : ''}`);
 

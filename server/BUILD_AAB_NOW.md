@@ -1,6 +1,6 @@
 # 🚀 Build AAB - SuperParty v1.2.0+14
 
-## ✅ Firebase Functions Deployed!
+## ✅ Supabase Functions Deployed!
 
 Acum trebuie să construiești AAB-ul pentru Play Store.
 
@@ -264,9 +264,9 @@ Build-ul este reușit când:
 - Crash reports: Vitals → Crashes
 - User reviews: User feedback → Reviews
 
-**Firebase:**
-- Analytics: https://console.firebase.google.com/project/superparty-frontend/analytics
-- Crashlytics: https://console.firebase.google.com/project/superparty-frontend/crashlytics
+**Supabase:**
+- Analytics: https://console.supabase.google.com/project/superparty-frontend/analytics
+- Crashlytics: https://console.supabase.google.com/project/superparty-frontend/crashlytics
 
 ---
 

@@ -24,8 +24,8 @@ cd functions && npm install && cd ..
 cd superparty_flutter && flutter pub get && cd ..
 
 # Configure secrets (REQUIRED - see Secrets Checklist below)
-# 1. Download google-services.json from Firebase Console
-# 2. Place at: superparty_flutter/android/app/google-services.json
+# 1. Download config.json from Supabase Console
+# 2. Place at: superparty_flutter/android/app/config.json
 # 3. Run: cd superparty_flutter && flutterfire configure
 # 4. Create .env file from LEGACY_HOSTING-VARIABLES.env.example
 
@@ -38,8 +38,8 @@ npm run emu:fix  # One-command setup (Windows)
 
 Before running the app, you must configure:
 
-- [ ] **Firebase Android Config**: Download `google-services.json` from [Firebase Console](https://console.firebase.google.com/project/superparty-frontend/settings/general) → Android app → Download config file → Place at `superparty_flutter/android/app/google-services.json`
-- [ ] **Firebase Flutter Config**: Run `cd superparty_flutter && flutterfire configure` to generate `firebase_options.dart`
+- [ ] **Supabase Android Config**: Download `config.json` from [Supabase Console](https://console.supabase.google.com/project/superparty-frontend/settings/general) → Android app → Download config file → Place at `superparty_flutter/android/app/config.json`
+- [ ] **Supabase Flutter Config**: Run `cd superparty_flutter && flutterfire configure` to generate `supabase_options.dart`
 - [ ] **Environment Variables**: Copy `LEGACY_HOSTING-VARIABLES.env.example` to `.env` and fill in your API keys (OpenAI, Twilio, etc.)
 
 **⚠️ These files are NOT committed to Git for security. See `SETUP_NEW_LAPTOP.md` for detailed setup instructions.**
@@ -56,9 +56,9 @@ This shows only the status of workflows for the latest commit on `main` branch.
 
 ---
 
-## 👥 Staff Settings (Flutter) + Admin (Firebase Auth/Firestore/Functions)
+## 👥 Staff Settings (Flutter) + Admin (Supabase Auth/Database/Functions)
 
-This repo includes a production-safe **Staff self-setup** flow and an **Admin** panel implemented in Flutter, backed by **Cloud Functions** (server-side allocation) and hardened **Firestore rules**.
+This repo includes a production-safe **Staff self-setup** flow and an **Admin** panel implemented in Flutter, backed by **Cloud Functions** (server-side allocation) and hardened **Database rules**.
 
 ### Flutter app (web/mobile)
 
@@ -70,7 +70,7 @@ flutter pub get
 flutter run
 ```
 
-### Firestore collections (required)
+### Database collections (required)
 
 - `users/{uid}`
   - `kycDone` (bool)
@@ -99,32 +99,32 @@ flutter run
 ### Deploy rules + functions
 
 ```bash
-# Build & deploy Cloud Functions + Firestore rules
+# Build & deploy Cloud Functions + Database rules
 cd functions
 npm i
 npm run build
 cd ..
 
-# Deploy Firestore rules
-firebase deploy --only firestore:rules
+# Deploy Database rules
+supabase deploy --only database:rules
 
 # Deploy Cloud Functions
-firebase deploy --only functions
+supabase deploy --only functions
 ```
 
 ### Seed teams + pools (3 teams + code pools)
 
 ```bash
 # Emulator
-node tools/seed_firestore.js --emulator
+node tools/seed_database.js --emulator
 
 # Production (requires GOOGLE_APPLICATION_CREDENTIALS)
-node tools/seed_firestore.js --project <projectId>
+node tools/seed_database.js --project <projectId>
 ```
 
 ### Seed teams + pools
 
-Create docs in Firestore:
+Create docs in Database:
 
 - `teams/<teamId>` with `label`, `active:true`
 - `teamCodePools/<teamId>` with `prefix` and `freeCodes` populated (numbers)
@@ -135,12 +135,12 @@ Preferred: set a **custom claim** `admin: true` using Admin SDK (example via Fun
 
 ```bash
 cd functions
-firebase functions:shell
+supabase functions:shell
 ```
 
 ```js
 // In the shell:
-const admin = require('firebase-admin')
+const admin = require('supabase-admin')
 admin.auth().setCustomUserClaims('<uid>', { admin: true })
 ```
 
@@ -158,11 +158,11 @@ See `functions/test/STAFF_CALLABLES_EMULATOR.md`.
 
 ### Quick smoke test (NO Flutter)
 
-This repo includes a Node-only harness that validates the Staff + Admin callables against the **Firestore emulator** and prints **PASS/FAIL**.
+This repo includes a Node-only harness that validates the Staff + Admin callables against the **Database emulator** and prints **PASS/FAIL**.
 
 ```powershell
 # Terminal 1: start emulators
-firebase emulators:start --only firestore,functions
+supabase emulators:start --only database,functions
 
 # Terminal 2: run autorun harness (seeds + runs 9 checks)
 node tools/smoke_run_emulator.js
@@ -222,7 +222,7 @@ flutter run
 #### 🚀 Performance
 
 - **Redis Cache**: Distributed caching with automatic fallback to in-memory
-- **TanStack Query**: Frontend caching and data synchronization (70% Firebase read reduction)
+- **TanStack Query**: Frontend caching and data synchronization (70% Supabase read reduction)
 - **In-Memory Cache**: TTL-based caching with getOrSet pattern (fallback)
 - **Feature Flags**: Runtime feature toggling without deployments
 

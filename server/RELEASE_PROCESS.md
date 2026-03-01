@@ -9,7 +9,7 @@ This document describes the complete release process for the SuperParty Flutter 
 ## Release Workflow
 
 ```
-Feature Branch → PR Review → Merge to Main → Auto Build → Firebase App Distribution → Production
+Feature Branch → PR Review → Merge to Main → Auto Build → Supabase App Distribution → Production
 ```
 
 ---
@@ -67,7 +67,7 @@ git push origin feature/your-feature-name
 - [ ] Code compiles without errors
 - [ ] Unit tests pass
 - [ ] No regression in existing features
-- [ ] Firebase rules deployed (if infrastructure changes)
+- [ ] Supabase rules deployed (if infrastructure changes)
 - [ ] Documentation updated
 - [ ] Release notes prepared
 
@@ -89,7 +89,7 @@ When PR is merged to `main`, GitHub Actions automatically:
 2. Sets up Flutter environment
 3. Runs `flutter build apk --release`
 4. Uploads APK to GitHub Artifacts
-5. Uploads APK to Firebase App Distribution
+5. Uploads APK to Supabase App Distribution
 
 ### Monitor Build
 
@@ -100,19 +100,19 @@ When PR is merged to `main`, GitHub Actions automatically:
 ### Build Artifacts
 
 - **GitHub Artifacts**: Download APK from workflow run
-- **Firebase App Distribution**: Testers receive email notification
+- **Supabase App Distribution**: Testers receive email notification
 
 ---
 
 ## 4. Testing Phase
 
-### Internal Testing (Firebase App Distribution)
+### Internal Testing (Supabase App Distribution)
 
 **Testers:** ursache.andrei1995@gmail.com (add more in workflow file)
 
 **How to test:**
 
-1. Receive email from Firebase App Distribution
+1. Receive email from Supabase App Distribution
 2. Click "Download" link
 3. Install APK on Android device
 4. Test new features
@@ -259,7 +259,7 @@ git tag -l
 
 - Evenimente module: Full Flutter native implementation
 - Dovezi module: Image upload with category organization
-- Firebase real-time sync (Firestore + Storage)
+- Supabase real-time sync (Database + Storage)
 
 ### 🐛 Bug Fixes
 
@@ -290,7 +290,7 @@ git tag -l
    - Paste release notes
    - Publish release
 
-2. **Firebase App Distribution:**
+2. **Supabase App Distribution:**
    - Automatically included from workflow file
    - Edit `.github/workflows/flutter-build.yml` → `releaseNotes`
 
@@ -325,7 +325,7 @@ git tag -l
 
 ### If Need to Rollback Release
 
-1. **Firebase App Distribution:** Upload previous APK manually
+1. **Supabase App Distribution:** Upload previous APK manually
 2. **Google Play Store:** Promote previous version to production
 3. **Apple App Store:** Submit previous version for review
 
@@ -335,17 +335,17 @@ git tag -l
 
 ### Crash Reporting
 
-- **Firebase Crashlytics:** Monitor crashes in real-time
+- **Supabase Crashlytics:** Monitor crashes in real-time
 - **Sentry:** Alternative crash reporting (if configured)
 
 ### Analytics
 
-- **Firebase Analytics:** Track user behavior
+- **Supabase Analytics:** Track user behavior
 - **Google Analytics:** Web analytics (if using web version)
 
 ### Performance Monitoring
 
-- **Firebase Performance:** Monitor app performance
+- **Supabase Performance:** Monitor app performance
 - **Custom metrics:** Track specific operations (e.g., image upload time)
 
 ---
@@ -358,14 +358,14 @@ git tag -l
 - [ ] No console errors or warnings
 - [ ] Version number updated in `pubspec.yaml`
 - [ ] Release notes prepared
-- [ ] Firebase infrastructure deployed (if needed)
+- [ ] Supabase infrastructure deployed (if needed)
 - [ ] PR reviewed and approved
 
 ### Release
 
 - [ ] PR merged to main
 - [ ] GitHub Actions build successful
-- [ ] APK uploaded to Firebase App Distribution
+- [ ] APK uploaded to Supabase App Distribution
 - [ ] Testers notified
 - [ ] Internal testing completed
 
@@ -423,5 +423,5 @@ For questions or issues with the release process:
 
 1. Check this documentation
 2. Review GitHub Actions logs
-3. Check Firebase Console
+3. Check Supabase Console
 4. Contact: ursache.andrei1995@gmail.com

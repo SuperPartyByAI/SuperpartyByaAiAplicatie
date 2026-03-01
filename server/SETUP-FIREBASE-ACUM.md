@@ -1,4 +1,4 @@
-# 🔥 Setup Firebase ACUM - Pentru Session Persistence
+# 🔥 Setup Supabase ACUM - Pentru Session Persistence
 
 ## 🎯 CE REZOLVĂ
 
@@ -9,7 +9,7 @@
 
 **Soluția:**
 
-- Salvează sessions + metadata în Firestore
+- Salvează sessions + metadata în Database
 - Conturile rămân în listă PERMANENT
 - Nu mai scanezi QR niciodată (după prima dată)
 
@@ -17,14 +17,14 @@
 
 ## 📋 PAȘI (10 minute)
 
-### Pas 1: Firebase Console (5 min)
+### Pas 1: Supabase Console (5 min)
 
-1. **Deschide:** https://console.firebase.google.com
+1. **Deschide:** https://console.supabase.google.com
 
 2. **Selectează proiect:** `superparty-frontend` (sau creează unul nou)
 
-3. **Activează Firestore:**
-   - Click "Firestore Database" în sidebar
+3. **Activează Database:**
+   - Click "Database Database" în sidebar
    - Click "Create database"
    - Selectează "Start in production mode"
    - Location: "europe-west3" (Frankfurt)
@@ -52,7 +52,7 @@
 2. **Adaugă JSON:**
 
    ```
-   FIREBASE_SERVICE_ACCOUNT={"type":"service_account","project_id":"superparty-frontend",...}
+   SUPABASE_SERVICE_ACCOUNT={"type":"service_account","project_id":"superparty-frontend",...}
    ```
 
    (paste întregul JSON pe o singură linie)
@@ -70,7 +70,7 @@
 2. **Verifică logs:**
 
    ```
-   ✅ Firebase initialized
+   ✅ Supabase initialized
    ```
 
 3. **Adaugă cont:**
@@ -113,22 +113,22 @@ După configurare:
 
 ## ❌ Troubleshooting
 
-**Problema:** "No Firebase credentials"
+**Problema:** "No Supabase credentials"
 
 - Verifică că ai copiat ÎNTREGUL JSON
 - Verifică că nu ai spații extra
 - Verifică că JSON e valid (jsonlint.com)
 
-**Problema:** "Firebase initialization failed"
+**Problema:** "Supabase initialization failed"
 
 - Verifică că Service Account are permisiuni
 - Regenerează Service Account key
 
 **Problema:** Contul tot dispare
 
-- Verifică că vezi în logs: "💾 Session saved to Firestore"
-- Verifică în Firebase Console că există colecția `whatsapp_sessions`
+- Verifică că vezi în logs: "💾 Session saved to Database"
+- Verifică în Supabase Console că există colecția `whatsapp_sessions`
 
 ---
 
-**Gata! Acum ai WhatsApp REAL și STABIL cu Baileys + Firestore!** 🚀
+**Gata! Acum ai WhatsApp REAL și STABIL cu Baileys + Database!** 🚀

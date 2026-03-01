@@ -1,5 +1,5 @@
 ========================================
-GENEREAZA TOKEN FIREBASE CI
+GENEREAZA TOKEN SUPABASE CI
 ========================================
 
 PASUL 1: Deschide CMD (Command Prompt)
@@ -13,7 +13,7 @@ Enter
 PASUL 2: Ruleaza comanda pentru token
 ========================================
 
-firebase login:ci
+supabase login:ci
 
 ========================================
 PASUL 3: Se va deschide browser-ul

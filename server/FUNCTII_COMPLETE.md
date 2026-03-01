@@ -130,10 +130,10 @@ Funcțiile AI noi vor fi integrate în:
 
 ## 🔧 Arhitectură
 
-### Backend (Firebase Functions)
+### Backend (Supabase Functions)
 
 ```
-Firebase Functions
+Supabase Functions
 ├── AI Functions (NOU)
 │   ├── createEventFromAI
 │   ├── noteazaEventeAutomat
@@ -235,5 +235,5 @@ După ce aplicația este live:
 ---
 
 **Versiune:** 1.2.0+14  
-**Status:** Firebase Functions ✅ | Centrala ✅ | WhatsApp ✅  
+**Status:** Supabase Functions ✅ | Centrala ✅ | WhatsApp ✅  
 **Next:** Build AAB

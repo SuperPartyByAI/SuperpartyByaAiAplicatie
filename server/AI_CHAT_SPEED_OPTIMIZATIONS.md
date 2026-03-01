@@ -6,9 +6,9 @@ Mesajele se trimiteau greu în aplicația Flutter - latență mare între trimit
 
 ## Cauze Principale
 
-1. **Firebase Function lentă** - 60s timeout, query Firestore pentru istoric
+1. **Supabase Function lentă** - 60s timeout, query Database pentru istoric
 2. **Fără Optimistic UI** - user așteaptă răspunsul complet înainte să vadă mesajul
-3. **Salvare sincronă** - aștepta să salveze în Firestore înainte de răspuns
+3. **Salvare sincronă** - aștepta să salveze în Database înainte de răspuns
 4. **Fără cache** - fiecare întrebare identică făcea un nou API call
 5. **ListView neoptimizat** - scroll lent cu multe mesaje
 
@@ -61,7 +61,7 @@ setState(() {
 - `maxWidth` constraint pentru mesaje mai lizibile
 - Indicator "Scriu..." animat pentru placeholder
 
-### 2. Firebase Function (functions/index.js)
+### 2. Supabase Function (functions/index.js)
 
 #### Timeout Redus
 
@@ -83,12 +83,12 @@ memory: '256MiB';
 memory: '512MiB';
 ```
 
-#### Eliminat Query Firestore
+#### Eliminat Query Database
 
 ```javascript
 // ÎNAINTE: Query pentru istoric important (lent!)
 const messagesRef = admin
-  .firestore()
+  .database()
   .collection('aiChats')
   .doc(userId)
   .collection('messages')
@@ -104,11 +104,11 @@ const recentMessages = data.messages.slice(-10);
 #### Salvare Asincronă
 
 ```javascript
-// ÎNAINTE: Așteaptă salvarea în Firestore
-await admin.firestore().collection('aiChats')...
+// ÎNAINTE: Așteaptă salvarea în Database
+await admin.database().collection('aiChats')...
 
 // DUPĂ: Fire-and-forget (nu așteaptă)
-admin.firestore().collection('aiChats')...
+admin.database().collection('aiChats')...
   .catch(err => console.error('Save error:', err));
 ```
 
@@ -192,7 +192,7 @@ max_tokens: 300;
 ### Performance Metrics
 
 ```bash
-# Deploy Firebase Function
+# Deploy Supabase Function
 cd functions
 npm run deploy
 
@@ -207,23 +207,23 @@ flutter run --release
 ## Deployment
 
 ```bash
-# 1. Deploy Firebase Function
+# 1. Deploy Supabase Function
 cd functions
-firebase deploy --only functions:chatWithAI
+supabase deploy --only functions:chatWithAI
 
 # 2. Build Flutter APK
 cd ../superparty_flutter
 flutter build apk --release
 
-# 3. Distribute via Firebase App Distribution
-firebase appdistribution:distribute build/app/outputs/flutter-apk/app-release.apk \
+# 3. Distribute via Supabase App Distribution
+supabase appdistribution:distribute build/app/outputs/flutter-apk/app-release.apk \
   --app YOUR_APP_ID \
   --groups testers
 ```
 
 ## Monitoring
 
-### Firebase Console
+### Supabase Console
 
 - Functions → chatWithAI → Metrics
 - Verifică: Execution time, Memory usage, Error rate

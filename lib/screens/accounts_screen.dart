@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import '../services/backend_service.dart';
 import '../services/auth_service.dart';
 import 'whatsapp_monitor_screen.dart'; // Noul Dashboard
@@ -78,8 +77,8 @@ class _AccountsScreenState extends State<AccountsScreen> {
         children: [
           if (_isCreating) const LinearProgressIndicator(),
           Expanded(
-            child: StreamBuilder<QuerySnapshot>(
-              stream: FirebaseFirestore.instance.collection('wa_accounts').snapshots(),
+            child: StreamBuilder<dynamic>(
+              stream: Stream.empty(),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
                   return Center(child: Text('Error: ${snapshot.error}'));

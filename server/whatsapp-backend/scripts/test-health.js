@@ -54,7 +54,7 @@ async function testHealth() {
     console.log('Version:', health.version);
     console.log('Commit:', health.commit);
     console.log('Uptime:', health.uptime, 'seconds');
-    console.log('Firestore:', health.firestore);
+    console.log('Database:', health.database);
     console.log('');
     console.log('Accounts:');
     console.log('  Total:', health.accounts.total);

@@ -54,7 +54,7 @@
 
 1. **Emulator Functions URL** (whatsapp_api_service.dart:36-40)
    - Uses `10.0.2.2:5002` when `USE_ADB_REVERSE=false` (Android emulator host mapping)
-   - Matches Firebase emulator host selection logic
+   - Matches Supabase emulator host selection logic
 
 2. **Handle 202 Gracefully** (whatsapp_api_service.dart:379-388)
    - Returns success for 202 (already in progress) - not error

@@ -10,17 +10,17 @@
 
 - [x] All tests passing (34/34 normalizers)
 - [x] Code committed and pushed to main
-- [x] Firestore Rules updated
+- [x] Database Rules updated
 - [x] Documentation complete
 - [x] Backward compatibility verified
 
 ---
 
-## 📦 STEP 1: Install Firebase CLI (if not installed)
+## 📦 STEP 1: Install Supabase CLI (if not installed)
 
 ```bash
-npm install -g firebase-tools
-firebase login
+npm install -g supabase-tools
+supabase login
 ```
 
 ---
@@ -34,10 +34,10 @@ cd /workspaces/Aplicatie-SuperpartyByAi/functions
 npm install
 
 # Deploy all functions
-firebase deploy --only functions
+supabase deploy --only functions
 
 # Or deploy specific functions
-firebase deploy --only functions:chatEventOps,functions:setStaffCode,functions:processFollowUps
+supabase deploy --only functions:chatEventOps,functions:setStaffCode,functions:processFollowUps
 ```
 
 **Expected output:**
@@ -48,7 +48,7 @@ i  functions: ensuring required API cloudfunctions.googleapis.com is enabled...
 i  functions: ensuring required API cloudbuild.googleapis.com is enabled...
 ✔  functions: required API cloudfunctions.googleapis.com is enabled
 ✔  functions: required API cloudbuild.googleapis.com is enabled
-i  functions: uploading functions code to Firebase...
+i  functions: uploading functions code to Supabase...
 ✔  functions: functions code uploaded successfully
 i  functions: updating Node.js 20 function chatEventOps(us-central1)...
 i  functions: updating Node.js 20 function setStaffCode(us-central1)...
@@ -62,19 +62,19 @@ i  functions: updating Node.js 20 function processFollowUps(us-central1)...
 
 ---
 
-## 📦 STEP 3: Deploy Firestore Rules
+## 📦 STEP 3: Deploy Database Rules
 
 ```bash
-firebase deploy --only firestore:rules
+supabase deploy --only database:rules
 ```
 
 **Expected output:**
 ```
-i  firestore: reading indexes from firestore.indexes.json...
-i  firestore: reading rules from firestore.rules...
-✔  firestore: rules file firestore.rules compiled successfully
-i  firestore: uploading rules firestore.rules...
-✔  firestore: released rules firestore.rules to cloud.firestore
+i  database: reading indexes from database.indexes.json...
+i  database: reading rules from database.rules...
+✔  database: rules file database.rules compiled successfully
+i  database: uploading rules database.rules...
+✔  database: released rules database.rules to cloud.database
 
 ✔  Deploy complete!
 ```
@@ -86,11 +86,11 @@ i  firestore: uploading rules firestore.rules...
 **IMPORTANT**: Run this ONLY ONCE to initialize the eventShortId counter.
 
 ```bash
-# Using Firebase CLI
-firebase firestore:set counters/eventShortCode '{"value": 0, "createdAt": {"_seconds": 1736636400, "_nanoseconds": 0}}'
+# Using Supabase CLI
+supabase database:set counters/eventShortCode '{"value": 0, "createdAt": {"_seconds": 1736636400, "_nanoseconds": 0}}'
 
-# Or using Firebase Console:
-# 1. Go to Firestore Database
+# Or using Supabase Console:
+# 1. Go to Database Database
 # 2. Create collection: counters
 # 3. Create document: eventShortCode
 # 4. Add field: value (number) = 0
@@ -98,7 +98,7 @@ firebase firestore:set counters/eventShortCode '{"value": 0, "createdAt": {"_sec
 
 **Verification:**
 ```bash
-firebase firestore:get counters/eventShortCode
+supabase database:get counters/eventShortCode
 ```
 
 Expected output:
@@ -116,7 +116,7 @@ Expected output:
 ### 5.1 Check Functions are Live
 
 ```bash
-firebase functions:list
+supabase functions:list
 ```
 
 Expected functions:
@@ -135,7 +135,7 @@ Expected functions:
    - Child Name: Test Child
    - Roles: Animator
 
-3. Check Firestore:
+3. Check Database:
    ```
    Collection: evenimente
    Document: [auto-generated-id]
@@ -153,7 +153,7 @@ Expected functions:
 
 1. Open app as staff member
 2. Call `setStaffCode` with code "A13"
-3. Check Firestore:
+3. Check Database:
    ```
    Collection: staffProfiles
    Document: [user-uid]
@@ -181,9 +181,9 @@ Fields:
 
 ```bash
 # Real-time logs
-firebase functions:log --only chatEventOps
+supabase functions:log --only chatEventOps
 
-# Or in Firebase Console:
+# Or in Supabase Console:
 # Functions → Logs → Filter by function name
 ```
 
@@ -202,10 +202,10 @@ If something goes wrong:
 
 ```bash
 # List previous deployments
-firebase functions:list --versions
+supabase functions:list --versions
 
 # Rollback to previous version
-firebase functions:rollback chatEventOps --version [previous-version-id]
+supabase functions:rollback chatEventOps --version [previous-version-id]
 ```
 
 ### Option 2: Rollback Code
@@ -216,7 +216,7 @@ git revert aaefffd4
 git push origin main
 
 # Redeploy
-firebase deploy --only functions
+supabase deploy --only functions
 ```
 
 ### Option 3: Emergency Fix
@@ -228,7 +228,7 @@ git commit -m "Hotfix: [description]"
 git push origin main
 
 # Deploy immediately
-firebase deploy --only functions
+supabase deploy --only functions
 ```
 
 ---
@@ -238,7 +238,7 @@ firebase deploy --only functions
 ### Checklist:
 
 - [ ] Functions deployed successfully
-- [ ] Firestore Rules deployed successfully
+- [ ] Database Rules deployed successfully
 - [ ] Counter initialized (value: 0)
 - [ ] Test event created with schemaVersion: 3
 - [ ] Test event has eventShortId (numeric)
@@ -255,21 +255,21 @@ firebase deploy --only functions
 
 **Solution:**
 ```bash
-firebase firestore:set counters/eventShortCode '{"value": 0}'
+supabase database:set counters/eventShortCode '{"value": 0}'
 ```
 
 ### Issue: "Permission denied" on staffProfiles
 
-**Solution:** Check Firestore Rules are deployed:
+**Solution:** Check Database Rules are deployed:
 ```bash
-firebase deploy --only firestore:rules
+supabase deploy --only database:rules
 ```
 
 ### Issue: Functions not updating
 
 **Solution:** Force redeploy:
 ```bash
-firebase deploy --only functions --force
+supabase deploy --only functions --force
 ```
 
 ### Issue: Old events not readable
@@ -282,9 +282,9 @@ firebase deploy --only functions --force
 
 If you encounter issues:
 
-1. Check logs: `firebase functions:log`
-2. Check Firestore Rules: Firebase Console → Firestore → Rules
-3. Check counter: `firebase firestore:get counters/eventShortCode`
+1. Check logs: `supabase functions:log`
+2. Check Database Rules: Supabase Console → Database → Rules
+3. Check counter: `supabase database:get counters/eventShortCode`
 4. Verify code is on main branch: `git log --oneline -1`
 
 ---

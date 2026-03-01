@@ -10,7 +10,7 @@
 - **Check Interval**: 30 seconds
 - **Alert**: Email/Slack when down
 
-### 2. Firebase Functions - WhatsApp V4
+### 2. Supabase Functions - WhatsApp V4
 
 - **URL**: `https://us-central1-superparty-frontend.cloudfunctions.net/whatsappV4/health`
 - **Method**: GET
@@ -18,7 +18,7 @@
 - **Check Interval**: 60 seconds
 - **Alert**: Email/Slack when down
 
-### 3. Frontend (Firebase Hosting)
+### 3. Frontend (Supabase Hosting)
 
 - **URL**: `https://superparty-frontend.web.app`
 - **Method**: GET

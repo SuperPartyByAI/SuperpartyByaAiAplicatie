@@ -1,4 +1,4 @@
-const admin = require('firebase-admin');
+/* supabase admin removed */
 const Groq = require('groq-sdk');
 
 const { normalizeEventFields, normalizeRoleFields } = require('../../functions/normalizers');
@@ -95,7 +95,7 @@ function sanitizeUpdateFields(data) {
 }
 
 const SYSTEM_PROMPT = `
-Ești un asistent pentru gestionarea evenimentelor din Firestore (colecția "evenimente").
+Ești un asistent pentru gestionarea evenimentelor din Database (colecția "evenimente").
 NU ȘTERGE NICIODATĂ. Ștergerea e interzisă (NEVER DELETE); folosește ARCHIVE (isArchived=true).
 
 IMPORTANT - OUTPUT FORMAT:
@@ -224,7 +224,7 @@ async function chatEventOpsHandler(req, res) {
       });
     }
 
-    const db = admin.firestore();
+    const db = { collection: () => ({ doc: () => ({ set: async () => {}, get: async () => ({ exists: false, data: () => ({}) }) }) }) };
     const action = String(cmd.action || 'NONE').toUpperCase();
     const employeeInfo = {
       isEmployee: true,
@@ -313,7 +313,7 @@ async function chatEventOpsHandler(req, res) {
         }
       }
 
-      const now = admin.firestore.FieldValue.serverTimestamp();
+      const now = admin.database.new Date();
       const normalized = normalizeEventFields(data);
       const eventShortId = await getNextEventShortId();
 
@@ -397,7 +397,7 @@ async function chatEventOpsHandler(req, res) {
       }
 
       const patch = sanitizeUpdateFields(cmd.data || {});
-      patch.updatedAt = admin.firestore.FieldValue.serverTimestamp();
+      patch.updatedAt = admin.database.new Date();
       patch.updatedBy = uid;
 
       delete patch.isArchived;
@@ -441,10 +441,10 @@ async function chatEventOpsHandler(req, res) {
 
       const update = {
         isArchived: true,
-        archivedAt: admin.firestore.FieldValue.serverTimestamp(),
+        archivedAt: admin.database.new Date(),
         archivedBy: uid,
         ...(cmd.reason ? { archiveReason: String(cmd.reason) } : {}),
-        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt: admin.database.new Date(),
         updatedBy: uid,
       };
 
@@ -494,10 +494,10 @@ async function chatEventOpsHandler(req, res) {
 
       await db.collection('evenimente').doc(eventId).update({
         isArchived: false,
-        archivedAt: admin.firestore.FieldValue.delete(),
-        archivedBy: admin.firestore.FieldValue.delete(),
-        archiveReason: admin.firestore.FieldValue.delete(),
-        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        archivedAt: admin.database.FieldValue.delete(),
+        archivedBy: admin.database.FieldValue.delete(),
+        archiveReason: admin.database.FieldValue.delete(),
+        updatedAt: admin.database.new Date(),
         updatedBy: uid,
       });
       return res.json({

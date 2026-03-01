@@ -3,7 +3,7 @@
  * 
  * Tests that:
  * 1. On logged_out/401: no reconnect loop scheduled
- * 2. Auth files are cleared (disk + Firestore backup)
+ * 2. Auth files are cleared (disk + Database backup)
  * 3. Account remains visible with needs_qr status
  * 4. Orphan cleanup is safe (moves, doesn't delete by default)
  */
@@ -37,7 +37,7 @@ describe('401/logged_out handling', () => {
     expect(block).toMatch(/DO NOT schedule createConnection/);
   });
 
-  test('clearAccountSession() clears disk + Firestore', () => {
+  test('clearAccountSession() clears disk + Database', () => {
     const clearAccountSessionBlock = serverCode.match(/async function clearAccountSession[\s\S]{0,800}/);
     
     expect(clearAccountSessionBlock).toBeTruthy();
@@ -47,19 +47,19 @@ describe('401/logged_out handling', () => {
     // Check disk cleanup
     expect(block).toMatch(/fs\.rmSync\(sessionPath/);
     
-    // Check Firestore backup cleanup
+    // Check Database backup cleanup
     expect(block).toMatch(/db\.collection\(['"]wa_sessions['"]\)/);
     expect(block).toMatch(/\.delete\(\)/);
   });
 
-  test('Account remains visible in API after 401 (queries Firestore)', () => {
+  test('Account remains visible in API after 401 (queries Database)', () => {
     const accountsEndpoint = serverCode.match(/app\.get\(['"]\/api\/whatsapp\/accounts['"][\s\S]{0,6000}/);
     
     expect(accountsEndpoint).toBeTruthy();
     
     const block = accountsEndpoint[0];
     
-    // Check that it queries Firestore for accounts not in memory
+    // Check that it queries Database for accounts not in memory
     expect(block).toMatch(/db\.collection\(['"]accounts['"]\)\.get\(\)/);
     
     // Check that it includes accounts with needs_qr status
@@ -81,7 +81,7 @@ describe('401/logged_out handling', () => {
   });
 
   test('Orphan session cleanup moves (does not delete by default)', () => {
-    const orphanCleanup = serverCode.match(/Clean up disk sessions.*NOT in Firestore[\s\S]{0,3000}/);
+    const orphanCleanup = serverCode.match(/Clean up disk sessions.*NOT in Database[\s\S]{0,3000}/);
     
     expect(orphanCleanup).toBeTruthy();
     
@@ -96,7 +96,7 @@ describe('401/logged_out handling', () => {
   });
 
   test('Terminal logout accounts skip auto-restore', () => {
-    const restoreAccounts = serverCode.match(/restoreAccountsFromFirestore[\s\S]{0,5200}requiresQR/);
+    const restoreAccounts = serverCode.match(/restoreAccountsFromDatabase[\s\S]{0,5200}requiresQR/);
     
     expect(restoreAccounts).toBeTruthy();
     
@@ -109,17 +109,17 @@ describe('401/logged_out handling', () => {
 });
 
 describe('Account visibility after 401', () => {
-  test('Accounts endpoint includes Firestore accounts not in memory', () => {
+  test('Accounts endpoint includes Database accounts not in memory', () => {
     const accountsEndpoint = serverCode.match(/app\.get\(['"]\/api\/whatsapp\/accounts['"][\s\S]{0,6000}/);
     
     expect(accountsEndpoint).toBeTruthy();
     
     const block = accountsEndpoint[0];
     
-    // Must query Firestore
+    // Must query Database
     expect(block).toMatch(/db\.collection\(['"]accounts['"]\)\.get\(\)/);
     
-    // Must add accounts from Firestore that are not in memory
+    // Must add accounts from Database that are not in memory
     expect(block).toMatch(/accountIdsInMemory\.has\(accountId\)|if \(!accountIdsInMemory/);
   });
 });

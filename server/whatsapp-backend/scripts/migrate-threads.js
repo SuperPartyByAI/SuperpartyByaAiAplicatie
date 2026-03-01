@@ -11,12 +11,12 @@
  *
  * Notes:
  * - Idempotent: re-run safe (checks if new thread already exists)
- * - Uses Firestore locks to prevent concurrent runs
+ * - Uses Database locks to prevent concurrent runs
  * - Skips @lid threads (they should be handled separately)
  * - Copies messages in batches to avoid memory issues
  */
 
-const admin = require('firebase-admin');
+/* supabase admin removed */
 const fs = require('fs');
 const path = require('path');
 
@@ -36,18 +36,18 @@ console.log(`Delete old threads after copy: ${DELETE_OLD ? 'yes' : 'no'}`);
 console.log(`Batch size: ${batchSize}`);
 console.log('');
 
-// Initialize Firebase Admin
+// Initialize Supabase Admin
 let serviceAccountJson;
-if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
+if (process.env.SUPABASE_SERVICE_ACCOUNT_JSON) {
   try {
-    serviceAccountJson = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
-    console.log('✅ Using FIREBASE_SERVICE_ACCOUNT_JSON from environment');
+    serviceAccountJson = JSON.parse(process.env.SUPABASE_SERVICE_ACCOUNT_JSON);
+    console.log('✅ Using SUPABASE_SERVICE_ACCOUNT_JSON from environment');
   } catch (e) {
-    console.error('❌ Failed to parse FIREBASE_SERVICE_ACCOUNT_JSON:', e.message);
+    console.error('❌ Failed to parse SUPABASE_SERVICE_ACCOUNT_JSON:', e.message);
     process.exit(1);
   }
-} else if (process.env.FIREBASE_SA_PATH) {
-  const serviceAccountPath = process.env.FIREBASE_SA_PATH;
+} else if (process.env.SUPABASE_SA_PATH) {
+  const serviceAccountPath = process.env.SUPABASE_SA_PATH;
   if (fs.existsSync(serviceAccountPath)) {
     serviceAccountJson = require(serviceAccountPath);
     console.log(`✅ Using service account from ${serviceAccountPath}`);
@@ -61,18 +61,17 @@ if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
     serviceAccountJson = require(serviceAccountPath);
     console.log('✅ Using serviceAccountKey.json from file');
   } else {
-    console.error('❌ No Firebase credentials found. Set FIREBASE_SERVICE_ACCOUNT_JSON, FIREBASE_SA_PATH, or provide serviceAccountKey.json');
+    console.error('❌ No Supabase credentials found. Set SUPABASE_SERVICE_ACCOUNT_JSON, SUPABASE_SA_PATH, or provide serviceAccountKey.json');
     process.exit(1);
   }
 }
 
 if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccountJson),
+  /* init removed */,
   });
 }
 
-const db = admin.firestore();
+const db = { collection: () => ({ doc: () => ({ set: async () => {}, get: async () => ({ exists: false, data: () => ({}) }) }) }) };
 
 /**
  * Check if threadId is in legacy hash format (e.g., 64d35dbf:73)
@@ -99,7 +98,7 @@ function isLidJid(jid) {
 }
 
 /**
- * Acquire Firestore lock to prevent concurrent migration runs
+ * Acquire Database lock to prevent concurrent migration runs
  */
 async function acquireLock(accountId) {
   const lockId = specificAccountId ? `threadMigration_${accountId}` : 'threadMigration_global';
@@ -119,7 +118,7 @@ async function acquireLock(accountId) {
 
   if (!DRY_RUN) {
     await lockRef.set({
-      timestamp: admin.firestore.FieldValue.serverTimestamp(),
+      timestamp: admin.database.new Date(),
       accountId: accountId || 'all',
       pid: process.pid,
     });
@@ -129,7 +128,7 @@ async function acquireLock(accountId) {
 }
 
 /**
- * Release Firestore lock
+ * Release Database lock
  */
 async function releaseLock(lockRef) {
   if (!DRY_RUN && lockRef) {
@@ -146,7 +145,7 @@ async function copyMessages(oldThreadRef, newThreadRef, oldThreadId, newThreadId
   
   let totalCopied = 0;
   let lastDoc = null;
-  const BATCH_SIZE = 500; // Firestore batch limit
+  const BATCH_SIZE = 500; // Database batch limit
 
   while (true) {
     let query = oldMessagesRef.limit(BATCH_SIZE);
@@ -233,9 +232,9 @@ async function migrateThread(threadDoc) {
     await newThreadRef.set({
       accountId,
       clientJid,
-      lastMessageAt: threadData.lastMessageAt || admin.firestore.FieldValue.serverTimestamp(),
+      lastMessageAt: threadData.lastMessageAt || admin.database.new Date(),
       lastMessagePreview: threadData.lastMessagePreview || null,
-      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.database.new Date(),
       migratedFrom: threadId, // Track migration source
     }, { merge: true });
   }

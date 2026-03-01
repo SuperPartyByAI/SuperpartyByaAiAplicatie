@@ -1,10 +1,10 @@
 rules_version = '2';
 
-// Firebase Storage Rules pentru SuperParty
+// Supabase Storage Rules pentru SuperParty
 // POLITICA: NEVER DELETE - fișierele nu se șterg niciodată
 // Permite download public pentru APK-uri, restul necesită autentificare
 
-service firebase.storage {
+service supabase.storage {
   match /b/{bucket}/o {
     
     // ===== APK FOLDER - PUBLIC READ =====

@@ -7,22 +7,22 @@
 flutter doctor
 cd superparty_flutter && flutter pub get
 
-# 2. Firebase setup
-firebase login
-firebase use superparty-frontend
+# 2. Supabase setup
+supabase login
+supabase use superparty-frontend
 
 # 3. Environment variables
 export WHATSAPP_BACKEND_URL='http://37.27.34.179:8080'
 # OR use functions/.runtimeconfig.json (already configured)
 ```
 
-## Step 1: Start Firebase Emulators
+## Step 1: Start Supabase Emulators
 
 **Terminal 1:**
 ```bash
 cd /Users/universparty/Aplicatie-SuperpartyByAi
 export WHATSAPP_BACKEND_URL='http://37.27.34.179:8080'
-firebase emulators:start --only firestore,functions,auth
+supabase emulators:start --only database,functions,auth
 ```
 
 **Wait for:**
@@ -50,7 +50,7 @@ flutter run -d emulator-5554 --dart-define=USE_EMULATORS=true
 
 ### A) WhatsApp Accounts Flow
 
-1. **Login** to app (Firebase Auth)
+1. **Login** to app (Supabase Auth)
 2. **Navigate** to WhatsApp Accounts screen
 3. **List accounts:**
    - Should show accounts (not 500 error)
@@ -85,10 +85,10 @@ adb -s emulator-5554 logcat | grep -iE "WhatsApp|whatsapp|500|error"
 **Debug logs:**
 ```bash
 adb -s emulator-5554 logcat | grep -iE "AIChat|chatEventOps|error"
-firebase functions:log | grep -iE "chatEventOps|chatWithAI"
+supabase functions:log | grep -iE "chatEventOps|chatWithAI"
 ```
 
-**Check Firestore:**
+**Check Database:**
 - Collection: `evenimente`
 - Fields: `date`, `isArchived: false`, `childName`, `address`, `roles`, etc.
 
@@ -120,12 +120,12 @@ adb -s emulator-5554 logcat | grep -iE "Evenimente|evenimente|error"
 adb -s emulator-5554 logcat | grep -iE "WhatsApp|AIChat|Evenimente|error|500"
 ```
 
-### Firebase Functions Logs
+### Supabase Functions Logs
 ```bash
-firebase functions:log | grep -iE "chatEventOps|chatWithAI|whatsapp|error"
+supabase functions:log | grep -iE "chatEventOps|chatWithAI|whatsapp|error"
 ```
 
-### Firestore Emulator UI
+### Database Emulator UI
 ```
 http://localhost:4001
 ```
@@ -136,16 +136,16 @@ http://localhost:4001
 **Fix:**
 ```bash
 # Check secret
-firebase functions:secrets:access WHATSAPP_BACKEND_URL
+supabase functions:secrets:access WHATSAPP_BACKEND_URL
 
 # OR set env var for emulator
 export WHATSAPP_BACKEND_URL='http://37.27.34.179:8080'
-firebase emulators:start --only functions
+supabase emulators:start --only functions
 ```
 
 ### Issue: Events not appearing
 **Fix:**
-1. Check Firestore rules (allow read for authenticated users)
+1. Check Database rules (allow read for authenticated users)
 2. Verify event has `isArchived: false`
 3. Check date format: `DD-MM-YYYY`
 4. Verify collection name: `evenimente` (not `evenimente` with typo)
@@ -154,11 +154,11 @@ firebase emulators:start --only functions
 **Fix:**
 1. Check GROQ_API_KEY secret:
    ```bash
-   firebase functions:secrets:access GROQ_API_KEY
+   supabase functions:secrets:access GROQ_API_KEY
    ```
 2. Check logs for errors:
    ```bash
-   firebase functions:log | grep chatWithAI
+   supabase functions:log | grep chatWithAI
    ```
 
 ### Issue: Emulator not connecting
@@ -177,15 +177,15 @@ After testing locally:
 ```bash
 # 1. Deploy Functions
 cd functions
-firebase deploy --only functions:chatEventOps,functions:chatWithAI,functions:whatsappProxyGetAccounts,functions:whatsappProxyAddAccount,functions:whatsappProxyRegenerateQr
+supabase deploy --only functions:chatEventOps,functions:chatWithAI,functions:whatsappProxyGetAccounts,functions:whatsappProxyAddAccount,functions:whatsappProxyRegenerateQr
 
 # 2. Verify secrets
-firebase functions:secrets:list
+supabase functions:secrets:list
 
 # 3. Test in production
-# - Use production Firebase project
+# - Use production Supabase project
 # - Test all three flows
-# - Monitor logs: firebase functions:log
+# - Monitor logs: supabase functions:log
 ```
 
 ## Quick Reference
@@ -193,7 +193,7 @@ firebase functions:secrets:list
 **Key URLs:**
 - Emulator UI: http://localhost:4001
 - Functions emulator: http://127.0.0.1:5002
-- Firestore emulator: http://127.0.0.1:8082
+- Database emulator: http://127.0.0.1:8082
 
 **Key Collections:**
 - `evenimente` - Events

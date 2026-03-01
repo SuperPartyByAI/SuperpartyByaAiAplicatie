@@ -57,60 +57,60 @@ function looksLikePath(value) {
 function loadServiceAccount() {
   const attempts = [];
 
-  const envPath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH;
+  const envPath = process.env.SUPABASE_SERVICE_ACCOUNT_PATH;
   if (envPath) {
-    attempts.push(`FIREBASE_SERVICE_ACCOUNT_PATH:${envPath}`);
+    attempts.push(`SUPABASE_SERVICE_ACCOUNT_PATH:${envPath}`);
     const parsed = tryParseFromPath(envPath);
     if (parsed.ok) {
       const normalized = normalizeServiceAccount(parsed.value);
       const validation = validateServiceAccount(normalized);
       if (validation.ok) {
-        return { serviceAccount: normalized, sourceLabel: 'FIREBASE_SERVICE_ACCOUNT_PATH', attempts };
+        return { serviceAccount: normalized, sourceLabel: 'SUPABASE_SERVICE_ACCOUNT_PATH', attempts };
       }
-      attempts.push(`FIREBASE_SERVICE_ACCOUNT_PATH invalid: ${validation.error}`);
+      attempts.push(`SUPABASE_SERVICE_ACCOUNT_PATH invalid: ${validation.error}`);
     } else {
-      attempts.push(`FIREBASE_SERVICE_ACCOUNT_PATH parse error: ${parsed.error}`);
+      attempts.push(`SUPABASE_SERVICE_ACCOUNT_PATH parse error: ${parsed.error}`);
     }
   }
 
-  const envJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+  const envJson = process.env.SUPABASE_SERVICE_ACCOUNT_JSON;
   if (envJson) {
     const raw = envJson.trim();
     if (looksLikePath(raw)) {
-      attempts.push(`FIREBASE_SERVICE_ACCOUNT_JSON:path:${raw}`);
+      attempts.push(`SUPABASE_SERVICE_ACCOUNT_JSON:path:${raw}`);
       const parsed = tryParseFromPath(raw);
       if (parsed.ok) {
         const normalized = normalizeServiceAccount(parsed.value);
         const validation = validateServiceAccount(normalized);
         if (validation.ok) {
-          return { serviceAccount: normalized, sourceLabel: 'FIREBASE_SERVICE_ACCOUNT_JSON:path', attempts };
+          return { serviceAccount: normalized, sourceLabel: 'SUPABASE_SERVICE_ACCOUNT_JSON:path', attempts };
         }
-        attempts.push(`FIREBASE_SERVICE_ACCOUNT_JSON path invalid: ${validation.error}`);
+        attempts.push(`SUPABASE_SERVICE_ACCOUNT_JSON path invalid: ${validation.error}`);
       } else {
-        attempts.push(`FIREBASE_SERVICE_ACCOUNT_JSON path parse error: ${parsed.error}`);
+        attempts.push(`SUPABASE_SERVICE_ACCOUNT_JSON path parse error: ${parsed.error}`);
       }
     } else {
-      attempts.push('FIREBASE_SERVICE_ACCOUNT_JSON:inline');
+      attempts.push('SUPABASE_SERVICE_ACCOUNT_JSON:inline');
       const parsedJson = tryParseJson(raw);
       if (parsedJson.ok) {
         const normalized = normalizeServiceAccount(parsedJson.value);
         const validation = validateServiceAccount(normalized);
         if (validation.ok) {
-          return { serviceAccount: normalized, sourceLabel: 'FIREBASE_SERVICE_ACCOUNT_JSON:json', attempts };
+          return { serviceAccount: normalized, sourceLabel: 'SUPABASE_SERVICE_ACCOUNT_JSON:json', attempts };
         }
-        attempts.push(`FIREBASE_SERVICE_ACCOUNT_JSON json invalid: ${validation.error}`);
+        attempts.push(`SUPABASE_SERVICE_ACCOUNT_JSON json invalid: ${validation.error}`);
       } else {
         const parsedBase64 = tryParseBase64(raw);
         if (parsedBase64.ok) {
           const normalized = normalizeServiceAccount(parsedBase64.value);
           const validation = validateServiceAccount(normalized);
           if (validation.ok) {
-            return { serviceAccount: normalized, sourceLabel: 'FIREBASE_SERVICE_ACCOUNT_JSON:base64', attempts };
+            return { serviceAccount: normalized, sourceLabel: 'SUPABASE_SERVICE_ACCOUNT_JSON:base64', attempts };
           }
-          attempts.push(`FIREBASE_SERVICE_ACCOUNT_JSON base64 invalid: ${validation.error}`);
+          attempts.push(`SUPABASE_SERVICE_ACCOUNT_JSON base64 invalid: ${validation.error}`);
         } else {
-          attempts.push(`FIREBASE_SERVICE_ACCOUNT_JSON parse error: ${parsedJson.error}`);
-          attempts.push(`FIREBASE_SERVICE_ACCOUNT_JSON base64 error: ${parsedBase64.error}`);
+          attempts.push(`SUPABASE_SERVICE_ACCOUNT_JSON parse error: ${parsedJson.error}`);
+          attempts.push(`SUPABASE_SERVICE_ACCOUNT_JSON base64 error: ${parsedBase64.error}`);
         }
       }
     }

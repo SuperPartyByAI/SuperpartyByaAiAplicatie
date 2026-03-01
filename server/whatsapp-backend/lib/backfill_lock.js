@@ -24,7 +24,7 @@ function getExpiresAtMs(d) {
 
 /**
  * Acquire lock for accountId. Returns true if acquired.
- * @param {import('@google-cloud/firestore').Firestore} db
+ * @param {import('@google-cloud/database').Database} db
  * @param {string} accountId
  * @param {string} ownerId - instance id
  * @param {number} leaseMs - lock duration ms
@@ -67,7 +67,7 @@ async function acquireLock(db, accountId, ownerId, leaseMs, timestamp) {
 
 /**
  * Release lock (best-effort). Delete doc so next run can acquire.
- * @param {import('@google-cloud/firestore').Firestore} db
+ * @param {import('@google-cloud/database').Database} db
  * @param {string} accountId
  */
 async function releaseLock(db, accountId) {
@@ -83,7 +83,7 @@ async function releaseLock(db, accountId) {
 
 /**
  * Check if lock exists and is not expired.
- * @param {import('@google-cloud/firestore').Firestore} db
+ * @param {import('@google-cloud/database').Database} db
  * @param {string} accountId
  * @returns {Promise<{ busy: boolean; ownerId?: string; expiresAt?: Date }>}
  */

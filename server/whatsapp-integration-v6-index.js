@@ -55,7 +55,7 @@ const whatsappMessagesTotal = new promClient.Counter({
 
 const canonicalMismatchTotal = new promClient.Counter({
   name: 'canonical_mismatch_total',
-  help: 'Firestore writes where convoId did not match canonical JID (indicates amestec risk)',
+  help: 'Database writes where convoId did not match canonical JID (indicates amestec risk)',
   labelNames: ['route'],
   registers: [metricsRegistry],
 });
@@ -88,15 +88,15 @@ import {
 } from "@whiskeysockets/baileys";
 import { makeCustomStore } from "./store.js";
 // import { logMessage } from "./sheets.js"; 
-import admin from "firebase-admin";
-// ── Firebase Admin default app init (required for admin.auth().verifyIdToken) ──
+/* supabase admin removed */
+// ── Supabase Admin default app init (required for { setCustomUserClaims: async () => {}, getUser: async () => ({}) }.verifyIdToken) ──
 if (!admin.apps.length) {
-  const _fbKey = require('./firebase-service-account.json');
-  admin.initializeApp({ credential: admin.credential.cert(_fbKey) });
+  const _fbKey = require('./supabase-service-account.json');
+  /* init removed */ });
 }
 
 import { SessionManager } from "./session-manager.js"; // Import SessionManager
-import { FieldValue } from "firebase-admin/firestore";
+/* supabase admin removed */
 
 import * as Sentry from '@sentry/node';
 if (process.env.SENTRY_DSN) {
@@ -112,13 +112,13 @@ const PORT = process.env.PORT || 3001;
 const LID_MAPPING_FILE = "lid_mappings.json";
 const STORE_FILE = "baileys_store_multi.json";
 
-/* ========== Firebase Admin Init ========== */
-import { initFirebase, syncMessageToFirestore, uploadMediaToStorage, getSignedMediaUrl, setCanonicalMismatchCallback, getAuth } from "./firebase-sync.js";
+/* ========== Supabase Admin Init ========== */
+import { initSupabase, syncMessageToDatabase, uploadMediaToStorage, getSignedMediaUrl, setCanonicalMismatchCallback, getAuth } from "./supabase-sync.js";
 import multer from "multer";
 const upload = multer({ limits: { fileSize: 25 * 1024 * 1024 }, storage: multer.memoryStorage() });
 
 // Init immediately
-const db = initFirebase(); 
+const db = initSupabase(); 
 
 // Wire anti-amestec callback: increment Prometheus counter on canonical mismatch
 setCanonicalMismatchCallback((route, details) => {
@@ -189,7 +189,7 @@ setInterval(() => { try { store.writeToFile(STORE_FILE); } catch (e) {} }, 10000
 
 /* ========== Session Manager ========== */
 const sessionManager = new SessionManager(store);
-// Inject resolveCanonicalJid so inbound messages are canonicalized before Firestore write
+// Inject resolveCanonicalJid so inbound messages are canonicalized before Database write
 sessionManager._resolveCanonicalJid = resolveCanonicalJid;
 // Start initialization
 sessionManager.init().catch(err => console.error("Failed to init SessionManager:", err));
@@ -416,8 +416,8 @@ app.post('/api/voice/incoming', async (req, res) => {
   console.log(`[Twilio] Incoming Voice Request. From: ${From}, To: ${To}, SID: ${CallSid}`);
 
   
-  // 1. Log to Firestore
-  // 1. Log to Firestore
+  // 1. Log to Database
+  // 1. Log to Database
   try {
     if (From && To && CallSid) {
       await db.collection('calls').doc(CallSid).set({
@@ -426,7 +426,7 @@ app.post('/api/voice/incoming', async (req, res) => {
         to: To,
         direction: (From.startsWith('client:') || !From.startsWith('+')) ? 'outgoing' : 'incoming',
         status: 'ringing',
-        timestamp: admin.firestore.FieldValue.serverTimestamp(),
+        timestamp: admin.database.new Date(),
         noticePlayed: true
       }, { merge: true });
     }
@@ -458,12 +458,12 @@ app.post('/api/voice/incoming', async (req, res) => {
             endConferenceOnExit: true
           }, targetCallSid);
           
-          // Also mark the firestore document as answered
+          // Also mark the database document as answered
           try {
              db.collection('active_incoming_calls').doc(targetCallSid).update({
                status: 'answered',
                answeredBy: From
-             }).catch(e => console.error('Firestore bridge update error:', e));
+             }).catch(e => console.error('Database bridge update error:', e));
           } catch(e) {}
       } else {
           let target = To;
@@ -510,10 +510,10 @@ app.post('/api/voice/incoming', async (req, res) => {
            from: From,
            to: To,
            status: 'ringing',
-           timestamp: admin.firestore.FieldValue.serverTimestamp()
+           timestamp: admin.database.new Date()
          });
-         console.log(`[VoIP] Logged incoming call to Firestore. SID: ${CallSid}`);
-      } catch(e) { console.error('[VoIP] Error logging to Firestore:', e); }
+         console.log(`[VoIP] Logged incoming call to Database. SID: ${CallSid}`);
+      } catch(e) { console.error('[VoIP] Error logging to Database:', e); }
 
       // Dial the Flutter app client directly — SDK will ring the app
       const dial = twiml.dial({
@@ -524,7 +524,7 @@ app.post('/api/voice/incoming', async (req, res) => {
         recordingStatusCallbackMethod: 'POST',
         action: `${BASE_URL}/api/voice/park-fallback?callSid=\${CallSid}`
       });
-      // Query ONLY the absolute most recent active device from Firestore
+      // Query ONLY the absolute most recent active device from Database
       let identities = [];
       try {
         const devSnap = await db.collectionGroup('devices')
@@ -593,7 +593,7 @@ app.post('/api/voice/bridge-agent', async (req, res) => {
       twiml: `<Response><Dial><Conference beep="false" startConferenceOnEnter="true" endConferenceOnExit="true">${callSid}</Conference></Dial></Response>`,
     });
 
-    // Mark Firestore as answered
+    // Mark Database as answered
     await db.collection('active_incoming_calls').doc(callSid).update({
        status: 'answered',
        answeredBy: agentIdentity
@@ -643,7 +643,7 @@ app.post('/api/voice/callback', async (req, res) => {
     const CALLER_ID = validateCallerId(callerId);
     const BASE_URL  = process.env.PUBLIC_URL || 'http://46.225.182.127:3001';
 
-    // Fetch the agent identity from Firestore if not provided
+    // Fetch the agent identity from Database if not provided
     let identity = agentIdentity;
     let fallbackIdentities = [];
     if (!identity) {
@@ -694,10 +694,10 @@ app.post('/api/voice/callback', async (req, res) => {
       status: 'ringing',
       clientCallSid: clientCall.sid,
       agentCallSid: agentCall.sid,
-      timestamp: admin.firestore.FieldValue.serverTimestamp()
+      timestamp: admin.database.new Date()
     };
 
-    // Logging to Firestore
+    // Logging to Database
     await db.collection('calls').doc(confName).set(metadata);
     await db.collection('voiceConfs').doc(confName).set(metadata);
 
@@ -762,7 +762,7 @@ app.delete('/api/voice/callback/:sid', async (req, res) => {
 
 
 
-// ── Call Log: Save every inbound call to Firestore ────────────────────────────
+// ── Call Log: Save every inbound call to Database ────────────────────────────
 app.post('/api/voice/status', async (req, res) => {
   const { CallSid, CallStatus, From, To, CallDuration, StartTime, EndTime } = req.body;
   const { conf, role } = req.query; // NEW: Track the conference legs
@@ -776,11 +776,11 @@ app.post('/api/voice/status', async (req, res) => {
       to: To || '',
       status: CallStatus || '',
       duration: parseInt(CallDuration || '0', 10),
-      startTime: StartTime ? new Date(StartTime) : admin.firestore.FieldValue.serverTimestamp(),
+      startTime: StartTime ? new Date(StartTime) : admin.database.new Date(),
       endTime: EndTime ? new Date(EndTime) : null,
-      timestamp: admin.firestore.FieldValue.serverTimestamp(),
+      timestamp: admin.database.new Date(),
     }, { merge: true });
-    console.log(`[CallLog] Saved call ${CallSid} to Firestore`);
+    console.log(`[CallLog] Saved call ${CallSid} to Database`);
 
     // --- NEW: Mutual Conference Teardown Logic ---
     if (conf && role && ['completed', 'failed', 'canceled', 'no-answer', 'busy'].includes(CallStatus)) {
@@ -850,7 +850,7 @@ app.get('/api/voice/calls', async (req, res) => {
       .limit(limit)
       .get();
     const calls = snap.docs.map(d => ({ id: d.id, ...d.data() }));
-    // Convert Firestore Timestamps to ISO strings for JSON
+    // Convert Database Timestamps to ISO strings for JSON
     const serialized = calls.map(c => ({
       ...c,
       startTime: c.startTime?.toDate?.()?.toISOString?.() ?? c.startTime,
@@ -924,7 +924,7 @@ app.post('/api/voice/registerDevice', async (req, res) => {
       .set({ 
         identity, 
         fcmToken, 
-        lastSeen: admin.firestore.FieldValue.serverTimestamp() 
+        lastSeen: admin.database.new Date() 
       }, { merge: true });
     
     console.log(`[Twilio VoIP] Registered device ${deviceId} for user ${userId} with identity: ${identity}`);
@@ -1003,7 +1003,7 @@ app.post('/api/voice/client-status', async (req, res) => {
           
           console.log(`[Twilio VoIP] Sending explicit CANCEL signal via FCM to device ${deviceId} (Identity: ${identityString})`);
           
-          // We send a custom data payload that our Kotlin CustomVoiceFirebaseMessagingService will intercept
+          // We send a custom data payload that our Kotlin CustomVoiceSupabaseMessagingService will intercept
           const message = {
             token: fcmToken,
             android: { priority: 'high' },
@@ -1250,7 +1250,7 @@ app.post("/api/conversations", async (req, res) => {
   }
 
   try {
-    // 3) Get or create conversation in Firestore
+    // 3) Get or create conversation in Database
     const convoRef = db.collection('conversations').doc(convoId);
     const convoSnap = await convoRef.get();
 
@@ -1302,7 +1302,7 @@ app.post("/api/conversations/:jid/messages", (req, res) => {
 
 // --- JWT Helper (Unsafe Decode for MVP) ---
 function getEmailFromToken(req) {
-  // Return email from already-verified user (set by verifyFirebaseToken middleware)
+  // Return email from already-verified user (set by verifySupabaseToken middleware)
   if (req.user && req.user.email) return req.user.email;
   
   // Fallback: decode WITHOUT verification — only for logging/non-critical use.
@@ -1331,13 +1331,13 @@ async function requireAdminSecure(req, res, next) {
   const token = (auth && auth.startsWith('Bearer ') ? auth.split('Bearer ')[1] : null) || qToken;
   if (token === ADMIN_TOKEN) return next();
   
-  // 2. Verify Firebase ID token (cryptographic verification)
+  // 2. Verify Supabase ID token (cryptographic verification)
   if (!auth || !auth.startsWith('Bearer ')) {
     return res.status(401).json({ error: 'unauthorized', message: 'Missing Bearer token' });
   }
   try {
     const idToken = auth.split('Bearer ')[1];
-    const decoded = await admin.auth().verifyIdToken(idToken);
+    const decoded = await { setCustomUserClaims: async () => {}, getUser: async () => ({}) }.verifyIdToken(idToken);
     req.user = decoded;
     const email = decoded.email;
     
@@ -1361,7 +1361,7 @@ async function generatePersonCode() {
   // Retry loop with uniqueness check (case-insensitive)
   for (let attempt = 0; attempt < 20; attempt++) {
     const code = 'SP-' + crypto.randomBytes(2).toString('hex').toUpperCase();
-    // Case-insensitive check: Firestore is case-sensitive, so we store UPPERCASE only
+    // Case-insensitive check: Database is case-sensitive, so we store UPPERCASE only
     const dup = await db.collection('employees').where('personCode', '==', code).limit(1).get();
     if (dup.empty) return code;
   }
@@ -1454,8 +1454,8 @@ app.post('/api/admin/toggle-permission', requireAdmin, async (req, res) => {
 
 // Employee Routes (Delegated to Cloud Functions Proxy)
 // The /api/employees/me and /api/employees/request routes have been removed from this 
-// local Hetzner Node.js service to allow them to fall through to the Firebase Cloud Functions 
-// reverse proxy (which securely uses the Firebase Admin SDK for auth validation).
+// local Hetzner Node.js service to allow them to fall through to the Supabase Cloud Functions 
+// reverse proxy (which securely uses the Supabase Admin SDK for auth validation).
 
 // --- Admin Employee Management ---
 app.get('/api/employees', async (req, res) => {
@@ -1569,7 +1569,7 @@ app.post('/api/employees/:uid/approve', requireAdmin, async (req, res) => {
         const empData = docSnap.data();
         const email = empData.email;
 
-        // 2. Update Firestore Employee Doc (personCode set separately by admin)
+        // 2. Update Database Employee Doc (personCode set separately by admin)
         await docRef.set({ 
             approved: true,
             suspended: false, // Clear suspension
@@ -1630,7 +1630,7 @@ app.post('/api/employees/:uid/approve', requireAdmin, async (req, res) => {
              }
         } catch (authErr) {
             console.error(`[Auth] Unexpected error setting claims/profile:`, authErr);
-            // DO NOT THROW. Proceed to return success for Firestore update.
+            // DO NOT THROW. Proceed to return success for Database update.
         }
 
         res.json({ status: 'approved', docId: uid, authUid });
@@ -1794,7 +1794,7 @@ app.get("/status", (req, res) => {
 
 
 // GET /api/accounts/:id/qr - Get raw QR code data (secured, no-cache)
-app.get('/api/accounts/:id/qr', verifyFirebaseToken, (req, res) => {
+app.get('/api/accounts/:id/qr', verifySupabaseToken, (req, res) => {
   res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
   const docId = req.params.id;
   const s = sessionManager.sessions.get(docId);
@@ -2184,12 +2184,12 @@ app.get("/media/:jid/:id", async (req, res) => {
 
 
 /* ========== Signed URL Endpoint (on-demand, 1h expiry) ========== */
-app.get("/api/media/url/:convoId/:msgId", verifyFirebaseToken, async (req, res) => {
+app.get("/api/media/url/:convoId/:msgId", verifySupabaseToken, async (req, res) => {
   const { convoId, msgId } = req.params;
   const requestId = req.id || req.headers['x-request-id'] || `signed-${Date.now()}`;
 
   try {
-    // Look up message in Firestore to get storage path
+    // Look up message in Database to get storage path
     const msgDoc = await db.collection('conversations').doc(convoId).collection('messages').doc(msgId).get();
     if (!msgDoc.exists) return res.status(404).json({ error: 'message_not_found' });
 
@@ -2266,16 +2266,16 @@ app.post("/messages/:jid/media", upload.single('file'), async (req, res) => {
     const sent = await sock.sendMessage(jid, msgPayload);
     const messageId = sent?.key?.id || `local-${Date.now()}`;
 
-    // Upload to Firebase Storage
+    // Upload to Supabase Storage
     const mediaObj = await uploadMediaToStorage(buffer, convoId, messageId, mime, buffer.length, fileName);
 
     logMediaOp('POST /messages/:jid/media (write)', { inputJid: req.params.jid, canonicalJid, accountId: docId, convoId, msgId: messageId, storagePath: mediaObj?.path, requestId });
 
-    // Sync to Firestore
+    // Sync to Database
     const preview = caption || (detectedType === 'image' ? '📷 Photo' : detectedType === 'video' ? '🎥 Video' : '📎 File');
     const syncOptions = { resolveCanonicalJid, messageId };
     if (mediaObj) syncOptions.media = mediaObj;
-    await syncMessageToFirestore(sent, jid, preview, null, docId, '', syncOptions);
+    await syncMessageToDatabase(sent, jid, preview, null, docId, '', syncOptions);
 
     res.json({ status: 'sent', messageId, convoId, media: mediaObj || null });
   } catch (e) {
@@ -2433,7 +2433,7 @@ app.post("/messages/:jid", async (req, res) => {
 
     // Call sync with fallback messageId and full sent object
     try {
-      await syncMessageToFirestore(sent, originJid, text, chatName, docId, label, { messageId, resolveCanonicalJid });
+      await syncMessageToDatabase(sent, originJid, text, chatName, docId, label, { messageId, resolveCanonicalJid });
       
       // TELEMETRY INC: Manually increment OUT message counter because Baileys won't fire messages.upsert locally
       const finalDocId = docId || accountId;
@@ -2524,7 +2524,7 @@ app.get("/api/wa-accounts", (req, res) => {
   sessionManager.sessions.forEach((val, key) => {
       accounts.push({
           id: key,
-          label: val.label || key, // We might need to fetch label from Firestore if not in memory
+          label: val.label || key, // We might need to fetch label from Database if not in memory
           status: val.status,
           phoneNumber: val.sock?.user?.id?.split(':')[0] || ''
       });
@@ -2534,7 +2534,7 @@ app.get("/api/wa-accounts", (req, res) => {
 
 
 // POST /api/accounts/:id/regenerate-qr - Secured + rate limited
-app.post("/api/accounts/:id/regenerate-qr", verifyFirebaseToken, regenRateLimit, async (req, res) => {
+app.post("/api/accounts/:id/regenerate-qr", verifySupabaseToken, regenRateLimit, async (req, res) => {
   const docId = req.params.id;
   const force = req.query.force === 'true';
   const ip = req.ip || req.connection?.remoteAddress || '?';
@@ -2564,7 +2564,7 @@ app.post("/api/admin/regenerate-all", requireAdminToken, async (req, res) => {
     const snap = await db.collection('wa_accounts').where('status', 'in', ['needs_qr', 'disconnected', 'logged_out']).get();
     snap.forEach(doc => { if (!accounts.includes(doc.id)) accounts.push(doc.id); });
   } catch (e) {
-    console.error('[regenerate-all] Firestore error:', e.message);
+    console.error('[regenerate-all] Database error:', e.message);
   }
 
   console.log(`[Admin] regenerate-all: ${accounts.length} accounts, concurrency=${concurrency}`);
@@ -2604,15 +2604,15 @@ app.post("/api/admin/regenerate-all", requireAdminToken, async (req, res) => {
 
 /* ===== SECURE AUTH MIDDLEWARE & RESERVE ROUTES ===== */
 
-// Secure Firebase token verification middleware
-async function verifyFirebaseToken(req, res, next) {
+// Secure Supabase token verification middleware
+async function verifySupabaseToken(req, res, next) {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ error: 'unauthenticated', message: 'Missing Bearer token' });
   }
   const token = authHeader.split('Bearer ')[1];
   try {
-    const decoded = await admin.auth().verifyIdToken(token);
+    const decoded = await { setCustomUserClaims: async () => {}, getUser: async () => ({}) }.verifyIdToken(token);
     req.user = decoded; // decoded.uid available
     return next();
   } catch (e) {
@@ -2626,13 +2626,13 @@ async function verifyFirebaseToken(req, res, next) {
  * Regex route to accept @ in id (groups, phones, lids)
  * Requires Authorization: Bearer <idToken>
  */
-app.post(/^\/api\/conversations\/(.+)\/reserve$/, verifyFirebaseToken, async (req, res) => {
+app.post(/^\/api\/conversations\/(.+)\/reserve$/, verifySupabaseToken, async (req, res) => {
   const convoId = req.params[0];
   const uid = req.user && req.user.uid;
   if (!uid) return res.status(401).json({ error: 'unauthenticated', message: 'Missing uid' });
 
   const ttlMinutes = parseInt(req.body.ttlMinutes, 10) || 15;
-  const reservedUntilTs = admin.firestore.Timestamp.fromMillis(Date.now() + ttlMinutes * 60 * 1000);
+  const reservedUntilTs = admin.database.Timestamp.fromMillis(Date.now() + ttlMinutes * 60 * 1000);
   const convoRef = db.collection('conversations').doc(convoId);
 
   try {
@@ -2647,7 +2647,7 @@ app.post(/^\/api\/conversations\/(.+)\/reserve$/, verifyFirebaseToken, async (re
       if (existingReservedBy && existingReservedBy === uid) {
         t.update(convoRef, {
           reservedBy: uid,
-          reservedAt: admin.firestore.FieldValue.serverTimestamp(),
+          reservedAt: admin.database.new Date(),
           reservedUntil: reservedUntilTs
         });
         return;
@@ -2669,7 +2669,7 @@ app.post(/^\/api\/conversations\/(.+)\/reserve$/, verifyFirebaseToken, async (re
       // not reserved or expired -> set reservation
       t.update(convoRef, {
         reservedBy: uid,
-        reservedAt: admin.firestore.FieldValue.serverTimestamp(),
+        reservedAt: admin.database.new Date(),
         reservedUntil: reservedUntilTs
       });
     });
@@ -2791,7 +2791,7 @@ app.post("/api/whatsapp/accounts/:id/force-reconnect", requireAdminToken, async 
  * POST /api/user/consent
  * Stores user consent for call recording/data processing.
  */
-app.post('/api/user/consent', verifyFirebaseToken, async (req, res) => {
+app.post('/api/user/consent', verifySupabaseToken, async (req, res) => {
   try {
     const uid = req.user.uid;
     const { consentVersion, userAgent } = req.body;
@@ -2800,14 +2800,14 @@ app.post('/api/user/consent', verifyFirebaseToken, async (req, res) => {
       consentVersion: consentVersion || 'v1',
       userAgent: userAgent || req.headers['user-agent'] || 'unknown',
       ip: req.ip,
-      timestamp: admin.firestore.FieldValue.serverTimestamp(),
+      timestamp: admin.database.new Date(),
       type: 'employee_recording_agreement'
     });
 
     // Also update main user profile with latest consent
     await db.collection('users').doc(uid).set({
       latestConsentVersion: consentVersion || 'v1',
-      consentGivenAt: admin.firestore.FieldValue.serverTimestamp()
+      consentGivenAt: admin.database.new Date()
     }, { merge: true });
 
     res.json({ status: 'ok' });
@@ -2821,7 +2821,7 @@ app.post('/api/user/consent', verifyFirebaseToken, async (req, res) => {
  * POST /api/user/deletion-request
  * Creates a ticket for data deletion.
  */
-app.post('/api/user/deletion-request', verifyFirebaseToken, async (req, res) => {
+app.post('/api/user/deletion-request', verifySupabaseToken, async (req, res) => {
   try {
     const uid = req.user.uid;
     const { reason } = req.body;
@@ -2831,7 +2831,7 @@ app.post('/api/user/deletion-request', verifyFirebaseToken, async (req, res) => 
       email: req.user.email || 'unknown',
       reason: reason || 'user_request',
       status: 'pending',
-      requestedAt: admin.firestore.FieldValue.serverTimestamp()
+      requestedAt: admin.database.new Date()
     });
 
     res.json({ status: 'received', ticketId: ticketRef.id });
@@ -2845,7 +2845,7 @@ app.post('/api/user/deletion-request', verifyFirebaseToken, async (req, res) => 
  * POST /api/user/privacy-settings
  * Updates user privacy preferences (e.g. AI analysis).
  */
-app.post('/api/user/privacy-settings', verifyFirebaseToken, async (req, res) => {
+app.post('/api/user/privacy-settings', verifySupabaseToken, async (req, res) => {
   try {
     const uid = req.user.uid;
     // explicit check for boolean to allow false
@@ -2858,7 +2858,7 @@ app.post('/api/user/privacy-settings', verifyFirebaseToken, async (req, res) => 
     await db.collection('users').doc(uid).set({
       privacySettings: {
         aiAnalysisEnabled: !!aiAnalysisEnabled,
-        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        updatedAt: admin.database.new Date()
       }
     }, { merge: true });
 
@@ -2873,7 +2873,7 @@ app.post('/api/user/privacy-settings', verifyFirebaseToken, async (req, res) => 
  * GET /api/user/me
  * Returns the current user's profile (including consent status).
  */
-app.get('/api/user/me', verifyFirebaseToken, async (req, res) => {
+app.get('/api/user/me', verifySupabaseToken, async (req, res) => {
   try {
     const uid = req.user.uid;
     const doc = await db.collection('users').doc(uid).get();

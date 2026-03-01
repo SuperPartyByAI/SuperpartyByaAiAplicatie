@@ -38,7 +38,7 @@ All hardening changes have been successfully implemented and committed:
 
 ### Problem
 
-Firebase CLI does not allow automatic upgrade from **1st Gen (v1)** to **2nd Gen (v2)** functions.
+Supabase CLI does not allow automatic upgrade from **1st Gen (v1)** to **2nd Gen (v2)** functions.
 
 The old `whatsapp(us-central1)` function (v1) must be **manually deleted** before deployment can proceed.
 
@@ -46,16 +46,16 @@ The old `whatsapp(us-central1)` function (v1) must be **manually deleted** befor
 
 ```
 Error: [whatsapp(us-central1)] Upgrading from 1st Gen to 2nd Gen is not yet supported. 
-See https://firebase.google.com/docs/functions/2nd-gen-upgrade before migrating to 2nd Gen.
+See https://supabase.google.com/docs/functions/2nd-gen-upgrade before migrating to 2nd Gen.
 ```
 
 ---
 
 ## 🔧 Manual Step to Complete Deployment
 
-### Option 1: Firebase Console (Recommended)
+### Option 1: Supabase Console (Recommended)
 
-1. Go to: https://console.firebase.google.com/
+1. Go to: https://console.supabase.google.com/
 2. Select project: **superparty-frontend**
 3. Navigate to: **Functions** (left sidebar)
 4. Find function: **whatsapp** (us-central1, Node.js 20, **1st Gen**)
@@ -77,7 +77,7 @@ See https://firebase.google.com/docs/functions/2nd-gen-upgrade before migrating 
 **Status:** ✅ **COMPLETE**
 
 **Functions moved to europe-west1:**
-- `aggregateClientStats` (Firestore trigger)
+- `aggregateClientStats` (Database trigger)
 - `whatsappExtractEventFromThread` (AI callable)
 - `clientCrmAsk` (AI callable)
 
@@ -88,16 +88,16 @@ See https://firebase.google.com/docs/functions/2nd-gen-upgrade before migrating 
 **Deployment command (after manual deletion):**
 ```bash
 # Deploy only migrated functions
-firebase deploy --only functions:aggregateClientStats,functions:whatsappExtractEventFromThread,functions:clientCrmAsk
+supabase deploy --only functions:aggregateClientStats,functions:whatsappExtractEventFromThread,functions:clientCrmAsk
 
 # Then deploy all other functions
-firebase deploy --only functions
+supabase deploy --only functions
 ```
 
 **Post-migration verification:**
 ```bash
 # Verify regions changed
-firebase functions:list | grep -E "aggregateClientStats|whatsappExtractEventFromThread|clientCrmAsk"
+supabase functions:list | grep -E "aggregateClientStats|whatsappExtractEventFromThread|clientCrmAsk"
 # Expected: Region should show europe-west1 for these 3
 
 # Test callable from Flutter
@@ -112,7 +112,7 @@ Run deployment command:
 
 ```bash
 cd /Users/universparty/Aplicatie-SuperpartyByAi
-firebase deploy --only functions
+supabase deploy --only functions
 ```
 
 **Expected result:**
@@ -145,7 +145,7 @@ firebase deploy --only functions
 
 ```bash
 # List all deployed functions (verify whatsappV4 exists, old whatsapp is gone)
-firebase functions:list | grep -E "whatsapp|clientCrmAsk|aggregateClientStats"
+supabase functions:list | grep -E "whatsapp|clientCrmAsk|aggregateClientStats"
 
 # Expected output:
 # ✓ whatsappV4 (v2, us-central1)
@@ -156,17 +156,17 @@ firebase functions:list | grep -E "whatsapp|clientCrmAsk|aggregateClientStats"
 # ✗ whatsapp (should NOT appear - if it does, deletion failed)
 
 # View logs (correct syntax with --lines, NOT --limit)
-firebase functions:log --only clientCrmAsk --lines 200
-firebase functions:log --only whatsappExtractEventFromThread --lines 200
-firebase functions:log --only aggregateClientStats --lines 200
-firebase functions:log --only whatsappProxySend --lines 100
-firebase functions:log --only whatsappV4 --lines 100
+supabase functions:log --only clientCrmAsk --lines 200
+supabase functions:log --only whatsappExtractEventFromThread --lines 200
+supabase functions:log --only aggregateClientStats --lines 200
+supabase functions:log --only whatsappProxySend --lines 100
+supabase functions:log --only whatsappV4 --lines 100
 
 # Check for CPU quota errors (should see none after hardening)
-firebase functions:log --only whatsappV4 --lines 50 | grep -i "quota"
+supabase functions:log --only whatsappV4 --lines 50 | grep -i "quota"
 
 # Verify maxInstances applied correctly (should see low numbers)
-firebase functions:list | grep -A 2 "clientCrmAsk"
+supabase functions:list | grep -A 2 "clientCrmAsk"
 # Look for: Memory: 512, Max instances: 1
 ```
 
@@ -181,8 +181,8 @@ firebase functions:list | grep -A 2 "clientCrmAsk"
 | CORS verification | ✅ Complete |
 | Git commit & push | ✅ Complete |
 | **Manual deletion of old whatsapp function** | ⚠️ **USER ACTION REQUIRED** |
-| Firebase deployment | ⏸️ Blocked (waiting for manual step) |
+| Supabase deployment | ⏸️ Blocked (waiting for manual step) |
 
 ---
 
-**Next Step:** User must manually delete `whatsapp(us-central1)` via Firebase Console, then run `firebase deploy --only functions`.
+**Next Step:** User must manually delete `whatsapp(us-central1)` via Supabase Console, then run `supabase deploy --only functions`.

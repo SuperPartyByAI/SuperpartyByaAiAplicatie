@@ -16,5 +16,5 @@
     "moduleResolution": "node"
   },
   "include": ["**/*.ts", "**/*.js"],
-  "exclude": ["node_modules", "dist", "build", ".firebase", "monitoring", "kyc-app"]
+  "exclude": ["node_modules", "dist", "build", ".supabase", "monitoring", "kyc-app"]
 }

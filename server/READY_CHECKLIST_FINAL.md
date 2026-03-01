@@ -11,7 +11,7 @@
 | SHA | Mesaj | Rezolvă |
 |-----|-------|---------|
 | `57e4db4d1` | feat(functions): add server-side idempotency | **TASK 1** - Idempotency real pentru allocateStaffCode/finalizeStaffSetup cu requestToken obligatoriu, verificare în tranzacție, TTL 15min |
-| `3b4441b1d` | feat(flutter): derive projectId from Firebase | **TASK 2** - Eliminat hard-encoding, derivă din Firebase.app().options.projectId, suport USE_EMULATORS |
+| `3b4441b1d` | feat(flutter): derive projectId from Supabase | **TASK 2** - Eliminat hard-encoding, derivă din Supabase.app().options.projectId, suport USE_EMULATORS |
 | `19b11c497` | feat(flutter): add in-flight guards | **TASK 3** - State machine pentru WhatsApp UI, protecție double-tap, ignore late responses |
 | `46216cf65` | fix(husky): make pre-commit resilient | **TASK 4** - Husky non-blocking pe Windows, fallback dacă npx nu e în PATH |
 | `29666e606` | test(flutter): add tests | **TASK 5** - Teste pentru retry (nu retriază 401/403), error mapping (401→Unauthorized, 403→Forbidden), router redirects placeholder |
@@ -23,12 +23,12 @@
 
 ### TASK 1: Server-side Idempotency
 - `functions/src/index.ts` - Validare requestToken, verificare în tranzacție, storage token+result, helper functions (hashToken, checkRequestToken, storeRequestToken)
-- `firestore.rules` - Adăugat `staffRequestTokens/{tokenId}` cu `allow write: if false` (server-only)
+- `database.rules` - Adăugat `staffRequestTokens/{tokenId}` cu `allow write: if false` (server-only)
 - `superparty_flutter/lib/services/staff_settings_service.dart` - Adăugat parametrul `requestToken` la allocateStaffCode/finalizeStaffSetup
 - `superparty_flutter/lib/screens/staff_settings_screen.dart` - Generează și trimite requestToken la fiecare call
 
 ### TASK 2: Eliminat Hard-coding
-- `superparty_flutter/lib/services/whatsapp_api_service.dart` - Derivă projectId din Firebase.app().options.projectId, suport USE_EMULATORS=true pentru emulator URL
+- `superparty_flutter/lib/services/whatsapp_api_service.dart` - Derivă projectId din Supabase.app().options.projectId, suport USE_EMULATORS=true pentru emulator URL
 
 ### TASK 3: In-flight Guards
 - `superparty_flutter/lib/screens/whatsapp/whatsapp_accounts_screen.dart` - In-flight guards pentru addAccount/regenerateQr, request token pentru loadAccounts, disable buttons când în flight
@@ -56,7 +56,7 @@ winget install EclipseAdoptium.Temurin.17.JDK
 
 # Verifică
 java -version
-firebase --version
+supabase --version
 ```
 
 ### Testare Locală (3 comenzi)
@@ -84,7 +84,7 @@ npm run build
 1. Login cu `test@local.dev` / `test123456`
 2. Navighează la `/staff-settings`
 3. Selectează echipă, click rapid "Alocă cod" de 2 ori
-4. Verifică în Firestore emulator UI:
+4. Verifică în Database emulator UI:
    - `teamAssignments/team_a_{uid}` există o singură dată
    - `staffRequestTokens/{uid}_{tokenHash}` există cu result cached
 5. Reîncearcă cu același token (dacă < 15min) -> trebuie să returneze același cod

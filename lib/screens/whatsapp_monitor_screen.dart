@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:intl/intl.dart';
 
 class WhatsAppMonitorScreen extends StatelessWidget {
@@ -26,8 +25,8 @@ class WhatsAppMonitorScreen extends StatelessWidget {
         backgroundColor: Colors.black,
         elevation: 0,
       ),
-      body: StreamBuilder<QuerySnapshot>(
-        stream: FirebaseFirestore.instance.collection('wa_accounts').snapshots(),
+      body: StreamBuilder<dynamic>(
+        stream: Stream.empty(),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}', style: TextStyle(color: Colors.red)));

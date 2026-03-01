@@ -30,7 +30,7 @@ POST /api/whatsapp/add-account
 sock.ev.on('connection.update', async update => {
   if (update.qr) {
     const qrCodeDataUrl = await QRCode.toDataURL(update.qr);
-    // Salvează în Firestore
+    // Salvează în Database
     account.qrCode = qrCodeDataUrl;
     account.status = 'qr_ready';
   }
@@ -435,5 +435,5 @@ Motivele:
 ---
 
 **Ultima actualizare:** 2025-12-28  
-**Testat pe:** Firebase Cloud Functions Gen 1, Node.js 20, Baileys 6.5.0  
+**Testat pe:** Supabase Cloud Functions Gen 1, Node.js 20, Baileys 6.5.0  
 **Concluzie:** ✅ QR Code ONLY pentru Baileys în Cloud Functions

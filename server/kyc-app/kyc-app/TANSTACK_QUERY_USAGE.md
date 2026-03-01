@@ -402,24 +402,24 @@ const { data, isLoading, error } = useQuery({
 
 ```
 Pagina Evenimente:
-- Request 1: 500ms (Firebase read)
+- Request 1: 500ms (Supabase read)
 - Navighează la Chat
 - Navighează înapoi la Evenimente
-- Request 2: 500ms (Firebase read DIN NOU!)
+- Request 2: 500ms (Supabase read DIN NOU!)
 - Total: 1000ms
-- Firebase reads: 2
+- Supabase reads: 2
 ```
 
 ### After TanStack Query:
 
 ```
 Pagina Evenimente:
-- Request 1: 500ms (Firebase read + cache)
+- Request 1: 500ms (Supabase read + cache)
 - Navighează la Chat
 - Navighează înapoi la Evenimente
 - Request 2: 50ms (INSTANT din cache!)
 - Total: 550ms (45% mai rapid!)
-- Firebase reads: 1 (50% reducere!)
+- Supabase reads: 1 (50% reducere!)
 ```
 
 ---
@@ -430,13 +430,13 @@ Pagina Evenimente:
 
 **Before:**
 
-- 100 users × 50 page views/day × 10 Firebase reads/page = 50,000 reads/day
+- 100 users × 50 page views/day × 10 Supabase reads/page = 50,000 reads/day
 - 1,500,000 reads/month
 - Cost: ~$7.50/month
 
 **After:**
 
-- 100 users × 50 page views/day × 3 Firebase reads/page = 15,000 reads/day
+- 100 users × 50 page views/day × 3 Supabase reads/page = 15,000 reads/day
 - 450,000 reads/month
 - Cost: ~$2.25/month
 

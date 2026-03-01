@@ -1,5 +1,5 @@
 # tools/fix_local_emulators_windows.ps1
-# Self-healing script for Firebase emulators on Windows
+# Self-healing script for Supabase emulators on Windows
 # Fixes port conflicts, encoding issues, starts emulators, seeds, and verifies
 
 param(
@@ -11,47 +11,47 @@ param(
 $ErrorActionPreference = "Stop"
 
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "Firebase Emulators Fix & Start (Windows)" -ForegroundColor Cyan
+Write-Host "Supabase Emulators Fix & Start (Windows)" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
 # Step 1: Verify repo root
 Write-Host "[1/8] Verifying repo root..." -ForegroundColor Yellow
-if (-not (Test-Path "package.json") -or -not (Test-Path "firebase.json")) {
-    Write-Host "[FAIL] Not in repo root. Missing package.json or firebase.json" -ForegroundColor Red
+if (-not (Test-Path "package.json") -or -not (Test-Path "supabase.json")) {
+    Write-Host "[FAIL] Not in repo root. Missing package.json or supabase.json" -ForegroundColor Red
     Write-Host "  Run this script from the repository root directory" -ForegroundColor Yellow
     exit 1
 }
 Write-Host "[OK] Repo root verified" -ForegroundColor Green
 Write-Host ""
 
-# Step 2: Read ports from firebase.json
-Write-Host "[2/8] Reading ports from firebase.json..." -ForegroundColor Yellow
+# Step 2: Read ports from supabase.json
+Write-Host "[2/8] Reading ports from supabase.json..." -ForegroundColor Yellow
 try {
-    $firebaseJson = Get-Content "firebase.json" -Raw | ConvertFrom-Json
-    $firestorePort = $firebaseJson.emulators.firestore.port
-    $authPort = $firebaseJson.emulators.auth.port
-    $functionsPort = $firebaseJson.emulators.functions.port
-    $uiPort = $firebaseJson.emulators.ui.port
-    $hubPort = if ($firebaseJson.emulators.hub) { $firebaseJson.emulators.hub.port } else { 4401 }
-    $loggingPort = if ($firebaseJson.emulators.logging) { $firebaseJson.emulators.logging.port } else { 4500 }
+    $supabaseJson = Get-Content "supabase.json" -Raw | ConvertFrom-Json
+    $databasePort = $supabaseJson.emulators.database.port
+    $authPort = $supabaseJson.emulators.auth.port
+    $functionsPort = $supabaseJson.emulators.functions.port
+    $uiPort = $supabaseJson.emulators.ui.port
+    $hubPort = if ($supabaseJson.emulators.hub) { $supabaseJson.emulators.hub.port } else { 4401 }
+    $loggingPort = if ($supabaseJson.emulators.logging) { $supabaseJson.emulators.logging.port } else { 4500 }
     
     Write-Host "[OK] Ports read:" -ForegroundColor Green
-    Write-Host "  Firestore: $firestorePort" -ForegroundColor Gray
+    Write-Host "  Database: $databasePort" -ForegroundColor Gray
     Write-Host "  Auth: $authPort" -ForegroundColor Gray
     Write-Host "  Functions: $functionsPort" -ForegroundColor Gray
     Write-Host "  UI: $uiPort" -ForegroundColor Gray
     Write-Host "  Hub: $hubPort" -ForegroundColor Gray
     Write-Host "  Logging: $loggingPort" -ForegroundColor Gray
 } catch {
-    Write-Host "[FAIL] Error reading firebase.json: $_" -ForegroundColor Red
+    Write-Host "[FAIL] Error reading supabase.json: $_" -ForegroundColor Red
     exit 1
 }
 Write-Host ""
 
 # Step 3: Kill processes holding ports
 Write-Host "[3/8] Freeing ports..." -ForegroundColor Yellow
-$allPorts = @($firestorePort, $authPort, $functionsPort, $uiPort, $hubPort, $loggingPort)
+$allPorts = @($databasePort, $authPort, $functionsPort, $uiPort, $hubPort, $loggingPort)
 $portsToKill = $allPorts | Sort-Object -Unique
 
 function Kill-PortProcesses {
@@ -113,7 +113,7 @@ function Kill-PortProcesses {
     foreach ($blocked in $stillBlocked) {
         Write-Host "  Port $($blocked.Port) : PID $($blocked.PID) ($($blocked.Name))" -ForegroundColor Red
     }
-    Write-Host "  Manual fix: Stop the processes above or change ports in firebase.json" -ForegroundColor Yellow
+    Write-Host "  Manual fix: Stop the processes above or change ports in supabase.json" -ForegroundColor Yellow
     return $false
 }
 
@@ -148,11 +148,11 @@ if (Test-Path $checkScriptPath) {
 Write-Host ""
 
 # Step 5: Start emulators
-Write-Host "[5/8] Starting Firebase emulators..." -ForegroundColor Yellow
+Write-Host "[5/8] Starting Supabase emulators..." -ForegroundColor Yellow
 $emulatorWindow = Start-Process powershell -ArgumentList @(
     "-NoExit",
     "-Command",
-    "Set-Location '$PWD'; firebase.cmd emulators:start --config .\firebase.json --only firestore,functions,auth --project $ProjectId"
+    "Set-Location '$PWD'; supabase.cmd emulators:start --config .\supabase.json --only database,functions,auth --project $ProjectId"
 ) -PassThru
 
 Write-Host "  [OK] Emulators started in separate window (PID: $($emulatorWindow.Id))" -ForegroundColor Green
@@ -180,7 +180,7 @@ function Test-Port {
 }
 
 $requiredPorts = @(
-    @{Port=$firestorePort; Name="Firestore"},
+    @{Port=$databasePort; Name="Database"},
     @{Port=$authPort; Name="Auth"},
     @{Port=$functionsPort; Name="Functions"},
     @{Port=$uiPort; Name="UI"}
@@ -216,18 +216,18 @@ while (-not $allReady) {
 }
 Write-Host ""
 
-# Step 7: Seed Firestore
-Write-Host "[7/8] Seeding Firestore..." -ForegroundColor Yellow
-$env:FIRESTORE_EMULATOR_HOST = "127.0.0.1:$firestorePort"
-$seedResult = node tools/seed_firestore.js --emulator --project $ProjectId 2>&1
+# Step 7: Seed Database
+Write-Host "[7/8] Seeding Database..." -ForegroundColor Yellow
+$env:DATABASE_EMULATOR_HOST = "127.0.0.1:$databasePort"
+$seedResult = node tools/seed_database.js --emulator --project $ProjectId 2>&1
 if ($LASTEXITCODE -eq 0) {
-    Write-Host "[OK] Firestore seeded successfully" -ForegroundColor Green
+    Write-Host "[OK] Database seeded successfully" -ForegroundColor Green
     # Verify seed used correct port
-    if ($seedResult -match "Using Firestore emulator at 127\.0\.0\.1:(\d+)") {
+    if ($seedResult -match "Using Database emulator at 127\.0\.0\.1:(\d+)") {
         $seedPort = $matches[1]
-        if ($seedPort -ne $firestorePort) {
-            Write-Host "WARNING: Seed script used port $seedPort instead of $firestorePort" -ForegroundColor Yellow
-            Write-Host "  Check tools/seed_firestore.js to ensure it reads from firebase.json" -ForegroundColor Yellow
+        if ($seedPort -ne $databasePort) {
+            Write-Host "WARNING: Seed script used port $seedPort instead of $databasePort" -ForegroundColor Yellow
+            Write-Host "  Check tools/seed_database.js to ensure it reads from supabase.json" -ForegroundColor Yellow
         }
     }
 } else {

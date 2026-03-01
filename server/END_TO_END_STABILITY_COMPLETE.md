@@ -14,7 +14,7 @@
 - ✅ **Security**: Secrets redacted, rotation notice added
 - ✅ **setGlobalOptions**: Warning eliminated (single call)
 - ✅ **Retry/Backoff**: Transient failures auto-retry (4 attempts)
-- ✅ **Extraction Caching**: AI results cached in Firestore
+- ✅ **Extraction Caching**: AI results cached in Database
 - ✅ **Admin Permanence**: Hardened with debouncing + custom claims
 - ✅ **Observability**: TraceId in all requests/logs
 - ✅ **Docs**: CLI syntax fixed (--lines everywhere)
@@ -36,8 +36,8 @@
 **Evidence**:
 
 ```
-./deploy_with_api.js:56 → [REDACTED - Use Firebase Secrets Manager]
-./functions/deploy_with_api.js:56 → [REDACTED - Use Firebase Secrets Manager]
+./deploy_with_api.js:56 → [REDACTED - Use Supabase Secrets Manager]
+./functions/deploy_with_api.js:56 → [REDACTED - Use Supabase Secrets Manager]
 ```
 
 **Key Rotation Required**:
@@ -45,7 +45,7 @@
 - Go to: https://console.groq.com/keys
 - Revoke: `<GROQ_KEY_REDACTED>` (partial shown in logs)
 - Generate new key
-- Update: `echo "NEW_KEY" | firebase functions:secrets:set GROQ_API_KEY`
+- Update: `echo "NEW_KEY" | supabase functions:secrets:set GROQ_API_KEY`
 
 ---
 
@@ -59,7 +59,7 @@
 **Fix Applied** (`functions/src/index.ts`):
 
 ```diff
-- import { setGlobalOptions } from 'firebase-functions/v2';
+- import { setGlobalOptions } from 'supabase-functions/v2';
 - setGlobalOptions({ region: 'us-central1' });
 + // NOTE: setGlobalOptions is already called in functions/index.js
 + // Do NOT call it again here to avoid warning
@@ -68,7 +68,7 @@
 **Verification**:
 
 ```bash
-$ firebase deploy --only functions:bootstrapAdmin,functions:clientCrmAsk,functions:whatsappExtractEventFromThread
+$ supabase deploy --only functions:bootstrapAdmin,functions:clientCrmAsk,functions:whatsappExtractEventFromThread
 ✔ functions[bootstrapAdmin(us-central1)] Successful update operation.
 ✔ functions[whatsappExtractEventFromThread(us-central1)] Successful update operation.
 ✔ functions[clientCrmAsk(us-central1)] Successful update operation.
@@ -93,10 +93,10 @@ bootstrapAdmin → us-central1 ✅
 
 ```dart
 // Line 293:
-final functions = FirebaseFunctions.instanceFor(region: 'us-central1');
+final functions = SupabaseFunctions.instanceFor(region: 'us-central1');
 
 // Line 352:
-final functions = FirebaseFunctions.instanceFor(region: 'us-central1');
+final functions = SupabaseFunctions.instanceFor(region: 'us-central1');
 ```
 
 **Status**: ✅ **PASS** - Regions aligned, no mismatch
@@ -109,7 +109,7 @@ final functions = FirebaseFunctions.instanceFor(region: 'us-central1');
 
 - Callable: `bootstrapAdmin`
 - Allowlist: `ursache.andrei1995@gmail.com`, `superpartybyai@gmail.com`
-- Sets: Custom claim `admin=true` + Firestore `users/{uid}.role="admin"`
+- Sets: Custom claim `admin=true` + Database `users/{uid}.role="admin"`
 - Merge: Always uses `{ merge: true }` (never overwrites)
 
 **Flutter Integration** (`lib/services/admin_bootstrap_service.dart`):
@@ -132,7 +132,7 @@ final functions = FirebaseFunctions.instanceFor(region: 'us-central1');
 
 ### ✅ PHASE 4: WHATSAPP PERSISTENCE (Previously Verified)
 
-**Firestore Rules** (never delete):
+**Database Rules** (never delete):
 
 - `clients/{phoneE164}` → Delete blocked
 - `threads/{threadId}` → Delete blocked
@@ -142,14 +142,14 @@ final functions = FirebaseFunctions.instanceFor(region: 'us-central1');
 
 - Volume mount: `/app/sessions` (verified in legacy hosting health)
 - Sessions survive restart ✅
-- Firestore retains all threads/messages ✅
+- Database retains all threads/messages ✅
 
 **Health Check**:
 
 ```json
 {
   "status": "healthy",
-  "firestore": { "status": "connected" },
+  "database": { "status": "connected" },
   "accounts": { "total": 0, "connected": 0, "max": 30 }
 }
 ```
@@ -170,7 +170,7 @@ final functions = FirebaseFunctions.instanceFor(region: 'us-central1');
 
 **Send Flow**:
 
-- Uses proxy: `whatsappProxySend` (NOT direct Firestore) ✅
+- Uses proxy: `whatsappProxySend` (NOT direct Database) ✅
 - Ordering: `tsClient` (stable) ✅
 
 **Status**: ✅ **PASS** - All screens wired
@@ -182,7 +182,7 @@ final functions = FirebaseFunctions.instanceFor(region: 'us-central1');
 **Docs Fixed** (13 files, commit 56c8540e):
 
 ```
-firebase functions:log --limit → firebase functions:log --lines
+supabase functions:log --limit → supabase functions:log --lines
 ```
 
 **Files**:
@@ -326,8 +326,8 @@ firebase functions:log --limit → firebase functions:log --lines
 | **setGlobalOptions**   | ✅ PASS | Single call, no warning in deploy       |
 | **Region Alignment**   | ✅ PASS | All us-central1, Flutter matches        |
 | **Retry/Backoff**      | ✅ PASS | 4 attempts, transient only              |
-| **Extraction Caching** | ✅ PASS | Firestore cache, instant on hit         |
-| **Admin Permanence**   | ✅ PASS | Custom claims + Firestore, debounced    |
+| **Extraction Caching** | ✅ PASS | Database cache, instant on hit         |
+| **Admin Permanence**   | ✅ PASS | Custom claims + Database, debounced    |
 | **Observability**      | ✅ PASS | TraceId everywhere                      |
 | **Docs Accuracy**      | ✅ PASS | --lines in all docs                     |
 | **Flutter Analyze**    | ✅ PASS | 1 deprecation warning (non-blocking)    |
@@ -343,11 +343,11 @@ firebase functions:log --limit → firebase functions:log --lines
 - Go to: https://console.groq.com/keys
 - Revoke old key (partial: `<GROQ_KEY_REDACTED>`)
 - Generate new key
-- Update: `echo "NEW_KEY" | firebase functions:secrets:set GROQ_API_KEY`
+- Update: `echo "NEW_KEY" | supabase functions:secrets:set GROQ_API_KEY`
 
 ### 2. Delete Legacy v1 Function (Optional)
 
-- Firebase Console: https://console.firebase.google.com/project/superparty-frontend/functions
+- Supabase Console: https://console.supabase.google.com/project/superparty-frontend/functions
 - Find: "whatsapp" (v1, 2048MB, us-central1)
 - Delete (frees memory, not critical)
 
@@ -368,7 +368,7 @@ firebase functions:log --limit → firebase functions:log --lines
 1. WhatsApp → Inbox → Chat → CRM
 2. Tap "Extract Event" (1st time: ~5-10s, AI call)
 3. Tap "Extract Event" (2nd time: instant, cache hit)
-4. Verify Firestore: threads/{threadId}/extractions/{cacheKey}
+4. Verify Database: threads/{threadId}/extractions/{cacheKey}
 ```
 
 **Test 3: Message Flow**
@@ -391,7 +391,7 @@ firebase functions:log --limit → firebase functions:log --lines
 - ✅ Security (secrets redacted)
 - ✅ setGlobalOptions (single call)
 - ✅ Retry/backoff (4 attempts, exp backoff)
-- ✅ Extraction caching (Firestore, instant on hit)
+- ✅ Extraction caching (Database, instant on hit)
 - ✅ Admin permanence (custom claims + debounced)
 - ✅ Observability (traceId everywhere)
 - ✅ Docs fixed (--lines everywhere)

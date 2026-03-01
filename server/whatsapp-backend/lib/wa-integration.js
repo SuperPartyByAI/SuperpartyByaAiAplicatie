@@ -6,7 +6,7 @@
  */
 
 const WAStabilityManager = require('./wa-stability-manager');
-const { FieldValue } = require('firebase-admin/firestore');
+const { FieldValue } = {};
 
 class WAIntegration {
   constructor(db, instanceId) {
@@ -22,7 +22,7 @@ class WAIntegration {
     this.inboundDedupeCache = new Map(); // waMessageId -> timestamp
 
     // W12: Dependency health
-    this.consecutiveFirestoreErrors = 0;
+    this.consecutiveDatabaseErrors = 0;
     this.degradedSince = null;
 
     // W13: Circuit breaker
@@ -159,7 +159,7 @@ class WAIntegration {
       }
     } catch (error) {
       console.error('[WAIntegration] Outbox processing error:', error.message);
-      this.handleFirestoreError(error);
+      this.handleDatabaseError(error);
     } finally {
       this.outboxProcessing = false;
     }
@@ -194,10 +194,10 @@ class WAIntegration {
 
       await this.db.doc(`wa_metrics/longrun/outbox/${outboxId}`).update({
         status: 'SENT',
-        sentAt: FieldValue.serverTimestamp(),
+        sentAt: new Date(),
         waMessageId,
         attemptCount: (data.attemptCount || 0) + 1,
-        lastUpdatedAt: FieldValue.serverTimestamp(),
+        lastUpdatedAt: new Date(),
         instanceId: this.instanceId,
         leaseEpoch: lockStatus.leaseEpoch || 0,
       });
@@ -216,7 +216,7 @@ class WAIntegration {
         attemptCount,
         nextAttemptAt: new Date(Date.now() + backoffMs),
         lastError: error.message,
-        lastUpdatedAt: FieldValue.serverTimestamp(),
+        lastUpdatedAt: new Date(),
       });
     }
   }
@@ -239,7 +239,7 @@ class WAIntegration {
       return { isDuplicate: true, source: 'cache' };
     }
 
-    // Check Firestore
+    // Check Database
     try {
       const dedupeRef = this.db.doc(`wa_metrics/longrun/inbound_dedupe/${waMessageId}`);
 
@@ -249,16 +249,16 @@ class WAIntegration {
         if (doc.exists) {
           // Update lastSeenAt
           transaction.update(dedupeRef, {
-            lastSeenAt: FieldValue.serverTimestamp(),
+            lastSeenAt: new Date(),
           });
-          return { isDuplicate: true, source: 'firestore' };
+          return { isDuplicate: true, source: 'database' };
         }
 
         // Create dedupe entry with fencing token
         transaction.set(dedupeRef, {
           waMessageId,
-          firstSeenAt: FieldValue.serverTimestamp(),
-          lastSeenAt: FieldValue.serverTimestamp(),
+          firstSeenAt: new Date(),
+          lastSeenAt: new Date(),
           instanceId: this.instanceId,
           leaseEpoch: lockStatus.leaseEpoch || 0,
         });
@@ -280,20 +280,20 @@ class WAIntegration {
       return result;
     } catch (error) {
       console.error('[WAIntegration] Dedupe check error:', error.message);
-      this.handleFirestoreError(error);
+      this.handleDatabaseError(error);
       return { isDuplicate: false, error: error.message };
     }
   }
 
   /**
-   * W12: Handle Firestore errors (DEPENDENCY GATING)
+   * W12: Handle Database errors (DEPENDENCY GATING)
    */
-  handleFirestoreError(error) {
-    this.consecutiveFirestoreErrors++;
+  handleDatabaseError(error) {
+    this.consecutiveDatabaseErrors++;
 
-    if (this.consecutiveFirestoreErrors >= 3 && !this.degradedSince) {
+    if (this.consecutiveDatabaseErrors >= 3 && !this.degradedSince) {
       this.degradedSince = new Date().toISOString();
-      console.error('[WAIntegration] degraded_firestore_enter consecutiveErrors=3');
+      console.error('[WAIntegration] degraded_database_enter consecutiveErrors=3');
 
       // Create incident
       this.createDegradedIncident();
@@ -304,14 +304,14 @@ class WAIntegration {
   }
 
   /**
-   * Reset Firestore error counter (on success)
+   * Reset Database error counter (on success)
    */
-  resetFirestoreErrors() {
-    if (this.consecutiveFirestoreErrors > 0) {
-      this.consecutiveFirestoreErrors = 0;
+  resetDatabaseErrors() {
+    if (this.consecutiveDatabaseErrors > 0) {
+      this.consecutiveDatabaseErrors = 0;
 
       if (this.degradedSince) {
-        console.log('[WAIntegration] degraded_firestore_exit');
+        console.log('[WAIntegration] degraded_database_exit');
         this.degradedSince = null;
         this.warmUpComplete = true;
       }
@@ -323,15 +323,15 @@ class WAIntegration {
    */
   async createDegradedIncident() {
     try {
-      await this.db.doc('wa_metrics/longrun/incidents/wa_firestore_degraded_active').set(
+      await this.db.doc('wa_metrics/longrun/incidents/wa_database_degraded_active').set(
         {
-          type: 'wa_firestore_degraded',
+          type: 'wa_database_degraded',
           active: true,
-          firstDetectedAt: FieldValue.serverTimestamp(),
-          lastCheckedAt: FieldValue.serverTimestamp(),
+          firstDetectedAt: new Date(),
+          lastCheckedAt: new Date(),
           instanceId: this.instanceId,
-          consecutiveErrors: this.consecutiveFirestoreErrors,
-          instructions: 'Firestore connectivity issues. Check network and Firestore status.',
+          consecutiveErrors: this.consecutiveDatabaseErrors,
+          instructions: 'Database connectivity issues. Check network and Database status.',
         },
         { merge: true }
       );
@@ -386,8 +386,8 @@ class WAIntegration {
         {
           type: 'wa_disconnect_storm_cooldown',
           active: true,
-          firstDetectedAt: FieldValue.serverTimestamp(),
-          lastCheckedAt: FieldValue.serverTimestamp(),
+          firstDetectedAt: new Date(),
+          lastCheckedAt: new Date(),
           instanceId: this.instanceId,
           disconnectCount: this.disconnectHistory.length,
           cooldownUntil: cooldownUntil.toISOString(),
@@ -523,7 +523,7 @@ class WAIntegration {
       const doc = snapshot.docs[0];
       await this.db.doc(`wa_metrics/longrun/outbox/${doc.id}`).update({
         status: 'ACKED',
-        ackedAt: FieldValue.serverTimestamp(),
+        ackedAt: new Date(),
       });
 
       console.log(`[WAIntegration] Message ACKED: ${doc.id}`);
@@ -572,9 +572,9 @@ class WAIntegration {
       outboxPendingCount,
       outboxOldestPendingAgeSec,
       drainMode: this.drainMode,
-      inboundDedupeStore: 'firestore',
+      inboundDedupeStore: 'database',
       lastInboundDedupeWriteAt: null, // TODO: track
-      consecutiveFirestoreErrors: this.consecutiveFirestoreErrors,
+      consecutiveDatabaseErrors: this.consecutiveDatabaseErrors,
       degradedSince: this.degradedSince,
       warmUpComplete: this.warmUpComplete,
     };

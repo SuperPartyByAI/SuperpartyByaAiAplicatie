@@ -7,7 +7,7 @@
 **Status:** Deja fixat în cod existent
 - ✅ `app_router.dart:51-62` - Auth stream timeout 30s cu fallback
 - ✅ `auth_wrapper.dart:69-76` - Auth stream timeout cu fallback la currentUser
-- ✅ `auth_wrapper.dart:158-162` - Firestore error → HomeScreen (nu black screen)
+- ✅ `auth_wrapper.dart:158-162` - Database error → HomeScreen (nu black screen)
 
 **Verificare:**
 ```bash
@@ -15,7 +15,7 @@
 flutter run --dart-define=USE_EMULATORS=true -d emulator-5554
 
 # Expected logs:
-# [FirebaseService] ✅ Firebase initialized successfully
+# [SupabaseService] ✅ Supabase initialized successfully
 # [AppRouter] Auth stream: user=...
 # Aplicația se deschide (nu rămâne pe loading)
 ```
@@ -31,16 +31,16 @@ flutter run --dart-define=USE_EMULATORS=true -d emulator-5554
 
 **Fix aplicat:**
 - ✅ Adăugat logging detaliat: `waMode`, `lockReason`, `instanceId`, `requestId`
-- ✅ Include TOATE accounts din Firestore (inclusiv `needs_qr`, `disconnected`)
+- ✅ Include TOATE accounts din Database (inclusiv `needs_qr`, `disconnected`)
 - ✅ Response include `waMode` și `lockReason` pentru debugging
-- ✅ Logging pentru breakdown: in-memory vs Firestore accounts
+- ✅ Logging pentru breakdown: in-memory vs Database accounts
 
 **Test:**
 ```bash
 # Verifică în legacy hosting logs:
 # Expected: [GET /accounts/req_xxx] Request: waMode=passive, lockReason=lock_not_acquired
 # Expected: [GET /accounts/req_xxx] In-memory accounts: 0
-# Expected: [GET /accounts/req_xxx] Firestore accounts: X total
+# Expected: [GET /accounts/req_xxx] Database accounts: X total
 # Expected: [GET /accounts/req_xxx] Total accounts: X
 ```
 
@@ -48,9 +48,9 @@ flutter run --dart-define=USE_EMULATORS=true -d emulator-5554
 **File:** `whatsapp-backend/server.js:3536-3680`
 
 **Status:** Deja fixat în fix-urile anterioare
-- ✅ Verifică `regeneratingQr` flag în Firestore (atomic)
+- ✅ Verifică `regeneratingQr` flag în Database (atomic)
 - ✅ Returnează 202 "already_in_progress" dacă deja în progress
-- ✅ Per-account mutex în Firestore
+- ✅ Per-account mutex în Database
 - ✅ Enhanced error logging cu requestId
 
 #### Fix 3: Client Guard + Cooldown ✅
@@ -110,7 +110,7 @@ flutter run --dart-define=USE_EMULATORS=true -d emulator-5554
 # În aplicație: Navigate to Evenimente
 # Expected logs:
 # [EvenimenteScreen/evt_xxx] Query params: datePreset=all, driverFilter=all, ...
-# [EvenimenteScreen/evt_xxx] Loaded X events from Firestore
+# [EvenimenteScreen/evt_xxx] Loaded X events from Database
 # [EvenimenteScreen/evt_xxx] Events breakdown: total=X, isArchived=false=Y, isArchived=true=Z
 # [EvenimenteScreen/evt_xxx] Filtered events count: Y
 ```
@@ -162,7 +162,7 @@ bash scripts/test-whatsapp-flow.sh
 ### Test 1: App Start fără Ecran Negru
 ```bash
 # 1. Pornește emulators
-firebase emulators:start
+supabase emulators:start
 
 # 2. Verifică setup
 bash scripts/verify-emulators.sh
@@ -171,7 +171,7 @@ bash scripts/verify-emulators.sh
 flutter run --dart-define=USE_EMULATORS=true -d emulator-5554
 
 # 4. Verifică logs
-# Expected: [FirebaseService] ✅ Firebase initialized successfully
+# Expected: [SupabaseService] ✅ Supabase initialized successfully
 # Expected: [AppRouter] Auth stream: user=...
 # Expected: Aplicația se deschide (nu rămâne pe loading)
 ```
@@ -204,7 +204,7 @@ bash scripts/test-whatsapp-flow.sh
 # 1. În aplicație: Navigate to Evenimente
 # 2. Verifică logs:
 # Expected: [EvenimenteScreen/evt_xxx] Query params: ...
-# Expected: [EvenimenteScreen/evt_xxx] Loaded X events from Firestore
+# Expected: [EvenimenteScreen/evt_xxx] Loaded X events from Database
 # Expected: [EvenimenteScreen/evt_xxx] Filtered events count: Y
 # Expected: Empty state dacă Y=0 (nu ecran negru)
 ```
@@ -237,9 +237,9 @@ bash scripts/test-whatsapp-flow.sh
    - Call GET /api/whatsapp/accounts
    - Response: `accountsCount=0` (confuz)
 
-2. **Cauza:** `connections` Map goală în PASSIVE mode, Firestore query poate fi goală
+2. **Cauza:** `connections` Map goală în PASSIVE mode, Database query poate fi goală
 
-3. **Fix:** ✅ Adăugat logging explicit + include TOATE accounts din Firestore
+3. **Fix:** ✅ Adăugat logging explicit + include TOATE accounts din Database
 
 ### Problema B2: regenerateQr 500 Intermitent
 1. **Reproducere:**

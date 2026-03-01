@@ -1,6 +1,6 @@
 # Smoke test server (browser/Postman, NO Flutter) — PR #34
 
-This gives you a local HTTP server that talks to **Firestore + Functions emulators** and lets you run:
+This gives you a local HTTP server that talks to **Database + Functions emulators** and lets you run:
 - seed
 - full 9-step smoke suite
 - individual steps (allocate/finalize/admin ops)
@@ -13,12 +13,12 @@ This gives you a local HTTP server that talks to **Firestore + Functions emulato
 From repo root:
 
 ```powershell
-firebase emulators:start --only firestore,functions
+supabase emulators:start --only database,functions
 ```
 
 Defaults:
 - Emulator UI: `http://127.0.0.1:4000`
-- Firestore: `127.0.0.1:8080`
+- Database: `127.0.0.1:8080`
 - Functions: `127.0.0.1:5001`
 
 ### Terminal 2 — smoke server
@@ -113,7 +113,7 @@ curl.exe -X POST http://127.0.0.1:5179/step/admin/status ^
 Start them:
 
 ```powershell
-firebase emulators:start --only firestore,functions
+supabase emulators:start --only database,functions
 ```
 
 ### “Missing functions/dist/index.js”
@@ -129,10 +129,10 @@ cd ..
 
 ### Different emulator ports
 
-This server reads `firebase.json` → `emulators.*.port`. If you override via env, set:
+This server reads `supabase.json` → `emulators.*.port`. If you override via env, set:
 
 ```powershell
-$env:FIRESTORE_EMULATOR_HOST="127.0.0.1:8080"
+$env:DATABASE_EMULATOR_HOST="127.0.0.1:8080"
 $env:FUNCTIONS_EMULATOR_HOST="127.0.0.1:5001"
 npm run smoke:server
 ```

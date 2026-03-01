@@ -1,4 +1,4 @@
-# 🔑 Obținere Firebase ID Token din Browser
+# 🔑 Obținere Supabase ID Token din Browser
 
 ## Metoda 1: Din Browser Console (cel mai simplu)
 
@@ -9,8 +9,8 @@
 5. **Rulează următoarea comandă**:
 
 ```javascript
-// Dacă folosești Firebase v9+
-import { getAuth } from 'firebase/auth';
+// Dacă folosești Supabase v9+
+import { getAuth } from 'supabase/auth';
 const auth = getAuth();
 auth.currentUser?.getIdToken().then(token => {
   console.log('ID Token:', token);
@@ -19,8 +19,8 @@ auth.currentUser?.getIdToken().then(token => {
   });
 });
 
-// SAU dacă folosești Firebase v8
-firebase.auth().currentUser.getIdToken().then(token => {
+// SAU dacă folosești Supabase v8
+supabase.auth().currentUser.getIdToken().then(token => {
   console.log('ID Token:', token);
   navigator.clipboard.writeText(token).then(() => {
     console.log('✅ Token copiat în clipboard!');
@@ -47,5 +47,5 @@ firebase.auth().currentUser.getIdToken().then(token => {
 2. **Mergi la tab-ul Application** (Chrome) sau **Storage** (Firefox)
 3. **În stânga, caută "Local Storage" sau "Session Storage"**
 4. **Selectează domeniul aplicației**
-5. **Caută chei care conțin "token", "auth", "firebase"**
+5. **Caută chei care conțin "token", "auth", "supabase"**
 6. **Copiază valoarea token-ului**

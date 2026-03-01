@@ -48,17 +48,17 @@
 ## Flutter Alignment (deduced from code)
 Component | Base URL | Paths | Auth | Protocol
 ---|---|---|---|---
-Flutter (accounts/add/regenerate/send) | Firebase Functions | `whatsappProxyGetAccounts`, `whatsappProxyAddAccount`, `whatsappProxyRegenerateQr`, `whatsappProxySend` | Firebase ID token | https
-Flutter (threads) | Backend if `WHATSAPP_BACKEND_URL` set, else Functions proxy | `/api/whatsapp/threads/:accountId` or `whatsappProxyGetThreads` | Firebase ID token (proxy) | https (proxy) / http(s) backend
-Flutter (inbox) | Backend (requires `WHATSAPP_BACKEND_URL`) | `/api/whatsapp/inbox/:accountId` | Firebase ID token (direct) | http(s)
-Flutter (chat messages) | Firestore realtime + proxy polling fallback | `threads/{threadId}/messages`, `whatsappProxyGetMessages` | Firebase ID token + App Check (proxy) | https
+Flutter (accounts/add/regenerate/send) | Supabase Functions | `whatsappProxyGetAccounts`, `whatsappProxyAddAccount`, `whatsappProxyRegenerateQr`, `whatsappProxySend` | Supabase ID token | https
+Flutter (threads) | Backend if `WHATSAPP_BACKEND_URL` set, else Functions proxy | `/api/whatsapp/threads/:accountId` or `whatsappProxyGetThreads` | Supabase ID token (proxy) | https (proxy) / http(s) backend
+Flutter (inbox) | Backend (requires `WHATSAPP_BACKEND_URL`) | `/api/whatsapp/inbox/:accountId` | Supabase ID token (direct) | http(s)
+Flutter (chat messages) | Database realtime + proxy polling fallback | `threads/{threadId}/messages`, `whatsappProxyGetMessages` | Supabase ID token + App Check (proxy) | https
 
-## Firestore Mode (Flutter)
-- Default: prod (emulator off unless `USE_FIREBASE_EMULATOR=true`)
-- Fallback: if emulator is unreachable, app logs `Firestore mode: prod` and proceeds
+## Database Mode (Flutter)
+- Default: prod (emulator off unless `USE_SUPABASE_EMULATOR=true`)
+- Fallback: if emulator is unreachable, app logs `Database mode: prod` and proceeds
 
 ## Inbound Fallback (Flutter)
-- Primary: Firestore stream
+- Primary: Database stream
 - Fallback: proxy polling (every ~3s) with `after` cursor and local dedupe
 - Expected: `curl` without tokens to proxy returns `401`
 
@@ -88,7 +88,7 @@ Expected fields:
 - `connected`
 - `session_present`
 - `last_inbound_at_ms`
-- `last_firestore_write_at_ms`
+- `last_database_write_at_ms`
 - `last_error_sha8`
 
 Optional endpoint (requires DIAG_TOKEN):
@@ -108,8 +108,8 @@ RESTART_AFTER_UPDATE=true bash scripts/server-update-safe.sh
 
 ## Audit Commands (Sanitized)
 ```bash
-node scripts/audit-firestore-duplicates.js --windowHours=48 --limit=500 --excludeMarked
-node scripts/audit-firestore-duplicates.js --windowHours=0.25 --limit=500 --excludeMarked
+node scripts/audit-database-duplicates.js --windowHours=48 --limit=500 --excludeMarked
+node scripts/audit-database-duplicates.js --windowHours=0.25 --limit=500 --excludeMarked
 node scripts/audit-threads-duplicates.js --limit=2000
 ```
 - Index requirement: collectionGroup `messages` ordered by `tsClient` (DESC)
@@ -132,19 +132,19 @@ When `tsClient` is stored as a string, audit uses `clientSideWindow` and reports
 
 ## Index Link (Debug Mode)
 ```bash
-node scripts/audit-firestore-duplicates.js --windowHours=0.25 --limit=50 --debug=1
+node scripts/audit-database-duplicates.js --windowHours=0.25 --limit=50 --debug=1
 ```
 Expected JSON includes:
 - `hint: "missing_index"` and `indexLink` (open link and create index)
 
-## Firestore Credential Check (Local)
+## Database Credential Check (Local)
 ```bash
 node - <<'NODE'
-const admin = require('firebase-admin');
+const admin = require('supabase-admin');
 try { admin.initializeApp(); } catch (e) {}
-admin.firestore().doc('app_config/version').get()
-  .then(d => { console.log("FIRESTORE_OK exists=", d.exists); process.exit(0); })
-  .catch(e => { console.error("FIRESTORE_ERR", e.code || "", e.message || ""); process.exit(1); });
+admin.database().doc('app_config/version').get()
+  .then(d => { console.log("DATABASE_OK exists=", d.exists); process.exit(0); })
+  .catch(e => { console.error("DATABASE_ERR", e.code || "", e.message || ""); process.exit(1); });
 NODE
 ```
 

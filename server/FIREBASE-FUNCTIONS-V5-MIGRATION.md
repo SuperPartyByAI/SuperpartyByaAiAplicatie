@@ -1,8 +1,8 @@
-# 🔄 Firebase Functions v5 Migration Guide
+# 🔄 Supabase Functions v5 Migration Guide
 
 ## ✅ Migration Completă
 
-Am migrat cu succes de la firebase-functions v4.9.0 la v5.x.x.
+Am migrat cu succes de la supabase-functions v4.9.0 la v5.x.x.
 
 ---
 
@@ -121,8 +121,8 @@ resource "google_cloudfunctions_function_iam_member" "invoker" {
 ```json
 {
   "dependencies": {
-    "firebase-functions": "^5.1.1", // upgraded from 4.9.0
-    "firebase-admin": "^12.7.0" // upgraded from 11.11.0
+    "supabase-functions": "^5.1.1", // upgraded from 4.9.0
+    "supabase-admin": "^12.7.0" // upgraded from 11.11.0
   }
 }
 ```
@@ -135,7 +135,7 @@ resource "google_cloudfunctions_function_iam_member" "invoker" {
 
 ```bash
 cd C:\Users\ursac\Aplicatie-SuperpartyByAi
-firebase emulators:start
+supabase emulators:start
 ```
 
 **Expected Output:**
@@ -153,7 +153,7 @@ firebase emulators:start
 ### Production Testing
 
 ```bash
-firebase deploy --only functions
+supabase deploy --only functions
 ```
 
 **Expected:**
@@ -185,7 +185,7 @@ npm install
 
 ```cmd
 cd ..
-firebase emulators:start
+supabase emulators:start
 ```
 
 Press `Ctrl+C` to stop emulator.
@@ -193,7 +193,7 @@ Press `Ctrl+C` to stop emulator.
 ### 4. Deploy to Production
 
 ```cmd
-firebase deploy --only functions
+supabase deploy --only functions
 ```
 
 ### 5. Configure IAM (If Not Already Done)
@@ -217,7 +217,7 @@ curl https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp
 ```json
 {
   "status": "online",
-  "service": "SuperParty WhatsApp on Firebase",
+  "service": "SuperParty WhatsApp on Supabase",
   "version": "5.0.0",
   "accounts": 1
 }
@@ -234,7 +234,7 @@ curl https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp
    - Better memory management
 
 2. **Modern Features**
-   - Support for Firebase Extensions
+   - Support for Supabase Extensions
    - Better integration with Cloud Run
    - Improved logging and monitoring
 
@@ -284,16 +284,16 @@ curl https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp
 
 ## 📚 Resources
 
-- [Firebase Functions v5 Release Notes](https://firebase.google.com/support/release-notes/functions)
-- [Migration Guide](https://firebase.google.com/docs/functions/beta-v5-migration)
-- [API Reference](https://firebase.google.com/docs/reference/functions)
+- [Supabase Functions v5 Release Notes](https://supabase.google.com/support/release-notes/functions)
+- [Migration Guide](https://supabase.google.com/docs/functions/beta-v5-migration)
+- [API Reference](https://supabase.google.com/docs/reference/functions)
 
 ---
 
 ## ✅ Migration Checklist
 
-- [x] Upgrade firebase-functions to v5.1.1
-- [x] Upgrade firebase-admin to v12.7.0
+- [x] Upgrade supabase-functions to v5.1.1
+- [x] Upgrade supabase-admin to v12.7.0
 - [x] Replace `runWith()` with v5 syntax
 - [x] Update memory units (GB → GiB)
 - [x] Remove `invoker: 'public'` option

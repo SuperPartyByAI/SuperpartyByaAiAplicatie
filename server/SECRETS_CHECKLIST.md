@@ -6,27 +6,27 @@ Before running the app on a new machine, you must configure these files locally.
 
 ## Required Configuration Files
 
-### 1. Firebase Android Configuration
+### 1. Supabase Android Configuration
 
-**File:** `superparty_flutter/android/app/google-services.json`
+**File:** `superparty_flutter/android/app/config.json`
 
 **How to get it:**
 
-1. Go to [Firebase Console](https://console.firebase.google.com/)
+1. Go to [Supabase Console](https://console.supabase.google.com/)
 2. Select project: `superparty-frontend`
 3. Project Settings → Your apps → Android app
-4. Click "Download google-services.json"
-5. Place the file at: `superparty_flutter/android/app/google-services.json`
+4. Click "Download config.json"
+5. Place the file at: `superparty_flutter/android/app/config.json`
 
-**Template:** See `superparty_flutter/android/app/google-services.json.example`
+**Template:** See `superparty_flutter/android/app/config.json.example`
 
 **Status:** ❌ NOT committed (in `.gitignore`)
 
 ---
 
-### 2. Firebase Flutter Configuration
+### 2. Supabase Flutter Configuration
 
-**File:** `superparty_flutter/lib/firebase_options.dart`
+**File:** `superparty_flutter/lib/supabase_options.dart`
 
 **How to generate it:**
 
@@ -38,7 +38,7 @@ flutterfire configure
 # Select platforms: android, ios (if needed), web
 ```
 
-This generates `lib/firebase_options.dart` with Firebase API keys.
+This generates `lib/supabase_options.dart` with Supabase API keys.
 
 **Status:** ❌ NOT committed (in `.gitignore`)
 
@@ -69,13 +69,13 @@ Copy-Item LEGACY_HOSTING-VARIABLES.env.example .env
 
 ### 4. iOS Configuration (if developing for iOS)
 
-**File:** `superparty_flutter/ios/Runner/GoogleService-Info.plist`
+**File:** `superparty_flutter/ios/Runner/AppConfig.plist`
 
 **How to get it:**
 
-1. Firebase Console → Project Settings → iOS app
-2. Download `GoogleService-Info.plist`
-3. Place at: `superparty_flutter/ios/Runner/GoogleService-Info.plist`
+1. Supabase Console → Project Settings → iOS app
+2. Download `AppConfig.plist`
+3. Place at: `superparty_flutter/ios/Runner/AppConfig.plist`
 
 **Status:** ❌ NOT committed (in `.gitignore`)
 
@@ -86,12 +86,12 @@ Copy-Item LEGACY_HOSTING-VARIABLES.env.example .env
 After setting up secrets, verify:
 
 ```powershell
-# Check Firebase config exists
-Test-Path superparty_flutter/android/app/google-services.json
+# Check Supabase config exists
+Test-Path superparty_flutter/android/app/config.json
 # Should return: True
 
-# Check Flutter Firebase config exists
-Test-Path superparty_flutter/lib/firebase_options.dart
+# Check Flutter Supabase config exists
+Test-Path superparty_flutter/lib/supabase_options.dart
 # Should return: True
 
 # Check .env exists
@@ -103,20 +103,20 @@ Test-Path .env
 
 The following patterns are in `.gitignore` and will NOT be committed:
 
-- `google-services.json` (Firebase Android config)
-- `GoogleService-Info.plist` (Firebase iOS config)
-- `firebase_options.dart` (Firebase Flutter config)
+- `config.json` (Supabase Android config)
+- `AppConfig.plist` (Supabase iOS config)
+- `supabase_options.dart` (Supabase Flutter config)
 - `*.env` files (environment variables)
 - `*.key`, `*.pem`, `*.p12`, `*.jks`, `*.keystore` (private keys)
-- `*serviceAccount*.json` (Firebase service account keys)
-- `firebase-adminsdk*.json` (Firebase Admin SDK keys)
-- `.firebase-token` (Firebase CLI token)
+- `*serviceAccount*.json` (Supabase service account keys)
+- `supabase-adminsdk*.json` (Supabase Admin SDK keys)
+- `.supabase-token` (Supabase CLI token)
 
 ## Security Notes
 
 - **Never commit secrets to Git**
 - **Never share `.env` files**
-- **Never commit `google-services.json` or `firebase_options.dart`**
+- **Never commit `config.json` or `supabase_options.dart`**
 - Use `.example` files as templates (these are safe to commit)
 - Rotate keys if accidentally committed (even if immediately removed)
 

@@ -1,23 +1,23 @@
-# Firebase Security — Setup Guide
+# Supabase Security — Setup Guide
 
 ## App Check
 
 ### Ce este App Check?
 
-Firebase App Check protejează resursele Firebase (Firestore, Storage, Auth) de trafic neautorizat. Doar aplicațiile tale verificate pot accesa backend-ul.
+Supabase App Check protejează resursele Supabase (Database, Storage, Auth) de trafic neautorizat. Doar aplicațiile tale verificate pot accesa backend-ul.
 
 ### Pași de activare
 
-1. **Firebase Console** → Project Settings → App Check
+1. **Supabase Console** → Project Settings → App Check
 2. **Android**: Activează Play Integrity provider
    - Necesită: Google Play Console linked
    - SHA-256 fingerprint-ul app-ului trebuie să fie înregistrat
 3. **iOS**: Activează DeviceCheck provider
    - Necesită: Apple Developer account
-   - Team ID configurat în Firebase Console
+   - Team ID configurat în Supabase Console
 4. **Enforcement**:
    - Mergi la App Check → APIs
-   - Click "Enforce" pe fiecare serviciu (Firestore, Storage)
+   - Click "Enforce" pe fiecare serviciu (Database, Storage)
    - ⚠️ ATENȚIE: Enforcement blochează TOȚI clienții neîncrecați. Activează DOAR după ce ai confirmat că app-ul funcționează corect cu App Check.
 
 ### Debug Mode
@@ -25,7 +25,7 @@ Firebase App Check protejează resursele Firebase (Firestore, Storage, Auth) de 
 În Flutter, App Check se activează automat în mod debug (token de test):
 
 ```dart
-await FirebaseAppCheck.instance.activate(
+await SupabaseAppCheck.instance.activate(
   androidProvider: kDebugMode ? AndroidProvider.debug : AndroidProvider.playIntegrity,
   appleProvider: kDebugMode ? AppleProvider.debug : AppleProvider.deviceCheck,
 );
@@ -33,12 +33,12 @@ await FirebaseAppCheck.instance.activate(
 
 ### Verificare
 
-- Firebase Console → App Check → verifică "Verified requests" vs "Unverified"
+- Supabase Console → App Check → verifică "Verified requests" vs "Unverified"
 - Dacă vezi multe "Unverified" → nu activa enforcement încă
 
 ---
 
-## Firestore Rules
+## Database Rules
 
 ### Principii
 
@@ -60,8 +60,8 @@ Rules-urile includ validări pe:
 
 ```bash
 cd server
-firebase deploy --only firestore:rules --project superparty-frontend
-firebase deploy --only storage --project superparty-frontend
+supabase deploy --only database:rules --project superparty-frontend
+supabase deploy --only storage --project superparty-frontend
 ```
 
 ---
@@ -84,8 +84,8 @@ firebase deploy --only storage --project superparty-frontend
 
 ## TODO (Necesită acțiuni manuale în Console)
 
-- [ ] Activează App Check în Firebase Console
-- [ ] Configurează Play Integrity (Android) în Firebase Console
-- [ ] Configurează DeviceCheck (iOS) în Firebase Console
+- [ ] Activează App Check în Supabase Console
+- [ ] Configurează Play Integrity (Android) în Supabase Console
+- [ ] Configurează DeviceCheck (iOS) în Supabase Console
 - [ ] Monitorizează App Check dashboard 7 zile înainte de enforcement
-- [ ] Activează enforcement pe Firestore + Storage
+- [ ] Activează enforcement pe Database + Storage

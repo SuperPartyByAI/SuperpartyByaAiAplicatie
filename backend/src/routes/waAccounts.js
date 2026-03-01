@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { db, FieldValue } = require('../firebase');
+const { db, FieldValue } = require('../supabase');
 const { createSession } = require('../whatsapp/sessionManager');
 
 // Create Account
@@ -43,7 +43,7 @@ router.get('/', async (req, res) => {
     }
 });
 
-// Get QR (Optional if listening to Firestore)
+// Get QR (Optional if listening to Database)
 router.get('/:id/qr', async (req, res) => {
     try {
         const doc = await db.collection('wa_accounts').doc(req.params.id).get();

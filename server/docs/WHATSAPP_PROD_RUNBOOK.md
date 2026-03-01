@@ -10,48 +10,47 @@ This runbook covers deployment, verification, and troubleshooting for the WhatsA
 
 ## Required Environment Variables
 
-### Firebase Functions
-- `WHATSAPP_BACKEND_BASE_URL` - WhatsApp backend base URL (Firebase secret; e.g. Hetzner `http://37.27.34.179:8080`)
-- Firebase project ID (from Firebase config)
+### Supabase Functions
+- `WHATSAPP_BACKEND_BASE_URL` - WhatsApp backend base URL (Supabase secret; e.g. Hetzner `http://37.27.34.179:8080`)
+- Supabase project ID (from Supabase config)
 
 ### WhatsApp Backend (Hetzner or generic)
 - `INSTANCE_ID` or `DEPLOYMENT_ID` - Unique instance ID (optional; `HOSTNAME` used as fallback)
 - `HOSTNAME` - Fallback instance ID
-- `FIREBASE_PROJECT_ID` - Firebase project ID
-- `FIREBASE_PRIVATE_KEY` - Firebase service account private key (base64 or JSON)
-- `FIREBASE_CLIENT_EMAIL` - Firebase service account email
+- `SUPABASE_PRIVATE_KEY` - Supabase service account private key (base64 or JSON)
+- `SUPABASE_CLIENT_EMAIL` - Supabase service account email
 - `BAILEYS_BASE_URL` - Base URL for Baileys endpoints (optional)
 
 ## Deployment Steps
 
-### 1. Deploy Firebase Functions
+### 1. Deploy Supabase Functions
 
-**Note:** Messages are read only from Firestore `threads/{threadId}/messages`. We do **not** use `whatsappProxyGetMessages`. Deploy `whatsappProxySend` for sending.
+**Note:** Messages are read only from Database `threads/{threadId}/messages`. We do **not** use `whatsappProxyGetMessages`. Deploy `whatsappProxySend` for sending.
 
 ```bash
-firebase use <alias-proiect>   # e.g. default, production
+supabase use <alias-proiect>   # e.g. default, production
 cd functions
 npm install
-firebase deploy --only functions:whatsappProxySend,functions:whatsappProxyGetAccounts,functions:whatsappProxyGetAccountsStaff,functions:whatsappProxyGetInbox,functions:whatsappProxyAddAccount,functions:whatsappProxyRegenerateQr
+supabase deploy --only functions:whatsappProxySend,functions:whatsappProxyGetAccounts,functions:whatsappProxyGetAccountsStaff,functions:whatsappProxyGetInbox,functions:whatsappProxyAddAccount,functions:whatsappProxyRegenerateQr
 ```
 
 **Verify:**
 
 ```bash
-firebase functions:list | grep whatsappProxy
+supabase functions:list | grep whatsappProxy
 # Expect: whatsappProxySend(us-central1), whatsappProxyGetAccountsStaff(us-central1), etc.
 ```
 
 **Secrets (required for processOutbox / getAccounts proxy → backend):**
 
 ```bash
-firebase functions:secrets:set WHATSAPP_BACKEND_BASE_URL
+supabase functions:secrets:set WHATSAPP_BACKEND_BASE_URL
 # Enter value, e.g.: http://37.27.34.179:8080
 ```
 
 ### 1b. Post-Deploy: Cloud Run IAM (Gen2 Functions)
 
-**CRITICAL:** Firebase Functions Gen2 uses Cloud Run, which requires explicit IAM bindings for public access. Without this, you'll see "The request was not authenticated/authorized to invoke this service" errors.
+**CRITICAL:** Supabase Functions Gen2 uses Cloud Run, which requires explicit IAM bindings for public access. Without this, you'll see "The request was not authenticated/authorized to invoke this service" errors.
 
 **Option A: Use automated script (recommended)**
 
@@ -98,36 +97,35 @@ curl -i "https://us-central1-superparty-frontend.cloudfunctions.net/whatsappProx
 # Expected: 401 with JSON body from your middleware, NOT Cloud Run HTML error page
 ```
 
-### 2. Deploy Firestore Rules
+### 2. Deploy Database Rules
 
 ```bash
-firebase deploy --only firestore:rules
+supabase deploy --only database:rules
 ```
 
-### 2b. Deploy Firestore Indexes
+### 2b. Deploy Database Indexes
 
-Chat streams `threads/{threadId}/messages` with `orderBy('tsClient', descending: true)`. `firestore.indexes.json` includes a `fieldOverrides` entry for collection group `messages`, field `tsClient` (ASC + DESC). Deploy indexes:
+Chat streams `threads/{threadId}/messages` with `orderBy('tsClient', descending: true)`. `database.indexes.json` includes a `fieldOverrides` entry for collection group `messages`, field `tsClient` (ASC + DESC). Deploy indexes:
 
 ```bash
-firebase deploy --only firestore:indexes
+supabase deploy --only database:indexes
 ```
 
-**Verify:** `firebase firestore:indexes` (list). New indexes may show "Building" for a few minutes.
+**Verify:** `supabase database:indexes` (list). New indexes may show "Building" for a few minutes.
 
 **Note:** Chat streams `orderBy('tsClient', descending: true)`. The backend must set `tsClient` on all messages in `threads/{threadId}/messages`. There is no client-side fallback to `createdAt`; missing `tsClient` can cause sort/display issues.
 
 ### 3. Deploy WhatsApp Backend (Hetzner / generic)
 
 - Deploy to Hetzner (systemd/Docker) or your host
-- Set `WHATSAPP_BACKEND_BASE_URL` in Firebase Functions secrets to backend base URL
+- Set `WHATSAPP_BACKEND_BASE_URL` in Supabase Functions secrets to backend base URL
 
 ### 4. Configure Backend Environment Variables
 
 On the backend host, set:
 - `INSTANCE_ID` or `DEPLOYMENT_ID` (optional; `HOSTNAME` fallback)
-- `FIREBASE_PROJECT_ID`
-- `FIREBASE_PRIVATE_KEY`
-- `FIREBASE_CLIENT_EMAIL`
+- `SUPABASE_PRIVATE_KEY`
+- `SUPABASE_CLIENT_EMAIL`
 
 ### 5. Scale Backend Instances
 
@@ -144,7 +142,7 @@ On the backend host, set:
 
 ### 1. Functions Proxy
 ```bash
-# Test send endpoint (requires Firebase ID token)
+# Test send endpoint (requires Supabase ID token)
 curl -X POST https://us-central1-<project>.cloudfunctions.net/whatsappProxySend \
   -H "Authorization: Bearer <ID_TOKEN>" \
   -H "Content-Type: application/json" \
@@ -159,7 +157,7 @@ curl -X POST https://us-central1-<project>.cloudfunctions.net/whatsappProxySend 
 
 Expected: `{"success": true, "requestId": "...", "duplicate": false}`
 
-### 2. Firestore Rules
+### 2. Database Rules
 - Attempt to write to `/outbox` from client → Should be denied
 - Functions proxy write → Should succeed (uses Admin SDK)
 
@@ -167,7 +165,7 @@ Expected: `{"success": true, "requestId": "...", "duplicate": false}`
 ```bash
 # Replace BASE with WHATSAPP_BACKEND_BASE_URL value (e.g. http://37.27.34.179:8080)
 curl -s $BASE/health
-# Expected: {"ok": true, "status": "healthy", "service": "whatsapp-backend", "version": "...", "commit": "...", "firestore": "connected"|"disabled", ...}
+# Expected: {"ok": true, "status": "healthy", "service": "whatsapp-backend", "version": "...", "commit": "...", "database": "connected"|"disabled", ...}
 
 curl $BASE/healthz
 # Expected: {"status": "ok", "timestamp": "..."}
@@ -181,7 +179,7 @@ curl $BASE/metrics-json
 
 ### 4. Outbox Processing
 1. Send message via Functions proxy
-2. Check Firestore `/outbox/{requestId}`:
+2. Check Database `/outbox/{requestId}`:
    - Status should be `queued` initially
    - After worker processes: `sent` or `failed`
    - `claimedBy` should be set (worker instance ID)
@@ -189,7 +187,7 @@ curl $BASE/metrics-json
 
 ### 5. Inbound Dedupe
 1. Send same message twice (same `providerMessageId`)
-2. Check Firestore `/inboundDedupe/{accountId}__{messageId}`
+2. Check Database `/inboundDedupe/{accountId}__{messageId}`
 3. Second message should be skipped (dedupe)
 
 ### 6. Multi-Instance Safety
@@ -202,32 +200,32 @@ curl $BASE/metrics-json
 
 ## E2E validation (production readiness)
 
-**1. Firestore structure**
+**1. Database structure**
 
 - Confirm `threads` has documents (e.g. filter by `accountId`).
 - For a `threadId`, confirm `threads/{threadId}/messages` has docs with `tsClient`.
-- Chat uses `orderBy('tsClient', descending: true)`; index from `firestore.indexes.json` (fieldOverrides `messages` + `tsClient`) must be deployed.
+- Chat uses `orderBy('tsClient', descending: true)`; index from `database.indexes.json` (fieldOverrides `messages` + `tsClient`) must be deployed.
 
 **2. Send flow**
 
 - In app: open a thread → type message → Send.
 - Logs: `[ChatScreen] Sending via proxy...` and `[WhatsAppApiService] sendViaProxy: BEFORE request | endpointUrl=.../whatsappProxySend`.
 - Response 2xx JSON (not 404 HTML).
-- Firestore: `outbox/{requestId}` appears (status `queued`), then `processOutbox` updates to `sent` or `failed`; `threads/{threadId}/messages` gets the outbound message.
+- Database: `outbox/{requestId}` appears (status `queued`), then `processOutbox` updates to `sent` or `failed`; `threads/{threadId}/messages` gets the outbound message.
 
 **3. No GetMessages proxy**
 
 - No requests to `whatsappProxyGetMessages` (removed from exports).
-- Flutter never calls it; messages come only from Firestore `threads/{threadId}/messages`.
+- Flutter never calls it; messages come only from Database `threads/{threadId}/messages`.
 
-**4. Manual checks (require Firebase/backend access)**
+**4. Manual checks (require Supabase/backend access)**
 
 | Step | Command / action | Success |
 |------|------------------|--------|
-| Indexes | `firebase deploy --only firestore:indexes` | `Deploy complete!` |
-| List functions | `firebase functions:list \| grep whatsappProxySend` | `whatsappProxySend(us-central1)` |
-| Deploy send | `firebase deploy --only functions:whatsappProxySend` | No errors |
-| Set secret | `firebase functions:secrets:set WHATSAPP_BACKEND_BASE_URL` | Secret set |
+| Indexes | `supabase deploy --only database:indexes` | `Deploy complete!` |
+| List functions | `supabase functions:list \| grep whatsappProxySend` | `whatsappProxySend(us-central1)` |
+| Deploy send | `supabase deploy --only functions:whatsappProxySend` | No errors |
+| Set secret | `supabase functions:secrets:set WHATSAPP_BACKEND_BASE_URL` | Secret set |
 | Send smoke | `curl -X POST .../whatsappProxySend -H "Authorization: Bearer <token>" ...` | JSON `{"success":true,...}` |
 
 ## Troubleshooting
@@ -235,16 +233,16 @@ curl $BASE/metrics-json
 ### Issue: 404 or HTML instead of JSON on proxy endpoints
 
 **Symptoms:**
-- `GET /whatsappProxyGetAccounts`, `POST /whatsappProxySend`, etc. return 404 or HTML (e.g. Firebase error page)
+- `GET /whatsappProxyGetAccounts`, `POST /whatsappProxySend`, etc. return 404 or HTML (e.g. Supabase error page)
 - Flutter logs: "Expected JSON, got HTML", `bodyPrefix` starts with `<`
 
-**Cause:** Function not deployed in the project/region you are calling, or wrong Firebase project/region.
+**Cause:** Function not deployed in the project/region you are calling, or wrong Supabase project/region.
 
 **Fix:**
-1. `firebase use <alias>` — ensure correct project (e.g. `superparty-frontend`)
-2. `firebase functions:list | grep whatsappProxySend` — function must appear (e.g. `whatsappProxySend(us-central1)`)
-3. Deploy: `firebase deploy --only functions:whatsappProxySend,functions:whatsappProxyGetAccounts,...`
-4. App must use the same project/region as deployed Functions (Firebase config in Flutter)
+1. `supabase use <alias>` — ensure correct project (e.g. `superparty-frontend`)
+2. `supabase functions:list | grep whatsappProxySend` — function must appear (e.g. `whatsappProxySend(us-central1)`)
+3. Deploy: `supabase deploy --only functions:whatsappProxySend,functions:whatsappProxyGetAccounts,...`
+4. App must use the same project/region as deployed Functions (Supabase config in Flutter)
 
 ### Issue: Messages stuck in `queued` status
 
@@ -253,14 +251,14 @@ curl $BASE/metrics-json
 - `/metrics-json` shows high `queuedCount`
 
 **Diagnosis:**
-1. Check `/readyz` - is Firestore available?
+1. Check `/readyz` - is Database available?
 2. Check worker logs for errors
 3. Check if account is `connected` (not `disconnected` or `needs_qr`)
 
 **Fix:**
 - Ensure WhatsApp account is connected (scan QR if needed)
 - Check worker logs for errors
-- Verify Firestore connectivity
+- Verify Database connectivity
 
 ### Issue: Duplicate sends
 
@@ -311,16 +309,16 @@ curl $BASE/metrics-json
 ### Issue: Inbound messages not saved
 
 **Symptoms:**
-- Messages received but not in Firestore
+- Messages received but not in Database
 - No thread updates
 
 **Diagnosis:**
-1. Check Firestore connectivity (`/readyz`)
+1. Check Database connectivity (`/readyz`)
 2. Check dedupe collection (may be skipping duplicates incorrectly)
 3. Check `messages.upsert` handler logs
 
 **Fix:**
-- Verify Firestore credentials
+- Verify Database credentials
 - Check dedupe logic (should only skip if already processed)
 - Review handler logs for errors
 
@@ -365,13 +363,13 @@ If issues occur after deployment:
 
 1. **Rollback Functions:**
    ```bash
-   firebase functions:rollback
+   supabase functions:rollback
    ```
 
-2. **Rollback Firestore Rules:**
+2. **Rollback Database Rules:**
    ```bash
-   git checkout HEAD~1 firestore.rules
-   firebase deploy --only firestore:rules
+   git checkout HEAD~1 database.rules
+   supabase deploy --only database:rules
    ```
 
 3. **Rollback Backend:**

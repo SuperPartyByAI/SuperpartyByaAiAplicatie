@@ -9,14 +9,14 @@ Fixing full WhatsApp pairing flow to handle 401/logged_out correctly and prevent
 - ✅ Clear `connectingTimeout` before session cleanup
 - ✅ Delete reconnect timers
 - ✅ Log session state before/after clear
-- ✅ Set `nextRetryAt=null`, `retryCount=0` in Firestore
+- ✅ Set `nextRetryAt=null`, `retryCount=0` in Database
 - ✅ Use incident type `wa_logged_out_requires_pairing`
 - ✅ Added logging for debugging
 
 ### 2. Reset Endpoint (`server.js` ~line 4267)
 - ✅ Added `POST /api/whatsapp/accounts/:id/reset`
 - ✅ Clears disk session via `clearAccountSession()`
-- ✅ Clears Firestore session backup
+- ✅ Clears Database session backup
 - ✅ Sets status to `needs_qr`
 - ✅ Clears timers and in-memory state
 

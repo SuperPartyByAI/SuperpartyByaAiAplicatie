@@ -1,18 +1,18 @@
-# 🔧 WhatsApp pe Firebase - Fix pentru Sesiuni Persistente
+# 🔧 WhatsApp pe Supabase - Fix pentru Sesiuni Persistente
 
 ## ❌ Problema Actuală
 
-Firebase Functions folosesc **ephemeral storage** (`/tmp`) care se șterge la fiecare **cold start** (după ~15 min inactivitate).
+Supabase Functions folosesc **ephemeral storage** (`/tmp`) care se șterge la fiecare **cold start** (după ~15 min inactivitate).
 
 **Rezultat:** Contul WhatsApp se deconectează și trebuie reconectat manual cu QR code/pairing code.
 
 ---
 
-## ✅ Soluția: Firestore pentru Sesiuni
+## ✅ Soluția: Database pentru Sesiuni
 
-Codul tău **deja are** `session-store.js` care salvează sesiunile în Firestore! Problema este că:
+Codul tău **deja are** `session-store.js` care salvează sesiunile în Database! Problema este că:
 
-1. **Sesiunea se salvează** în Firestore când te conectezi
+1. **Sesiunea se salvează** în Database când te conectezi
 2. **Sesiunea NU se restaurează** automat la cold start
 3. **Funcția `autoRestoreSessions()`** există dar nu funcționează corect
 
@@ -20,9 +20,9 @@ Codul tău **deja are** `session-store.js` care salvează sesiunile în Firestor
 
 ## 🔍 Ce Trebuie Verificat
 
-### 1. Verifică dacă sesiunea este în Firestore
+### 1. Verifică dacă sesiunea este în Database
 
-Mergi la **Firebase Console** → **Firestore Database** → caută colecția `whatsapp_sessions`.
+Mergi la **Supabase Console** → **Database Database** → caută colecția `whatsapp_sessions`.
 
 Ar trebui să vezi:
 
@@ -52,11 +52,11 @@ async createAccount(phoneNumber = null) {
   const accountId = `account_${Date.now()}`;
   const sessionPath = path.join(this.sessionsPath, accountId);
 
-  // ✅ ADAUGĂ AICI: Încearcă să restaurezi sesiunea din Firestore
+  // ✅ ADAUGĂ AICI: Încearcă să restaurezi sesiunea din Database
   const restored = await sessionStore.restoreSession(accountId, sessionPath);
 
   if (restored) {
-    console.log(`✅ [${accountId}] Session restored from Firestore, connecting...`);
+    console.log(`✅ [${accountId}] Session restored from Database, connecting...`);
   } else {
     console.log(`ℹ️ [${accountId}] No saved session, will generate QR code`);
   }
@@ -83,7 +83,7 @@ sock.ev.on('connection.update', async update => {
 
     // ✅ ADAUGĂ AICI: Salvează sesiunea IMEDIAT
     await sessionStore.saveSession(accountId, sessionPath);
-    console.log(`💾 [${accountId}] Session saved to Firestore`);
+    console.log(`💾 [${accountId}] Session saved to Database`);
   }
   // ...
 });
@@ -93,14 +93,14 @@ sock.ev.on('connection.update', async update => {
 
 ## 🛠️ Fix 3: Keep-Alive pentru a Preveni Cold Starts
 
-Firebase Functions "adorm" după 15 minute. Soluții:
+Supabase Functions "adorm" după 15 minute. Soluții:
 
 ### Opțiunea A: Cloud Scheduler (Cron Job)
 
 Creează un **Cloud Scheduler** care apelează funcția la fiecare 10 minute:
 
 ```bash
-# În Firebase Console → Cloud Scheduler → Create Job
+# În Supabase Console → Cloud Scheduler → Create Job
 Name: whatsapp-keepalive
 Frequency: */10 * * * *  (la fiecare 10 minute)
 Target: HTTP
@@ -149,11 +149,11 @@ async saveSession(accountId, sessionPath, account = null) {
         createdAt: account.createdAt
       } : null,
       updatedAt: new Date().toISOString(),
-      savedAt: firestore.admin.firestore.FieldValue.serverTimestamp()
+      savedAt: database.admin.database.FieldValue.serverTimestamp()
     };
 
     await this.db.collection('whatsapp_sessions').doc(accountId).set(data);
-    console.log(`💾 [${accountId}] Session saved to Firestore`);
+    console.log(`💾 [${accountId}] Session saved to Database`);
   } catch (error) {
     console.error(`❌ [${accountId}] Failed to save session:`, error.message);
   }
@@ -164,9 +164,9 @@ async saveSession(accountId, sessionPath, account = null) {
 
 ## 📋 Pași de Urmat
 
-### 1. **Verifică Firestore** (ACUM)
+### 1. **Verifică Database** (ACUM)
 
-- Firebase Console → Firestore → `whatsapp_sessions`
+- Supabase Console → Database → `whatsapp_sessions`
 - Există sesiunea? Da/Nu?
 
 ### 2. **Aplică Fix-urile** (5 min)
@@ -179,14 +179,14 @@ async saveSession(accountId, sessionPath, account = null) {
 ### 3. **Deploy și Test** (2 min)
 
 ```bash
-firebase deploy --only functions
+supabase deploy --only functions
 ```
 
 ### 4. **Reconectează WhatsApp** (1 min)
 
 - Generează QR code nou
 - Conectează-te
-- Verifică că sesiunea se salvează în Firestore
+- Verifică că sesiunea se salvează în Database
 
 ### 5. **Test Cold Start** (15 min)
 
@@ -200,7 +200,7 @@ firebase deploy --only functions
 
 După aplicarea fix-urilor:
 
-✅ **Sesiunea se salvează** în Firestore la conectare  
+✅ **Sesiunea se salvează** în Database la conectare  
 ✅ **Sesiunea se restaurează** automat la cold start  
 ✅ **Keep-Alive** previne cold starts (UptimeRobot GRATIS)  
 ✅ **WhatsApp rămâne conectat** 24/7 fără intervenție manuală
@@ -209,8 +209,8 @@ După aplicarea fix-urilor:
 
 ## 💰 Costuri
 
-- **Firebase Functions:** $0-2/lună (invocations + compute)
-- **Firestore:** $0 (sub 1GB storage, sub 50k reads/day)
+- **Supabase Functions:** $0-2/lună (invocations + compute)
+- **Database:** $0 (sub 1GB storage, sub 50k reads/day)
 - **Cloud Scheduler:** $0.10/lună (opțional, dacă nu folosești UptimeRobot)
 - **UptimeRobot:** $0 (GRATIS pentru 50 monitoare)
 
@@ -223,14 +223,14 @@ După aplicarea fix-urilor:
 1. **Verifică logs:**
 
    ```bash
-   firebase functions:log --only whatsapp
+   supabase functions:log --only whatsapp
    ```
 
-2. **Verifică Firestore Rules:**
+2. **Verifică Database Rules:**
 
    ```javascript
-   // Firestore Rules trebuie să permită read/write pentru Functions
-   service cloud.firestore {
+   // Database Rules trebuie să permită read/write pentru Functions
+   service cloud.database {
      match /databases/{database}/documents {
        match /whatsapp_sessions/{document=**} {
          allow read, write: if true; // Temporar pentru debug
@@ -246,4 +246,4 @@ După aplicarea fix-urilor:
 
 ---
 
-**Spune-mi ce vezi în Firestore Console și aplicăm fix-urile!** 🚀
+**Spune-mi ce vezi în Database Console și aplicăm fix-urile!** 🚀

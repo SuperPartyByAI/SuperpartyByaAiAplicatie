@@ -1,10 +1,10 @@
-# SMOKE TEST (Staff + Admin) — Flutter + Firebase Auth + Firestore + Cloud Functions
+# SMOKE TEST (Staff + Admin) — Flutter + Supabase Auth + Database + Cloud Functions
 
 ## Prerequisites
 
-- Firebase CLI installed: `firebase --version`, `firebase login`
+- Supabase CLI installed: `supabase --version`, `supabase login`
 - Emulator optional (recommended for fast smoke)
-- Required Firestore collections:
+- Required Database collections:
   - `users`, `staffProfiles`, `teams`, `teamCodePools`, `teamAssignments`, `teamAssignmentsHistory`, `adminActions`
 - Note: client cannot write to:
   - `teamCodePools`, `teamAssignments`, `teamAssignmentsHistory`, `adminActions` (rules enforced)
@@ -12,21 +12,21 @@
 ## Start emulators (optional)
 
 ```powershell
-firebase emulators:start --only firestore,functions
+supabase emulators:start --only database,functions
 ```
 
-## Seed Firestore
+## Seed Database
 
 Emulator:
 
 ```powershell
-node tools/seed_firestore.js --emulator
+node tools/seed_database.js --emulator
 ```
 
 Live project:
 
 ```powershell
-node tools/seed_firestore.js --project <projectId>
+node tools/seed_database.js --project <projectId>
 ```
 
 ## (Optional) Set admin
@@ -43,11 +43,11 @@ Admin is either:
 
 ## Callable examples (emulator + live)
 
-Prefer: `firebase functions:shell` (callables are not curl-friendly).
+Prefer: `supabase functions:shell` (callables are not curl-friendly).
 
 ```powershell
 cd functions
-firebase functions:shell
+supabase functions:shell
 ```
 
 In shell:
@@ -73,19 +73,19 @@ changeUserTeam({ uid: "u_staff", newTeamId: "team_c", forceReallocate: false }, 
 setUserStatus({ uid: "u_staff", status: "blocked" }, adminCtx)
 ```
 
-## Smoke test checklist (step-by-step) + Firestore diffs
+## Smoke test checklist (step-by-step) + Database diffs
 
 ### Staff
 
 1) Non-KYC user → Staff Settings blocks (no form)
 - Expected: UI blocks. No writes.
-- Firestore checks:
+- Database checks:
   - `users/{uid}.kycDone != true` AND `users/{uid}.kycData.fullName` empty/missing
   - no new `staffProfiles/{uid}` doc created by this step
   - no new `teamAssignmentsHistory/*` or `adminActions/*`
 
 2) KYC user → select team → code appears
-- Firestore checks:
+- Database checks:
   - `teamAssignments/{teamId}_{uid}` exists with:
     - `code` (number), `prefix` (string), `teamId`, `uid`, `createdAt`, `updatedAt`
   - `teamCodePools/{teamId}.freeCodes` removed allocated number (highest)
@@ -93,13 +93,13 @@ setUserStatus({ uid: "u_staff", status: "blocked" }, adminCtx)
   - assignedCode appears and fills `codIdentificare/ceCodAi/cineNoteaza`
 
 3) Change team before save → code changes without leaking/duplicating codes
-- Firestore checks:
+- Database checks:
   - old code number re-added **ONCE** to old pool `teamCodePools/{oldTeamId}.freeCodes`
   - new team pool removed its highest code
   - `teamAssignmentsHistory/*` entry created with `fromTeamId/toTeamId/releasedCode/newCode`
 
 4) Save (setupDone=false) → staffProfiles filled, users.staffSetupDone=true
-- Firestore checks:
+- Database checks:
   - `staffProfiles/{uid}`:
     - `setupDone:true`, `teamId`, `assignedCode`
     - `codIdentificare/ceCodAi/cineNoteaza` == `assignedCode`
@@ -107,7 +107,7 @@ setUserStatus({ uid: "u_staff", status: "blocked" }, adminCtx)
   - `users/{uid}.staffSetupDone:true`
 
 5) Reopen (setupDone=true) → team locked, phone editable, save updates phone
-- Firestore checks:
+- Database checks:
   - no new allocation/history (no changes to `teamCodePools/*`, `teamAssignmentsHistory/*`, `adminActions/*`)
   - `staffProfiles/{uid}.phone` updated
 
@@ -118,13 +118,13 @@ setUserStatus({ uid: "u_staff", status: "blocked" }, adminCtx)
 7) Search works (client-side filter)
 
 8) Change team → code reallocated, history + adminActions written
-- Firestore checks:
+- Database checks:
   - `staffProfiles/{uid}` updated `teamId` + `assignedCode` (and mirror fields)
   - pools adjusted (return old once, remove new max)
   - new `teamAssignmentsHistory/*` + `adminActions/*` docs
 
 9) Set status → users.status updated + adminActions written
-- Firestore checks:
+- Database checks:
   - `users/{uid}.status` updated
   - new `adminActions/*` doc with `action:"setUserStatus"`
 

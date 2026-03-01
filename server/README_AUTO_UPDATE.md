@@ -2,7 +2,7 @@
 
 ## ✅ STATUS: 90% COMPLET!
 
-**Totul e gata în cod!** Mai rămân doar 12-13 minute de configurare Firebase.
+**Totul e gata în cod!** Mai rămân doar 12-13 minute de configurare Supabase.
 
 ---
 
@@ -31,16 +31,16 @@
 
 | Fișier                                           | Descriere                      |
 | ------------------------------------------------ | ------------------------------ |
-| [setup-firebase.bat](setup-firebase.bat)         | Script Windows (CMD)           |
-| [setup-firebase-auto.js](setup-firebase-auto.js) | Script Node.js                 |
+| [setup-supabase.bat](setup-supabase.bat)         | Script Windows (CMD)           |
+| [setup-supabase-auto.js](setup-supabase-auto.js) | Script Node.js                 |
 | [RULARE_AUTOMATA.md](RULARE_AUTOMATA.md)         | Instrucțiuni + troubleshooting |
 
 ### 📋 Pentru configurare manuală:
 
 | Fișier                                                               | Descriere                     |
 | -------------------------------------------------------------------- | ----------------------------- |
-| [GHID_VIZUAL_FIREBASE.md](GHID_VIZUAL_FIREBASE.md)                   | Ghid pas cu pas (500+ linii)  |
-| [firestore-config-COPY-PASTE.json](firestore-config-COPY-PASTE.json) | Config Firestore (copy-paste) |
+| [GHID_VIZUAL_SUPABASE.md](GHID_VIZUAL_SUPABASE.md)                   | Ghid pas cu pas (500+ linii)  |
+| [database-config-COPY-PASTE.json](database-config-COPY-PASTE.json) | Config Database (copy-paste) |
 | [storage.rules](storage.rules)                                       | Storage Rules (copy-paste)    |
 
 ### 📚 Documentație completă:
@@ -48,7 +48,7 @@
 | Fișier                                                       | Descriere                         |
 | ------------------------------------------------------------ | --------------------------------- |
 | [AUTO_UPDATE_DOCUMENTATION.md](AUTO_UPDATE_DOCUMENTATION.md) | Documentație tehnică (600+ linii) |
-| [DOWNLOAD_DIRECT_FIREBASE.md](DOWNLOAD_DIRECT_FIREBASE.md)   | Firebase Storage (400+ linii)     |
+| [DOWNLOAD_DIRECT_SUPABASE.md](DOWNLOAD_DIRECT_SUPABASE.md)   | Supabase Storage (400+ linii)     |
 | [CHECKLIST_FINAL.md](CHECKLIST_FINAL.md)                     | Checklist complet                 |
 | [REZUMAT_FINAL_COMPLET.md](REZUMAT_FINAL_COMPLET.md)         | Rezumat complet (500+ linii)      |
 
@@ -56,7 +56,7 @@
 
 | Fișier                                               | Descriere                    |
 | ---------------------------------------------------- | ---------------------------- |
-| [verify-firebase-setup.sh](verify-firebase-setup.sh) | Script verificare (16 teste) |
+| [verify-supabase-setup.sh](verify-supabase-setup.sh) | Script verificare (16 teste) |
 
 ---
 
@@ -68,23 +68,23 @@
 
 ```cmd
 cd C:\Users\ursac\Aplicatie-SuperpartyByAi
-setup-firebase.bat
+setup-supabase.bat
 ```
 
 **Linux/Mac/Gitpod:**
 
 ```bash
 cd /workspaces/Aplicatie-SuperpartyByAi
-node setup-firebase-auto.js
+node setup-supabase-auto.js
 ```
 
 ### Varianta 2: MANUAL (10 minute)
 
-**Deschide:** [`GHID_VIZUAL_FIREBASE.md`](GHID_VIZUAL_FIREBASE.md)
+**Deschide:** [`GHID_VIZUAL_SUPABASE.md`](GHID_VIZUAL_SUPABASE.md)
 
 **Urmează pașii:**
 
-1. Firestore (3 min)
+1. Database (3 min)
 2. Storage (5 min)
 3. Rules (2 min)
 
@@ -99,16 +99,16 @@ node setup-firebase-auto.js
 ✅ Documentație:       100% (4000+ linii)
 ✅ Scripturi:          100% (3 scripturi)
 ✅ Configurare:        100% (toate fișierele)
-⏳ Firebase setup:       0% (12-13 minute)
+⏳ Supabase setup:       0% (12-13 minute)
 ```
 
 ---
 
-## 🔗 LINK-URI FIREBASE
+## 🔗 LINK-URI SUPABASE
 
-- **Firestore:** https://console.firebase.google.com/project/superparty-frontend/firestore
-- **Storage:** https://console.firebase.google.com/project/superparty-frontend/storage
-- **Rules:** https://console.firebase.google.com/project/superparty-frontend/storage/rules
+- **Database:** https://console.supabase.google.com/project/superparty-frontend/database
+- **Storage:** https://console.supabase.google.com/project/superparty-frontend/storage
+- **Rules:** https://console.supabase.google.com/project/superparty-frontend/storage/rules
 
 ---
 
@@ -132,13 +132,13 @@ node setup-firebase-auto.js
 
 ### Scripturi:
 
-- ✅ Script automat Windows (setup-firebase.bat)
-- ✅ Script automat Node.js (setup-firebase-auto.js)
-- ✅ Script verificare (verify-firebase-setup.sh)
+- ✅ Script automat Windows (setup-supabase.bat)
+- ✅ Script automat Node.js (setup-supabase-auto.js)
+- ✅ Script verificare (verify-supabase-setup.sh)
 
 ### Configurare:
 
-- ✅ JSON pentru Firestore (gata de copy-paste)
+- ✅ JSON pentru Database (gata de copy-paste)
 - ✅ Storage Rules (gata de copy-paste)
 - ✅ Toate fișierele necesare
 
@@ -146,9 +146,9 @@ node setup-firebase-auto.js
 
 ## ⏳ CE MAI RĂMÂNE
 
-### Firebase Configuration (12-13 minute):
+### Supabase Configuration (12-13 minute):
 
-**1. Firestore (3 min)**
+**1. Database (3 min)**
 
 - Creează document `app_config/version`
 - Adaugă 6 câmpuri
@@ -158,7 +158,7 @@ node setup-firebase-auto.js
 - Creează folder `apk`
 - Upload APK
 - Obține URL
-- Actualizează Firestore
+- Actualizează Database
 
 **3. Storage Rules (2 min)**
 
@@ -177,7 +177,7 @@ node setup-firebase-auto.js
 ### Verificare cod:
 
 ```bash
-./verify-firebase-setup.sh
+./verify-supabase-setup.sh
 ```
 
 **Rezultat:** 16/16 verificări ✅
@@ -192,7 +192,7 @@ flutter run
 
 1. ✅ Dialog "Actualizare Disponibilă"
 2. ✅ User deconectat automat
-3. ✅ Download APK din Firebase
+3. ✅ Download APK din Supabase
 
 ---
 
@@ -201,7 +201,7 @@ flutter run
 ```
 User deschide app
     ↓
-Verifică versiune în Firestore
+Verifică versiune în Database
     ↓
 Detectează: build 1 < 999
     ↓
@@ -213,7 +213,7 @@ User DECONECTAT automat
     ↓
 La redeschidere: dialog download
     ↓
-Download APK din Firebase Storage
+Download APK din Supabase Storage
     ↓
 User instalează manual
     ↓
@@ -228,7 +228,7 @@ User se loghează cu versiunea nouă
 
 ✅ **Control complet** - Tu decizi când e disponibil update-ul  
 ✅ **Instant** - Fără aprobare Play Store  
-✅ **Gratuit** - Firebase Storage: 5GB + 1GB/zi bandwidth  
+✅ **Gratuit** - Supabase Storage: 5GB + 1GB/zi bandwidth  
 ✅ **Rapid** - Download direct, fără redirecturi  
 ✅ **Flexibil** - Multiple versiuni, rollback instant
 
@@ -241,8 +241,8 @@ User se loghează cu versiunea nouă
 **Probleme comune:**
 
 - Node.js nu e instalat → Descarcă de la nodejs.org
-- Firebase CLI nu e instalat → `npm install -g firebase-tools`
-- Nu ești autentificat → `firebase login`
+- Supabase CLI nu e instalat → `npm install -g supabase-tools`
+- Nu ești autentificat → `supabase login`
 - Scriptul nu merge → Folosește varianta manuală
 
 ---
@@ -252,13 +252,13 @@ User se loghează cu versiunea nouă
 **Documentație completă:**
 
 - [AUTO_UPDATE_DOCUMENTATION.md](AUTO_UPDATE_DOCUMENTATION.md) - Documentație tehnică
-- [GHID_VIZUAL_FIREBASE.md](GHID_VIZUAL_FIREBASE.md) - Ghid vizual
+- [GHID_VIZUAL_SUPABASE.md](GHID_VIZUAL_SUPABASE.md) - Ghid vizual
 - [CHECKLIST_FINAL.md](CHECKLIST_FINAL.md) - Checklist complet
 
 **Verificare:**
 
 ```bash
-./verify-firebase-setup.sh
+./verify-supabase-setup.sh
 ```
 
 ---
@@ -267,7 +267,7 @@ User se loghează cu versiunea nouă
 
 **TOTUL E GATA ÎN COD!**
 
-**Mai rămân doar 12-13 minute de configurare Firebase.**
+**Mai rămân doar 12-13 minute de configurare Supabase.**
 
 **Deschide [`START_HERE.md`](START_HERE.md) și alege o variantă!** 🚀
 

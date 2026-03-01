@@ -12,8 +12,8 @@ import android.media.RingtoneManager
 import android.os.Build
 import android.util.Log
 import androidx.core.app.NotificationCompat
-import com.google.firebase.messaging.FirebaseMessagingService
-import com.google.firebase.messaging.RemoteMessage
+import com.google.supabase.messaging.SupabaseMessagingService
+import com.google.supabase.messaging.RemoteMessage
 import com.superpartybyai.app.ui.IncomingCallActivity
 import com.twilio.voice.CallException
 import com.twilio.voice.CallInvite
@@ -27,8 +27,8 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
 /**
  * Custom FCM service — the SOLE service registered for MESSAGING_EVENT.
  *
- * CRITICAL FIX (v41): Firebase dispatches FCM to only ONE service (highest
- * priority). Previously, Twilio's VoiceFirebaseMessagingService was registered
+ * CRITICAL FIX (v41): Supabase dispatches FCM to only ONE service (highest
+ * priority). Previously, Twilio's VoiceSupabaseMessagingService was registered
  * at priority=0 but NEVER received messages because this service (priority=1)
  * consumed them. This meant Voice.handleMessage() was never called, no
  * CallInvite was created, activeCall was always null, and answer() always failed.
@@ -39,9 +39,9 @@ import androidx.localbroadcastmanager.content.LocalBroadcastManager
  * 3. Forwards the CallInvite to TVConnectionService (same as plugin's service)
  * 4. Sends local broadcast to TVBroadcastReceiver (same as plugin's service)
  *
- * Twilio's VoiceFirebaseMessagingService has been REMOVED from AndroidManifest.
+ * Twilio's VoiceSupabaseMessagingService has been REMOVED from AndroidManifest.
  */
-class CustomVoiceFirebaseMessagingService : FirebaseMessagingService(), MessageListener {
+class CustomVoiceSupabaseMessagingService : SupabaseMessagingService(), MessageListener {
 
     companion object {
         private const val TAG = "[CustomVoiceFCM]"
@@ -199,7 +199,7 @@ class CustomVoiceFirebaseMessagingService : FirebaseMessagingService(), MessageL
     }
 
     // ── MessageListener implementation ──────────────────────────────────────
-    // Replicates the logic from twilio_voice plugin's VoiceFirebaseMessagingService
+    // Replicates the logic from twilio_voice plugin's VoiceSupabaseMessagingService
 
     override fun onCallInvite(callInvite: CallInvite) {
         Log.d(TAG, "✅ onCallInvite: sid=${callInvite.callSid} from=${callInvite.from} to=${callInvite.to}")

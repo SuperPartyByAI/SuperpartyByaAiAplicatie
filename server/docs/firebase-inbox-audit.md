@@ -1,4 +1,4 @@
-# Firebase Structure Report – Staff Inbox & WhatsApp
+# Supabase Structure Report – Staff Inbox & WhatsApp
 
 **Scop:** Identificarea cauzelor pentru care nu apar conversațiile/mesajele în Staff Inbox („3 conturi conectate, 0 conversații”).
 
@@ -6,7 +6,7 @@
 
 ---
 
-## 1. Schema Firestore (din cod)
+## 1. Schema Database (din cod)
 
 ### 1.1 Colecții folosite
 
@@ -30,7 +30,7 @@
 
 **Concluzie:** Backend și UI folosesc **același** path `threads`. Nu există write în A și read din B.
 
-**Bug identificat (fix aplicat):** Query-ul Inbox folosește `orderBy('lastMessageAt', descending: true)`. Firestore **exclude** documentele care nu au câmpul din `orderBy`. Threads create sau actualizate **doar** prin mesaje **outbound** nu primeau `lastMessageAt` (doar inbound îl seta) → nu apăreau în Inbox. Fix: în `message_persist.js` se scriu mereu `lastMessageAt` și `lastMessageAtMs` la fiecare update thread (inbound și outbound).
+**Bug identificat (fix aplicat):** Query-ul Inbox folosește `orderBy('lastMessageAt', descending: true)`. Database **exclude** documentele care nu au câmpul din `orderBy`. Threads create sau actualizate **doar** prin mesaje **outbound** nu primeau `lastMessageAt` (doar inbound îl seta) → nu apăreau în Inbox. Fix: în `message_persist.js` se scriu mereu `lastMessageAt` și `lastMessageAtMs` la fiecare update thread (inbound și outbound).
 
 ---
 
@@ -40,7 +40,7 @@
 |---------|-------------------|------------------|
 | Threads | `db.collection('threads').doc(threadId).set(..., { merge: true })` | `buildThreadsQuery(accountId).snapshots()` → `threads` |
 | Messages | `threads.doc(threadId).collection('messages').doc(msgId).set(...)` | `threads.doc(threadId).collection('messages').orderBy('tsClient', 'desc')` în ChatScreen |
-| Accounts | Backend scrie în `accounts`. Lista de conturi din Staff Inbox vine din **API** (`getAccountsStaff` → Functions → Hetzner), **nu** din Firestore. | - |
+| Accounts | Backend scrie în `accounts`. Lista de conturi din Staff Inbox vine din **API** (`getAccountsStaff` → Functions → Hetzner), **nu** din Database. | - |
 
 **Determinarea conversațiilor în UI:**  
 Staff Inbox obține `accountId`-uri din API (conturi conectate, excluse admin phone). Pentru fiecare `accountId` se subscribe la `buildThreadsQuery(accountId)`. Rezultatul este lista de threads pentru acel cont.
@@ -66,14 +66,14 @@ Regula folosește:
 !exists(/databases/.../config/whatsapp_inbox)
 || !(resource.data.accountId in get(...config/whatsapp_inbox).data.adminOnlyAccountIds)
 ```
-Dacă documentul **nu** există, `!exists` e true. Comportamentul standard Firebase este short‑circuit pentru `||`, deci `get()` nu ar trebui evaluat. Dacă totuși s-ar evalua (ex. implementare diferită), `get()` pe doc inexistent eșuează → deny.  
+Dacă documentul **nu** există, `!exists` e true. Comportamentul standard Supabase este short‑circuit pentru `||`, deci `get()` nu ar trebui evaluat. Dacă totuși s-ar evalua (ex. implementare diferită), `get()` pe doc inexistent eșuează → deny.  
 **Recomandare:** Dacă apar deny-uri inexplicabile când `config/whatsapp_inbox` lipsește, trebuie refăcută regula astfel încât `get()` să nu fie niciodată apelat când `!exists(...)`.
 
 ### 3.3 Erori de permission în UI
 
-- La **stream error** pe threads, UI setează `_firestoreErrorCode` și `_errorMessage`.  
+- La **stream error** pe threads, UI setează `_databaseErrorCode` și `_errorMessage`.  
 - `permission-denied` → „Rules/RBAC blocked. Nu ai permisiune de citire pe threads.”  
-- `failed-precondition` → „Index mismatch. Verifică indexurile Firestore pentru threads.”
+- `failed-precondition` → „Index mismatch. Verifică indexurile Database pentru threads.”
 
 Dacă rules blochează, utilizatorul ar trebui să vadă aceste mesaje, nu doar „0 conversații”.
 
@@ -87,7 +87,7 @@ Dacă rules blochează, utilizatorul ar trebui să vadă aceste mesaje, nu doar 
   `where('accountId', '==', accountId)`  
   `orderBy('lastMessageAt', 'desc')`  
   `limit(200)`  
-- **Index:** În `firestore.indexes.json` există index compus:  
+- **Index:** În `database.indexes.json` există index compus:  
   `accountId` ASC, `lastMessageAt` DESC (collection `threads`).  
 - **Surse:** `threads_query.dart`, `audit_whatsapp_inbox_schema.mjs` (aceeași structură).
 
@@ -111,15 +111,15 @@ Dacă rules blochează, utilizatorul ar trebui să vadă aceste mesaje, nu doar 
   - Scrie în `outbox`, actualizează `threads` (owner, etc.) la trimitere.  
 - **processOutbox:** Procesează `outbox`; scrie în `threads` / `messages` la send.  
 - **Creare threads:** O face **Hetzner backend** (history sync, realtime), nu Functions.  
-- Functions folosesc același Firestore (proiectul Firebase al app-ului).
+- Functions folosesc același Database (proiectul Supabase al app-ului).
 
 ---
 
 ## 6. Config proiect / env
 
-- **Firebase project:** `.firebaserc` → `superparty-frontend`. Flutter folosește `DefaultFirebaseOptions.currentPlatform` (proiectul e același).  
-- **Backend (Hetzner):** Firebase Admin din `firebaseCredentials.js` (env `FIREBASE_SERVICE_ACCOUNT_*` / `GOOGLE_APPLICATION_CREDENTIALS`); `project_id` din service account. CORS permite `superparty-frontend`.  
-- **Emulator:** Flutter poate folosi emulatorul (Firestore, Auth, Functions) când `USE_FIREBASE_EMULATOR=true` / `USE_EMULATORS=true`. Fără emulator → prod.  
+- **Supabase project:** `.supabaserc` → `superparty-frontend`. Flutter folosește `DefaultSupabaseOptions.currentPlatform` (proiectul e același).  
+- **Backend (Hetzner):** Supabase Admin din `supabaseCredentials.js` (env `SUPABASE_SERVICE_ACCOUNT_*` / `GOOGLE_APPLICATION_CREDENTIALS`); `project_id` din service account. CORS permite `superparty-frontend`.  
+- **Emulator:** Flutter poate folosi emulatorul (Database, Auth, Functions) când `USE_SUPABASE_EMULATOR=true` / `USE_EMULATORS=true`. Fără emulator → prod.  
 - **Mismatch proiect:** Nu s-a găsit dovezi că UI citește dintr-un proiect și backend scrie în altul.
 
 ---
@@ -128,11 +128,11 @@ Dacă rules blochează, utilizatorul ar trebui să vadă aceste mesaje, nu doar 
 
 - Staff Inbox primește conturile din **getAccountsStaff** (API).  
 - Filtrează după `status == 'connected'` și exclude contul cu phone `0737571397` (admin).  
-- Pentru fiecare `accountId` rămas se deschide stream Firestore pe `threads` cu `where('accountId', '==', accountId)`.  
-- Dacă în Firestore **nu există** niciun `thread` cu acel `accountId`, stream-ul returnează 0 doc-uri → „0 conversații”.  
+- Pentru fiecare `accountId` rămas se deschide stream Database pe `threads` cu `where('accountId', '==', accountId)`.  
+- Dacă în Database **nu există** niciun `thread` cu acel `accountId`, stream-ul returnează 0 doc-uri → „0 conversații”.  
 - Thread-urile se creează la **history sync** (re-pair: Disconnect → Connect → Scan QR) sau la **primer mesaj** (realtime). **Backfill-ul nu creează** thread-uri noi.
 
-**Concluzie:** „3 conturi, 0 conversații” este consistent cu: **conturile există (API), dar în Firestore nu există încă threads pentru acele `accountId`-uri** (nu s-a făcut re-pair / history sync sau nu s-a primit/trimis niciun mesaj).
+**Concluzie:** „3 conturi, 0 conversații” este consistent cu: **conturile există (API), dar în Database nu există încă threads pentru acele `accountId`-uri** (nu s-a făcut re-pair / history sync sau nu s-a primit/trimis niciun mesaj).
 
 ---
 
@@ -148,9 +148,9 @@ Dacă rules blochează, utilizatorul ar trebui să vadă aceste mesaje, nu doar 
 
 | Prioritate | Suspect | Dovezi / observații |
 |------------|---------|----------------------|
-| **1** | **Nu există threads în Firestore** pentru `accountId`-urile celor 3 conturi | UI și backend folosesc același `threads`. Query-urile sunt per `accountId`. History sync / mesaje creează threads. |
+| **1** | **Nu există threads în Database** pentru `accountId`-urile celor 3 conturi | UI și backend folosesc același `threads`. Query-urile sunt per `accountId`. History sync / mesaje creează threads. |
 | 2 | **Rules** blochează read | Ar trebui să apară „Rules/RBAC blocked” în UI. Verifică dacă userul e employee (`staffProfiles`) și dacă `config/whatsapp_inbox` + `adminOnlyAccountIds` sunt setate corect. |
-| 3 | **Index** lipsă | Ar trebui „Index mismatch…”. Verifică `firebase deploy --only firestore:indexes` și `firestore.indexes.json`. |
+| 3 | **Index** lipsă | Ar trebui „Index mismatch…”. Verifică `supabase deploy --only database:indexes` și `database.indexes.json`. |
 | 4 | **`config/whatsapp_inbox` inexistent + `get()` evaluat** | Teoretic deny; short‑circuit normally evită. Dacă există deny fără alt motiv, verifică refactorul rules. |
 | 5 | **Mismatch proiect / emulator vs prod** | Nu s-a găsit în cod; CORS și config indică același proiect. |
 
@@ -158,7 +158,7 @@ Dacă rules blochează, utilizatorul ar trebui să vadă aceste mesaje, nu doar 
 
 ## 10. Fix minim recomandat
 
-**Cauza cea mai probabilă:** Niciun thread în Firestore pentru `accountId`-urile respective.
+**Cauza cea mai probabilă:** Niciun thread în Database pentru `accountId`-urile respective.
 
 **Acțiuni:**
 
@@ -166,17 +166,17 @@ Dacă rules blochează, utilizatorul ar trebui să vadă aceste mesaje, nu doar 
 2. **Verificare pe backend:** După re-pair, în loguri ar trebui:  
    `messaging-history.set event received; history chats: N`  
    `messaging-history.set, Thread placeholders from history chats: X created.`  
-3. **Verificare în Firestore:**  
+3. **Verificare în Database:**  
    - `threads` cu `accountId` în `{id1, id2, id3}` (din API).  
    - Poți folosi `audit_whatsapp_inbox_schema.mjs` cu acești `accountId`.  
-4. **Instrumentare (opțional):** Loguri în UI la subscribe (accountIds, count per snapshot) și la Firestore error (code, message), ca în secțiunea 11.
+4. **Instrumentare (opțional):** Loguri în UI la subscribe (accountIds, count per snapshot) și la Database error (code, message), ca în secțiunea 11.
 
 ---
 
 ## 11. Instrumentare minimală (diagnostic)
 
 - La **subscribe** threads per account: log `accountIds` folosiți și, la fiecare snapshot, `accountId` → `docs.length`.  
-- La **Firestore stream error:** log explicit `code` și `message`; păstrați afișarea în UI a `_errorMessage` / `_firestoreErrorCode` (nu doar `console.debug`).  
+- La **Database stream error:** log explicit `code` și `message`; păstrați afișarea în UI a `_errorMessage` / `_databaseErrorCode` (nu doar `console.debug`).  
 - (Opțional) La **scriere** threads în backend: log path `threads/{threadId}`, `accountId`, `clientJid` (sau hash).
 
 ---
@@ -187,7 +187,7 @@ Dacă rules blochează, utilizatorul ar trebui să vadă aceste mesaje, nu doar 
 
 1. Disconnect → Connect → Scan QR pentru un cont.  
 2. Pe backend (ex. Hetzner): `journalctl -u whatsapp-backend -f | grep -E 'messaging-history\.set|Thread placeholders'`.  
-3. În Firestore: `threads` unde `accountId == <acel accountId>`.  
+3. În Database: `threads` unde `accountId == <acel accountId>`.  
 4. În Staff Inbox: reîmprospătare; ar trebui să apară conversațiile pentru acel cont.
 
 ### 12.2 Confirmare backfill nu creează threads
@@ -205,7 +205,7 @@ Dacă rules blochează, utilizatorul ar trebui să vadă aceste mesaje, nu doar 
 
 ### 12.4 Ce vezi în UI
 
-- **0 conversații, fără mesaj de eroare:** Cel mai probabil 0 threads în Firestore pentru `accountId`-urile afișate.  
+- **0 conversații, fără mesaj de eroare:** Cel mai probabil 0 threads în Database pentru `accountId`-urile afișate.  
 - **„Rules/RBAC blocked”:** Probleme de rules / `adminOnlyAccountIds` / `staffProfiles`.  
 - **„Index mismatch”:** Lipsă index pentru query-ul `threads` (sau messages).
 
@@ -214,10 +214,10 @@ Dacă rules blochează, utilizatorul ar trebui să vadă aceste mesaje, nu doar 
 ## 13. Instrumentare adăugată (diagnostic)
 
 - **Staff Inbox** (`staff_inbox_screen.dart`):
-  - La **subscribe** threads: log `[Firebase-inbox-audit] StaffInbox threads query: accountIds=..., collection=threads, where=accountId==<id>, orderBy=lastMessageAt desc, limit=200`.
-  - La **snapshot**: log `[Firebase-inbox-audit] StaffInbox threads result: accountId=... count=...`.
-  - La **Firestore error**: log `[Firebase-inbox-audit] Firestore threads error: accountId=... code=... message=...`; UI afișează `_errorMessage` și `_firestoreErrorCode` (nu doar console).
-- Caută în loguri după `[Firebase-inbox-audit]` pentru debug.
+  - La **subscribe** threads: log `[Supabase-inbox-audit] StaffInbox threads query: accountIds=..., collection=threads, where=accountId==<id>, orderBy=lastMessageAt desc, limit=200`.
+  - La **snapshot**: log `[Supabase-inbox-audit] StaffInbox threads result: accountId=... count=...`.
+  - La **Database error**: log `[Supabase-inbox-audit] Database threads error: accountId=... code=... message=...`; UI afișează `_errorMessage` și `_databaseErrorCode` (nu doar console).
+- Caută în loguri după `[Supabase-inbox-audit]` pentru debug.
 
 ---
 
@@ -236,8 +236,8 @@ Dacă vezi **permission-denied** pe threads când `config/whatsapp_inbox` **nu**
 |-----|--------|
 | Query threads | `superparty_flutter/lib/utils/threads_query.dart` |
 | Staff Inbox streams | `superparty_flutter/lib/screens/whatsapp/staff_inbox_screen.dart` |
-| Firestore rules | `firestore.rules` (match `threads`, `config/whatsapp_inbox`) |
-| Indexuri | `firestore.indexes.json` |
+| Database rules | `database.rules` (match `threads`, `config/whatsapp_inbox`) |
+| Indexuri | `database.indexes.json` |
 | Backend history sync | `whatsapp-backend/server.js` (`ensureThreadsFromHistoryChats`, `onHistorySync`) |
 | Backend backfill | `whatsapp-backend/server.js` (`backfillAccountMessages`) |
 | Audit schema | `scripts/audit_whatsapp_inbox_schema.mjs` |
@@ -250,22 +250,22 @@ Dacă vezi **permission-denied** pe threads când `config/whatsapp_inbox` **nu**
 
 | Fișier | Modificări |
 |--------|------------|
-| `docs/firebase-inbox-audit.md` | **Nou.** Raport Firebase (schema, rules, indexuri, suspects, fix, reproducere). |
-| `superparty_flutter/lib/screens/whatsapp/staff_inbox_screen.dart` | Loguri `[Firebase-inbox-audit]`: la subscribe (accountIds, query), la snapshot (accountId, count), la Firestore error (code, message). |
-| `whatsapp-backend/whatsapp/message_persist.js` | **Fix structură Firestore:** `lastMessageAt` și `lastMessageAtMs` se scriu **mereu** la update thread (inbound + outbound). Fără asta, threads create/actualizate doar prin outbound nu aveau aceste câmpuri → erau excluse de `orderBy('lastMessageAt')` → nu apăreau în Inbox. |
+| `docs/supabase-inbox-audit.md` | **Nou.** Raport Supabase (schema, rules, indexuri, suspects, fix, reproducere). |
+| `superparty_flutter/lib/screens/whatsapp/staff_inbox_screen.dart` | Loguri `[Supabase-inbox-audit]`: la subscribe (accountIds, query), la snapshot (accountId, count), la Database error (code, message). |
+| `whatsapp-backend/whatsapp/message_persist.js` | **Fix structură Database:** `lastMessageAt` și `lastMessageAtMs` se scriu **mereu** la update thread (inbound + outbound). Fără asta, threads create/actualizate doar prin outbound nu aveau aceste câmpuri → erau excluse de `orderBy('lastMessageAt')` → nu apăreau în Inbox. |
 
 ---
 
 ## 17. Output final (H) – rezumat
 
-1. **Firebase Structure Report:** acest document (`docs/firebase-inbox-audit.md`). Conține schema (colecții/path-uri), ce scrie backend vs ce citește UI, rules (inclusiv posibilă problemă exists/get), indexuri, suspects prioritați, fix minim, pași de reproducere/verificare.
+1. **Supabase Structure Report:** acest document (`docs/supabase-inbox-audit.md`). Conține schema (colecții/path-uri), ce scrie backend vs ce citește UI, rules (inclusiv posibilă problemă exists/get), indexuri, suspects prioritați, fix minim, pași de reproducere/verificare.
 2. **Fix minim:**  
    - **Operațional:** Re-pair (Disconnect → Connect → Scan QR) pentru a declanșa history sync și crearea de thread placeholders. Backfill nu creează threads.  
-   - **Cod:** Doar instrumentare (loguri `[Firebase-inbox-audit]` în Staff Inbox). Fără schimbări de rules/indexuri/funcționalitate; niciun diff pentru „fix” în sens de bug în aplicație.  
+   - **Cod:** Doar instrumentare (loguri `[Supabase-inbox-audit]` în Staff Inbox). Fără schimbări de rules/indexuri/funcționalitate; niciun diff pentru „fix” în sens de bug în aplicație.  
    - **Rules:** Dacă reproducești permission-denied când `config/whatsapp_inbox` lipsește, aplică hardening din §14.
 3. **Reproducere și verificare:**  
    - Confirmare threads după re-pair: §12.1.  
    - Confirmare backfill nu creează threads: §12.2.  
    - Loguri așteptate (backend): §12.3.  
    - Ce vezi în UI: §12.4.  
-   - Loguri diagnostic (Flutter): caută `[Firebase-inbox-audit]` în console.
+   - Loguri diagnostic (Flutter): caută `[Supabase-inbox-audit]` în console.

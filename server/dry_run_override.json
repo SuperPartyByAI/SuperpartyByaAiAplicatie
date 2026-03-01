@@ -1,4 +1,4 @@
-Starting replay_baileys_to_firestore. Dry run: true
+Starting replay_baileys_to_database. Dry run: true
 Parsing log file: /tmp/full_pm2.log
 Replay finished. Report saved to ./replay_report_dryrun_file_override.json
 {
@@ -10,7 +10,7 @@ Replay finished. Report saved to ./replay_report_dryrun_file_override.json
     "out": "./replay_report_dryrun_file_override.json",
     "dry_run": true,
     "lines": 5000,
-    "$0": "admin/replay_baileys_to_firestore.js"
+    "$0": "admin/replay_baileys_to_database.js"
   },
   "total": 0,
   "inserted": [],

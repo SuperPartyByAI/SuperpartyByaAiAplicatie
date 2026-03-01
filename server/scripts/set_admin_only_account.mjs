@@ -1,13 +1,13 @@
 #!/usr/bin/env node
 /**
  * Resolve accountId(s) for admin phone (default 0737571397), write config/whatsapp_inbox.adminOnlyAccountIds.
- * Firestore rules use this to block employees from reading admin-only threads.
+ * Database rules use this to block employees from reading admin-only threads.
  *
  * Usage:
  *   node scripts/set_admin_only_account.mjs --project superparty-frontend
  *   node scripts/set_admin_only_account.mjs --project superparty-frontend --phone 0737571397
  *
- * Reads Firestore collection "accounts"; matches phone (phoneE164, phone). Writes config/whatsapp_inbox.
+ * Reads Database collection "accounts"; matches phone (phoneE164, phone). Writes config/whatsapp_inbox.
  * Credentials: GOOGLE_APPLICATION_CREDENTIALS or gcloud ADC.
  */
 
@@ -18,7 +18,7 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
-const admin = require('firebase-admin');
+const admin = require('supabase-admin');
 
 const ADMIN_PHONE = '0737571397';
 
@@ -35,7 +35,7 @@ function loadServiceAccount() {
   };
   const gac = process.env.GOOGLE_APPLICATION_CREDENTIALS;
   if (gac) { const v = tryPath(gac); if (v) return { serviceAccount: v }; }
-  const fpath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH;
+  const fpath = process.env.SUPABASE_SERVICE_ACCOUNT_PATH;
   if (fpath) { const v = tryPath(fpath); if (v) return { serviceAccount: v }; }
   for (const rel of ['functions/serviceAccountKey.json', 'whatsapp-backend/serviceAccountKey.json', 'serviceAccountKey.json']) {
     const v = tryPath(path.join(cwd, rel));
@@ -70,10 +70,10 @@ function parseArgs() {
     console.log(`
 Usage: node scripts/set_admin_only_account.mjs --project <ID> [--phone <PHONE>]
 
-  --project  Firebase project ID (required)
+  --project  Supabase project ID (required)
   --phone    Admin phone (default ${ADMIN_PHONE})
 
-  Resolves accountId(s) from Firestore "accounts" matching phone, writes config/whatsapp_inbox.adminOnlyAccountIds.
+  Resolves accountId(s) from Database "accounts" matching phone, writes config/whatsapp_inbox.adminOnlyAccountIds.
 `);
     process.exit(args.includes('--help') ? 0 : 1);
   }
@@ -99,11 +99,11 @@ async function main() {
       admin.initializeApp({ credential: admin.credential.applicationDefault(), projectId: project });
     }
   } catch (e) {
-    console.error('Firebase Admin init failed:', e.message);
+    console.error('Supabase Admin init failed:', e.message);
     process.exit(1);
   }
 
-  const db = admin.firestore();
+  const db = admin.database();
   const targetNorm = normalizePhone(phone);
   const snapshot = await db.collection('accounts').get();
   const adminIds = [];
@@ -125,7 +125,7 @@ async function main() {
   const ref = db.collection('config').doc('whatsapp_inbox');
   await ref.set({
     adminOnlyAccountIds: adminIds,
-    updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    updatedAt: admin.database.FieldValue.serverTimestamp(),
     adminPhone: phone,
   }, { merge: true });
 

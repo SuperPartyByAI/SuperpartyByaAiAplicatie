@@ -1,8 +1,8 @@
-# Validare Query-uri Firestore - Evenimente
+# Validare Query-uri Database - Evenimente
 
 ## 🎯 Obiectiv
 
-Verificare că toate query-urile funcționează cu indexurile definite în `firestore.indexes.json`.
+Verificare că toate query-urile funcționează cu indexurile definite în `database.indexes.json`.
 
 ---
 
@@ -13,7 +13,7 @@ Verificare că toate query-urile funcționează cu indexurile definite în `fire
 **Cod:**
 
 ```dart
-Query query = _firestore.collection('evenimente');
+Query query = _database.collection('evenimente');
 query = query.where('isArchived', isEqualTo: false);
 query = query.orderBy('nume', descending: false);
 ```
@@ -38,7 +38,7 @@ query = query.orderBy('nume', descending: false);
 **Cod:**
 
 ```dart
-Query query = _firestore.collection('evenimente');
+Query query = _database.collection('evenimente');
 query = query.where('isArchived', isEqualTo: false);
 query = query.where('data', isGreaterThanOrEqualTo: startDate);
 query = query.where('data', isLessThanOrEqualTo: endDate);
@@ -56,7 +56,7 @@ query = query.orderBy('data', descending: false);
 }
 ```
 
-**Status:** ✅ Index definit în `firestore.indexes.json`
+**Status:** ✅ Index definit în `database.indexes.json`
 
 ---
 
@@ -66,7 +66,7 @@ query = query.orderBy('data', descending: false);
 
 ```dart
 // Server-side
-Query query = _firestore.collection('evenimente');
+Query query = _database.collection('evenimente');
 query = query.where('isArchived', isEqualTo: false);
 query = query.where('data', isGreaterThanOrEqualTo: startDate);
 query = query.where('data', isLessThanOrEqualTo: endDate);
@@ -96,7 +96,7 @@ events.sort((a, b) => a.nume.compareTo(b.nume));
 **Cod:**
 
 ```dart
-Query query = _firestore.collection('evenimente');
+Query query = _database.collection('evenimente');
 query = query.where('isArchived', isEqualTo: true);
 query = query.orderBy('archivedAt', descending: true);
 ```
@@ -112,7 +112,7 @@ query = query.orderBy('archivedAt', descending: true);
 }
 ```
 
-**Status:** ✅ Index definit în `firestore.indexes.json`
+**Status:** ✅ Index definit în `database.indexes.json`
 
 ---
 
@@ -121,7 +121,7 @@ query = query.orderBy('archivedAt', descending: true);
 **Cod:**
 
 ```dart
-Query query = _firestore
+Query query = _database
     .collection('evenimente')
     .doc(eventId)
     .collection('dovezi');
@@ -141,7 +141,7 @@ query = query.orderBy('uploadedAt', descending: true);
 }
 ```
 
-**Status:** ✅ Index definit în `firestore.indexes.json`
+**Status:** ✅ Index definit în `database.indexes.json`
 
 ---
 
@@ -150,7 +150,7 @@ query = query.orderBy('uploadedAt', descending: true);
 **Cod:**
 
 ```dart
-Query query = _firestore
+Query query = _database
     .collection('evenimente')
     .doc(eventId)
     .collection('dovezi');
@@ -172,7 +172,7 @@ query = query.orderBy('uploadedAt', descending: true);
 }
 ```
 
-**Status:** ✅ Index definit în `firestore.indexes.json`
+**Status:** ✅ Index definit în `database.indexes.json`
 
 ---
 
@@ -181,7 +181,7 @@ query = query.orderBy('uploadedAt', descending: true);
 **Cod:**
 
 ```dart
-Query query = _firestore
+Query query = _database
     .collection('evenimente')
     .doc(eventId)
     .collection('dovezi');
@@ -201,7 +201,7 @@ query = query.orderBy('archivedAt', descending: true);
 }
 ```
 
-**Status:** ✅ Index definit în `firestore.indexes.json`
+**Status:** ✅ Index definit în `database.indexes.json`
 
 ---
 
@@ -210,7 +210,7 @@ query = query.orderBy('archivedAt', descending: true);
 **Cod:**
 
 ```dart
-Query query = _firestore
+Query query = _database
     .collection('evenimente')
     .doc(eventId)
     .collection('dovezi');
@@ -232,7 +232,7 @@ query = query.orderBy('archivedAt', descending: true);
 }
 ```
 
-**Status:** ✅ Index definit în `firestore.indexes.json`
+**Status:** ✅ Index definit în `database.indexes.json`
 
 ---
 
@@ -272,7 +272,7 @@ query = query.orderBy('archivedAt', descending: true);
 - [x] `orderBy('data')` mereu când există range pe data
 - [x] Collection group indexuri pentru dovezi
 
-### Reguli Firestore Respectate
+### Reguli Database Respectate
 
 1. ✅ **Equality before range**: `where('isArchived', ==)` înainte de `where('data', >=)`
 2. ✅ **OrderBy pe range field**: când există range pe `data`, `orderBy('data')` e primul
@@ -284,10 +284,10 @@ query = query.orderBy('archivedAt', descending: true);
 
 ```bash
 # Deploy indexuri
-firebase deploy --only firestore:indexes
+supabase deploy --only database:indexes
 
-# Verificare în Firebase Console
-# Firestore → Indexes → Composite
+# Verificare în Supabase Console
+# Database → Indexes → Composite
 # Trebuie să apară toate indexurile definite
 ```
 

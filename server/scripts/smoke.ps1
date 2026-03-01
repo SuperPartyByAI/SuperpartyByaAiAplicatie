@@ -1,9 +1,9 @@
-# Smoke test script for Firebase Functions emulator
+# Smoke test script for Supabase Functions emulator
 # Tests that emulators start successfully and Functions load without errors
 
 $ErrorActionPreference = "Stop"
 
-Write-Host "=== Firebase Functions Emulator Smoke Test ===" -ForegroundColor Cyan
+Write-Host "=== Supabase Functions Emulator Smoke Test ===" -ForegroundColor Cyan
 Write-Host ""
 
 # 1) Check Node.js version
@@ -17,14 +17,14 @@ try {
     exit 1
 }
 
-# 2) Check Java (required for Firestore emulator)
+# 2) Check Java (required for Database emulator)
 Write-Host "[2/6] Checking Java..." -ForegroundColor Yellow
 try {
     $javaVersion = java -version 2>&1 | Select-Object -First 1
     Write-Host "  ✓ Java found" -ForegroundColor Green
 } catch {
-    Write-Host "  ✗ Java not found (required for Firestore emulator)" -ForegroundColor Red
-    Write-Host "  Install Java 21+ or skip Firestore emulator" -ForegroundColor Red
+    Write-Host "  ✗ Java not found (required for Database emulator)" -ForegroundColor Red
+    Write-Host "  Install Java 21+ or skip Database emulator" -ForegroundColor Red
 }
 
 # 3) Set environment variable (WhatsApp backend URL)
@@ -49,10 +49,10 @@ if (-not (Test-Path "node_modules")) {
 Pop-Location
 
 # 5) Start emulators in background
-Write-Host "[5/6] Starting Firebase emulators..." -ForegroundColor Yellow
+Write-Host "[5/6] Starting Supabase emulators..." -ForegroundColor Yellow
 Write-Host "  This may take 30-60 seconds..." -ForegroundColor Yellow
 
-$emulatorProcess = Start-Process -FilePath "firebase.cmd" -ArgumentList "emulators:start","--config",".\firebase.json","--only","firestore,functions,auth","--project","superparty-frontend" -PassThru -NoNewWindow
+$emulatorProcess = Start-Process -FilePath "supabase.cmd" -ArgumentList "emulators:start","--config",".\supabase.json","--only","database,functions,auth","--project","superparty-frontend" -PassThru -NoNewWindow
 
 # Wait for emulators to start (check ports)
 Write-Host "  Waiting for emulators to start..." -ForegroundColor Yellow

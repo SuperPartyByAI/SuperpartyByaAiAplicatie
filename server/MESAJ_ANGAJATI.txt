@@ -5,7 +5,7 @@ Bună echipa! 👋
 Aplicația SuperParty e gata! Descarcă și instalează:
 
 🔗 LINK DOWNLOAD:
-https://firebasestorage.googleapis.com/v0/b/superparty-frontend.firebasestorage.app/o/apk%2Fapp-release.apk?alt=media
+https://supabasestorage.googleapis.com/v0/b/superparty-frontend.supabasestorage.app/o/apk%2Fapp-release.apk?alt=media
 
 📥 PAȘI RAPIZI:
 1. Click pe link → Descarcă APK (48 MB)

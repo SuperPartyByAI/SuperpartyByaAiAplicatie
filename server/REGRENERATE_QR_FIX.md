@@ -25,7 +25,7 @@
 **Cauza:**
 - După QR generation, conexiunea se închide cu "unknown" reason
 - Timeout de 60s marchează account-ul ca `disconnected`
-- Account-ul este marcat ca `disconnected` în Firestore
+- Account-ul este marcat ca `disconnected` în Database
 - GET /accounts include accounts cu status `disconnected`, dar UI-ul poate să nu-l afișeze
 
 ### Problema 3: Connection Closes After QR
@@ -33,7 +33,7 @@
 ```
 🔔 [account_xxx] Connection update: qr
 📱 [account_xxx] QR Code generated
-💾 [account_xxx] Saved to Firestore
+💾 [account_xxx] Saved to Database
 🔔 [account_xxx] Connection update: close
 🔌 [account_xxx] Reason code: unknown
 ⏰ [account_xxx] Connecting timeout (60s), transitioning to disconnected
@@ -41,7 +41,7 @@
 
 **Cauza:**
 - După QR generation, conexiunea se închide imediat cu "unknown" reason
-- Probabil din cauza unui error în Baileys sau Firestore backup
+- Probabil din cauza unui error în Baileys sau Database backup
 - Timeout de 60s marchează account-ul ca `disconnected`
 
 ---
@@ -54,17 +54,17 @@
 **Problema:** Verifica doar în memorie dacă `regeneratingQr` este true, dar după disconnect account-ul nu mai este în memorie.
 
 **Fix:**
-- Verifică și în Firestore dacă `regeneratingQr` este true
-- Returnează 202 "already_in_progress" dacă găsește flag-ul în Firestore
+- Verifică și în Database dacă `regeneratingQr` este true
+- Returnează 202 "already_in_progress" dacă găsește flag-ul în Database
 
 ```javascript
 // IDEMPOTENCY: Check if regenerate is already in progress
-// Check both in-memory and Firestore for regenerating flag
+// Check both in-memory and Database for regenerating flag
 let isRegenerating = false;
 if (account && connections.has(accountId)) {
   isRegenerating = account.regeneratingQr === true || account.status === 'connecting';
-} else if (firestoreAvailable && db) {
-  // Check Firestore if not in memory
+} else if (databaseAvailable && db) {
+  // Check Database if not in memory
   try {
     const accountDoc = await db.collection('accounts').doc(accountId).get();
     if (accountDoc.exists) {
@@ -72,7 +72,7 @@ if (account && connections.has(accountId)) {
       isRegenerating = data.regeneratingQr === true || data.status === 'connecting';
     }
   } catch (error) {
-    console.error(`⚠️  [${accountId}/${requestId}] Failed to check regenerating flag in Firestore:`, error.message);
+    console.error(`⚠️  [${accountId}/${requestId}] Failed to check regenerating flag in Database:`, error.message);
   }
 }
 
@@ -127,7 +127,7 @@ if (response.statusCode < 200 || response.statusCode >= 300) {
 **Comportament:**
 - Pentru reason "unknown" în pairing phase, păstrează account-ul
 - Marchează status ca `awaiting_scan` sau `qr_ready` (nu `disconnected`)
-- Păstrează QR code în Firestore dacă există
+- Păstrează QR code în Database dacă există
 
 ---
 
@@ -157,7 +157,7 @@ if (response.statusCode < 200 || response.statusCode >= 300) {
 # 2. Verifică legacy hosting logs:
 # Expected: După QR generation, dacă conexiunea se închide:
 #   - Account status: awaiting_scan sau qr_ready (nu disconnected)
-#   - QR code păstrat în Firestore
+#   - QR code păstrat în Database
 #   - Account vizibil în GET /accounts
 ```
 
@@ -192,11 +192,11 @@ if (response.statusCode < 200 || response.statusCode >= 300) {
 
 ## Root Cause Summary
 
-1. **regenerateQr 500 loop:** Backend nu verifica Firestore pentru `regeneratingQr` flag → returnează 500 în loc de 202
+1. **regenerateQr 500 loop:** Backend nu verifica Database pentru `regeneratingQr` flag → returnează 500 în loc de 202
 2. **Client guard:** Client trata 202 ca error → seta cooldown → buclă
 3. **Account disappearing:** Connection closes după QR → timeout → status `disconnected` → UI nu-l afișează (deși GET /accounts îl include)
 
 **Fix:** 
-- Backend verifică Firestore pentru `regeneratingQr` flag
+- Backend verifică Database pentru `regeneratingQr` flag
 - Client tratează 202 ca success
 - Account păstrat în pairing phase (deja implementat)

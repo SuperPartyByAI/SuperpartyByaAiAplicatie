@@ -16,7 +16,7 @@ class Message {
     this.ai_auto_response = data.ai_auto_response || false;
   }
 
-  toFirestore() {
+  toDatabase() {
     return {
       conversation_id: this.conversation_id,
       sender_type: this.sender_type,
@@ -28,7 +28,7 @@ class Message {
     };
   }
 
-  static fromFirestore(doc) {
+  static fromDatabase(doc) {
     const data = doc.data();
     return new Message({
       message_id: doc.id,

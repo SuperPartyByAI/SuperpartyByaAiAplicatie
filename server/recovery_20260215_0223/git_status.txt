@@ -11,13 +11,13 @@ Untracked files:
 	cf_logs.txt
 	check_canon_data.js
 	deploy_and_rebuild.sh
-	firestore-debug/
+	database-debug/
 	functions/BACKUP_whatsapp_collection.js
 	functions/FINAL_TEST_INSTRUCTIONS.md
 	functions/TEST_READU_NOW.md
 	functions/WIPE_whatsapp_collection.js
 	functions/api/
-	functions/audit_firestore_whatsapp_data.js
+	functions/audit_database_whatsapp_data.js
 	functions/audit_jid_vs_docid.js
 	functions/audit_threads.js
 	functions/audit_v5.js
@@ -78,7 +78,7 @@ Untracked files:
 	functions/verify_cleanup.js
 	functions/verify_integration.js
 	functions/verify_realtime_thread_sync.js
-	inspect-firestore.js
+	inspect-database.js
 	local_whatsapp_pairing.js
 	measure_load.js
 	receipt_check.txt
@@ -97,16 +97,16 @@ Untracked files:
 	receipt_check_t9.txt
 	resource_list.txt
 	schema_split_analysis.json
-	scripts/analyze_firestore_legacy.js
+	scripts/analyze_database_legacy.js
 	scripts/analyze_schema_v5.js
 	scripts/audit_message_flow.js
 	scripts/backfill_profile_pictures.js
-	scripts/check_backup_accounts_firestore.js
-	scripts/check_firestore_extended.js
-	scripts/check_firestore_inbound.js
+	scripts/check_backup_accounts_database.js
+	scripts/check_database_extended.js
+	scripts/check_database_inbound.js
 	scripts/check_test_msg.js
 	scripts/check_voice_number.js
-	scripts/cleanup_firestore_v5.js
+	scripts/cleanup_database_v5.js
 	scripts/cleanup_legacy_v5_strict.js
 	scripts/count_clients_v2.js
 	scripts/debug_animatopia_accounts.js
@@ -126,7 +126,7 @@ Untracked files:
 	scripts/find_twilio_resource.js
 	scripts/fix_animatopia_account.js
 	scripts/fix_name.js
-	scripts/force_cleanup_firestore.js
+	scripts/force_cleanup_database.js
 	scripts/force_cleanup_v5.js
 	scripts/hide_legacy_threads.js
 	scripts/init_whatsapp_threads.js
@@ -135,15 +135,15 @@ Untracked files:
 	scripts/inspect_alternate_account.js
 	scripts/inspect_clients_v5.js
 	scripts/inspect_current_state.js
-	scripts/inspect_firestore.js
-	scripts/inspect_firestore_config.js
+	scripts/inspect_database.js
+	scripts/inspect_database_config.js
 	scripts/inspect_thread_schema.js
 	scripts/inspect_threads.js
 	scripts/inspect_whatsapp_threads.js
 	scripts/list_service_numbers.js
 	scripts/list_twilio_numbers.js
 	scripts/list_whatsapp_senders.js
-	scripts/live_firestore_test.js
+	scripts/live_database_test.js
 	scripts/migrate_v5_consolidation.js
 	scripts/nuclear_cleanup_whatsapp.js
 	scripts/parse_backup_accounts.js
@@ -167,7 +167,7 @@ Untracked files:
 	scripts/twilio_check_sids.js
 	scripts/twilio_list_errors.js
 	scripts/verify_baileys_removal.js
-	scripts/verify_firestore_receipts.js
+	scripts/verify_database_receipts.js
 	scripts/verify_ingest.js
 	scripts/verify_production_flow.js
 	scripts/verify_whatsapp_config.js

@@ -11,7 +11,7 @@
 ## 📊 Ce Funcționează ACUM:
 
 ✅ **WhatsApp Server:** Pornit și funcțional  
-✅ **Firebase:** Configurat (superparty-frontend)  
+✅ **Supabase:** Configurat (superparty-frontend)  
 ✅ **API Endpoints:** Toate funcționale  
 ✅ **QR Code:** Generat pentru primul cont  
 ✅ **Pairing Code:** EQY3F4BV
@@ -301,17 +301,17 @@ curl http://localhost:5002/api/ultimate/health | jq .
 
 ## 🔐 Securitate
 
-### Firebase Service Account
+### Supabase Service Account
 
 **Project ID:** superparty-frontend  
-**Location:** `.github/secrets-backup/firebase-service-account.json`
+**Location:** `.github/secrets-backup/supabase-service-account.json`
 
 ⚠️ **NU expune acest fișier public!**
 
 ### Environment Variables (Pentru legacy hosting)
 
 ```bash
-FIREBASE_SERVICE_ACCOUNT=<JSON complet>
+SUPABASE_SERVICE_ACCOUNT=<JSON complet>
 PORT=5002
 NODE_ENV=production
 ```
@@ -334,7 +334,7 @@ NODE_ENV=production
 1. **New Service** în legacy hosting
 2. **Connect Repo:** acest repository
 3. **Start Command:** `node whatsapp-server.js`
-4. **Variables:** Adaugă `FIREBASE_SERVICE_ACCOUNT`
+4. **Variables:** Adaugă `SUPABASE_SERVICE_ACCOUNT`
 5. **Deploy**
 
 ---
@@ -384,7 +384,7 @@ node whatsapp-server.js
 
 **Server Local:** http://localhost:5002  
 **legacy hosting URL:** (după deploy)  
-**Firebase Project:** superparty-frontend  
+**Supabase Project:** superparty-frontend  
 **Versiune:** 5.0.0  
 **Tier:** ULTIMATE 2
 
@@ -393,7 +393,7 @@ node whatsapp-server.js
 ## ✅ Checklist Final
 
 - [x] WhatsApp server pornit
-- [x] Firebase configurat
+- [x] Supabase configurat
 - [x] API endpoints funcționale
 - [x] Primul cont adăugat
 - [x] QR code generat

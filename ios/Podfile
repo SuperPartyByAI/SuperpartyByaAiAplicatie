@@ -1,4 +1,4 @@
-# Podfile inject for Superparty-App to fix Firebase AppCheck/Auth/Messaging versions
+# Podfile inject for Superparty-App
 platform :ios, '15.0'
 
 project 'Runner', {
@@ -28,9 +28,7 @@ target 'Runner' do
   use_frameworks!
   use_modular_headers!
   
-  # Ensure Firebase versions match across plugins
-  # $FirebaseSDKVersion = '11.8.0'
-  
+
   flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
   target 'RunnerTests' do
     inherit! :search_paths

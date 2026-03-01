@@ -6,7 +6,7 @@
 **Dovadă din cod:**
 - `app_router.dart:51-62` - Auth stream timeout de 30s în debug mode
 - `auth_wrapper.dart:69-76` - Auth stream timeout cu fallback la currentUser
-- `auth_wrapper.dart:144-150` - Firestore stream timeout de 30s
+- `auth_wrapper.dart:144-150` - Database stream timeout de 30s
 
 **Cauza rădăcină:**
 - Emulators pot fi down sau unreachable
@@ -22,12 +22,12 @@
 
 ```bash
 # 1. Verifică emulators porniți
-firebase emulators:start
+supabase emulators:start
 
 # 2. Pentru Android emulator:
 # Opțiunea A (recomandat): adb reverse
 adb reverse tcp:9098 tcp:9098  # Auth
-adb reverse tcp:8082 tcp:8082  # Firestore
+adb reverse tcp:8082 tcp:8082  # Database
 adb reverse tcp:5002 tcp:5002  # Functions
 
 # Opțiunea B: folosește 10.0.2.2 (fără adb reverse)
@@ -35,7 +35,7 @@ flutter run --dart-define=USE_EMULATORS=true --dart-define=USE_ADB_REVERSE=false
 
 # 3. Verifică conectivitate
 curl http://127.0.0.1:9098  # Auth emulator
-curl http://127.0.0.1:8082  # Firestore emulator
+curl http://127.0.0.1:8082  # Database emulator
 curl http://127.0.0.1:5002  # Functions emulator
 
 # 4. Rulează aplicația
@@ -44,8 +44,8 @@ flutter run --dart-define=USE_EMULATORS=true -d emulator-5554
 
 **Output așteptat în logs:**
 ```
-[FirebaseService] ✅ Emulators configured: host=127.0.0.1 Firestore:8082 Auth:9098 Functions:5002
-[FirebaseService] ✅ Firebase initialized successfully
+[SupabaseService] ✅ Emulators configured: host=127.0.0.1 Database:8082 Auth:9098 Functions:5002
+[SupabaseService] ✅ Supabase initialized successfully
 [AppRouter] Auth stream: user=FBQUjlK2...
 ```
 
@@ -62,7 +62,7 @@ flutter run --dart-define=USE_EMULATORS=true -d emulator-5554
 
 **Cauza rădăcină:**
 - În PASSIVE mode, `connections` Map este goală (nu se creează conexiuni)
-- Firestore query returnează accounts dar pot fi filtrate greșit
+- Database query returnează accounts dar pot fi filtrate greșit
 - Response nu explică clar că backend-ul este în PASSIVE mode
 
 **Fix aplicat:**
@@ -83,7 +83,7 @@ flutter run --dart-define=USE_EMULATORS=true -d emulator-5554
 
 **Fix aplicat:**
 - ✅ Idempotency check: dacă `regeneratingQr=true` sau `status='connecting'`, returnează 202
-- ✅ Per-account mutex în Firestore (atomic update)
+- ✅ Per-account mutex în Database (atomic update)
 - ✅ Enhanced error logging cu requestId
 - ✅ Client-side guard + cooldown (deja implementat)
 
@@ -96,11 +96,11 @@ flutter run --dart-define=USE_EMULATORS=true -d emulator-5554
 
 **Cauza rădăcină:**
 - Connection se închide cu reason 515 → account cleanup
-- Account marcat ca `disconnected` în Firestore
+- Account marcat ca `disconnected` în Database
 - GET /accounts poate filtra accounts cu status `disconnected`
 
 **Fix aplicat:**
-- GET /accounts include TOATE accounts din Firestore (inclusiv `needs_qr`, `disconnected`)
+- GET /accounts include TOATE accounts din Database (inclusiv `needs_qr`, `disconnected`)
 - Nu filtrează pe status (UI-ul decide ce să afișeze)
 
 ---
@@ -143,7 +143,7 @@ flutter run --dart-define=USE_EMULATORS=true -d emulator-5554
 
 **Fix aplicat:**
 - ✅ Adăugat logging: `datePreset`, `driverFilter`, `codeFilter`
-- ✅ Adăugat logging: număr documente din Firestore vs filtered
+- ✅ Adăugat logging: număr documente din Database vs filtered
 - ✅ Empty state arată total documente + arhivate
 
 ---
@@ -158,7 +158,7 @@ flutter run --dart-define=USE_EMULATORS=true -d emulator-5554
 ### 2. WhatsApp regenerateQr - Idempotency
 **File:** `whatsapp-backend/server.js:3536-3680`
 - ✅ Deja fixat în fix-urile anterioare
-- Verifică `regeneratingQr` flag în Firestore (atomic)
+- Verifică `regeneratingQr` flag în Database (atomic)
 - Returnează 202 dacă deja în progress
 
 ### 3. Events Page - Logging
@@ -178,13 +178,13 @@ flutter run --dart-define=USE_EMULATORS=true -d emulator-5554
 ### Test 1: App Start fără Ecran Negru
 ```bash
 # 1. Pornește emulators
-firebase emulators:start
+supabase emulators:start
 
 # 2. Rulează aplicația
 flutter run --dart-define=USE_EMULATORS=true -d emulator-5554
 
 # 3. Verifică logs
-# Expected: [FirebaseService] ✅ Firebase initialized successfully
+# Expected: [SupabaseService] ✅ Supabase initialized successfully
 # Expected: [AppRouter] Auth stream: user=...
 # Expected: Aplicația se deschide (nu rămâne pe loading)
 ```
@@ -216,7 +216,7 @@ flutter run --dart-define=USE_EMULATORS=true -d emulator-5554
 # 1. În aplicație: Navigate to Evenimente
 # 2. Verifică logs:
 # Expected: [EvenimenteScreen] Query params: datePreset=all, driverFilter=all
-# Expected: [EvenimenteScreen] Loaded X events from Firestore
+# Expected: [EvenimenteScreen] Loaded X events from Database
 # Expected: [EvenimenteScreen] Filtered events count: Y
 # Expected: Empty state dacă Y=0 (nu ecran negru)
 ```
@@ -230,11 +230,11 @@ flutter run --dart-define=USE_EMULATORS=true -d emulator-5554
 #!/bin/bash
 # verify-emulators.sh
 
-echo "=== Verificare Firebase Emulators ==="
+echo "=== Verificare Supabase Emulators ==="
 
 # Check if emulators are running
 curl -s http://127.0.0.1:9098 > /dev/null && echo "✅ Auth emulator (9098): OK" || echo "❌ Auth emulator (9098): DOWN"
-curl -s http://127.0.0.1:8082 > /dev/null && echo "✅ Firestore emulator (8082): OK" || echo "❌ Firestore emulator (8082): DOWN"
+curl -s http://127.0.0.1:8082 > /dev/null && echo "✅ Database emulator (8082): OK" || echo "❌ Database emulator (8082): DOWN"
 curl -s http://127.0.0.1:5002 > /dev/null && echo "✅ Functions emulator (5002): OK" || echo "❌ Functions emulator (5002): DOWN"
 
 # Check adb reverse (Android)

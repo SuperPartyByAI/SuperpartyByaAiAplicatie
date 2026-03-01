@@ -18,30 +18,30 @@
 ### Step 2: Check Function Deployment (30 seconds)
 
 ```bash
-firebase functions:list --project superparty-frontend | grep chatWithAI
+supabase functions:list --project superparty-frontend | grep chatWithAI
 ```
 
 **Expected:** `│ chatWithAI │ v2 │ callable │ us-central1 │`
 
-**If missing:** `firebase deploy --only functions:chatWithAI`
+**If missing:** `supabase deploy --only functions:chatWithAI`
 
 ### Step 3: Check GROQ_API_KEY Secret (30 seconds)
 
 ```bash
-firebase functions:secrets:get GROQ_API_KEY --project superparty-frontend
+supabase functions:secrets:get GROQ_API_KEY --project superparty-frontend
 ```
 
 **If missing:**
 
 ```bash
-echo "gsk_YOUR_KEY" | firebase functions:secrets:set GROQ_API_KEY --project superparty-frontend
-firebase deploy --only functions:chatWithAI
+echo "gsk_YOUR_KEY" | supabase functions:secrets:set GROQ_API_KEY --project superparty-frontend
+supabase deploy --only functions:chatWithAI
 ```
 
 ### Step 4: Check Function Logs (30 seconds)
 
 ```bash
-firebase functions:log --only chatWithAI --project superparty-frontend --lines 20
+supabase functions:log --only chatWithAI --project superparty-frontend --lines 20
 ```
 
 ## Error Code Reference
@@ -62,13 +62,13 @@ firebase functions:log --only chatWithAI --project superparty-frontend --lines 2
 
 - **Cause:** Not logged in
 - **Fix:** Log in before using AI Chat
-- **Verify:** `FirebaseAuth.instance.currentUser != null`
+- **Verify:** `SupabaseAuth.instance.currentUser != null`
 
 ### "AI Chat nu este configurat"
 
 - **Cause:** GROQ_API_KEY not set
 - **Fix:** Set secret (see Step 3)
-- **Verify:** `firebase functions:secrets:get GROQ_API_KEY`
+- **Verify:** `supabase functions:secrets:get GROQ_API_KEY`
 
 ### "Timeout"
 
@@ -80,16 +80,16 @@ firebase functions:log --only chatWithAI --project superparty-frontend --lines 2
 
 - **Cause:** Region mismatch or silent failure
 - **Fix:** Verify region `us-central1` in Flutter code
-- **Verify:** Check Firebase logs for invocation
+- **Verify:** Check Supabase logs for invocation
 
 ## Health Check Script
 
 ```bash
 #!/bin/bash
 echo "=== AI Chat Health Check ==="
-firebase functions:list --project superparty-frontend | grep chatWithAI && echo "✅ Function deployed" || echo "❌ NOT deployed"
-firebase functions:secrets:get GROQ_API_KEY --project superparty-frontend > /dev/null 2>&1 && echo "✅ Secret exists" || echo "❌ Secret missing"
-firebase functions:log --only chatWithAI --lines 5
+supabase functions:list --project superparty-frontend | grep chatWithAI && echo "✅ Function deployed" || echo "❌ NOT deployed"
+supabase functions:secrets:get GROQ_API_KEY --project superparty-frontend > /dev/null 2>&1 && echo "✅ Secret exists" || echo "❌ Secret missing"
+supabase functions:log --only chatWithAI --lines 5
 ```
 
 ## Manual Tests
@@ -113,13 +113,13 @@ firebase functions:log --only chatWithAI --lines 5
 
 ```bash
 # Recent logs
-firebase functions:log --only chatWithAI --lines 50
+supabase functions:log --only chatWithAI --lines 50
 
 # Search errors
-firebase functions:log --only chatWithAI --lines 100 | grep -i error
+supabase functions:log --only chatWithAI --lines 100 | grep -i error
 
 # List secrets
-firebase functions:secrets:list
+supabase functions:secrets:list
 ```
 
 ## Configuration

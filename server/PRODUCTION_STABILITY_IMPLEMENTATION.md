@@ -10,9 +10,9 @@
 
 ### ✅ Current State
 - **Git**: Clean (audit-whatsapp-30, up to date)
-- **Firebase Project**: superparty-frontend
+- **Supabase Project**: superparty-frontend
 - **legacy hosting Backend**: Healthy (v2.0.0, commit 892419e6)
-  - Firestore: Connected
+  - Database: Connected
   - Accounts: 0/30
   - Uptime: 29556s
 - **Functions Deployed**: 33 total (all v2 except one)
@@ -20,7 +20,7 @@
 ###  ⚠️ CRITICAL BLOCKER FOUND
 **Legacy v1 Function**: `whatsapp` (v1, https, us-central1, 2048MB)
 - **Status**: EXISTS and blocks clean deploys
-- **Action**: MUST DELETE MANUALLY (Firebase Console required)
+- **Action**: MUST DELETE MANUALLY (Supabase Console required)
 
 ### ⚠️ DOCUMENTATION ISSUES
 **Incorrect `--limit` flag** in 17 docs (should be `--lines`):
@@ -40,7 +40,7 @@ FINAL_EXECUTION_REPORT.md (1 instance - marked as invalid)
 ## 🎯 IMPLEMENTATION PLAN
 
 ### STEP 1: CLEANUP (Delete Legacy, Fix Docs)
-- [ ] Delete v1 "whatsapp" function (Firebase Console - MANUAL)
+- [ ] Delete v1 "whatsapp" function (Supabase Console - MANUAL)
 - [ ] Fix all --limit → --lines in docs
 - [ ] Remove/update any placeholder commands
 
@@ -88,7 +88,7 @@ Create reusable retry helper:
 
 ### STEP 1.1: Delete Legacy v1 Function
 
-**Firebase Console URL**: https://console.firebase.google.com/project/superparty-frontend/functions
+**Supabase Console URL**: https://console.supabase.google.com/project/superparty-frontend/functions
 
 **Manual Steps Required**:
 1. Open URL above
@@ -98,7 +98,7 @@ Create reusable retry helper:
 
 **Verification**:
 ```bash
-firebase functions:list | grep "whatsapp.*v1"
+supabase functions:list | grep "whatsapp.*v1"
 # Expected: No results
 ```
 

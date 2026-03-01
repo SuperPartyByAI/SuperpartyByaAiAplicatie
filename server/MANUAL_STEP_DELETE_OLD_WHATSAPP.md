@@ -4,7 +4,7 @@
 
 We now export a **Gen1 stub** `whatsapp` that returns **410 Deprecated**. Deploy no longer tries to delete the old function; it updates it. Unblock deploy without manual delete.
 
-See **`docs/FIREBASE_FUNCTIONS_DEPLOY_FIXES.md`** for deploy buckets and cleanup.
+See **`docs/SUPABASE_FUNCTIONS_DEPLOY_FIXES.md`** for deploy buckets and cleanup.
 
 ---
 
@@ -12,12 +12,12 @@ See **`docs/FIREBASE_FUNCTIONS_DEPLOY_FIXES.md`** for deploy buckets and cleanup
 
 If you want to remove the legacy function entirely (after deploy works with stub):
 
-### Via Firebase / GCP Console
+### Via Supabase / GCP Console
 
 ### Step-by-Step Instructions
 
-1. **Open Firebase Console**
-   - Go to: https://console.firebase.google.com/
+1. **Open Supabase Console**
+   - Go to: https://console.supabase.google.com/
    - Login with your Google account
 
 2. **Select Project**
@@ -50,7 +50,7 @@ Once the old function is deleted, deploy the new functions:
 
 ```bash
 cd /Users/universparty/Aplicatie-SuperpartyByAi
-firebase deploy --only functions
+supabase deploy --only functions
 ```
 
 ---
@@ -61,7 +61,7 @@ After successful deployment:
 
 ```bash
 # List all deployed functions
-firebase functions:list | grep -E "whatsapp"
+supabase functions:list | grep -E "whatsapp"
 
 # Expected output:
 # whatsappV4 (v2, us-central1) - replacement for old whatsapp
@@ -69,8 +69,8 @@ firebase functions:list | grep -E "whatsapp"
 # whatsappProxy* functions (v2, us-central1)
 
 # View logs (correct syntax with --lines)
-firebase functions:log --only whatsappV4 --lines 100
-firebase functions:log --only whatsappExtractEventFromThread --lines 100
+supabase functions:log --only whatsappV4 --lines 100
+supabase functions:log --only whatsappExtractEventFromThread --lines 100
 ```
 
 ---
@@ -100,14 +100,14 @@ firebase functions:log --only whatsappExtractEventFromThread --lines 100
 ### Via CLI
 
 ```bash
-firebase functions:delete whatsapp --region us-central1 --force
+supabase functions:delete whatsapp --region us-central1 --force
 ```
 
 If that fails, use GCP Console below.
 
 ### Google Cloud Console
 
-If Firebase Console doesn't work, use Google Cloud Console:
+If Supabase Console doesn't work, use Google Cloud Console:
 
 1. Go to: https://console.cloud.google.com/
 2. Select project: **`superparty-frontend`**

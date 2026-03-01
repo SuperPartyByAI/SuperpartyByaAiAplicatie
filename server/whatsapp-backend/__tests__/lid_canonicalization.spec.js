@@ -5,7 +5,7 @@ describe('LID canonicalization + outbound dedupe', () => {
   const serverPath = path.join(__dirname, '..', 'server.js');
   const serverCode = fs.readFileSync(serverPath, 'utf8');
 
-  test('saveMessageToFirestore canonicalizes LID to canonicalJid', () => {
+  test('saveMessageToDatabase canonicalizes LID to canonicalJid', () => {
     expect(serverCode).toMatch(/canonicalClientKey/);
     expect(serverCode).toMatch(/canonicalKey/);
     expect(serverCode).toMatch(/buildCanonicalThreadId/);

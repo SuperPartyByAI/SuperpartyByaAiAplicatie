@@ -3,8 +3,8 @@
 ## ✅ Ce Am Fixat
 
 1. **`session-store.js`** - Acum salvează metadata (phone, name, status)
-2. **`manager.js`** - Salvează sesiunea **IMEDIAT** după conectare în Firestore
-3. **Previne pierderea sesiunii** la cold starts pe Firebase Functions
+2. **`manager.js`** - Salvează sesiunea **IMEDIAT** după conectare în Database
+3. **Previne pierderea sesiunii** la cold starts pe Supabase Functions
 
 ---
 
@@ -26,16 +26,16 @@ Updating ...
 Fast-forward
  functions/whatsapp/manager.js       | 12 +++++++++++-
  functions/whatsapp/session-store.js | 18 +++++++++++++-----
- WHATSAPP-FIRESTORE-FIX.md          | 265 ++++++++++++++++++++++++++++
+ WHATSAPP-DATABASE-FIX.md          | 265 ++++++++++++++++++++++++++++
  3 files changed, 289 insertions(+), 6 deletions(-)
 ```
 
 ---
 
-### 2. **Deploy pe Firebase** (2-3 min)
+### 2. **Deploy pe Supabase** (2-3 min)
 
 ```cmd
-firebase deploy --only functions
+supabase deploy --only functions
 ```
 
 **Output așteptat:**
@@ -70,7 +70,7 @@ curl https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp
 ```json
 {
   "status": "online",
-  "service": "SuperParty WhatsApp on Firebase",
+  "service": "SuperParty WhatsApp on Supabase",
   "version": "5.0.0",
   "accounts": 1
 }
@@ -105,11 +105,11 @@ Caută `"pairingCode":"XXXXXXXX"` în output.
 
 ---
 
-### 5. **Verifică Salvarea în Firestore** (30 sec)
+### 5. **Verifică Salvarea în Database** (30 sec)
 
-După ce WhatsApp se conectează (vezi `"status":"connected"`), verifică Firestore:
+După ce WhatsApp se conectează (vezi `"status":"connected"`), verifică Database:
 
-1. Mergi la: [Firebase Console - Firestore](https://console.firebase.google.com/project/superparty-frontend/firestore)
+1. Mergi la: [Supabase Console - Database](https://console.supabase.google.com/project/superparty-frontend/database)
 2. Caută colecția: **`whatsapp_sessions`**
 3. Ar trebui să vezi documentul: **`account_XXXXXXXXXX`**
 
@@ -218,37 +218,37 @@ curl https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp/api/wha
 **Soluție:**
 
 ```cmd
-firebase login --reauth
-firebase deploy --only functions
+supabase login --reauth
+supabase deploy --only functions
 ```
 
 ---
 
-### Problema: Sesiunea nu se salvează în Firestore
+### Problema: Sesiunea nu se salvează în Database
 
 **Verifică logs:**
 
 ```cmd
-firebase functions:log --only whatsapp
+supabase functions:log --only whatsapp
 ```
 
 Caută:
 
-- `💾 [account_XXX] Saving session to Firestore...`
+- `💾 [account_XXX] Saving session to Database...`
 - `✅ [account_XXX] Session saved successfully`
 
-**Dacă NU vezi aceste mesaje:** Sesiunea nu s-a salvat → verifică Firestore Rules.
+**Dacă NU vezi aceste mesaje:** Sesiunea nu s-a salvat → verifică Database Rules.
 
 ---
 
-### Problema: Firestore Rules blochează salvarea
+### Problema: Database Rules blochează salvarea
 
-Mergi la: [Firebase Console - Firestore Rules](https://console.firebase.google.com/project/superparty-frontend/firestore/rules)
+Mergi la: [Supabase Console - Database Rules](https://console.supabase.google.com/project/superparty-frontend/database/rules)
 
 Adaugă:
 
 ```javascript
-service cloud.firestore {
+service cloud.database {
   match /databases/{database}/documents {
     // Permite Functions să scrie în whatsapp_sessions
     match /whatsapp_sessions/{document=**} {
@@ -266,7 +266,7 @@ service cloud.firestore {
 
 După aplicarea fix-urilor:
 
-✅ **Sesiunea se salvează** în Firestore la conectare  
+✅ **Sesiunea se salvează** în Database la conectare  
 ✅ **Sesiunea se restaurează** automat la cold start  
 ✅ **WhatsApp rămâne conectat** 24/7 (cu UptimeRobot)  
 ✅ **NU mai trebuie QR code** după fiecare restart
@@ -275,8 +275,8 @@ După aplicarea fix-urilor:
 
 ## 💰 Costuri Finale
 
-- **Firebase Functions:** $0-2/lună
-- **Firestore:** $0 (sub 1GB, sub 50k reads/day)
+- **Supabase Functions:** $0-2/lună
+- **Database:** $0 (sub 1GB, sub 50k reads/day)
 - **UptimeRobot:** $0 (GRATIS)
 
 **Total:** **$0-2/lună** pentru WhatsApp 24/7! 🎉
@@ -292,7 +292,7 @@ După ce WhatsApp este conectat și sesiunea salvată:
    ```cmd
    curl -X POST https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp/api/whatsapp/send ^
      -H "Content-Type: application/json" ^
-     -d "{\"accountId\":\"account_1766947637246\",\"to\":\"40373805828\",\"message\":\"Test from Firebase!\"}"
+     -d "{\"accountId\":\"account_1766947637246\",\"to\":\"40373805828\",\"message\":\"Test from Supabase!\"}"
    ```
 
 2. **Adaugă mai multe conturi** (până la 20)
@@ -301,4 +301,4 @@ După ce WhatsApp este conectat și sesiunea salvată:
 
 ---
 
-**Rulează comenzile și spune-mi când vezi `"status":"connected"` și sesiunea în Firestore!** 🚀
+**Rulează comenzile și spune-mi când vezi `"status":"connected"` și sesiunea în Database!** 🚀

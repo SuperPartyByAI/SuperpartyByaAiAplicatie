@@ -4,13 +4,13 @@
 
 ---
 
-## OBIECTIV 1: FIRESTORE SESSION PERSISTENCE
+## OBIECTIV 1: DATABASE SESSION PERSISTENCE
 
 **Status:** ✅ IMPLEMENTED (Feature-flagged, safe rollout)
 
 **Implementation:**
 
-- Feature flag: FIRESTORE_AUTH_STATE_MODE = off | creds_only | full
+- Feature flag: DATABASE_AUTH_STATE_MODE = off | creds_only | full
 - Default: off (stable disk-based auth)
 - Binary-safe encode/decode for Buffers/Uint8Arrays
 - Incremental rollout path
@@ -25,9 +25,9 @@
 
 **Next Steps to Enable:**
 
-1. Set FIRESTORE_AUTH_STATE_MODE=creds_only in legacy hosting env vars
+1. Set DATABASE_AUTH_STATE_MODE=creds_only in legacy hosting env vars
 2. Verify stability (no 502, logs clean)
-3. Set FIRESTORE_AUTH_STATE_MODE=full
+3. Set DATABASE_AUTH_STATE_MODE=full
 4. Test cold start recovery
 
 ---
@@ -58,7 +58,7 @@
 | ---------------------- | -------- | ----------------------------- |
 | DoD-1: Deploy + Health | ✅ PASS  | -                             |
 | DoD-2: QR Generation   | ✅ PASS  | -                             |
-| DoD-3: Cold Start      | ⏳ READY | Need to enable Firestore mode |
+| DoD-3: Cold Start      | ⏳ READY | Need to enable Database mode |
 | DoD-4: MTTR N=10       | ⏳ READY | Need connected account        |
 | DoD-5: Queue Test      | ⏳ READY | Need connected account        |
 | DoD-6: Soak 2h         | ⏳ READY | Need connected account        |
@@ -67,7 +67,7 @@
 
 ## TECHNICAL ACHIEVEMENT
 
-**Firestore Persistence:** ✅ IMPLEMENTED
+**Database Persistence:** ✅ IMPLEMENTED
 
 - Safe incremental rollout
 - No crash/502 risk
@@ -76,7 +76,7 @@
 
 **Remaining Work:**
 
-1. Enable Firestore mode in production (5 min)
+1. Enable Database mode in production (5 min)
 2. Test cold start recovery (10 min)
 3. Run DoD-4/5/6 tests (3h total)
 4. Create TWILIO service (30 min)
@@ -88,11 +88,11 @@
 
 ## CONCLUSION
 
-**Blocker ELIMINATED:** Firestore persistence implemented safely with feature flag.
+**Blocker ELIMINATED:** Database persistence implemented safely with feature flag.
 
 **Production Ready:** Code deployed and stable (mode=off).
 
-**Next Action:** Enable FIRESTORE_AUTH_STATE_MODE=creds_only to test persistence.
+**Next Action:** Enable DATABASE_AUTH_STATE_MODE=creds_only to test persistence.
 
 ---
 

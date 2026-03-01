@@ -1,11 +1,11 @@
-# Test End-to-End Evenimente - Firebase Real Data
+# Test End-to-End Evenimente - Supabase Real Data
 
 ## Pregătire
 
-### 1. Deploy Indexuri Firestore
+### 1. Deploy Indexuri Database
 
 ```bash
-firebase deploy --only firestore:indexes
+supabase deploy --only database:indexes
 ```
 
 ### 2. Seed Date
@@ -14,9 +14,9 @@ firebase deploy --only firestore:indexes
 node scripts/seed_evenimente.js
 ```
 
-### 3. Verificare Firebase Console
+### 3. Verificare Supabase Console
 
-- Deschide [Firebase Console](https://console.firebase.google.com)
+- Deschide [Supabase Console](https://console.supabase.google.com)
 - Verifică că există 7 evenimente în colecția `evenimente`
 - Verifică că indexurile sunt create
 
@@ -28,7 +28,7 @@ node scripts/seed_evenimente.js
 
 1. Deschide aplicația Flutter
 2. Navighează la "Evenimente"
-3. Verifică că se încarcă lista din Firestore (nu demo data)
+3. Verifică că se încarcă lista din Database (nu demo data)
 
 **Rezultat așteptat:**
 
@@ -109,7 +109,7 @@ node scripts/seed_evenimente.js
 
 - Sortarea funcționează instant
 - Ordinea evenimentelor se schimbă corect
-- Nu apar erori de indexuri Firestore
+- Nu apar erori de indexuri Database
 
 **Status:** ⬜ Netestat | ✅ Passed | ❌ Failed
 
@@ -185,12 +185,12 @@ node scripts/seed_evenimente.js
 2. Deschide evenimentul
 3. Tap pe butonul de ștergere
 4. Confirmă ștergerea
-5. Verifică în Firebase Console că evenimentul a fost șters
+5. Verifică în Supabase Console că evenimentul a fost șters
 
 **Rezultat așteptat:**
 
 - Evenimentul dispare din listă
-- Documentul e șters din Firestore
+- Documentul e șters din Database
 - Nu apar erori
 
 **Status:** ⬜ Netestat | ✅ Passed | ❌ Failed
@@ -202,12 +202,12 @@ node scripts/seed_evenimente.js
 **Pași:**
 
 1. Creează un eveniment și adaugă dovezi (poze)
-2. Verifică în Firebase Console că există:
+2. Verifică în Supabase Console că există:
    - Document în `evenimente/{eventId}`
    - Subdocumente în `evenimente/{eventId}/dovezi`
    - Fișiere în Storage
 3. Șterge evenimentul din aplicație
-4. Verifică în Firebase Console că s-au șters:
+4. Verifică în Supabase Console că s-au șters:
    - Documentul principal
    - Toate subdocumentele
    - Fișierele din Storage
@@ -253,7 +253,7 @@ node scripts/seed_evenimente.js
 
 - Schimbările apar instant pe ambele dispozitive
 - Nu e nevoie de refresh manual
-- Stream Firestore funcționează corect
+- Stream Database funcționează corect
 
 **Status:** ⬜ Netestat | ✅ Passed | ❌ Failed
 
@@ -263,11 +263,11 @@ node scripts/seed_evenimente.js
 
 ### Eroare: "Missing index"
 
-**Soluție:** Rulează `firebase deploy --only firestore:indexes` sau creează indexul manual din link-ul din eroare.
+**Soluție:** Rulează `supabase deploy --only database:indexes` sau creează indexul manual din link-ul din eroare.
 
 ### Evenimente nu apar
 
-**Soluție:** Verifică că seed script-ul a rulat cu succes și că există documente în Firestore.
+**Soluție:** Verifică că seed script-ul a rulat cu succes și că există documente în Database.
 
 ### "Evenimentele mele" nu funcționează
 
@@ -288,13 +288,13 @@ node scripts/seed_evenimente.js
 **Soluție:**
 
 - Verifică că ai permisiuni în Storage Rules
-- Verifică că `firebase_storage` package e instalat
+- Verifică că `supabase_storage` package e instalat
 
 ---
 
 ## Checklist Final
 
-- [ ] Toate indexurile Firestore sunt deployed
+- [ ] Toate indexurile Database sunt deployed
 - [ ] Seed script a rulat cu succes (7 evenimente în DB)
 - [ ] Toate cele 12 test cases au passed
 - [ ] Nu există erori în console

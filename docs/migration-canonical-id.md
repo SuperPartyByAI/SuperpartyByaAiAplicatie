@@ -36,9 +36,9 @@ Scriptul salvează automat un backup JSON în `server/backups/` înainte de oric
 ```bash
 # Verifică dacă mai sunt duplicate
 node -e "
-const admin = require('firebase-admin');
+const admin = require('supabase-admin');
 admin.initializeApp();
-const db = admin.firestore();
+const db = admin.database();
 db.collection('threads').get().then(snap => {
   const phones = {};
   snap.docs.forEach(d => {
@@ -60,9 +60,9 @@ db.collection('threads').get().then(snap => {
 # Restaurează din backup
 node -e "
 const fs = require('fs');
-const admin = require('firebase-admin');
+const admin = require('supabase-admin');
 admin.initializeApp();
-const db = admin.firestore();
+const db = admin.database();
 const backup = JSON.parse(fs.readFileSync('server/backups/canonical-migration-backup-TIMESTAMP.json'));
 // Restaurarea manuală implică:
 // 1. Dearchivarea loser-ilor

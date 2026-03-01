@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { collection, getDocs, doc, getDoc, updateDoc, addDoc, deleteDoc } from 'firebase/firestore';
-import { db } from '../firebase';
+import { collection, getDocs, doc, getDoc, updateDoc, addDoc, deleteDoc } from 'supabase/database';
+import { db } from '../supabase';
 
 /**
  * Fetch all events

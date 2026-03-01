@@ -6,9 +6,9 @@
 **Problema:** După restart/redeploy, accounts în pairing phase (qr_ready, connecting, awaiting_scan) nu erau restaurate → map-ul intern gol → regenerateQr dă 500 "Account not found".
 
 **Fix Aplicat:**
-- ✅ `restoreAccountsFromFirestore()` restaura acum TOATE accounts în pairing phase + connected
+- ✅ `restoreAccountsFromDatabase()` restaura acum TOATE accounts în pairing phase + connected
 - ✅ `restoreSingleAccount()` restaura acum TOATE accounts în pairing phase + connected
-- ✅ `restoreAccountsFromFirestore()` - starting connections include pairing phase
+- ✅ `restoreAccountsFromDatabase()` - starting connections include pairing phase
 
 **Files Modified:**
 1. `whatsapp-backend/server.js:5490-5493` - Account restore include pairing phase
@@ -37,10 +37,10 @@
 - ✅ Linia 3745-3756: Returnează QR existent dacă este valid (< 60s)
 
 ### 5. regenerateQr Idempotency ✅ DEJA FIXAT
-**Status:** regenerateQr verifică și în Firestore pentru `regeneratingQr` flag.
+**Status:** regenerateQr verifică și în Database pentru `regeneratingQr` flag.
 
 **Verificare:**
-- ✅ Linia 3705-3732: Verifică Firestore pentru `regeneratingQr` flag
+- ✅ Linia 3705-3732: Verifică Database pentru `regeneratingQr` flag
 - ✅ Returnează 202 "already_in_progress" dacă găsește flag-ul
 
 ### 6. Enhanced Logging ✅ DEJA FIXAT
@@ -56,7 +56,7 @@
 
 ### Backend (legacy hosting)
 1. ✅ **Account restore include pairing phase** - Restaura qr_ready, connecting, awaiting_scan + connected
-2. ✅ **regenerateQr idempotency** - Verifică Firestore pentru `regeneratingQr` flag
+2. ✅ **regenerateQr idempotency** - Verifică Database pentru `regeneratingQr` flag
 3. ✅ **Enhanced logging pentru "unknown" reason codes** - Loghează lastDisconnect, error, connection objects
 4. ✅ **GET /accounts logging** - Loghează waMode, lockReason, requestId
 5. ✅ **Error handling** - Returnează 404 pentru "Account not found" (nu 500 generic)
@@ -79,7 +79,7 @@
 # 1. Add account → QR apare (status: qr_ready)
 # 2. Restart legacy hosting backend
 # 3. Verifică legacy hosting logs:
-# Expected: 📦 Found X accounts in Firestore (statuses: qr_ready, connecting, awaiting_scan, connected)
+# Expected: 📦 Found X accounts in Database (statuses: qr_ready, connecting, awaiting_scan, connected)
 # Expected: 🔄 [account_xxx] Restoring account (status: qr_ready, name: ...)
 # Expected: Account rămâne vizibil după restart
 ```
@@ -116,8 +116,8 @@
 
 ### legacy hosting Backend (După Restart)
 ```
-🔄 Restoring accounts from Firestore...
-📦 Found 1 accounts in Firestore (statuses: qr_ready, connecting, awaiting_scan, connected)
+🔄 Restoring accounts from Database...
+📦 Found 1 accounts in Database (statuses: qr_ready, connecting, awaiting_scan, connected)
 🔄 [account_xxx] Restoring account (status: qr_ready, name: ...)
 ✅ Account restore complete: 1 accounts loaded
 🔌 Starting connections for restored accounts...
@@ -127,7 +127,7 @@
 ### getAccounts (După Restart)
 ```
 📋 [GET /accounts/req_xxx] In-memory accounts: 1
-📋 [GET /accounts/req_xxx] Firestore accounts: 1 total
+📋 [GET /accounts/req_xxx] Database accounts: 1 total
 📋 [GET /accounts/req_xxx] Total accounts: 1
 ✅ [GET /accounts/req_xxx] Response: 1 accounts, waMode=active
 ```
@@ -148,7 +148,7 @@
 2. ✅ `whatsapp-backend/server.js:4801-4804` - restoreSingleAccount include pairing phase
 3. ✅ `whatsapp-backend/server.js:5579` - Starting connections include pairing phase
 4. ✅ `whatsapp-backend/server.js:5566` - Logging updated pentru pairing phase
-5. ✅ `whatsapp-backend/server.js:3685-3700` - regenerateQr idempotency (Firestore check)
+5. ✅ `whatsapp-backend/server.js:3685-3700` - regenerateQr idempotency (Database check)
 6. ✅ `whatsapp-backend/server.js:1439-1457` - Enhanced logging pentru "unknown" reason codes
 7. ✅ `whatsapp-backend/server.js:3129-3215` - GET /accounts logging + PASSIVE mode
 
@@ -164,18 +164,18 @@
 ## Root Cause Summary
 
 1. **Account disappearing:** După restart, accounts în pairing phase nu erau restaurate → map-ul intern gol → regenerateQr dă 500 "Account not found"
-2. **regenerateQr 500 loop:** Backend nu verifica Firestore pentru `regeneratingQr` flag → returnează 500 în loc de 202
+2. **regenerateQr 500 loop:** Backend nu verifica Database pentru `regeneratingQr` flag → returnează 500 în loc de 202
 3. **Client guard:** Client trata 202 ca error → seta cooldown → buclă
 4. **Proxy logging:** Proxy maschează erorile legacy hosting ca 500 generic, fără detalii
 5. **Unknown reason codes:** Nu avem suficiente detalii pentru debugging când reason code este "unknown"
 
 **Fix-uri:**
 - ✅ Restaura TOATE accounts în pairing phase + connected
-- ✅ Backend verifică Firestore pentru `regeneratingQr` flag
+- ✅ Backend verifică Database pentru `regeneratingQr` flag
 - ✅ Client tratează 202 ca success
 - ✅ Proxy loghează body-ul complet al răspunsului legacy hosting
 - ✅ Enhanced logging pentru "unknown" reason codes
-- ✅ GET /accounts include TOATE accounts din Firestore
+- ✅ GET /accounts include TOATE accounts din Database
 
 **Status:** Toate fix-urile sunt implementate și gata pentru deploy! 🚀
 
@@ -192,10 +192,10 @@ git push
 # legacy hosting auto-deploys
 ```
 
-### 2. Deploy Firebase Functions
+### 2. Deploy Supabase Functions
 ```bash
 cd functions
-firebase deploy --only functions:regenerateQr
+supabase deploy --only functions:regenerateQr
 ```
 
 ### 3. Deploy Flutter Client

@@ -1,6 +1,6 @@
 /**
  * Fetch messages from WhatsApp via Baileys fetchMessageHistory.
- * Uses messaging-history.set event; requires oldest message in Firestore for the thread.
+ * Uses messaging-history.set event; requires oldest message in Database for the thread.
  * Serialized per sock (mutex) to avoid mixing concurrent history responses.
  */
 
@@ -51,12 +51,12 @@ async function withMutex(sock, fn) {
 
 /**
  * Fetch messages older than oldest we have for a chat. Uses sock.fetchMessageHistory
- * and messaging-history.set. Returns [] when no oldest message in Firestore.
+ * and messaging-history.set. Returns [] when no oldest message in Database.
  *
  * @param {object} sock - Baileys socket
  * @param {string} jid - Chat JID (remoteJid)
  * @param {number} limit - Max messages to request (max 50 per Baileys)
- * @param {{ db?: FirebaseFirestore.Firestore; accountId?: string }} [opts]
+ * @param {{ db?: SupabaseDatabase.Database; accountId?: string }} [opts]
  * @returns {Promise<object[]>} Baileys WAMessage[] (with .key, .message)
  */
 async function fetchSingleBatch(sock, resolvedJid, count, oldestMsgKey, jid) {
@@ -131,7 +131,7 @@ async function fetchSingleBatch(sock, resolvedJid, count, oldestMsgKey, jid) {
  * @param {object} sock - Baileys socket
  * @param {string} jid - Chat JID (remoteJid)
  * @param {number} limit - Max messages to request (max 50 per Baileys)
- * @param {{ db?: FirebaseFirestore.Firestore; accountId?: string; maxDepth?: number }} [opts]
+ * @param {{ db?: SupabaseDatabase.Database; accountId?: string; maxDepth?: number }} [opts]
  * @returns {Promise<object[]>} Baileys WAMessage[]
  */
 async function fetchMessagesFromWA(sock, jid, limit, opts = {}) {

@@ -5,8 +5,8 @@
 ### Test Environment Requirements
 
 - Flutter app installed on device/emulator
-- Firebase project configured
-- GROQ_API_KEY secret set in Firebase
+- Supabase project configured
+- GROQ_API_KEY secret set in Supabase
 
 ### Test Scenarios
 
@@ -22,13 +22,13 @@
 
 - ✅ UI blocks function call (no network request)
 - ✅ Error message displayed: "⚠️ Trebuie să fii logat pentru a folosi AI Chat"
-- ✅ No function invocation in Firebase logs
+- ✅ No function invocation in Supabase logs
 
 **Evidence Required:**
 
 - Screenshot of error message
 - Flutter logs showing auth check
-- Firebase Functions logs showing NO invocation
+- Supabase Functions logs showing NO invocation
 
 **Status:** ⏳ PENDING MANUAL TEST
 
@@ -40,7 +40,7 @@
 
 1. Temporarily remove GROQ_API_KEY:
    ```bash
-   firebase functions:secrets:destroy GROQ_API_KEY
+   supabase functions:secrets:destroy GROQ_API_KEY
    ```
 2. Log in to app
 3. Navigate to AI Chat
@@ -56,7 +56,7 @@
 **Evidence Required:**
 
 - Screenshot of error message
-- Firebase Functions logs showing:
+- Supabase Functions logs showing:
   ```
   [req_xxx] GROQ_API_KEY not configured
   failed-precondition: GROQ_API_KEY not configured. Please set the secret...
@@ -65,8 +65,8 @@
 **Cleanup:**
 
 ```bash
-echo "your-groq-api-key" | firebase functions:secrets:set GROQ_API_KEY
-firebase deploy --only functions:chatWithAI
+echo "your-groq-api-key" | supabase functions:secrets:set GROQ_API_KEY
+supabase deploy --only functions:chatWithAI
 ```
 
 **Status:** ⏳ PENDING MANUAL TEST
@@ -94,7 +94,7 @@ firebase deploy --only functions:chatWithAI
 
 ```dart
 // Flutter: ai_chat_screen.dart:158
-final callable = FirebaseFunctions.instanceFor(region: 'us-central1').httpsCallable(
+final callable = SupabaseFunctions.instanceFor(region: 'us-central1').httpsCallable(
   'chatWithAI',
   options: HttpsCallableOptions(timeout: const Duration(seconds: 30)),
 );
@@ -145,7 +145,7 @@ setGlobalOptions({
 **Evidence Required:**
 
 - Screenshot of timeout message (if occurs)
-- Firebase Functions logs
+- Supabase Functions logs
 
 **Status:** ⏳ PENDING MANUAL TEST
 
@@ -176,7 +176,7 @@ setGlobalOptions({
 
 ### ✅ Auth Check
 
-- **Flutter:** Checks `FirebaseAuth.instance.currentUser` before call (ai_chat_screen.dart:84-94)
+- **Flutter:** Checks `SupabaseAuth.instance.currentUser` before call (ai_chat_screen.dart:84-94)
 - **Functions:** Checks `context.auth?.uid` (index.js:313-317)
 - **Status:** VERIFIED
 

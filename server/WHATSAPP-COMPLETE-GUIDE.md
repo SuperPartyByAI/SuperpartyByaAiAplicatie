@@ -10,13 +10,13 @@
 
 ### ✅ Implementat și Testat:
 
-- Firebase Cloud Functions (Gen 1, Node.js 20)
+- Supabase Cloud Functions (Gen 1, Node.js 20)
 - Baileys 6.5.0 pentru WhatsApp Web API
 - Express.js cu CORS
 - Socket.IO pentru real-time updates
 - QR Code generation (FUNCȚIONEAZĂ PERFECT)
 - Multi-account support (până la 20 conturi)
-- Session persistence în Firestore
+- Session persistence în Database
 - Auto-reconnect după disconnect
 
 ### ❌ NU Funcționează:
@@ -37,7 +37,7 @@ curl https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp/
 # Răspuns așteptat:
 # {
 #   "status": "online",
-#   "service": "SuperParty WhatsApp on Firebase",
+#   "service": "SuperParty WhatsApp on Supabase",
 #   "version": "5.0.0",
 #   "accounts": 0
 # }
@@ -317,7 +317,7 @@ curl -X POST https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp
 
 **Soluție:**
 
-- Sesiunile sunt salvate în Firestore
+- Sesiunile sunt salvate în Database
 - Auto-reconnect după restart
 - Dacă nu funcționează, recreează contul
 
@@ -328,11 +328,11 @@ curl -X POST https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp
 ### Stack:
 
 - **Runtime:** Node.js 20
-- **Platform:** Firebase Cloud Functions (Gen 1)
+- **Platform:** Supabase Cloud Functions (Gen 1)
 - **WhatsApp Library:** @whiskeysockets/baileys 6.5.0
 - **Web Framework:** Express.js 4.18.2
 - **Real-time:** Socket.IO 4.6.1
-- **Database:** Firestore (session persistence)
+- **Database:** Database (session persistence)
 - **QR Generation:** qrcode 1.5.3
 
 ### Fișiere Principale:
@@ -343,7 +343,7 @@ functions/
 ├── package.json                # Dependencies
 └── whatsapp/
     ├── manager.js              # WhatsApp logic (Baileys)
-    ├── session-store.js        # Firestore persistence
+    ├── session-store.js        # Database persistence
     ├── behavior.js             # Human-like behavior
     ├── rate-limiter.js         # Rate limiting
     ├── circuit-breaker.js      # Fault tolerance
@@ -361,7 +361,7 @@ functions/
 1. **Pairing Codes NU funcționează** în Cloud Functions
 2. **Timeout:** Cloud Functions au timeout de 60 secunde (Gen 1) sau 540 secunde (Gen 2)
 3. **Cold Start:** Prima cerere poate dura 5-10 secunde
-4. **Sesiuni:** Se pot pierde la restart (salvate în Firestore pentru recovery)
+4. **Sesiuni:** Se pot pierde la restart (salvate în Database pentru recovery)
 
 ### Riscuri Legale:
 
@@ -385,32 +385,32 @@ functions/
 cd functions
 npm install
 cd ..
-firebase deploy --only functions
+supabase deploy --only functions
 ```
 
 ### Verifică Logs:
 
 ```bash
-firebase functions:log
+supabase functions:log
 ```
 
 ### Monitorizare:
 
-- Firebase Console: https://console.firebase.google.com/project/superparty-frontend/functions
-- Logs în timp real: `firebase functions:log --follow`
+- Supabase Console: https://console.supabase.google.com/project/superparty-frontend/functions
+- Logs în timp real: `supabase functions:log --follow`
 
 ---
 
 ## 📞 Suport
 
-**Firebase Project:** superparty-frontend  
+**Supabase Project:** superparty-frontend  
 **Region:** us-central1  
 **Function Name:** whatsapp
 
 **Documentație:**
 
 - Baileys: https://github.com/WhiskeySockets/Baileys
-- Firebase Functions: https://firebase.google.com/docs/functions
+- Supabase Functions: https://supabase.google.com/docs/functions
 - Twilio WhatsApp: https://www.twilio.com/whatsapp
 
 ---

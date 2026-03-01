@@ -58,7 +58,7 @@
 ```
 ❌ [account_xxx] Explicit cleanup (401), terminal logout - clearing session
 🗑️  [account_xxx] Session directory deleted: /app/sessions/account_xxx
-🗑️  [account_xxx] Firestore session backup deleted
+🗑️  [account_xxx] Database session backup deleted
 🔓 [account_xxx] Connection lock released
 (NO MORE "Creating connection..." after this)
 ```
@@ -76,7 +76,7 @@
 ## 📋 What the Fix Does
 
 1. **Oprește Loop-ul**: Nu mai programează `createConnection()` pentru 401/logged_out
-2. **Șterge Sesiu nă**: Curăță atât disk (`/app/sessions/{accountId}`) cât și Firestore (`wa_sessions/{accountId}`)
+2. **Șterge Sesiu nă**: Curăță atât disk (`/app/sessions/{accountId}`) cât și Database (`wa_sessions/{accountId}`)
 3. **Set Status `needs_qr`**: Contul rămâne cu status `needs_qr` și `requiresQR: true`
 4. **Așteaptă User Action**: Utilizatorul trebuie să apese **"Regenerate QR"** pentru re-pair
 
@@ -86,7 +86,7 @@
 
 **Când backend-ul primește 401**:
 - ✅ Oprește imediat reconnect attempts
-- ✅ Șterge sesiunea coruptă (disk + Firestore)
+- ✅ Șterge sesiunea coruptă (disk + Database)
 - ✅ Setează status `needs_qr` (NU mai recreează automat)
 - ✅ Așteaptă explicit "Regenerate QR" din Flutter app
 

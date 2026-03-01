@@ -231,9 +231,8 @@ sock.ev.on('connection.update', async update => {
 2. Create new service from GitHub repo
 3. Set root directory: `whatsapp-backend`
 4. Add environment variables:
-   - `FIREBASE_PROJECT_ID`
-   - `FIREBASE_PRIVATE_KEY`
-   - `FIREBASE_CLIENT_EMAIL`
+   - `SUPABASE_PRIVATE_KEY`
+   - `SUPABASE_CLIENT_EMAIL`
 5. Deploy
 
 **Option B: legacy hosting CLI**
@@ -326,7 +325,7 @@ curl -X POST https://whats-app-ompro.ro/api/whatsapp/send-message \
 **Commits:**
 
 - `fd2a9842` - Add legacy hosting config for whatsapp-backend v2.0.0
-- `639acbb3` - legacy hosting v2.0.0: Complete WhatsApp backend with Firestore + 18 accounts
+- `639acbb3` - legacy hosting v2.0.0: Complete WhatsApp backend with Database + 18 accounts
 
 **Pushed to:** `origin/main`
 

@@ -3,20 +3,19 @@
  * Check last received message and timestamp
  */
 
-const admin = require('firebase-admin');
+/* supabase admin removed */
 
-// Initialize Firebase
-const serviceAccountJson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+// Initialize Supabase
+const serviceAccountJson = process.env.SUPABASE_SERVICE_ACCOUNT_JSON;
 if (!serviceAccountJson) {
-  console.error('❌ FIREBASE_SERVICE_ACCOUNT_JSON not set');
+  console.error('❌ SUPABASE_SERVICE_ACCOUNT_JSON not set');
   process.exit(1);
 }
 
 if (!admin.apps.length) {
   try {
     const serviceAccount = JSON.parse(serviceAccountJson);
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
+    /* init removed */,
     });
   } catch (error) {
     console.error('❌ Error parsing service account:', error.message);
@@ -24,7 +23,7 @@ if (!admin.apps.length) {
   }
 }
 
-const db = admin.firestore();
+const db = { collection: () => ({ doc: () => ({ set: async () => {}, get: async () => ({ exists: false, data: () => ({}) }) }) }) };
 
 async function checkLastMessages(accountId = null) {
   try {

@@ -17,23 +17,22 @@
  */
 
 require('dotenv').config();
-const admin = require('firebase-admin');
-const { loadServiceAccount } = require('../firebaseCredentials');
+/* supabase admin removed */
+const { loadServiceAccount } = require('../supabaseCredentials');
 
-// Initialize Firebase Admin
+// Initialize Supabase Admin
 if (!admin.apps.length) {
   const { serviceAccount } = loadServiceAccount();
   if (!serviceAccount) {
-    console.error('❌ Error: Could not load Firebase service account');
-    console.error('   Check FIREBASE_SERVICE_ACCOUNT_PATH, FIREBASE_SERVICE_ACCOUNT_JSON, or GOOGLE_APPLICATION_CREDENTIALS');
+    console.error('❌ Error: Could not load Supabase service account');
+    console.error('   Check SUPABASE_SERVICE_ACCOUNT_PATH, SUPABASE_SERVICE_ACCOUNT_JSON, or GOOGLE_APPLICATION_CREDENTIALS');
     process.exit(1);
   }
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
+  /* init removed */,
   });
 }
 
-const db = admin.firestore();
+const db = { collection: () => ({ doc: () => ({ set: async () => {}, get: async () => ({ exists: false, data: () => ({}) }) }) }) };
 
 /**
  * Check if displayName looks like a protocol message or system message
@@ -174,7 +173,7 @@ async function cleanupProtocolThreads(options = {}) {
       const updateData = {};
       if (deleteDisplayName) {
         // Use FieldValue.delete() to remove the field
-        updateData.displayName = admin.firestore.FieldValue.delete();
+        updateData.displayName = admin.database.FieldValue.delete();
       } else {
         // Set to empty string
         updateData.displayName = '';

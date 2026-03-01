@@ -22,9 +22,9 @@
 ### TIER 3 (NOU - Implementate acum)
 
 7. ✅ **Dual Connection** (backup connection)
-8. ✅ **Persistent Message Queue** (Firestore)
+8. ✅ **Persistent Message Queue** (Database)
 9. ✅ **Adaptive Keep-Alive** (rate limit protection)
-10. ✅ **Message Batching** (Firestore optimization)
+10. ✅ **Message Batching** (Database optimization)
 11. ✅ **Proactive Reconnect** (predictive)
 12. ✅ **Multi-Region Failover**
 13. ✅ **Monitoring & Alerting**
@@ -68,19 +68,19 @@ async switchToBackup(accountId) {
 
 ### 2. Persistent Message Queue
 
-**Fișier:** `src/whatsapp/manager.js` + `src/firebase/firestore.js`
+**Fișier:** `src/whatsapp/manager.js` + `src/supabase/database.js`
 
 **Cod:**
 
 ```javascript
 // Save queue every 10 messages
 if (this.messageQueue.length % 10 === 0) {
-  await firestore.saveQueue('global', this.messageQueue);
+  await database.saveQueue('global', this.messageQueue);
 }
 
 // Restore on startup
 async restoreQueue() {
-  const savedQueue = await firestore.getQueue('global');
+  const savedQueue = await database.getQueue('global');
   this.messageQueue = savedQueue || [];
 }
 ```
@@ -118,7 +118,7 @@ startAdaptiveKeepAlive() {
 
 ### 4. Message Batching
 
-**Fișier:** `src/firebase/firestore.js`
+**Fișier:** `src/supabase/database.js`
 
 **Cod:**
 
@@ -197,7 +197,7 @@ class MultiRegionManager {
 ```javascript
 class MonitoringService {
   async logEvent(type, data) {
-    await firestore.logEvent({ type, data, timestamp: Date.now() });
+    await database.logEvent({ type, data, timestamp: Date.now() });
   }
 
   async checkThresholds() {
@@ -208,7 +208,7 @@ class MonitoringService {
 
   async generateDailyReport() {
     const report = await this.manager.generateDailyReport();
-    await firestore.logEvent({ type: 'daily_report', data: report });
+    await database.logEvent({ type: 'daily_report', data: report });
   }
 }
 ```
@@ -275,7 +275,7 @@ Vizibilitate:         100% (+100%) ⬆️⬆️⬆️⬆️⬆️
 ### Modificate:
 
 - `src/whatsapp/manager.js` (+500 linii)
-- `src/firebase/firestore.js` (+150 linii)
+- `src/supabase/database.js` (+150 linii)
 - `whatsapp-server.js` (+50 linii)
 
 ### Adăugate:

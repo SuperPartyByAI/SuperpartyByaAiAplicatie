@@ -51,7 +51,7 @@ git push origin cursor/baileys-fix
 ```
 ❌ [account_xxx] Explicit cleanup (401), terminal logout - clearing session
 🗑️  [account_xxx] Session directory deleted: /app/sessions/account_xxx
-🗑️  [account_xxx] Firestore session backup deleted
+🗑️  [account_xxx] Database session backup deleted
 🔓 [account_xxx] Connection lock released
 (No more "Creating connection..." after this)
 ```
@@ -68,12 +68,12 @@ git push origin cursor/baileys-fix
 
 ## Changes Made
 
-1. ✅ Added `clearAccountSession()` function (clears disk + Firestore)
+1. ✅ Added `clearAccountSession()` function (clears disk + Database)
 2. ✅ Added `isTerminalLogout()` helper
 3. ✅ Fixed terminal logout cleanup (doesn't schedule `createConnection()`)
 4. ✅ Updated regenerate-qr endpoint (clears session deterministically)
 5. ✅ Added guard in `createConnection()` (skips `needs_qr`/`logged_out`)
-6. ✅ Added guard in `restoreAccountsFromFirestore()` (skips terminal accounts)
+6. ✅ Added guard in `restoreAccountsFromDatabase()` (skips terminal accounts)
 
 ---
 

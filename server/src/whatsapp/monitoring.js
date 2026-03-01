@@ -3,7 +3,7 @@
  * Tracks metrics, generates reports, sends alerts
  */
 
-const firestore = require('../firebase/firestore');
+const database = require('../supabase/database');
 
 class MonitoringService {
   constructor(whatsappManager) {
@@ -46,7 +46,7 @@ class MonitoringService {
    */
   async logEvent(type, data) {
     try {
-      await firestore.logEvent({
+      await database.logEvent({
         type,
         data,
         timestamp: Date.now(),
@@ -144,8 +144,8 @@ class MonitoringService {
   async sendAlert(alert) {
     console.error(`🚨 ALERT [${alert.level}]:`, alert.message);
 
-    // Log to Firestore
-    await firestore.logEvent({
+    // Log to Database
+    await database.logEvent({
       type: 'alert',
       data: alert,
       timestamp: Date.now(),
@@ -198,8 +198,8 @@ class MonitoringService {
 
       console.log('📊 Daily Report Generated:', report);
 
-      // Log to Firestore
-      await firestore.logEvent({
+      // Log to Database
+      await database.logEvent({
         type: 'daily_report',
         data: report,
         timestamp: Date.now(),

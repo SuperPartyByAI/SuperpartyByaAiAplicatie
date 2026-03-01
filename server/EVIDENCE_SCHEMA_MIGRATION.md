@@ -22,15 +22,15 @@ PR #20 standardizes the evidence schema from Romanian (`categorie`, `dovezi_meta
 
 **Code Changes:**
 
-1. ✅ `EvidenceModel.fromFirestore()` reads from `category` OR `categorie` (fallback)
-2. ✅ `EvidenceModel.toFirestore()` writes BOTH `category` AND `categorie`
+1. ✅ `EvidenceModel.fromDatabase()` reads from `category` OR `categorie` (fallback)
+2. ✅ `EvidenceModel.toDatabase()` writes BOTH `category` AND `categorie`
 3. ✅ All service methods use `category` parameter
-4. ✅ All Firestore queries use `.where('category')`
+4. ✅ All Database queries use `.where('category')`
 
 **Infrastructure Changes:**
 
-1. ✅ Firestore rules support BOTH `evidenceState` AND `dovezi_meta` collections
-2. ✅ Firestore indexes created for BOTH `category` AND `categorie` fields
+1. ✅ Database rules support BOTH `evidenceState` AND `dovezi_meta` collections
+2. ✅ Database indexes created for BOTH `category` AND `categorie` fields
 
 **Status:** ✅ READY TO DEPLOY
 
@@ -56,14 +56,14 @@ node scripts/migrate-evidence-schema.js
 
 ### Phase 3: Deploy Rules and Indexes
 
-Deploy updated Firestore configuration:
+Deploy updated Database configuration:
 
 ```bash
 # Deploy rules
-firebase deploy --only firestore:rules
+supabase deploy --only database:rules
 
 # Deploy indexes
-firebase deploy --only firestore:indexes
+supabase deploy --only database:indexes
 ```
 
 **Status:** ⏳ PENDING (run after Phase 2 migration)
@@ -82,8 +82,8 @@ Monitor for 1-2 weeks:
 
 After verification period, optionally remove backward compatibility:
 
-1. Remove `categorie` write from `toFirestore()`
-2. Remove `categorie` fallback from `fromFirestore()`
+1. Remove `categorie` write from `toDatabase()`
+2. Remove `categorie` fallback from `fromDatabase()`
 3. Remove `dovezi_meta` rules
 4. Remove `categorie` indexes
 
@@ -117,8 +117,8 @@ Before deploying to production:
 
 ### Infrastructure
 
-- `firestore.rules` - Support both collections
-- `firestore.indexes.json` - Indexes for both fields
+- `database.rules` - Support both collections
+- `database.indexes.json` - Indexes for both fields
 - `scripts/migrate-evidence-schema.js` - Migration script (NEW)
 
 ### CI/CD
@@ -139,6 +139,6 @@ Before deploying to production:
 For issues or questions:
 
 1. Check logs for specific error messages
-2. Verify Firestore rules are deployed
+2. Verify Database rules are deployed
 3. Confirm indexes are built (can take time)
 4. Review migration script output

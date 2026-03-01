@@ -44,8 +44,8 @@
 **Status:** Placeholder tests with documentation
 
 **Note:** Full implementation requires GoRouter test utilities and mocking:
-- Mock FirebaseService.isInitialized
-- Mock FirebaseService.auth.currentUser
+- Mock SupabaseService.isInitialized
+- Mock SupabaseService.auth.currentUser
 - Mock AdminService.isCurrentUserAdmin()
 - Use GoRouter test utilities for route testing
 
@@ -65,7 +65,7 @@
 - Token validation (null, undefined, empty, whitespace, non-string types)
 - TTL expiration logic
 
-**Status:** Unit tests for idempotency helpers without requiring Firebase emulator.
+**Status:** Unit tests for idempotency helpers without requiring Supabase emulator.
 
 ---
 

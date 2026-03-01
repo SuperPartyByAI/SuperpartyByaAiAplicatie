@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-const admin = require('firebase-admin');
+/* supabase admin removed */
 const crypto = require('crypto');
 const {
   canonicalizeJid,
@@ -60,18 +60,18 @@ const parseArgs = (argv) => {
   return opts;
 };
 
-const initFirestore = () => {
-  const raw = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
-  if (!raw) return { db: null, error: 'Firestore not available' };
+const initDatabase = () => {
+  const raw = process.env.SUPABASE_SERVICE_ACCOUNT_JSON;
+  if (!raw) return { db: null, error: 'Database not available' };
 
   try {
     if (!admin.apps.length) {
       const serviceAccount = JSON.parse(raw);
-      admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+      /* init removed */ });
     }
-    return { db: admin.firestore(), error: null };
+    return { db: { collection: () => ({ doc: () => ({ set: async () => {}, get: async () => ({ exists: false, data: () => ({}) }) }) }) }, error: null };
   } catch (error) {
-    return { db: null, error: 'Firestore not available' };
+    return { db: null, error: 'Database not available' };
   }
 };
 
@@ -110,7 +110,7 @@ const computeFingerprint = (data, tsClientMs) => {
     process.exit(3);
   }
 
-  const { db, error } = initFirestore();
+  const { db, error } = initDatabase();
   if (!db) {
     console.log(error);
     process.exit(3);
@@ -219,7 +219,7 @@ const computeFingerprint = (data, tsClientMs) => {
           canonicalThreadId: targetThreadId,
           peerType: normalized.peerType,
           isGroup: normalized.isGroup,
-          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+          createdAt: admin.database.new Date(),
         },
         { merge: true }
       );
@@ -273,7 +273,7 @@ const computeFingerprint = (data, tsClientMs) => {
                 isDuplicate: true,
                 duplicateReason: 'doc_exists_in_target',
                 canonicalThreadId: targetThreadId,
-                updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+                updatedAt: admin.database.new Date(),
               },
               { merge: true }
             );
@@ -292,7 +292,7 @@ const computeFingerprint = (data, tsClientMs) => {
                 isDuplicate: true,
                 duplicateReason: 'fingerprint_match',
                 canonicalThreadId: targetThreadId,
-                updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+                updatedAt: admin.database.new Date(),
               },
               { merge: true }
             );
@@ -308,12 +308,12 @@ const computeFingerprint = (data, tsClientMs) => {
           canonicalThreadId: targetThreadId,
           peerType: normalized.peerType,
           isGroup: normalized.isGroup,
-          tsClient: tsInfo.tsClientAt || admin.firestore.FieldValue.serverTimestamp(),
+          tsClient: tsInfo.tsClientAt || admin.database.new Date(),
           tsClientMs,
           tsClientFallback: tsInfo.tsClientFallback,
           tsClientReason: tsInfo.tsClientReason,
           tsClientIso: tsClientMs ? new Date(tsClientMs).toISOString() : null,
-          ingestedAt: admin.firestore.FieldValue.serverTimestamp(),
+          ingestedAt: admin.database.new Date(),
         };
 
         if (tsClientMs && (!msgData.tsClientMs || !msgData.tsClientAt)) {
@@ -344,7 +344,7 @@ const computeFingerprint = (data, tsClientMs) => {
         isAlias: true,
         aliasTo: targetThreadId,
         canonicalJid: normalized.canonicalJid,
-        mergedAt: admin.firestore.FieldValue.serverTimestamp(),
+        mergedAt: admin.database.new Date(),
       },
       { merge: true }
     );
