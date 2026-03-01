@@ -53,7 +53,7 @@ class WhatsAppMonitorScreen extends StatelessWidget {
               final msgsIn = doc['messages_in'] ?? 0;
               final msgsOut = doc['messages_out'] ?? 0;
               final phone = doc['phone_number'] ?? 'Așteaptă Validarea';
-              final dynamic recentLogs = doc['recent_logs'] ?? [];
+              final List recentLogs = (doc['recent_logs'] is List) ? doc['recent_logs'] as List : [];
 
               return Card(
                 color: Colors.grey[850],
@@ -124,20 +124,20 @@ class WhatsAppMonitorScreen extends StatelessWidget {
                           borderRadius: BorderRadius.circular(8),
                           border: Border.all(color: Colors.white10),
                         ),
-                        child: recentLogs.isNotEmpty 
-                          ? Column(
-                              crossAxisAlignment: CrossAxisAlignment.start,
-                              children: (recentLogs as List).reversed.take(5).map((log) => 
-                                Padding(
-                                  padding: const EdgeInsets.only(bottom: 4),
-                                  child: Text('• $log', style: const TextStyle(color: Colors.white60, fontSize: 11, fontFamily: 'monospace')),
+                            child: recentLogs.isNotEmpty 
+                              ? Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: recentLogs.reversed.take(5).map((log) => 
+                                    Padding(
+                                      padding: const EdgeInsets.only(bottom: 4),
+                                      child: Text('• $log', style: const TextStyle(color: Colors.white60, fontSize: 11, fontFamily: 'monospace')),
+                                    )
+                                  ).toList(),
                                 )
-                              ).toList(),
-                            )
-                          : const Text('Niciun eveniment înregistrat încă.', style: TextStyle(color: Colors.white38, fontSize: 11, fontStyle: FontStyle.italic)),
+                              : const Text('Niciun eveniment înregistrat încă.', style: TextStyle(color: Colors.white38, fontSize: 11, fontStyle: FontStyle.italic)),
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
                 ),
               );
             },

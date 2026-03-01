@@ -1,4 +1,3 @@
-import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -328,7 +327,7 @@ class _CallsScreenState extends State<CallsScreen> {
       debugPrint('[WA] POST /api/conversations phone=+$digits acc=$selectedAccountId');
       final token = await _getToken();
       final resp = await http.post(
-        Uri.parse('http://46.225.182.127:3001/api/conversations'),
+        Uri.parse('$_BASE/conversations'),
         headers: {
           'Content-Type': 'application/json',
           if (token != null) 'Authorization': 'Bearer $token',
