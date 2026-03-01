@@ -1,3 +1,4 @@
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:twilio_voice/twilio_voice.dart';
@@ -5,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../services/voip_service.dart';
 import 'dart:async';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 
 const _kAudioChannel = 'com.superpartybyai.app/audio';
@@ -65,7 +67,7 @@ class _ActiveCallScreenState extends State<ActiveCallScreen> {
     });
 
     // Fallback 1: FCM call_ended push from server (most reliable on Huawei — bypasses Doze)
-    _fcmSub = SupabaseMessaging.onMessage.listen((msg) {
+    _fcmSub = FirebaseMessaging.onMessage.listen((msg) {
       final type = msg.data['type'];
       final incomingSid = msg.data['callSid'] as String?;
       debugPrint('[ActiveCall] FCM message received: type=$type sid=$incomingSid activeSid=$_activeCallSid');
@@ -103,16 +105,19 @@ class _ActiveCallScreenState extends State<ActiveCallScreen> {
     try {
       // If we have a known callSid, look up that specific document
       if (_activeCallSid != null) {
-        final doc = await /* Removed */ ;
-        if (!doc.exists || !mounted) return;
-        final data = doc.data()!;
+        final doc = await Supabase.instance.client.from('calls').select().eq('callSid', _activeCallSid!).maybeSingle();
+        if (doc == null || !mounted) return;
+        final data = doc;
         final status = data['status'] as String? ?? '';
         final terminalStatuses = ['completed', 'failed', 'no-answer', 'canceled', 'busy'];
         if (terminalStatuses.contains(status)) {
           final ts = data['endTime'] ?? data['timestamp'];
           if (ts != null) {
-            final dt = (ts as dynamic).toDate();
-            if (DateTime.now().difference(dt).inSeconds < 300) {
+            DateTime? dt;
+            if (ts is String) dt = DateTime.tryParse(ts);
+            if (ts is int) dt = DateTime.fromMillisecondsSinceEpoch(ts);
+            
+            if (dt != null && DateTime.now().difference(dt).inSeconds < 300) {
               debugPrint('[ActiveCall] Database: call $status — closing screen');
               _closeCall("Apelul s-a terminat");
             }

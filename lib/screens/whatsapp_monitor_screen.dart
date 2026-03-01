@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
 class WhatsAppMonitorScreen extends StatelessWidget {
   const WhatsAppMonitorScreen({Key? key}) : super(key: key);
@@ -25,8 +25,8 @@ class WhatsAppMonitorScreen extends StatelessWidget {
         backgroundColor: Colors.black,
         elevation: 0,
       ),
-      body: StreamBuilder<dynamic>(
-        stream: Stream.empty(),
+      body: StreamBuilder<List<Map<String, dynamic>>>(
+        stream: Supabase.instance.client.from('wa_accounts').stream(primaryKey: ['id']),
         builder: (context, snapshot) {
           if (snapshot.hasError) {
             return Center(child: Text('Error: ${snapshot.error}', style: TextStyle(color: Colors.red)));
@@ -35,7 +35,7 @@ class WhatsAppMonitorScreen extends StatelessWidget {
             return const Center(child: CircularProgressIndicator(color: Colors.greenAccent));
           }
 
-          final accounts = snapshot.data!.docs;
+          final accounts = snapshot.data!;
           if (accounts.isEmpty) {
             return const Center(child: Text('Telemětrie Inactivă. Niciun agent WhatsApp găsit.', style: TextStyle(color: Colors.white70)));
           }
@@ -44,16 +44,16 @@ class WhatsAppMonitorScreen extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             itemCount: accounts.length,
             itemBuilder: (context, index) {
-              final doc = accounts[index].data() as Map<String, dynamic>;
-              final docId = accounts[index].id;
+              final doc = accounts[index];
+              final docId = doc['id']?.toString() ?? 'unknown';
               
               final label = doc['label'] ?? docId;
-              final state = doc['state'] ?? doc['status'] ?? 'disconnected';
-              final pingMs = doc['pingMs'] ?? 0;
-              final msgsIn = doc['messagesIn'] ?? 0;
-              final msgsOut = doc['messagesOut'] ?? 0;
-              final phone = doc['phoneNumber'] ?? 'Așteaptă Validarea';
-              final dynamic recentLogs = doc['recentLogs'] ?? [];
+              final state = doc['state'] ?? 'disconnected';
+              final pingMs = doc['ping_ms'] ?? 0;
+              final msgsIn = doc['messages_in'] ?? 0;
+              final msgsOut = doc['messages_out'] ?? 0;
+              final phone = doc['phone_number'] ?? 'Așteaptă Validarea';
+              final dynamic recentLogs = doc['recent_logs'] ?? [];
 
               return Card(
                 color: Colors.grey[850],

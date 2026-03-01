@@ -1,3 +1,4 @@
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -94,10 +95,10 @@ class _AIChatScreenState extends State<AIChatScreen> {
     if (user.email == 'ursache.andrei1995@gmail.com') return true;
 
     try {
-      final querySnap = await /* Removed */ ;
+      final List<dynamic> querySnap = await Supabase.instance.client.from('staffProfiles').select('canNoteEvents').eq('id', user.id);
 
-      if (querySnap.docs.isNotEmpty) {
-         final data = querySnap.docs.first.data();
+      if (querySnap.isNotEmpty) {
+         final data = querySnap.first as Map<String, dynamic>;
          return data['canNoteEvents'] == true;
       }
       return false;

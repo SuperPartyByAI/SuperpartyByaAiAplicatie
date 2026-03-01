@@ -16,7 +16,7 @@ import android.provider.Settings
 import android.telecom.TelecomManager
 import android.util.Log
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
-import com.superpartybyai.app.services.CustomVoiceSupabaseMessagingService
+import com.superpartybyai.app.services.CustomVoiceFirebaseMessagingService
 import com.superpartybyai.app.ui.IncomingCallActivity
 import com.twilio.twilio_voice.receivers.TVBroadcastReceiver as TwilioTVBroadcastReceiver
 import io.flutter.embedding.android.FlutterActivity
@@ -44,7 +44,7 @@ class MainActivity : FlutterActivity() {
                 )
                 if (invite != null) {
                     Log.d(TAG, "🎯 Intercepted CallInvite from WebSocket path: sid=${invite.callSid}")
-                    CustomVoiceSupabaseMessagingService.pendingCallInvite = invite
+                    CustomVoiceFirebaseMessagingService.pendingCallInvite = invite
                 } else {
                     Log.w(TAG, "callInviteInterceptor: EXTRA_CALL_INVITE was null")
                 }
@@ -56,7 +56,7 @@ class MainActivity : FlutterActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        CustomVoiceSupabaseMessagingService.createCallChannel(applicationContext)
+        CustomVoiceFirebaseMessagingService.createCallChannel(applicationContext)
         Log.d(TAG, "onCreate action=${intent?.action}")
         storePendingAction(intent)
     }
@@ -114,7 +114,7 @@ class MainActivity : FlutterActivity() {
                                 runOnUiThread { ch.invokeMethod("callEnded", null) }
                             }
                         }
-                        val accepted = com.superpartybyai.app.services.CustomVoiceSupabaseMessagingService
+                        val accepted = com.superpartybyai.app.services.CustomVoiceFirebaseMessagingService
                             .acceptPendingCallInvite(applicationContext, directListener)
                         if (accepted != null) {
                             Log.d(TAG, "✅ directAnswer: CallInvite accepted, sid=${accepted.sid}")
@@ -262,7 +262,7 @@ class MainActivity : FlutterActivity() {
     private fun getNotificationChannelInfo(): Map<String, Any?> {
         return try {
             val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            val channelId = CustomVoiceSupabaseMessagingService.CHANNEL_ID
+            val channelId = CustomVoiceFirebaseMessagingService.CHANNEL_ID
             val channel = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 nm.getNotificationChannel(channelId)
             } else null

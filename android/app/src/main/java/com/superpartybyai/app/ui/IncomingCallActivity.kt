@@ -23,7 +23,7 @@ import android.widget.Button
 import android.widget.LinearLayout
 import android.widget.TextView
 import com.superpartybyai.app.MainActivity
-import com.superpartybyai.app.services.CustomVoiceSupabaseMessagingService
+import com.superpartybyai.app.services.CustomVoiceFirebaseMessagingService
 
 class IncomingCallActivity : Activity() {
 
@@ -104,7 +104,7 @@ class IncomingCallActivity : Activity() {
             setOnClickListener {
                 Log.d(TAG, "Accept tapped")
                 stopRinging()
-                CustomVoiceSupabaseMessagingService.dismissCallNotification(applicationContext, callSid)
+                CustomVoiceFirebaseMessagingService.dismissCallNotification(applicationContext, callSid)
 
                 // ── DIRECT ACCEPT: bypass TelecomManager entirely via WebRTC ──
                 // On Huawei, TVConnectionService is blocked by TelecomManager.
@@ -125,7 +125,7 @@ class IncomingCallActivity : Activity() {
                         Log.d(TAG, "Direct call disconnected: ${error?.message}")
                     }
                 }
-                val acceptedCall = CustomVoiceSupabaseMessagingService.acceptPendingCallInvite(applicationContext, directCallListener)
+                val acceptedCall = CustomVoiceFirebaseMessagingService.acceptPendingCallInvite(applicationContext, directCallListener)
                 if (acceptedCall != null) {
                     Log.d(TAG, "✅ Pending CallInvite accepted directly (Huawei bypass)")
                 } else {
@@ -158,7 +158,7 @@ class IncomingCallActivity : Activity() {
             setOnClickListener {
                 Log.d(TAG, "Reject tapped")
                 stopRinging()
-                CustomVoiceSupabaseMessagingService.dismissCallNotification(applicationContext)
+                CustomVoiceFirebaseMessagingService.dismissCallNotification(applicationContext)
                 val mainIntent = Intent(applicationContext, MainActivity::class.java).apply {
                     action = ACTION_REJECT
                     putExtra("from", callerFrom)

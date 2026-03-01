@@ -1,3 +1,4 @@
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'dart:convert';
@@ -84,7 +85,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
           if (currentCode != null && currentCode.isNotEmpty)
             TextButton(
               onPressed: () async {
-                await _db.collection('employees').doc(docId).update({'personCode': FieldValue.delete()});
+                await Supabase.instance.client.from('employees').update({'personCode': null}).eq('id', docId);
                 if (mounted) Navigator.pop(ctx);
               },
               child: const Text('Șterge cod', style: TextStyle(color: Colors.red)),
@@ -302,8 +303,8 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
         elevation: 0,
       ),
       backgroundColor: const Color(0xFF111827),
-      body: StreamBuilder<dynamic>(
-        stream: _db.collection('employees').where('approved', isEqualTo: true).snapshots(),
+      body: StreamBuilder<List<Map<String, dynamic>>>(
+        stream: Supabase.instance.client.from('employees').stream(primaryKey: ['id']).eq('approved', true),
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator(color: Color(0xFF7C3AED)));
@@ -313,7 +314,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
             return Center(child: Text('Eroare: ${snapshot.error}', style: const TextStyle(color: Colors.red)));
           }
 
-          final docs = snapshot.data?.docs ?? [];
+          final docs = snapshot.data ?? [];
 
           if (docs.isEmpty) {
             return const Center(
@@ -330,7 +331,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
             itemCount: docs.length,
             itemBuilder: (context, index) {
               final doc = docs[index];
-              final data = doc.data() as Map<String, dynamic>;
+              final data = doc;
               
               final name = data['displayName']?.toString() ?? data['nume']?.toString() ?? 'Fără Nume';
               final email = data['email']?.toString() ?? '';
@@ -354,7 +355,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
                 ),
                 child: InkWell(
                   borderRadius: BorderRadius.circular(16),
-                  onTap: () => _showPermissionsDialog(doc.id, data),
+                  onTap: () => _showPermissionsDialog(doc['id']?.toString() ?? '', data),
                   child: Padding(
                     padding: const EdgeInsets.all(16),
                     child: Row(
@@ -403,7 +404,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
                                     const SizedBox(width: 8),
                                   ] else ...[
                                     GestureDetector(
-                                      onTap: () => _editPersonCode(doc.id, personCode, name),
+                                      onTap: () => _editPersonCode(doc['id']?.toString() ?? '', personCode, name),
                                       child: Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                         decoration: BoxDecoration(
@@ -455,7 +456,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
                         // Edit icon
                         IconButton(
                           icon: const Icon(Icons.edit, color: Colors.white24, size: 20),
-                          onPressed: () => _editPersonCode(doc.id, personCode, name),
+                          onPressed: () => _editPersonCode(doc['id']?.toString() ?? '', personCode, name),
                           tooltip: 'Editează codul',
                         ),
                       ],

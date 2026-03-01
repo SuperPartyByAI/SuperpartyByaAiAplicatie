@@ -606,7 +606,7 @@ function redactLogMessage(message) {
   message = message.replace(/Bearer\s+[A-Za-z0-9_-]{20,}/g, 'Bearer [REDACTED]');
 
   // Redact Supabase service account keys
-  message = message.replace(/"private_key":\s*"[^"]+"/g, '"private_key": "[REDACTED]"');
+  message = message.replace(/"private_key":\s*"[^"]+"/g, '"private_key":"[REDACTED_GCP]"');
 
   return message;
 }

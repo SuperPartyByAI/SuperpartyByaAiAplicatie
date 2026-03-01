@@ -1,3 +1,4 @@
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/scheduler.dart';
@@ -254,11 +255,11 @@ class _CallsScreenState extends State<CallsScreen> {
     String? foundDocId;
     String? foundName;
     try {
-      final q = await /* Removed */ ;
-      debugPrint('[WA] Database query: ${q.docs.length} docs');
-      if (q.docs.isNotEmpty) {
-        foundDocId = q.docs.first.id;
-        final data = q.docs.first.data();
+      final List<dynamic> q = await Supabase.instance.client.from('conversations').select().eq('phone', '+$digits');
+      debugPrint('[WA] Database query: ${q.length} docs');
+      if (q.isNotEmpty) {
+        final data = q.first as Map<String, dynamic>;
+        foundDocId = data['id']?.toString();
         foundName = (data['name'] ?? data['pushName'] ?? digits) as String?;
       }
     } catch (e) {
@@ -278,17 +279,18 @@ class _CallsScreenState extends State<CallsScreen> {
 
     // 3) Create via backend
     try {
-      final accountsSnap = await /* Removed */ ;
-      debugPrint('[WA] Connected accounts: ${accountsSnap.docs.length}');
+      final List<dynamic> accountsSnap = await Supabase.instance.client.from('wa_accounts').select().eq('state', 'connected');
+      debugPrint('[WA] Connected accounts: ${accountsSnap.length}');
 
-      if (accountsSnap.docs.isEmpty) {
+      if (accountsSnap.isEmpty) {
         if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Niciun cont conectat')));
         return;
       }
 
       String selectedAccountId;
-      if (accountsSnap.docs.length == 1) {
-        selectedAccountId = accountsSnap.docs.first.id;
+      if (accountsSnap.length == 1) {
+        final data = accountsSnap.first as Map<String, dynamic>;
+        selectedAccountId = data['id']?.toString() ?? '';
         debugPrint('[WA] Auto-selected: $selectedAccountId');
       } else {
         debugPrint('[WA] Showing picker...');
@@ -298,12 +300,14 @@ class _CallsScreenState extends State<CallsScreen> {
           builder: (ctx) => SimpleDialog(
             backgroundColor: const Color(0xFF1F2937),
             title: const Text('Alege contul WhatsApp', style: TextStyle(color: Colors.white)),
-            children: accountsSnap.docs.map((doc) {
-              final lbl = (doc.data()['label'] ?? doc.id) as String;
+            children: accountsSnap.map((doc) {
+              final docData = doc as Map<String, dynamic>;
+              final id = docData['id']?.toString() ?? '';
+              final lbl = (docData['label'] ?? id) as String;
               return SimpleDialogOption(
                 onPressed: () {
-                  debugPrint('[WA] Picked: ${doc.id} ($lbl)');
-                  Navigator.pop(ctx, doc.id);
+                  debugPrint('[WA] Picked: $id ($lbl)');
+                  Navigator.pop(ctx, id);
                 },
                 child: Row(children: [
                   const Icon(Icons.chat, color: Color(0xFF25D366)),

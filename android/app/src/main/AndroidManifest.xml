@@ -50,6 +50,13 @@
                 <action android:name="android.intent.action.MAIN"/>
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
+            <!-- Deep Links for Supabase OAuth / Email Magic Link -->
+            <intent-filter android:autoVerify="true">
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="com.superpartybyai.app" android:host="login-callback" />
+            </intent-filter>
         </activity>
         <!-- Don't delete the meta-data below.
              This is used by the Flutter tool to generate GeneratedPluginRegistrant.java -->
@@ -68,24 +75,24 @@
             android:launchMode="singleInstance"
             android:theme="@style/LaunchTheme" />
 
-        <!-- CustomVoiceSupabaseMessagingService:
-             Extends SupabaseMessagingService directly (Twilio's class is final).
+        <!-- CustomVoiceFirebaseMessagingService:
+             Extends FirebaseMessagingService directly (Twilio's class is final).
              Runs FIRST (priority=1): creates IMPORTANCE_HIGH channel and fires
              fullScreenIntent → IncomingCallActivity when twi_message_type=twilio.voice.call. -->
         <service
-            android:name=".services.CustomVoiceSupabaseMessagingService"
+            android:name=".services.CustomVoiceFirebaseMessagingService"
             android:exported="false"
             android:foregroundServiceType="microphone|phoneCall">
             <intent-filter android:priority="1">
-                <action android:name="com.google.supabase.MESSAGING_EVENT" />
+                <action android:name="com.google.firebase.MESSAGING_EVENT" />
             </intent-filter>
         </service>
 
-        <!-- REMOVED: Twilio's VoiceSupabaseMessagingService
-             Supabase dispatches FCM to only ONE service (highest priority).
-             Our CustomVoiceSupabaseMessagingService (priority=1) was consuming
+        <!-- REMOVED: Twilio's VoiceFirebaseMessagingService
+             Firebase dispatches FCM to only ONE service (highest priority).
+             Our CustomVoiceFirebaseMessagingService (priority=1) was consuming
              all messages, and this service (priority=0) NEVER received them.
-             CustomVoiceSupabaseMessagingService now handles BOTH notification
+             CustomVoiceFirebaseMessagingService now handles BOTH notification
              display AND Voice.handleMessage() → CallInvite forwarding. -->
 
 

@@ -91,35 +91,46 @@ class AuthService extends ChangeNotifier {
       _isLoading = true;
       notifyListeners();
 
-      // Required by Supabase for obtaining a valid idToken
-      const webClientId = '809758709328-98eup4m4j19eicv08itss213hsobs75a.apps.googleusercontent.com';
-      final GoogleSignInAccount? googleUser = await GoogleSignIn(serverClientId: webClientId).signIn();
-      if (googleUser == null) {
-        // User canceled the sign-in flow
-        _isLoading = false;
-        notifyListeners();
-        return;
+      // Required by Supabase for obtaining a valid idToken via Native flow
+      const webClientId = '560987331446-7uv4tju5ephn8921aotkq4939tl01lpi.apps.googleusercontent.com';
+      try {
+        final GoogleSignInAccount? googleUser = await GoogleSignIn(serverClientId: webClientId).signIn();
+        if (googleUser == null) {
+          // User canceled the sign-in flow
+          _isLoading = false;
+          notifyListeners();
+          return;
+        }
+
+        final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
+        final accessToken = googleAuth.accessToken;
+        final idToken = googleAuth.idToken;
+
+        if (idToken == null) {
+          throw 'No ID Token found.';
+        }
+
+        final response = await _auth.signInWithIdToken(
+          provider: OAuthProvider.google,
+          idToken: idToken,
+          accessToken: accessToken,
+        );
+
+        _user = response.user ?? _auth.currentSession?.user;
+      } catch (e) {
+        debugPrint("Native Google Sign-In failed (likely no GMS on Huawei): $e");
+        debugPrint("Falling back to Supabase Web OAuth flow...");
+        // Fallback for Huawei / non-GMS devices
+        await _auth.signInWithOAuth(
+          OAuthProvider.google,
+          redirectTo: 'com.superpartybyai.app://login-callback',
+        );
       }
-
-      final GoogleSignInAuthentication googleAuth = await googleUser.authentication;
-      final accessToken = googleAuth.accessToken;
-      final idToken = googleAuth.idToken;
-
-      if (idToken == null) {
-        throw 'No ID Token found.';
-      }
-
-      final response = await _auth.signInWithIdToken(
-        provider: OAuthProvider.google,
-        idToken: idToken,
-        accessToken: accessToken,
-      );
-
-      _user = response.user ?? _auth.currentSession?.user;
     } catch (e) {
       debugPrint("Error signing in with Google: $e");
       rethrow;
     } finally {
+      // Note: for OAuth redirect, the app might restart or resume later via onAuthStateChange
       _isLoading = false;
       notifyListeners();
     }

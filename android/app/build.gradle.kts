@@ -77,4 +77,7 @@ dependencies {
     implementation("com.twilio:voice-android:6.9.0")
     // LocalBroadcastManager — needed to forward CallInvite events to Flutter plugin
     implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
+
+    // Firebase Messaging logic specifically needed for VoIP push on Android
+    implementation("com.google.firebase:firebase-messaging:23.4.0")
 }

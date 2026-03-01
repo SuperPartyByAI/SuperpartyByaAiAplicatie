@@ -1,3 +1,4 @@
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
@@ -6,7 +7,12 @@ class AppInboxScreen extends StatelessWidget {
 
   void _markAsRead(String docId, List<dynamic> currentReadBy, String uid) async {
     if (!currentReadBy.contains(uid)) {
-      await /* Removed */ ;
+      final updated = List<dynamic>.from(currentReadBy)..add(uid);
+      try {
+        await Supabase.instance.client.from('app_inbox').update({'readBy': updated}).eq('id', docId);
+      } catch (e) {
+        debugPrint('Error marking as read: $e');
+      }
     }
   }
 
@@ -16,7 +22,7 @@ class AppInboxScreen extends StatelessWidget {
     if (user == null) {
       return const Scaffold(body: Center(child: Text('Trebuie să fii autentificat.')));
     }
-    final String currentUid = user.uid;
+    final String currentUid = user.id;
 
     return Scaffold(
       appBar: AppBar(
@@ -25,15 +31,14 @@ class AppInboxScreen extends StatelessWidget {
         iconTheme: const IconThemeData(color: Colors.white),
       ),
       backgroundColor: Colors.grey[100],
-      body: FutureBuilder<dynamic>(
-        future: /* Removed */ ;
-          }
-
+      body: FutureBuilder<List<Map<String, dynamic>>>(
+        future: Supabase.instance.client.from('app_inbox').select().order('timestamp', ascending: false),
+        builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          final docs = snapshot.data?.docs ?? [];
+          final docs = snapshot.data ?? [];
 
           if (docs.isEmpty) {
             return const Center(
@@ -52,8 +57,8 @@ class AppInboxScreen extends StatelessWidget {
             padding: const EdgeInsets.all(12),
             itemCount: docs.length,
             itemBuilder: (context, index) {
-              final data = docs[index].data() as Map<String, dynamic>;
-              final docId = docs[index].id;
+              final data = docs[index];
+              final docId = data['id']?.toString() ?? '';
               
               final String title = data['title'] ?? 'Mesaj Fără Titlu';
               final String body = data['body'] ?? '';
@@ -79,8 +84,15 @@ class AppInboxScreen extends StatelessWidget {
               // Format time
               String timeStr = '';
               if (timestamp != null) {
-                final date = timestamp.toDate();
-                timeStr = DateFormat('dd MMM, HH:mm').format(date);
+                DateTime? date;
+                if (timestamp is String) {
+                  date = DateTime.tryParse(timestamp);
+                } else if (timestamp is int) {
+                  date = DateTime.fromMillisecondsSinceEpoch(timestamp);
+                }
+                if (date != null) {
+                  timeStr = DateFormat('dd MMM, HH:mm').format(date);
+                }
               }
 
               return Card(

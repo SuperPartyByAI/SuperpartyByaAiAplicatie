@@ -13,9 +13,8 @@ class AiService {
   static const String _eventUrl = 'https://europe-west1-superparty-frontend.cloudfunctions.net/chatEventOpsV2';
 
   Future<String?> _getToken() async {
-    final user = (Supabase.instance.client.auth.currentUser);
-    if (user == null) return null;
-    return await user.getIdToken();
+    final session = Supabase.instance.client.auth.currentSession;
+    return session?.accessToken;
   }
 
   Future<Map<String, dynamic>> sendMessageToGeneralAI(String message, String sessionId) async {

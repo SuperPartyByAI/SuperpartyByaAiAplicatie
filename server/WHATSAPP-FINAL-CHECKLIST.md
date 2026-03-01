@@ -65,7 +65,7 @@ https://console.supabase.google.com
   "type": "service_account",
   "project_id": "superparty-whatsapp",
   "private_key_id": "...",
-  "private_key": "-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n",
+  "private_key":"[REDACTED_GCP]",
   "client_email": "supabase-adminsdk-xxxxx@superparty-whatsapp.iam.gserviceaccount.com",
   ...
 }

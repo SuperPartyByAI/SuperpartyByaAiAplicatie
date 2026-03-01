@@ -1,3 +1,4 @@
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';

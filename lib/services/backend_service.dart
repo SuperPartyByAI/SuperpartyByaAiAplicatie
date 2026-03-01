@@ -21,7 +21,6 @@ class BackendService {
   void _extractRequestId(http.Response response) {
     final requestId = response.headers['x-request-id'];
     if (requestId != null && requestId.isNotEmpty) {
-      CrashlyticsHelper.instance.setRequestId(requestId);
       debugPrint('[Backend] X-Request-Id: $requestId');
     }
   }

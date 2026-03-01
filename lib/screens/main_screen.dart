@@ -1,3 +1,4 @@
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'chat_list_screen.dart';
@@ -309,7 +310,10 @@ class _AdminDashboardScreen extends StatelessWidget {
               );
 
               try {
-                await /* Removed */ ;
+                await Supabase.instance.client.functions.invoke('sendGlobalAnnouncement', body: {
+                  'title': titleController.text,
+                  'body': bodyController.text
+                });
                 
                 if (context.mounted) {
                   ScaffoldMessenger.of(context).showSnackBar(
