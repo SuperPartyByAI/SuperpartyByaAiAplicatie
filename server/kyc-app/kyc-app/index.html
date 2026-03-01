@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="ro" data-build-time="%VITE_BUILD_TIME%">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
+    />
+    <meta name="build-time" content="%VITE_BUILD_TIME%" />
+
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#6366f1" />
+    <meta
+      name="description"
+      content="SuperParty - Platformă de management evenimente și staff cu AI"
+    />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="SuperParty" />
+
+    <!-- Manifest -->
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- Icons -->
+    <link rel="apple-touch-icon" href="/icon-192.svg" />
+
+    <title>SuperParty - Management Evenimente</title>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+
+    <!-- Service Worker: ALWAYS clear cache on load -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', async () => {
+          try {
+            console.log('🧹 Clearing all caches on load...');
+
+            // Unregister ALL service workers
+            const registrations = await navigator.serviceWorker.getRegistrations();
+            for (const registration of registrations) {
+              await registration.unregister();
+            }
+
+            // Clear ALL caches
+            const cacheNames = await caches.keys();
+            for (const cacheName of cacheNames) {
+              await caches.delete(cacheName);
+            }
+
+            console.log('✅ All caches cleared');
+          } catch (err) {
+            console.log('Cache cleanup failed:', err);
+          }
+        });
+      }
+    </script>
+  </body>
+</html>

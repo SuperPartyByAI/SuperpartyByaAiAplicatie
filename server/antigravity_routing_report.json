@@ -1,0 +1,343 @@
+{
+  "created_routes": [
+    {
+      "route_id": "route-C7xKBICjBaeibmkmfYN8",
+      "name": "MegaParty",
+      "metadata": {
+        "whatsapp_phone": "+unknown",
+        "phone_id": "C7xKBICjBaeibmkmfYN8"
+      },
+      "destination": {
+        "url": "firestore://wa_accounts/C7xKBICjBaeibmkmfYN8"
+      },
+      "binding_id": "bind-C7xKBICjBaeibmkmfYN8"
+    },
+    {
+      "route_id": "route-C9mLWO3s3nx5ckQBlmUE",
+      "name": "SweetParty",
+      "metadata": {
+        "whatsapp_phone": "+unknown",
+        "phone_id": "C9mLWO3s3nx5ckQBlmUE"
+      },
+      "destination": {
+        "url": "firestore://wa_accounts/C9mLWO3s3nx5ckQBlmUE"
+      },
+      "binding_id": "bind-C9mLWO3s3nx5ckQBlmUE"
+    },
+    {
+      "route_id": "route-7ei5E0SiunhP686M0EVX",
+      "name": "Animaparty",
+      "metadata": {
+        "whatsapp_phone": "+unknown",
+        "phone_id": "7ei5E0SiunhP686M0EVX"
+      },
+      "destination": {
+        "url": "firestore://wa_accounts/7ei5E0SiunhP686M0EVX"
+      },
+      "binding_id": "bind-7ei5E0SiunhP686M0EVX"
+    },
+    {
+      "route_id": "route-ZHRI9O3O3Lx6yRWzqOWg",
+      "name": "SuperParty",
+      "metadata": {
+        "whatsapp_phone": "+40722744377",
+        "phone_id": "ZHRI9O3O3Lx6yRWzqOWg"
+      },
+      "destination": {
+        "url": "firestore://wa_accounts/ZHRI9O3O3Lx6yRWzqOWg"
+      },
+      "binding_id": "bind-ZHRI9O3O3Lx6yRWzqOWg"
+    },
+    {
+      "route_id": "route-vWPV8yMvNyCab1kl5S0U",
+      "name": "Epic Parti",
+      "metadata": {
+        "whatsapp_phone": "+unknown",
+        "phone_id": "vWPV8yMvNyCab1kl5S0U"
+      },
+      "destination": {
+        "url": "firestore://wa_accounts/vWPV8yMvNyCab1kl5S0U"
+      },
+      "binding_id": "bind-vWPV8yMvNyCab1kl5S0U"
+    },
+    {
+      "route_id": "route-7MXiCIPXm1ZGeXxk5X58",
+      "name": "DivertixParty",
+      "metadata": {
+        "whatsapp_phone": "unknown",
+        "phone_id": "7MXiCIPXm1ZGeXxk5X58"
+      },
+      "destination": {
+        "url": "firestore://wa_accounts/7MXiCIPXm1ZGeXxk5X58"
+      },
+      "binding_id": "bind-7MXiCIPXm1ZGeXxk5X58"
+    }
+  ],
+  "verified_routes": {
+    "Happyparty": {
+      "id": "route-XANaSkgQzW5Z1VfmIvCs",
+      "name": "HappyParty",
+      "description": "WhatsApp Connection - needs_qr",
+      "metadata": {
+        "whatsapp_phone": "unknown",
+        "phone_id": "XANaSkgQzW5Z1VfmIvCs",
+        "channel_id": "whatsapp-baileys"
+      },
+      "match_rules": [
+        {
+          "type": "header",
+          "name": "X-Source-Channel",
+          "value": "whatsapp"
+        },
+        {
+          "type": "from",
+          "pattern": "unknown"
+        }
+      ],
+      "is_wildcard": false,
+      "destination": {
+        "url": "firestore://wa_accounts/XANaSkgQzW5Z1VfmIvCs",
+        "method": "POST",
+        "headers": {
+          "X-Route-Id": "route-XANaSkgQzW5Z1VfmIvCs"
+        }
+      },
+      "bindings": [
+        "bind-XANaSkgQzW5Z1VfmIvCs"
+      ],
+      "created_by": "bayine-service",
+      "created_at": "2026-02-25T10:03:05.873Z",
+      "status": "disabled",
+      "stats": {
+        "last_success": "2026-02-25T10:09:35.661Z",
+        "last_failure": null,
+        "successes_count": 0,
+        "failures_count": 0
+      },
+      "recent_logs": [
+        {
+          "timestamp": "2026-02-25T10:09:41.660Z",
+          "event_type": "message.received",
+          "from": "unknown",
+          "to": "system",
+          "route_id": "route-XANaSkgQzW5Z1VfmIvCs",
+          "destination_url": "firestore://wa_accounts/XANaSkgQzW5Z1VfmIvCs",
+          "response_status": 503,
+          "error_message": "QR Not Scanned",
+          "latency_ms": 15
+        }
+      ]
+    },
+    "Kassia": {
+      "id": "route-Ztj2SRhRWAflLQh7iVi5",
+      "name": "Kassy",
+      "description": "WhatsApp Connection - connected",
+      "metadata": {
+        "whatsapp_phone": "+40763795919",
+        "phone_id": "Ztj2SRhRWAflLQh7iVi5",
+        "channel_id": "whatsapp-baileys"
+      },
+      "match_rules": [
+        {
+          "type": "header",
+          "name": "X-Source-Channel",
+          "value": "whatsapp"
+        },
+        {
+          "type": "from",
+          "pattern": "+40763795919"
+        }
+      ],
+      "is_wildcard": false,
+      "destination": {
+        "url": "firestore://wa_accounts/Ztj2SRhRWAflLQh7iVi5",
+        "method": "POST",
+        "headers": {
+          "X-Route-Id": "route-Ztj2SRhRWAflLQh7iVi5"
+        }
+      },
+      "bindings": [
+        "bind-Ztj2SRhRWAflLQh7iVi5"
+      ],
+      "created_by": "bayine-service",
+      "created_at": "2026-02-17T00:04:44.178Z",
+      "status": "active",
+      "stats": {
+        "last_success": "2026-02-25T10:04:52.039Z",
+        "last_failure": null,
+        "successes_count": 100,
+        "failures_count": 0
+      },
+      "recent_logs": [
+        {
+          "timestamp": "2026-02-25T10:09:41.660Z",
+          "event_type": "message.received",
+          "from": "+40763795919",
+          "to": "system",
+          "route_id": "route-Ztj2SRhRWAflLQh7iVi5",
+          "destination_url": "firestore://wa_accounts/Ztj2SRhRWAflLQh7iVi5",
+          "response_status": 200,
+          "error_message": null,
+          "latency_ms": 15
+        }
+      ]
+    },
+    "Galaxy Party": {
+      "id": "route-hQtWagPAA490T7FD3vdb",
+      "name": "Galaxy Party",
+      "description": "WhatsApp Connection - connected",
+      "metadata": {
+        "whatsapp_phone": "+40773879706",
+        "phone_id": "hQtWagPAA490T7FD3vdb",
+        "channel_id": "whatsapp-baileys"
+      },
+      "match_rules": [
+        {
+          "type": "header",
+          "name": "X-Source-Channel",
+          "value": "whatsapp"
+        },
+        {
+          "type": "from",
+          "pattern": "+40773879706"
+        }
+      ],
+      "is_wildcard": false,
+      "destination": {
+        "url": "firestore://wa_accounts/hQtWagPAA490T7FD3vdb",
+        "method": "POST",
+        "headers": {
+          "X-Route-Id": "route-hQtWagPAA490T7FD3vdb"
+        }
+      },
+      "bindings": [
+        "bind-hQtWagPAA490T7FD3vdb"
+      ],
+      "created_by": "bayine-service",
+      "created_at": "2026-02-18T02:56:20.554Z",
+      "status": "active",
+      "stats": {
+        "last_success": "2026-02-25T10:04:51.756Z",
+        "last_failure": null,
+        "successes_count": 100,
+        "failures_count": 0
+      },
+      "recent_logs": [
+        {
+          "timestamp": "2026-02-25T10:09:41.660Z",
+          "event_type": "message.received",
+          "from": "+40773879706",
+          "to": "system",
+          "route_id": "route-hQtWagPAA490T7FD3vdb",
+          "destination_url": "firestore://wa_accounts/hQtWagPAA490T7FD3vdb",
+          "response_status": 200,
+          "error_message": null,
+          "latency_ms": 15
+        }
+      ]
+    },
+    "Wow party": null,
+    "PinkyParty": {
+      "id": "route-LKvZfsJMz7IO8dBLuotj",
+      "name": "PinkyParty",
+      "description": "WhatsApp Connection - needs_qr",
+      "metadata": {
+        "whatsapp_phone": "unknown",
+        "phone_id": "LKvZfsJMz7IO8dBLuotj",
+        "channel_id": "whatsapp-baileys"
+      },
+      "match_rules": [
+        {
+          "type": "header",
+          "name": "X-Source-Channel",
+          "value": "whatsapp"
+        },
+        {
+          "type": "from",
+          "pattern": "unknown"
+        }
+      ],
+      "is_wildcard": false,
+      "destination": {
+        "url": "firestore://wa_accounts/LKvZfsJMz7IO8dBLuotj",
+        "method": "POST",
+        "headers": {
+          "X-Route-Id": "route-LKvZfsJMz7IO8dBLuotj"
+        }
+      },
+      "bindings": [
+        "bind-LKvZfsJMz7IO8dBLuotj"
+      ],
+      "created_by": "bayine-service",
+      "created_at": "2026-02-25T10:03:05.952Z",
+      "status": "disabled",
+      "stats": {
+        "last_success": "2026-02-25T10:09:34.987Z",
+        "last_failure": null,
+        "successes_count": 0,
+        "failures_count": 0
+      },
+      "recent_logs": [
+        {
+          "timestamp": "2026-02-25T10:09:41.660Z",
+          "event_type": "message.received",
+          "from": "unknown",
+          "to": "system",
+          "route_id": "route-LKvZfsJMz7IO8dBLuotj",
+          "destination_url": "firestore://wa_accounts/LKvZfsJMz7IO8dBLuotj",
+          "response_status": 503,
+          "error_message": "QR Not Scanned",
+          "latency_ms": 15
+        }
+      ]
+    }
+  },
+  "report": {
+    "created": [
+      "Created/Ensured route for MegaParty (ID: C7xKBICjBaeibmkmfYN8)",
+      "Created/Ensured route for SweetParty (ID: C9mLWO3s3nx5ckQBlmUE)",
+      "Created/Ensured route for Animaparty (ID: 7ei5E0SiunhP686M0EVX)",
+      "Created/Ensured route for Superparty (ID: ZHRI9O3O3Lx6yRWzqOWg)",
+      "Created/Ensured route for Epic Parti (ID: vWPV8yMvNyCab1kl5S0U)",
+      "Created/Ensured route for DivertixParty (ID: 7MXiCIPXm1ZGeXxk5X58)"
+    ],
+    "verified": [
+      {
+        "name": "Happyparty",
+        "verdict": "PROBLEMĂ",
+        "issues": [
+          "Lipsă metadata.whatsapp_phone pentru Happyparty. Pas remediere: Scanează codul QR din aplicație pentru a lega sesiunea de telefon."
+        ]
+      },
+      {
+        "name": "Kassia",
+        "verdict": "OK",
+        "issues": []
+      },
+      {
+        "name": "Galaxy Party",
+        "verdict": "OK",
+        "issues": []
+      },
+      {
+        "name": "Wow party",
+        "verdict": "PROBLEMĂ",
+        "issues": [
+          "Route missing for Wow party. Step to fix: Create account in UI or DB."
+        ]
+      },
+      {
+        "name": "PinkyParty",
+        "verdict": "PROBLEMĂ",
+        "issues": [
+          "Lipsă metadata.whatsapp_phone pentru PinkyParty. Pas remediere: Scanează codul QR din aplicație pentru a lega sesiunea de telefon."
+        ]
+      }
+    ],
+    "issues": [
+      "Lipsă metadata.whatsapp_phone pentru Happyparty. Pas remediere: Scanează codul QR din aplicație pentru a lega sesiunea de telefon.",
+      "Route missing for Wow party. Step to fix: Create account in UI or DB.",
+      "Lipsă metadata.whatsapp_phone pentru PinkyParty. Pas remediere: Scanează codul QR din aplicație pentru a lega sesiunea de telefon."
+    ]
+  }
+}

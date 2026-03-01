@@ -1,0 +1,18 @@
+global:
+  resolve_timeout: 5m
+
+route:
+  receiver: remediation-and-slack
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 2h
+
+receivers:
+  - name: "remediation-and-slack"
+    webhook_configs:
+      - url: "https://api.superparty.ro/api/alerts"
+        send_resolved: true
+    slack_configs:
+      - api_url: "<SLACK_WEBHOOK_URL>"
+        channel: "#ops"
+        send_resolved: true

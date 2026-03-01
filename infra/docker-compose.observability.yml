@@ -1,0 +1,52 @@
+version: '3.8'
+
+services:
+  prometheus:
+    image: prom/prometheus:v2.49.1
+    container_name: superparty-prometheus
+    restart: unless-stopped
+    volumes:
+      - ./monitoring/prometheus:/etc/prometheus
+      - prometheus_data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    ports:
+      - "127.0.0.1:9090:9090"
+
+  grafana:
+    image: grafana/grafana:10.3.1
+    container_name: superparty-grafana
+    restart: unless-stopped
+    ports:
+      - "0.0.0.0:3333:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+
+  loki:
+    image: grafana/loki:2.9.4
+    container_name: superparty-loki
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+
+  promtail:
+    image: grafana/promtail:2.9.4
+    container_name: superparty-promtail
+    restart: unless-stopped
+    volumes:
+      - /var/log:/var/log
+      - /opt/superparty/logs:/opt/superparty/logs
+    command: -config.file=/etc/promtail/config.yml
+
+  node-exporter:
+    image: prom/node-exporter:v1.7.0
+    container_name: superparty-node-exporter
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:9100:9100"
+
+volumes:
+  prometheus_data:
+  grafana_data:

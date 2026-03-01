@@ -1,0 +1,50 @@
+# SuperParty Backend — systemd Service Unit
+#
+# INSTALL:
+#   sudo cp superparty-backend.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable superparty-backend
+#   sudo systemctl start superparty-backend
+#
+# LOGS:
+#   sudo journalctl -u superparty-backend -f
+
+[Unit]
+Description=SuperParty Backend (Node.js WhatsApp Integration v6)
+Documentation=https://github.com/your-org/Superparty-App
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=superparty
+Group=superparty
+WorkingDirectory=/opt/superparty/current
+ExecStart=/usr/bin/node whatsapp-integration-v6-index.js
+Restart=always
+RestartSec=5
+
+# Environment
+EnvironmentFile=/opt/superparty/.env
+
+# Security hardening
+NoNewPrivileges=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/superparty
+PrivateTmp=true
+
+# Resource limits
+LimitNOFILE=65535
+LimitNPROC=4096
+
+# Logging
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=superparty-backend
+
+# Watchdog (optional)
+WatchdogSec=60
+
+[Install]
+WantedBy=multi-user.target

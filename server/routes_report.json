@@ -1,0 +1,503 @@
+{
+  "routes": [
+    {
+      "id": "route-3WNp31pw5MEZJa4peUut",
+      "name": "Unnamed",
+      "description": "WhatsApp Connection - needs_qr",
+      "metadata": {
+        "whatsapp_phone": "+40786893938",
+        "phone_id": "3WNp31pw5MEZJa4peUut",
+        "channel_id": "whatsapp-baileys"
+      },
+      "match_rules": [
+        {
+          "type": "from",
+          "pattern": "+40786893938"
+        }
+      ],
+      "is_wildcard": false,
+      "destination": {
+        "url": "firestore://wa_accounts/3WNp31pw5MEZJa4peUut",
+        "method": "POST",
+        "headers": {
+          "X-Route-Id": "route-3WNp31pw5MEZJa4peUut"
+        }
+      },
+      "bindings": [
+        "bind-3WNp31pw5MEZJa4peUut"
+      ],
+      "created_by": "antigravity-system",
+      "created_at": "2026-02-25T10:07:00.178Z",
+      "status": "disabled",
+      "stats": {
+        "last_success": "2026-02-25T10:06:51.428Z",
+        "last_failure": null,
+        "successes_count": 0,
+        "failures_count": 0
+      }
+    },
+    {
+      "id": "route-7MXiCIPXm1ZGeXxk5X58",
+      "name": "DivertixParty",
+      "description": "WhatsApp Connection - needs_qr",
+      "metadata": {
+        "whatsapp_phone": "unknown",
+        "phone_id": "7MXiCIPXm1ZGeXxk5X58",
+        "channel_id": "whatsapp-baileys"
+      },
+      "match_rules": [
+        {
+          "type": "from",
+          "pattern": "unknown"
+        }
+      ],
+      "is_wildcard": false,
+      "destination": {
+        "url": "firestore://wa_accounts/7MXiCIPXm1ZGeXxk5X58",
+        "method": "POST",
+        "headers": {
+          "X-Route-Id": "route-7MXiCIPXm1ZGeXxk5X58"
+        }
+      },
+      "bindings": [
+        "bind-7MXiCIPXm1ZGeXxk5X58"
+      ],
+      "created_by": "antigravity-system",
+      "created_at": "2026-02-25T10:03:05.776Z",
+      "status": "disabled",
+      "stats": {
+        "last_success": "2026-02-25T10:06:51.569Z",
+        "last_failure": null,
+        "successes_count": 0,
+        "failures_count": 0
+      }
+    },
+    {
+      "id": "route-LKvZfsJMz7IO8dBLuotj",
+      "name": "PinkyParty",
+      "description": "WhatsApp Connection - needs_qr",
+      "metadata": {
+        "whatsapp_phone": "unknown",
+        "phone_id": "LKvZfsJMz7IO8dBLuotj",
+        "channel_id": "whatsapp-baileys"
+      },
+      "match_rules": [
+        {
+          "type": "from",
+          "pattern": "unknown"
+        }
+      ],
+      "is_wildcard": false,
+      "destination": {
+        "url": "firestore://wa_accounts/LKvZfsJMz7IO8dBLuotj",
+        "method": "POST",
+        "headers": {
+          "X-Route-Id": "route-LKvZfsJMz7IO8dBLuotj"
+        }
+      },
+      "bindings": [
+        "bind-LKvZfsJMz7IO8dBLuotj"
+      ],
+      "created_by": "antigravity-system",
+      "created_at": "2026-02-25T10:03:05.952Z",
+      "status": "disabled",
+      "stats": {
+        "last_success": "2026-02-25T10:06:51.218Z",
+        "last_failure": null,
+        "successes_count": 0,
+        "failures_count": 0
+      }
+    },
+    {
+      "id": "route-XANaSkgQzW5Z1VfmIvCs",
+      "name": "HappyParty",
+      "description": "WhatsApp Connection - needs_qr",
+      "metadata": {
+        "whatsapp_phone": "unknown",
+        "phone_id": "XANaSkgQzW5Z1VfmIvCs",
+        "channel_id": "whatsapp-baileys"
+      },
+      "match_rules": [
+        {
+          "type": "from",
+          "pattern": "unknown"
+        }
+      ],
+      "is_wildcard": false,
+      "destination": {
+        "url": "firestore://wa_accounts/XANaSkgQzW5Z1VfmIvCs",
+        "method": "POST",
+        "headers": {
+          "X-Route-Id": "route-XANaSkgQzW5Z1VfmIvCs"
+        }
+      },
+      "bindings": [
+        "bind-XANaSkgQzW5Z1VfmIvCs"
+      ],
+      "created_by": "antigravity-system",
+      "created_at": "2026-02-25T10:03:05.873Z",
+      "status": "disabled",
+      "stats": {
+        "last_success": "2026-02-25T10:06:51.650Z",
+        "last_failure": null,
+        "successes_count": 0,
+        "failures_count": 0
+      }
+    },
+    {
+      "id": "route-ZHRI9O3O3Lx6yRWzqOWg",
+      "name": "SuperParty",
+      "description": "WhatsApp Connection - connected",
+      "metadata": {
+        "whatsapp_phone": "+40722744377",
+        "phone_id": "ZHRI9O3O3Lx6yRWzqOWg",
+        "channel_id": "whatsapp-baileys"
+      },
+      "match_rules": [
+        {
+          "type": "from",
+          "pattern": "+40722744377"
+        }
+      ],
+      "is_wildcard": false,
+      "destination": {
+        "url": "firestore://wa_accounts/ZHRI9O3O3Lx6yRWzqOWg",
+        "method": "POST",
+        "headers": {
+          "X-Route-Id": "route-ZHRI9O3O3Lx6yRWzqOWg"
+        }
+      },
+      "bindings": [
+        "bind-ZHRI9O3O3Lx6yRWzqOWg"
+      ],
+      "created_by": "antigravity-system",
+      "created_at": "2026-02-25T01:35:05.810Z",
+      "status": "active",
+      "stats": {
+        "last_success": "2026-02-25T10:04:51.859Z",
+        "last_failure": null,
+        "successes_count": 0,
+        "failures_count": 0
+      }
+    },
+    {
+      "id": "route-Ztj2SRhRWAflLQh7iVi5",
+      "name": "Kassy",
+      "description": "WhatsApp Connection - connected",
+      "metadata": {
+        "whatsapp_phone": "+40763795919",
+        "phone_id": "Ztj2SRhRWAflLQh7iVi5",
+        "channel_id": "whatsapp-baileys"
+      },
+      "match_rules": [
+        {
+          "type": "from",
+          "pattern": "+40763795919"
+        }
+      ],
+      "is_wildcard": false,
+      "destination": {
+        "url": "firestore://wa_accounts/Ztj2SRhRWAflLQh7iVi5",
+        "method": "POST",
+        "headers": {
+          "X-Route-Id": "route-Ztj2SRhRWAflLQh7iVi5"
+        }
+      },
+      "bindings": [
+        "bind-Ztj2SRhRWAflLQh7iVi5"
+      ],
+      "created_by": "antigravity-system",
+      "created_at": "2026-02-17T00:04:44.178Z",
+      "status": "active",
+      "stats": {
+        "last_success": "2026-02-25T10:04:52.039Z",
+        "last_failure": null,
+        "successes_count": 0,
+        "failures_count": 0
+      }
+    },
+    {
+      "id": "route-hQtWagPAA490T7FD3vdb",
+      "name": "Galaxy Party",
+      "description": "WhatsApp Connection - connected",
+      "metadata": {
+        "whatsapp_phone": "+40773879706",
+        "phone_id": "hQtWagPAA490T7FD3vdb",
+        "channel_id": "whatsapp-baileys"
+      },
+      "match_rules": [
+        {
+          "type": "from",
+          "pattern": "+40773879706"
+        }
+      ],
+      "is_wildcard": false,
+      "destination": {
+        "url": "firestore://wa_accounts/hQtWagPAA490T7FD3vdb",
+        "method": "POST",
+        "headers": {
+          "X-Route-Id": "route-hQtWagPAA490T7FD3vdb"
+        }
+      },
+      "bindings": [
+        "bind-hQtWagPAA490T7FD3vdb"
+      ],
+      "created_by": "antigravity-system",
+      "created_at": "2026-02-18T02:56:20.554Z",
+      "status": "active",
+      "stats": {
+        "last_success": "2026-02-25T10:04:51.756Z",
+        "last_failure": null,
+        "successes_count": 0,
+        "failures_count": 0
+      }
+    },
+    {
+      "id": "route-kDh1wgFCwwLI8TDpHc0K",
+      "name": "Unnamed",
+      "description": "WhatsApp Connection - needs_qr",
+      "metadata": {
+        "whatsapp_phone": "unknown",
+        "phone_id": "kDh1wgFCwwLI8TDpHc0K",
+        "channel_id": "whatsapp-baileys"
+      },
+      "match_rules": [
+        {
+          "type": "from",
+          "pattern": "unknown"
+        }
+      ],
+      "is_wildcard": false,
+      "destination": {
+        "url": "firestore://wa_accounts/kDh1wgFCwwLI8TDpHc0K",
+        "method": "POST",
+        "headers": {
+          "X-Route-Id": "route-kDh1wgFCwwLI8TDpHc0K"
+        }
+      },
+      "bindings": [
+        "bind-kDh1wgFCwwLI8TDpHc0K"
+      ],
+      "created_by": "antigravity-system",
+      "created_at": "2026-02-25T10:07:00.178Z",
+      "status": "disabled",
+      "stats": {
+        "last_success": "2026-02-25T10:06:51.250Z",
+        "last_failure": null,
+        "successes_count": 0,
+        "failures_count": 0
+      }
+    },
+    {
+      "id": "route-lxOxeo2QvKAteUKiyJJQ",
+      "name": "Unnamed",
+      "description": "WhatsApp Connection - needs_qr",
+      "metadata": {
+        "whatsapp_phone": "+40734032795",
+        "phone_id": "lxOxeo2QvKAteUKiyJJQ",
+        "channel_id": "whatsapp-baileys"
+      },
+      "match_rules": [
+        {
+          "type": "from",
+          "pattern": "+40734032795"
+        }
+      ],
+      "is_wildcard": false,
+      "destination": {
+        "url": "firestore://wa_accounts/lxOxeo2QvKAteUKiyJJQ",
+        "method": "POST",
+        "headers": {
+          "X-Route-Id": "route-lxOxeo2QvKAteUKiyJJQ"
+        }
+      },
+      "bindings": [
+        "bind-lxOxeo2QvKAteUKiyJJQ"
+      ],
+      "created_by": "antigravity-system",
+      "created_at": "2026-02-25T10:07:00.178Z",
+      "status": "disabled",
+      "stats": {
+        "last_success": "2026-02-25T10:06:51.229Z",
+        "last_failure": null,
+        "successes_count": 0,
+        "failures_count": 0
+      }
+    }
+  ],
+  "route_logs": {
+    "route-3WNp31pw5MEZJa4peUut": [
+      {
+        "timestamp": "2026-02-25T10:07:00.178Z",
+        "event_type": "system.status_check",
+        "from": "system",
+        "to": "+40786893938",
+        "route_id": "route-3WNp31pw5MEZJa4peUut",
+        "destination_url": "firestore://wa_accounts/3WNp31pw5MEZJa4peUut",
+        "response_status": 503,
+        "error_message": "Status is needs_qr",
+        "latency_ms": 10
+      }
+    ],
+    "route-7MXiCIPXm1ZGeXxk5X58": [
+      {
+        "timestamp": "2026-02-25T10:07:00.178Z",
+        "event_type": "system.status_check",
+        "from": "system",
+        "to": "unknown",
+        "route_id": "route-7MXiCIPXm1ZGeXxk5X58",
+        "destination_url": "firestore://wa_accounts/7MXiCIPXm1ZGeXxk5X58",
+        "response_status": 503,
+        "error_message": "Status is needs_qr",
+        "latency_ms": 10
+      }
+    ],
+    "route-LKvZfsJMz7IO8dBLuotj": [
+      {
+        "timestamp": "2026-02-25T10:07:00.178Z",
+        "event_type": "system.status_check",
+        "from": "system",
+        "to": "unknown",
+        "route_id": "route-LKvZfsJMz7IO8dBLuotj",
+        "destination_url": "firestore://wa_accounts/LKvZfsJMz7IO8dBLuotj",
+        "response_status": 503,
+        "error_message": "Status is needs_qr",
+        "latency_ms": 10
+      }
+    ],
+    "route-XANaSkgQzW5Z1VfmIvCs": [
+      {
+        "timestamp": "2026-02-25T10:07:00.178Z",
+        "event_type": "system.status_check",
+        "from": "system",
+        "to": "unknown",
+        "route_id": "route-XANaSkgQzW5Z1VfmIvCs",
+        "destination_url": "firestore://wa_accounts/XANaSkgQzW5Z1VfmIvCs",
+        "response_status": 503,
+        "error_message": "Status is needs_qr",
+        "latency_ms": 10
+      }
+    ],
+    "route-ZHRI9O3O3Lx6yRWzqOWg": [
+      {
+        "timestamp": "2026-02-25T10:07:00.178Z",
+        "event_type": "system.status_check",
+        "from": "system",
+        "to": "+40722744377",
+        "route_id": "route-ZHRI9O3O3Lx6yRWzqOWg",
+        "destination_url": "firestore://wa_accounts/ZHRI9O3O3Lx6yRWzqOWg",
+        "response_status": 200,
+        "error_message": null,
+        "latency_ms": 10
+      }
+    ],
+    "route-Ztj2SRhRWAflLQh7iVi5": [
+      {
+        "timestamp": "2026-02-25T10:07:00.178Z",
+        "event_type": "system.status_check",
+        "from": "system",
+        "to": "+40763795919",
+        "route_id": "route-Ztj2SRhRWAflLQh7iVi5",
+        "destination_url": "firestore://wa_accounts/Ztj2SRhRWAflLQh7iVi5",
+        "response_status": 200,
+        "error_message": null,
+        "latency_ms": 10
+      }
+    ],
+    "route-hQtWagPAA490T7FD3vdb": [
+      {
+        "timestamp": "2026-02-25T10:07:00.178Z",
+        "event_type": "system.status_check",
+        "from": "system",
+        "to": "+40773879706",
+        "route_id": "route-hQtWagPAA490T7FD3vdb",
+        "destination_url": "firestore://wa_accounts/hQtWagPAA490T7FD3vdb",
+        "response_status": 200,
+        "error_message": null,
+        "latency_ms": 10
+      }
+    ],
+    "route-kDh1wgFCwwLI8TDpHc0K": [
+      {
+        "timestamp": "2026-02-25T10:07:00.178Z",
+        "event_type": "system.status_check",
+        "from": "system",
+        "to": "unknown",
+        "route_id": "route-kDh1wgFCwwLI8TDpHc0K",
+        "destination_url": "firestore://wa_accounts/kDh1wgFCwwLI8TDpHc0K",
+        "response_status": 503,
+        "error_message": "Status is needs_qr",
+        "latency_ms": 10
+      }
+    ],
+    "route-lxOxeo2QvKAteUKiyJJQ": [
+      {
+        "timestamp": "2026-02-25T10:07:00.178Z",
+        "event_type": "system.status_check",
+        "from": "system",
+        "to": "+40734032795",
+        "route_id": "route-lxOxeo2QvKAteUKiyJJQ",
+        "destination_url": "firestore://wa_accounts/lxOxeo2QvKAteUKiyJJQ",
+        "response_status": 503,
+        "error_message": "Status is needs_qr",
+        "latency_ms": 10
+      }
+    ]
+  },
+  "bindings": [
+    {
+      "binding_id": "bind-3WNp31pw5MEZJa4peUut",
+      "whatsapp_phone": "+40786893938",
+      "route_id": "route-3WNp31pw5MEZJa4peUut",
+      "created_at": "2026-02-25T10:07:00.178Z"
+    },
+    {
+      "binding_id": "bind-7MXiCIPXm1ZGeXxk5X58",
+      "whatsapp_phone": "unknown",
+      "route_id": "route-7MXiCIPXm1ZGeXxk5X58",
+      "created_at": "2026-02-25T10:03:05.776Z"
+    },
+    {
+      "binding_id": "bind-LKvZfsJMz7IO8dBLuotj",
+      "whatsapp_phone": "unknown",
+      "route_id": "route-LKvZfsJMz7IO8dBLuotj",
+      "created_at": "2026-02-25T10:03:05.952Z"
+    },
+    {
+      "binding_id": "bind-XANaSkgQzW5Z1VfmIvCs",
+      "whatsapp_phone": "unknown",
+      "route_id": "route-XANaSkgQzW5Z1VfmIvCs",
+      "created_at": "2026-02-25T10:03:05.873Z"
+    },
+    {
+      "binding_id": "bind-ZHRI9O3O3Lx6yRWzqOWg",
+      "whatsapp_phone": "+40722744377",
+      "route_id": "route-ZHRI9O3O3Lx6yRWzqOWg",
+      "created_at": "2026-02-25T01:35:05.810Z"
+    },
+    {
+      "binding_id": "bind-Ztj2SRhRWAflLQh7iVi5",
+      "whatsapp_phone": "+40763795919",
+      "route_id": "route-Ztj2SRhRWAflLQh7iVi5",
+      "created_at": "2026-02-17T00:04:44.178Z"
+    },
+    {
+      "binding_id": "bind-hQtWagPAA490T7FD3vdb",
+      "whatsapp_phone": "+40773879706",
+      "route_id": "route-hQtWagPAA490T7FD3vdb",
+      "created_at": "2026-02-18T02:56:20.554Z"
+    },
+    {
+      "binding_id": "bind-kDh1wgFCwwLI8TDpHc0K",
+      "whatsapp_phone": "unknown",
+      "route_id": "route-kDh1wgFCwwLI8TDpHc0K",
+      "created_at": "2026-02-25T10:07:00.178Z"
+    },
+    {
+      "binding_id": "bind-lxOxeo2QvKAteUKiyJJQ",
+      "whatsapp_phone": "+40734032795",
+      "route_id": "route-lxOxeo2QvKAteUKiyJJQ",
+      "created_at": "2026-02-25T10:07:00.178Z"
+    }
+  ]
+}

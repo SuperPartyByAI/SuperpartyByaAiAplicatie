@@ -1,0 +1,20 @@
+{
+  "requested_at": "2026-02-25T11:50:36.704Z",
+  "options": {
+    "_": [],
+    "pm2": true,
+    "lines": 20000,
+    "from": "2026-02-24T11:50:36Z",
+    "to": "2026-02-25T11:50:36Z",
+    "out": "./replay_report_dryrun.json",
+    "dry_run": true,
+    "$0": "admin/replay_baileys_to_firestore.js"
+  },
+  "total": 0,
+  "inserted": [],
+  "exists": [],
+  "failed": [],
+  "parse_errors": [],
+  "antigravity_replayed": [],
+  "antigravity_errors": []
+}

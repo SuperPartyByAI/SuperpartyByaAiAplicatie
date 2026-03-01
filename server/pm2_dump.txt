@@ -1,0 +1,2000 @@
+[SessionManager] Ztj2SRhRWAflLQh7iVi5 NEEDS QR
+[SessionManager] hQtWagPAA490T7FD3vdb CLOSED. Reason: 408
+[SessionManager] hQtWagPAA490T7FD3vdb Reconnecting...
+[SessionManager] Ztj2SRhRWAflLQh7iVi5 CLOSED. Reason: 408
+[SessionManager] Ztj2SRhRWAflLQh7iVi5 Reconnecting...
+[SessionManager] Starting hQtWagPAA490T7FD3vdb (Galaxy Party) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting Ztj2SRhRWAflLQh7iVi5 (Kassy) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] hQtWagPAA490T7FD3vdb NEEDS QR
+[SessionManager] Ztj2SRhRWAflLQh7iVi5 NEEDS QR
+[SessionManager] hQtWagPAA490T7FD3vdb NEEDS QR
+[SessionManager] Ztj2SRhRWAflLQh7iVi5 NEEDS QR
+[SessionManager] hQtWagPAA490T7FD3vdb NEEDS QR
+[SessionManager] Ztj2SRhRWAflLQh7iVi5 NEEDS QR
+[SessionManager] hQtWagPAA490T7FD3vdb NEEDS QR
+[SessionManager] Ztj2SRhRWAflLQh7iVi5 NEEDS QR
+[SessionManager] hQtWagPAA490T7FD3vdb NEEDS QR
+[SessionManager] Ztj2SRhRWAflLQh7iVi5 NEEDS QR
+[SessionManager] hQtWagPAA490T7FD3vdb NEEDS QR
+[SessionManager] Ztj2SRhRWAflLQh7iVi5 NEEDS QR
+[SessionManager] hQtWagPAA490T7FD3vdb CLOSED. Reason: 408
+[SessionManager] hQtWagPAA490T7FD3vdb Reconnecting...
+[SessionManager] Ztj2SRhRWAflLQh7iVi5 CLOSED. Reason: 408
+[SessionManager] Ztj2SRhRWAflLQh7iVi5 Reconnecting...
+[SessionManager] Starting hQtWagPAA490T7FD3vdb (Galaxy Party) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting Ztj2SRhRWAflLQh7iVi5 (Kassy) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] hQtWagPAA490T7FD3vdb NEEDS QR
+[SessionManager] Ztj2SRhRWAflLQh7iVi5 NEEDS QR
+[SessionManager] hQtWagPAA490T7FD3vdb NEEDS QR
+[SessionManager] Ztj2SRhRWAflLQh7iVi5 NEEDS QR
+[SessionManager] hQtWagPAA490T7FD3vdb NEEDS QR
+[SessionManager] Ztj2SRhRWAflLQh7iVi5 NEEDS QR
+[SessionManager] hQtWagPAA490T7FD3vdb NEEDS QR
+[SessionManager] Ztj2SRhRWAflLQh7iVi5 NEEDS QR
+[SessionManager] hQtWagPAA490T7FD3vdb NEEDS QR
+[SessionManager] Ztj2SRhRWAflLQh7iVi5 NEEDS QR
+[SessionManager] hQtWagPAA490T7FD3vdb NEEDS QR
+[SessionManager] Ztj2SRhRWAflLQh7iVi5 NEEDS QR
+[SessionManager] hQtWagPAA490T7FD3vdb CLOSED. Reason: 408
+[SessionManager] hQtWagPAA490T7FD3vdb Reconnecting...
+[SessionManager] Ztj2SRhRWAflLQh7iVi5 CLOSED. Reason: 408
+[SessionManager] Ztj2SRhRWAflLQh7iVi5 Reconnecting...
+[SessionManager] Starting hQtWagPAA490T7FD3vdb (Galaxy Party) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting Ztj2SRhRWAflLQh7iVi5 (Kassy) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Ztj2SRhRWAflLQh7iVi5 NEEDS QR
+[SessionManager] hQtWagPAA490T7FD3vdb NEEDS QR
+[SessionManager] Ztj2SRhRWAflLQh7iVi5 NEEDS QR
+[SessionManager] hQtWagPAA490T7FD3vdb NEEDS QR
+[SessionManager] Ztj2SRhRWAflLQh7iVi5 NEEDS QR
+[SessionManager] hQtWagPAA490T7FD3vdb NEEDS QR
+[SessionManager] Ztj2SRhRWAflLQh7iVi5 NEEDS QR
+[SessionManager] hQtWagPAA490T7FD3vdb NEEDS QR
+{"level":50,"time":1771982985370,"pid":101451,"hostname":"Whats","fullErrorNode":{"tag":"stream:error","attrs":{"code":"515"}},"msg":"stream errored out"}
+[SessionManager] hQtWagPAA490T7FD3vdb CLOSED. Reason: 515
+[SessionManager] hQtWagPAA490T7FD3vdb Reconnecting...
+[SessionManager] Starting hQtWagPAA490T7FD3vdb (Galaxy Party) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] hQtWagPAA490T7FD3vdb CONNECTED
+[SessionManager] Ztj2SRhRWAflLQh7iVi5 NEEDS QR
+[SessionManager] Ztj2SRhRWAflLQh7iVi5 NEEDS QR
+{"level":50,"time":1771983025699,"pid":101451,"hostname":"Whats","fullErrorNode":{"tag":"stream:error","attrs":{"code":"515"}},"msg":"stream errored out"}
+[SessionManager] Ztj2SRhRWAflLQh7iVi5 CLOSED. Reason: 515
+[SessionManager] Ztj2SRhRWAflLQh7iVi5 Reconnecting...
+[SessionManager] Starting Ztj2SRhRWAflLQh7iVi5 (Kassy) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Ztj2SRhRWAflLQh7iVi5 CONNECTED
+{"level":40,"time":1771983030586,"pid":101451,"hostname":"Whats","msg":"no name present, ignoring presence update request..."}
+[HTTP] GET /status
+[SessionManager] New account detected: ZHRI9O3O3Lx6yRWzqOWg
+[SessionManager] Starting ZHRI9O3O3Lx6yRWzqOWg (SuperParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] ZHRI9O3O3Lx6yRWzqOWg NEEDS QR
+[HTTP] GET /status
+[SessionManager] ZHRI9O3O3Lx6yRWzqOWg NEEDS QR
+[SessionManager] ZHRI9O3O3Lx6yRWzqOWg NEEDS QR
+[SessionManager] ZHRI9O3O3Lx6yRWzqOWg NEEDS QR
+[SessionManager] ZHRI9O3O3Lx6yRWzqOWg NEEDS QR
+[HTTP] POST /
+[SessionManager] ZHRI9O3O3Lx6yRWzqOWg NEEDS QR
+[SessionManager] New account detected: lxOxeo2QvKAteUKiyJJQ
+[SessionManager] Starting lxOxeo2QvKAteUKiyJJQ (HappyParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] lxOxeo2QvKAteUKiyJJQ NEEDS QR
+[HTTP] GET /status
+[SessionManager] ZHRI9O3O3Lx6yRWzqOWg CLOSED. Reason: 408
+[SessionManager] ZHRI9O3O3Lx6yRWzqOWg Reconnecting...
+[SessionManager] Starting ZHRI9O3O3Lx6yRWzqOWg (SuperParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] ZHRI9O3O3Lx6yRWzqOWg NEEDS QR
+[SessionManager] lxOxeo2QvKAteUKiyJJQ NEEDS QR
+{"level":50,"time":1771983525615,"pid":101451,"hostname":"Whats","fullErrorNode":{"tag":"stream:error","attrs":{"code":"515"}},"msg":"stream errored out"}
+[SessionManager] lxOxeo2QvKAteUKiyJJQ CLOSED. Reason: 515
+[SessionManager] lxOxeo2QvKAteUKiyJJQ Reconnecting...
+[SessionManager] Starting lxOxeo2QvKAteUKiyJJQ (HappyParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] ZHRI9O3O3Lx6yRWzqOWg NEEDS QR
+[SessionManager] lxOxeo2QvKAteUKiyJJQ CONNECTED
+[SessionManager] ZHRI9O3O3Lx6yRWzqOWg NEEDS QR
+[HTTP] GET /api/employees/me
+GET /employees/me darrelmorrison.04736@gmail.com
+[HTTP] GET /api/user/me
+[HTTP] GET /api/employees/me
+GET /employees/me darrelmorrison.04736@gmail.com
+[HTTP] GET /status
+[SessionManager] ZHRI9O3O3Lx6yRWzqOWg NEEDS QR
+[SessionManager] ZHRI9O3O3Lx6yRWzqOWg NEEDS QR
+[SessionManager] ZHRI9O3O3Lx6yRWzqOWg NEEDS QR
+[SessionManager] ZHRI9O3O3Lx6yRWzqOWg CLOSED. Reason: 408
+[SessionManager] ZHRI9O3O3Lx6yRWzqOWg Reconnecting...
+[SessionManager] Starting ZHRI9O3O3Lx6yRWzqOWg (SuperParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] ZHRI9O3O3Lx6yRWzqOWg NEEDS QR
+[SessionManager] ZHRI9O3O3Lx6yRWzqOWg NEEDS QR
+[HTTP] GET /api/employees/me
+GET /employees/me jeffreeves.77178@gmail.com
+[HTTP] GET /api/user/me
+[HTTP] GET /api/employees/me
+GET /employees/me null
+[SessionManager] ZHRI9O3O3Lx6yRWzqOWg NEEDS QR
+[SessionManager] ZHRI9O3O3Lx6yRWzqOWg NEEDS QR
+[SessionManager] ZHRI9O3O3Lx6yRWzqOWg NEEDS QR
+[SessionManager] ZHRI9O3O3Lx6yRWzqOWg NEEDS QR
+SIGINT received. Saving store...
+🔥 Firestore Initialized (from local file) ./firebase-service-account.json
+[SessionManager] Initializing...
+API Server running on port 3001
+[SessionManager] New account detected: ZHRI9O3O3Lx6yRWzqOWg
+[SessionManager] New account detected: Ztj2SRhRWAflLQh7iVi5
+[SessionManager] New account detected: hQtWagPAA490T7FD3vdb
+[SessionManager] New account detected: lxOxeo2QvKAteUKiyJJQ
+[SessionManager] Starting ZHRI9O3O3Lx6yRWzqOWg (SuperParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting Ztj2SRhRWAflLQh7iVi5 (Kassy) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting hQtWagPAA490T7FD3vdb (Galaxy Party) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting lxOxeo2QvKAteUKiyJJQ (HappyParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] ZHRI9O3O3Lx6yRWzqOWg NEEDS QR
+[SessionManager] Ztj2SRhRWAflLQh7iVi5 CONNECTED
+[SessionManager] lxOxeo2QvKAteUKiyJJQ CONNECTED
+[SessionManager] hQtWagPAA490T7FD3vdb CONNECTED
+{"level":40,"time":1771983804428,"pid":104369,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1771983804561,"pid":104369,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1771983804648,"pid":104369,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+[SessionManager] ZHRI9O3O3Lx6yRWzqOWg NEEDS QR
+{"level":50,"time":1771983850651,"pid":104369,"hostname":"Whats","fullErrorNode":{"tag":"stream:error","attrs":{"code":"515"}},"msg":"stream errored out"}
+[SessionManager] ZHRI9O3O3Lx6yRWzqOWg CLOSED. Reason: 515
+[SessionManager] ZHRI9O3O3Lx6yRWzqOWg Reconnecting...
+[SessionManager] Starting ZHRI9O3O3Lx6yRWzqOWg (SuperParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] ZHRI9O3O3Lx6yRWzqOWg CONNECTED
+{"level":40,"time":1771983855653,"pid":104369,"hostname":"Whats","msg":"no name present, ignoring presence update request..."}
+SIGINT received. Saving store...
+🔥 Firestore Initialized (from local file) ./firebase-service-account.json
+[SessionManager] Initializing...
+API Server running on port 3001
+[SessionManager] New account detected: ZHRI9O3O3Lx6yRWzqOWg
+[SessionManager] New account detected: Ztj2SRhRWAflLQh7iVi5
+[SessionManager] New account detected: hQtWagPAA490T7FD3vdb
+[SessionManager] New account detected: lxOxeo2QvKAteUKiyJJQ
+[SessionManager] Starting hQtWagPAA490T7FD3vdb (Galaxy Party) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting Ztj2SRhRWAflLQh7iVi5 (Kassy) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting ZHRI9O3O3Lx6yRWzqOWg (SuperParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting lxOxeo2QvKAteUKiyJJQ (HappyParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] hQtWagPAA490T7FD3vdb CONNECTED
+[SessionManager] ZHRI9O3O3Lx6yRWzqOWg CONNECTED
+[SessionManager] Ztj2SRhRWAflLQh7iVi5 CONNECTED
+[SessionManager] lxOxeo2QvKAteUKiyJJQ CONNECTED
+[HTTP] GET /status
+{"level":40,"time":1771983985269,"pid":104808,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1771983985361,"pid":104808,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1771983985728,"pid":104808,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1771983986100,"pid":104808,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":50,"time":1771985615464,"pid":104808,"hostname":"Whats","reasonNode":{"tag":"conflict","attrs":{"type":"device_removed"}},"fullErrorNode":{"tag":"stream:error","attrs":{"code":"401"},"content":[{"tag":"conflict","attrs":{"type":"device_removed"}}]},"msg":"stream errored out"}
+[SessionManager] lxOxeo2QvKAteUKiyJJQ CLOSED. Reason: 401
+[SessionManager] lxOxeo2QvKAteUKiyJJQ LOGGED OUT. Stopping.
+[SessionManager] Stopping session lxOxeo2QvKAteUKiyJJQ
+[syncMessageToFirestore] Syncing message: AC50147833F4A371871FA4B3DB17696A to convo: 120363294491898146@g.us
+[syncMessageToFirestore] Syncing message: AC50147833F4A371871FA4B3DB17696A to convo: 120363294491898146@g.us
+[HTTP] POST /
+[HTTP] GET /api/employees/me
+GET /employees/me hila.bianca.hb@gmail.com
+[HTTP] GET /api/user/me
+[HTTP] POST /api/voice/registerDevice
+[Twilio VoIP] Registered device d11f91f8-9ec3-4617-b783-6a6905460749 for user B0vPUC71fxd21dVWUEdvkGhlzRf1 with identity: user_B0vPUC71fxd21dVWUEdvkGhlzRf1_dev_d11f91f8-9ec3-4617-b783-6a6905460749
+[HTTP] GET /api/voice/getVoipToken?userId=B0vPUC71fxd21dVWUEdvkGhlzRf1&deviceId=d11f91f8-9ec3-4617-b783-6a6905460749
+[HTTP] GET /api/voice/calls?limit=50
+[HTTP] GET /media/ACBF1964A1EE5C25F78DE81DDA745816.jpeg
+[HTTP] GET /media/AC0AC97D4511AF887BECA42E0DA090D1.jpeg
+[HTTP] GET /media/AC3B09802C85FB42BFAD5070E89AD74E.jpeg
+[SessionManager] ZHRI9O3O3Lx6yRWzqOWg CLOSED. Reason: 428
+[SessionManager] ZHRI9O3O3Lx6yRWzqOWg Reconnecting...
+[SessionManager] Starting ZHRI9O3O3Lx6yRWzqOWg (SuperParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] ZHRI9O3O3Lx6yRWzqOWg CONNECTED
+{"level":40,"time":1771999160494,"pid":104808,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+[HTTP] POST /
+[HTTP] GET /api/employees/me
+GET /employees/me raresmcwingg@gmail.com
+[HTTP] GET /api/user/me
+[HTTP] POST /api/voice/registerDevice
+[Twilio VoIP] Registered device f39c1abe-8821-4525-83d6-f0ef436ad64b for user PXIoWuEi68V7yIRsEujvvbKOFzG3 with identity: user_PXIoWuEi68V7yIRsEujvvbKOFzG3_dev_f39c1abe-8821-4525-83d6-f0ef436ad64b
+[HTTP] GET /api/voice/getVoipToken?userId=PXIoWuEi68V7yIRsEujvvbKOFzG3&deviceId=f39c1abe-8821-4525-83d6-f0ef436ad64b
+[HTTP] GET /api/voice/calls?limit=50
+[HTTP] POST /
+[SessionManager] hQtWagPAA490T7FD3vdb CLOSED. Reason: 428
+[SessionManager] hQtWagPAA490T7FD3vdb Reconnecting...
+[SessionManager] Starting hQtWagPAA490T7FD3vdb (Galaxy Party) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] hQtWagPAA490T7FD3vdb CONNECTED
+{"level":40,"time":1772012772746,"pid":104808,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+[SessionManager] New account detected: ZGI5yVU2WHGzgAdUnWP2
+[SessionManager] Starting ZGI5yVU2WHGzgAdUnWP2 (DivertixParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] ZGI5yVU2WHGzgAdUnWP2 NEEDS QR
+[HTTP] GET /status
+[SessionManager] ZGI5yVU2WHGzgAdUnWP2 NEEDS QR
+[SessionManager] ZGI5yVU2WHGzgAdUnWP2 NEEDS QR
+{"level":50,"time":1772013286391,"pid":104808,"hostname":"Whats","fullErrorNode":{"tag":"stream:error","attrs":{"code":"515"}},"msg":"stream errored out"}
+[SessionManager] ZGI5yVU2WHGzgAdUnWP2 CLOSED. Reason: 515
+[SessionManager] ZGI5yVU2WHGzgAdUnWP2 Reconnecting...
+[SessionManager] Starting ZGI5yVU2WHGzgAdUnWP2 (DivertixParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] ZGI5yVU2WHGzgAdUnWP2 CONNECTED
+{"level":40,"time":1772013291350,"pid":104808,"hostname":"Whats","msg":"no name present, ignoring presence update request..."}
+[syncMessageToFirestore] Syncing message: AC4EDAD3CA412772E633476B3A2E3BEF to convo: 40786893938@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: ACDF8C2ED1AB188CFB50466159754D5D to convo: 40786893938@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: ACFCA5156245999E09C7FEADF7C40A30 to convo: 40786893938@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: AC3A2A54C854777CAE8962B66D73F67E to convo: 40786893938@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: AC135810AFE96842E8D2D6601CD41610 to convo: 40786893938@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: ACF18D7003245F4E5FD3BBF989FCBE63 to convo: 40786893938@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: ACE747ED424C2D642831AC24D4C9D68A to convo: 40786893938@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: ACF5CD942455124348FB3557CFB32143 to convo: 40786893938@s.whatsapp.net
+[SessionManager] New account detected: kDh1wgFCwwLI8TDpHc0K
+[SessionManager] Starting kDh1wgFCwwLI8TDpHc0K (PinkyParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] kDh1wgFCwwLI8TDpHc0K NEEDS QR
+[HTTP] GET /status
+{"level":40,"time":1772013346254,"pid":104808,"hostname":"Whats","msgId":"60834.22299-6","msg":"timed out waiting for message"}
+{"level":50,"time":1772013348283,"pid":104808,"hostname":"Whats","reasonNode":{"tag":"conflict","attrs":{"type":"device_removed"}},"fullErrorNode":{"tag":"stream:error","attrs":{"code":"401"},"content":[{"tag":"conflict","attrs":{"type":"device_removed"}}]},"msg":"stream errored out"}
+[SessionManager] ZGI5yVU2WHGzgAdUnWP2 CLOSED. Reason: 401
+[SessionManager] ZGI5yVU2WHGzgAdUnWP2 LOGGED OUT. Stopping.
+[SessionManager] Stopping session ZGI5yVU2WHGzgAdUnWP2
+[HTTP] GET /status
+[SessionManager] kDh1wgFCwwLI8TDpHc0K NEEDS QR
+[SessionManager] kDh1wgFCwwLI8TDpHc0K NEEDS QR
+[SessionManager] kDh1wgFCwwLI8TDpHc0K NEEDS QR
+[SessionManager] kDh1wgFCwwLI8TDpHc0K NEEDS QR
+SIGINT received. Saving store...
+🔥 Firestore Initialized (from local file) ./firebase-service-account.json
+[SessionManager] Initializing...
+API Server running on port 3001
+[SessionManager] New account detected: ZGI5yVU2WHGzgAdUnWP2
+[SessionManager] New account detected: ZHRI9O3O3Lx6yRWzqOWg
+[SessionManager] New account detected: Ztj2SRhRWAflLQh7iVi5
+[SessionManager] New account detected: hQtWagPAA490T7FD3vdb
+[SessionManager] New account detected: kDh1wgFCwwLI8TDpHc0K
+[SessionManager] New account detected: lxOxeo2QvKAteUKiyJJQ
+[SessionManager] Starting kDh1wgFCwwLI8TDpHc0K (PinkyParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting ZGI5yVU2WHGzgAdUnWP2 (DivertixParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting ZHRI9O3O3Lx6yRWzqOWg (SuperParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting Ztj2SRhRWAflLQh7iVi5 (Kassy) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting hQtWagPAA490T7FD3vdb (Galaxy Party) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting lxOxeo2QvKAteUKiyJJQ (HappyParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] kDh1wgFCwwLI8TDpHc0K NEEDS QR
+[SessionManager] hQtWagPAA490T7FD3vdb CONNECTED
+[SessionManager] Ztj2SRhRWAflLQh7iVi5 CONNECTED
+[SessionManager] ZHRI9O3O3Lx6yRWzqOWg CONNECTED
+[SessionManager] lxOxeo2QvKAteUKiyJJQ CLOSED. Reason: 401
+[SessionManager] ZGI5yVU2WHGzgAdUnWP2 CLOSED. Reason: 401
+[SessionManager] lxOxeo2QvKAteUKiyJJQ LOGGED OUT. Stopping.
+[SessionManager] Stopping session lxOxeo2QvKAteUKiyJJQ
+[SessionManager] ZGI5yVU2WHGzgAdUnWP2 LOGGED OUT. Stopping.
+[SessionManager] Stopping session ZGI5yVU2WHGzgAdUnWP2
+{"level":40,"time":1772013454410,"pid":110659,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772013454426,"pid":110659,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772013454564,"pid":110659,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+[HTTP] GET /status
+{"level":40,"time":1772013463557,"pid":110659,"hostname":"Whats","msg":"Buffer timeout reached, auto-flushing"}
+{"level":40,"time":1772013463557,"pid":110659,"hostname":"Whats","msg":"Buffer timeout reached, auto-flushing"}
+[SessionManager] New account detected: 3WNp31pw5MEZJa4peUut
+[SessionManager] Starting 3WNp31pw5MEZJa4peUut (DivertixParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] kDh1wgFCwwLI8TDpHc0K NEEDS QR
+[HTTP] GET /status
+[SessionManager] kDh1wgFCwwLI8TDpHc0K NEEDS QR
+[SessionManager] kDh1wgFCwwLI8TDpHc0K NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] kDh1wgFCwwLI8TDpHc0K NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] kDh1wgFCwwLI8TDpHc0K NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] kDh1wgFCwwLI8TDpHc0K CLOSED. Reason: 408
+[SessionManager] kDh1wgFCwwLI8TDpHc0K Reconnecting...
+[SessionManager] Starting kDh1wgFCwwLI8TDpHc0K (PinkyParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] kDh1wgFCwwLI8TDpHc0K NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut CLOSED. Reason: 408
+[SessionManager] 3WNp31pw5MEZJa4peUut Reconnecting...
+[SessionManager] Starting 3WNp31pw5MEZJa4peUut (DivertixParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] kDh1wgFCwwLI8TDpHc0K NEEDS QR
+[SessionManager] kDh1wgFCwwLI8TDpHc0K NEEDS QR
+[SessionManager] kDh1wgFCwwLI8TDpHc0K NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] kDh1wgFCwwLI8TDpHc0K NEEDS QR
+[SessionManager] Account removed: ZGI5yVU2WHGzgAdUnWP2
+[SessionManager] Account removed: 3WNp31pw5MEZJa4peUut
+[SessionManager] Stopping session 3WNp31pw5MEZJa4peUut
+[SessionManager] 3WNp31pw5MEZJa4peUut CLOSED. Reason: undefined
+[SessionManager] 3WNp31pw5MEZJa4peUut Reconnecting...
+[SessionManager] New account detected: 3WNp31pw5MEZJa4peUut
+[SessionManager] Account removed: lxOxeo2QvKAteUKiyJJQ
+[SessionManager] Account removed: kDh1wgFCwwLI8TDpHc0K
+[SessionManager] Stopping session kDh1wgFCwwLI8TDpHc0K
+[SessionManager] kDh1wgFCwwLI8TDpHc0K CLOSED. Reason: undefined
+[SessionManager] Starting 3WNp31pw5MEZJa4peUut () using WA v2.3000.1033846690, isLatest: true
+[SessionManager] kDh1wgFCwwLI8TDpHc0K Reconnecting...
+[SessionManager] New account detected: lxOxeo2QvKAteUKiyJJQ
+[SessionManager] New account detected: kDh1wgFCwwLI8TDpHc0K
+[SessionManager] Starting kDh1wgFCwwLI8TDpHc0K () using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting lxOxeo2QvKAteUKiyJJQ () using WA v2.3000.1033846690, isLatest: true
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] kDh1wgFCwwLI8TDpHc0K NEEDS QR
+[SessionManager] Session 3WNp31pw5MEZJa4peUut already active.
+[SessionManager] Session kDh1wgFCwwLI8TDpHc0K already active.
+[SessionManager] lxOxeo2QvKAteUKiyJJQ CLOSED. Reason: 401
+[SessionManager] lxOxeo2QvKAteUKiyJJQ LOGGED OUT. Stopping.
+[SessionManager] Stopping session lxOxeo2QvKAteUKiyJJQ
+{"level":40,"time":1772013751131,"pid":110659,"hostname":"Whats","msg":"Buffer timeout reached, auto-flushing"}
+SIGINT received. Saving store...
+🔥 Firestore Initialized (from local file) ./firebase-service-account.json
+[SessionManager] Initializing...
+API Server running on port 3001
+[SessionManager] New account detected: 3WNp31pw5MEZJa4peUut
+[SessionManager] New account detected: ZHRI9O3O3Lx6yRWzqOWg
+[SessionManager] New account detected: Ztj2SRhRWAflLQh7iVi5
+[SessionManager] New account detected: hQtWagPAA490T7FD3vdb
+[SessionManager] New account detected: kDh1wgFCwwLI8TDpHc0K
+[SessionManager] New account detected: lxOxeo2QvKAteUKiyJJQ
+[SessionManager] Starting 3WNp31pw5MEZJa4peUut () using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting kDh1wgFCwwLI8TDpHc0K () using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting Ztj2SRhRWAflLQh7iVi5 (Kassy) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting ZHRI9O3O3Lx6yRWzqOWg (SuperParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting hQtWagPAA490T7FD3vdb (Galaxy Party) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting lxOxeo2QvKAteUKiyJJQ () using WA v2.3000.1033846690, isLatest: true
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] kDh1wgFCwwLI8TDpHc0K NEEDS QR
+[SessionManager] ZHRI9O3O3Lx6yRWzqOWg CONNECTED
+[SessionManager] hQtWagPAA490T7FD3vdb CONNECTED
+[SessionManager] Ztj2SRhRWAflLQh7iVi5 CONNECTED
+[SessionManager] lxOxeo2QvKAteUKiyJJQ CLOSED. Reason: 401
+[SessionManager] lxOxeo2QvKAteUKiyJJQ LOGGED OUT. Stopping.
+[SessionManager] Stopping session lxOxeo2QvKAteUKiyJJQ
+[SessionManager] New account detected: 7MXiCIPXm1ZGeXxk5X58
+[SessionManager] New account detected: XANaSkgQzW5Z1VfmIvCs
+[SessionManager] Starting 7MXiCIPXm1ZGeXxk5X58 (DivertixParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting XANaSkgQzW5Z1VfmIvCs (HappyParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] New account detected: LKvZfsJMz7IO8dBLuotj
+[SessionManager] Starting LKvZfsJMz7IO8dBLuotj (PinkyParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 NEEDS QR
+[SessionManager] XANaSkgQzW5Z1VfmIvCs NEEDS QR
+{"level":40,"time":1772013787371,"pid":110840,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772013787449,"pid":110840,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772013787744,"pid":110840,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772013796505,"pid":110840,"hostname":"Whats","msg":"Buffer timeout reached, auto-flushing"}
+[HTTP] GET /status
+SIGINT received. Saving store...
+🔥 Firestore Initialized (from local file) ./firebase-service-account.json
+[SessionManager] Initializing...
+API Server running on port 3001
+[SessionManager] New account detected: 3WNp31pw5MEZJa4peUut
+[SessionManager] New account detected: 7MXiCIPXm1ZGeXxk5X58
+[SessionManager] New account detected: LKvZfsJMz7IO8dBLuotj
+[SessionManager] New account detected: XANaSkgQzW5Z1VfmIvCs
+[SessionManager] New account detected: ZHRI9O3O3Lx6yRWzqOWg
+[SessionManager] New account detected: Ztj2SRhRWAflLQh7iVi5
+[SessionManager] New account detected: hQtWagPAA490T7FD3vdb
+[SessionManager] New account detected: kDh1wgFCwwLI8TDpHc0K
+[SessionManager] New account detected: lxOxeo2QvKAteUKiyJJQ
+[SessionManager] Starting 3WNp31pw5MEZJa4peUut () using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting 7MXiCIPXm1ZGeXxk5X58 (DivertixParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting LKvZfsJMz7IO8dBLuotj (PinkyParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting XANaSkgQzW5Z1VfmIvCs (HappyParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting kDh1wgFCwwLI8TDpHc0K () using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting ZHRI9O3O3Lx6yRWzqOWg (SuperParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting lxOxeo2QvKAteUKiyJJQ () using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting hQtWagPAA490T7FD3vdb (Galaxy Party) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting Ztj2SRhRWAflLQh7iVi5 (Kassy) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] XANaSkgQzW5Z1VfmIvCs NEEDS QR
+[SessionManager] kDh1wgFCwwLI8TDpHc0K NEEDS QR
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+[SessionManager] hQtWagPAA490T7FD3vdb CONNECTED
+[SessionManager] ZHRI9O3O3Lx6yRWzqOWg CONNECTED
+[SessionManager] Ztj2SRhRWAflLQh7iVi5 CONNECTED
+[SessionManager] lxOxeo2QvKAteUKiyJJQ CLOSED. Reason: 401
+[SessionManager] lxOxeo2QvKAteUKiyJJQ LOGGED OUT. Stopping.
+[SessionManager] Stopping session lxOxeo2QvKAteUKiyJJQ
+[HTTP] GET /status
+{"level":40,"time":1772013845866,"pid":110915,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772013846177,"pid":110915,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772013846512,"pid":110915,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772013855238,"pid":110915,"hostname":"Whats","msg":"Buffer timeout reached, auto-flushing"}
+[SessionManager] XANaSkgQzW5Z1VfmIvCs NEEDS QR
+[SessionManager] kDh1wgFCwwLI8TDpHc0K NEEDS QR
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+SIGINT received. Saving store...
+🔥 Firestore Initialized (from local file) ./firebase-service-account.json
+[SessionManager] Initializing...
+API Server running on port 3001
+[SessionManager] New account detected: 3WNp31pw5MEZJa4peUut
+[SessionManager] New account detected: 7MXiCIPXm1ZGeXxk5X58
+[SessionManager] New account detected: LKvZfsJMz7IO8dBLuotj
+[SessionManager] New account detected: XANaSkgQzW5Z1VfmIvCs
+[SessionManager] New account detected: ZHRI9O3O3Lx6yRWzqOWg
+[SessionManager] New account detected: Ztj2SRhRWAflLQh7iVi5
+[SessionManager] New account detected: hQtWagPAA490T7FD3vdb
+[SessionManager] New account detected: kDh1wgFCwwLI8TDpHc0K
+[SessionManager] New account detected: lxOxeo2QvKAteUKiyJJQ
+[SessionManager] Starting XANaSkgQzW5Z1VfmIvCs (HappyParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting 3WNp31pw5MEZJa4peUut () using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting LKvZfsJMz7IO8dBLuotj (PinkyParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting 7MXiCIPXm1ZGeXxk5X58 (DivertixParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting kDh1wgFCwwLI8TDpHc0K () using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting lxOxeo2QvKAteUKiyJJQ () using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting ZHRI9O3O3Lx6yRWzqOWg (SuperParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting hQtWagPAA490T7FD3vdb (Galaxy Party) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting Ztj2SRhRWAflLQh7iVi5 (Kassy) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+[SessionManager] lxOxeo2QvKAteUKiyJJQ NEEDS QR
+[SessionManager] kDh1wgFCwwLI8TDpHc0K NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 NEEDS QR
+[SessionManager] XANaSkgQzW5Z1VfmIvCs NEEDS QR
+[SessionManager] hQtWagPAA490T7FD3vdb CONNECTED
+[SessionManager] ZHRI9O3O3Lx6yRWzqOWg CONNECTED
+[SessionManager] Ztj2SRhRWAflLQh7iVi5 CONNECTED
+[HTTP] GET /status
+{"level":40,"time":1772013911679,"pid":111094,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772013911697,"pid":111094,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772013912066,"pid":111094,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+[SessionManager] lxOxeo2QvKAteUKiyJJQ NEEDS QR
+[SessionManager] kDh1wgFCwwLI8TDpHc0K NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 NEEDS QR
+[SessionManager] XANaSkgQzW5Z1VfmIvCs NEEDS QR
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+[SessionManager] lxOxeo2QvKAteUKiyJJQ NEEDS QR
+[SessionManager] kDh1wgFCwwLI8TDpHc0K NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 NEEDS QR
+[SessionManager] XANaSkgQzW5Z1VfmIvCs NEEDS QR
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+[SessionManager] lxOxeo2QvKAteUKiyJJQ NEEDS QR
+[SessionManager] kDh1wgFCwwLI8TDpHc0K NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 NEEDS QR
+[SessionManager] XANaSkgQzW5Z1VfmIvCs NEEDS QR
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+[SessionManager] lxOxeo2QvKAteUKiyJJQ NEEDS QR
+[SessionManager] kDh1wgFCwwLI8TDpHc0K NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 NEEDS QR
+[SessionManager] XANaSkgQzW5Z1VfmIvCs NEEDS QR
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+[SessionManager] lxOxeo2QvKAteUKiyJJQ NEEDS QR
+[SessionManager] kDh1wgFCwwLI8TDpHc0K NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 NEEDS QR
+[SessionManager] XANaSkgQzW5Z1VfmIvCs NEEDS QR
+[SessionManager] LKvZfsJMz7IO8dBLuotj CLOSED. Reason: 408
+[SessionManager] lxOxeo2QvKAteUKiyJJQ CLOSED. Reason: 408
+[SessionManager] kDh1wgFCwwLI8TDpHc0K CLOSED. Reason: 408
+[SessionManager] LKvZfsJMz7IO8dBLuotj Reconnecting...
+[SessionManager] lxOxeo2QvKAteUKiyJJQ Reconnecting...
+[SessionManager] kDh1wgFCwwLI8TDpHc0K Reconnecting...
+[SessionManager] 3WNp31pw5MEZJa4peUut CLOSED. Reason: 408
+[SessionManager] 3WNp31pw5MEZJa4peUut Reconnecting...
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 CLOSED. Reason: 408
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 Reconnecting...
+[SessionManager] XANaSkgQzW5Z1VfmIvCs CLOSED. Reason: 408
+[SessionManager] XANaSkgQzW5Z1VfmIvCs Reconnecting...
+[SessionManager] Starting LKvZfsJMz7IO8dBLuotj (PinkyParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting lxOxeo2QvKAteUKiyJJQ () using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting kDh1wgFCwwLI8TDpHc0K () using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting 3WNp31pw5MEZJa4peUut () using WA v2.3000.1033846690, isLatest: true
+[SessionManager] kDh1wgFCwwLI8TDpHc0K NEEDS QR
+[SessionManager] Starting 7MXiCIPXm1ZGeXxk5X58 (DivertixParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting XANaSkgQzW5Z1VfmIvCs (HappyParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] lxOxeo2QvKAteUKiyJJQ NEEDS QR
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 NEEDS QR
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+[SessionManager] XANaSkgQzW5Z1VfmIvCs NEEDS QR
+[SessionManager] kDh1wgFCwwLI8TDpHc0K NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] lxOxeo2QvKAteUKiyJJQ NEEDS QR
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 NEEDS QR
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+[SessionManager] XANaSkgQzW5Z1VfmIvCs NEEDS QR
+[SessionManager] kDh1wgFCwwLI8TDpHc0K NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] lxOxeo2QvKAteUKiyJJQ NEEDS QR
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 NEEDS QR
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+[SessionManager] XANaSkgQzW5Z1VfmIvCs NEEDS QR
+[SessionManager] kDh1wgFCwwLI8TDpHc0K NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] lxOxeo2QvKAteUKiyJJQ NEEDS QR
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 NEEDS QR
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+[SessionManager] XANaSkgQzW5Z1VfmIvCs NEEDS QR
+[SessionManager] kDh1wgFCwwLI8TDpHc0K NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] lxOxeo2QvKAteUKiyJJQ NEEDS QR
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 NEEDS QR
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+[SessionManager] XANaSkgQzW5Z1VfmIvCs NEEDS QR
+[SessionManager] New account detected: C7xKBICjBaeibmkmfYN8
+[SessionManager] Starting C7xKBICjBaeibmkmfYN8 (MegaParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] New account detected: C9mLWO3s3nx5ckQBlmUE
+[SessionManager] Starting C9mLWO3s3nx5ckQBlmUE (SweetParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] New account detected: 7ei5E0SiunhP686M0EVX
+[SessionManager] Starting 7ei5E0SiunhP686M0EVX (Animaparty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] New account detected: vWPV8yMvNyCab1kl5S0U
+[SessionManager] Starting vWPV8yMvNyCab1kl5S0U (Epic Parti) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] C9mLWO3s3nx5ckQBlmUE NEEDS QR
+[SessionManager] C7xKBICjBaeibmkmfYN8 NEEDS QR
+[SessionManager] vWPV8yMvNyCab1kl5S0U NEEDS QR
+[SessionManager] kDh1wgFCwwLI8TDpHc0K NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] lxOxeo2QvKAteUKiyJJQ NEEDS QR
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 NEEDS QR
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+[SessionManager] XANaSkgQzW5Z1VfmIvCs NEEDS QR
+[SessionManager] kDh1wgFCwwLI8TDpHc0K CLOSED. Reason: 408
+[SessionManager] kDh1wgFCwwLI8TDpHc0K Reconnecting...
+[SessionManager] 3WNp31pw5MEZJa4peUut CLOSED. Reason: 408
+[SessionManager] 3WNp31pw5MEZJa4peUut Reconnecting...
+[SessionManager] lxOxeo2QvKAteUKiyJJQ CLOSED. Reason: 408
+[SessionManager] lxOxeo2QvKAteUKiyJJQ Reconnecting...
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 CLOSED. Reason: 408
+[SessionManager] LKvZfsJMz7IO8dBLuotj CLOSED. Reason: 408
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 Reconnecting...
+[SessionManager] LKvZfsJMz7IO8dBLuotj Reconnecting...
+[SessionManager] XANaSkgQzW5Z1VfmIvCs CLOSED. Reason: 408
+[SessionManager] XANaSkgQzW5Z1VfmIvCs Reconnecting...
+[SessionManager] Starting kDh1wgFCwwLI8TDpHc0K () using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting 3WNp31pw5MEZJa4peUut () using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting lxOxeo2QvKAteUKiyJJQ () using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting 7MXiCIPXm1ZGeXxk5X58 (DivertixParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] kDh1wgFCwwLI8TDpHc0K NEEDS QR
+[SessionManager] Starting LKvZfsJMz7IO8dBLuotj (PinkyParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] lxOxeo2QvKAteUKiyJJQ NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 NEEDS QR
+[SessionManager] Starting XANaSkgQzW5Z1VfmIvCs (HappyParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] XANaSkgQzW5Z1VfmIvCs NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] C9mLWO3s3nx5ckQBlmUE NEEDS QR
+[SessionManager] C7xKBICjBaeibmkmfYN8 NEEDS QR
+[SessionManager] vWPV8yMvNyCab1kl5S0U NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] C9mLWO3s3nx5ckQBlmUE NEEDS QR
+[SessionManager] C7xKBICjBaeibmkmfYN8 NEEDS QR
+[SessionManager] vWPV8yMvNyCab1kl5S0U NEEDS QR
+[SessionManager] kDh1wgFCwwLI8TDpHc0K NEEDS QR
+[SessionManager] lxOxeo2QvKAteUKiyJJQ NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 NEEDS QR
+[SessionManager] XANaSkgQzW5Z1VfmIvCs NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] C9mLWO3s3nx5ckQBlmUE NEEDS QR
+[SessionManager] C7xKBICjBaeibmkmfYN8 NEEDS QR
+[SessionManager] vWPV8yMvNyCab1kl5S0U NEEDS QR
+[SessionManager] kDh1wgFCwwLI8TDpHc0K NEEDS QR
+[SessionManager] lxOxeo2QvKAteUKiyJJQ NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 NEEDS QR
+[SessionManager] XANaSkgQzW5Z1VfmIvCs NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] C9mLWO3s3nx5ckQBlmUE NEEDS QR
+[SessionManager] C7xKBICjBaeibmkmfYN8 NEEDS QR
+[SessionManager] vWPV8yMvNyCab1kl5S0U NEEDS QR
+[SessionManager] kDh1wgFCwwLI8TDpHc0K NEEDS QR
+[SessionManager] lxOxeo2QvKAteUKiyJJQ NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 NEEDS QR
+[SessionManager] XANaSkgQzW5Z1VfmIvCs NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] C9mLWO3s3nx5ckQBlmUE NEEDS QR
+[SessionManager] C7xKBICjBaeibmkmfYN8 NEEDS QR
+[SessionManager] vWPV8yMvNyCab1kl5S0U NEEDS QR
+[SessionManager] kDh1wgFCwwLI8TDpHc0K NEEDS QR
+[SessionManager] lxOxeo2QvKAteUKiyJJQ NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 NEEDS QR
+[SessionManager] XANaSkgQzW5Z1VfmIvCs NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX CLOSED. Reason: 408
+[SessionManager] 7ei5E0SiunhP686M0EVX Reconnecting...
+[SessionManager] C9mLWO3s3nx5ckQBlmUE CLOSED. Reason: 408
+[SessionManager] C7xKBICjBaeibmkmfYN8 CLOSED. Reason: 408
+[SessionManager] C9mLWO3s3nx5ckQBlmUE Reconnecting...
+[SessionManager] C7xKBICjBaeibmkmfYN8 Reconnecting...
+[SessionManager] vWPV8yMvNyCab1kl5S0U CLOSED. Reason: 408
+[SessionManager] vWPV8yMvNyCab1kl5S0U Reconnecting...
+[SessionManager] Starting 7ei5E0SiunhP686M0EVX (Animaparty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting C9mLWO3s3nx5ckQBlmUE (SweetParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting C7xKBICjBaeibmkmfYN8 (MegaParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] C9mLWO3s3nx5ckQBlmUE NEEDS QR
+[SessionManager] Starting vWPV8yMvNyCab1kl5S0U (Epic Parti) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] C7xKBICjBaeibmkmfYN8 NEEDS QR
+[SessionManager] vWPV8yMvNyCab1kl5S0U NEEDS QR
+[SessionManager] kDh1wgFCwwLI8TDpHc0K NEEDS QR
+[SessionManager] lxOxeo2QvKAteUKiyJJQ NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 NEEDS QR
+[SessionManager] XANaSkgQzW5Z1VfmIvCs NEEDS QR
+[SessionManager] kDh1wgFCwwLI8TDpHc0K CLOSED. Reason: 408
+[SessionManager] kDh1wgFCwwLI8TDpHc0K Reconnecting...
+[SessionManager] lxOxeo2QvKAteUKiyJJQ CLOSED. Reason: 408
+[SessionManager] lxOxeo2QvKAteUKiyJJQ Reconnecting...
+[SessionManager] 3WNp31pw5MEZJa4peUut CLOSED. Reason: 408
+[SessionManager] 3WNp31pw5MEZJa4peUut Reconnecting...
+[SessionManager] LKvZfsJMz7IO8dBLuotj CLOSED. Reason: 408
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 CLOSED. Reason: 408
+[SessionManager] LKvZfsJMz7IO8dBLuotj Reconnecting...
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 Reconnecting...
+[SessionManager] XANaSkgQzW5Z1VfmIvCs CLOSED. Reason: 408
+[SessionManager] XANaSkgQzW5Z1VfmIvCs Reconnecting...
+[SessionManager] Starting kDh1wgFCwwLI8TDpHc0K () using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting lxOxeo2QvKAteUKiyJJQ () using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting 3WNp31pw5MEZJa4peUut () using WA v2.3000.1033846690, isLatest: true
+[SessionManager] kDh1wgFCwwLI8TDpHc0K NEEDS QR
+[SessionManager] Starting LKvZfsJMz7IO8dBLuotj (PinkyParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting 7MXiCIPXm1ZGeXxk5X58 (DivertixParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] lxOxeo2QvKAteUKiyJJQ NEEDS QR
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] Starting XANaSkgQzW5Z1VfmIvCs (HappyParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] XANaSkgQzW5Z1VfmIvCs NEEDS QR
+[SessionManager] C9mLWO3s3nx5ckQBlmUE NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] C7xKBICjBaeibmkmfYN8 NEEDS QR
+[SessionManager] vWPV8yMvNyCab1kl5S0U NEEDS QR
+[SessionManager] C9mLWO3s3nx5ckQBlmUE NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] C7xKBICjBaeibmkmfYN8 NEEDS QR
+[SessionManager] vWPV8yMvNyCab1kl5S0U NEEDS QR
+[SessionManager] kDh1wgFCwwLI8TDpHc0K NEEDS QR
+[SessionManager] lxOxeo2QvKAteUKiyJJQ NEEDS QR
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] XANaSkgQzW5Z1VfmIvCs NEEDS QR
+[SessionManager] C9mLWO3s3nx5ckQBlmUE NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] C7xKBICjBaeibmkmfYN8 NEEDS QR
+[SessionManager] vWPV8yMvNyCab1kl5S0U NEEDS QR
+[SessionManager] kDh1wgFCwwLI8TDpHc0K NEEDS QR
+[SessionManager] lxOxeo2QvKAteUKiyJJQ NEEDS QR
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] XANaSkgQzW5Z1VfmIvCs NEEDS QR
+[SessionManager] C9mLWO3s3nx5ckQBlmUE NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] C7xKBICjBaeibmkmfYN8 NEEDS QR
+[SessionManager] vWPV8yMvNyCab1kl5S0U NEEDS QR
+[SessionManager] kDh1wgFCwwLI8TDpHc0K NEEDS QR
+[SessionManager] lxOxeo2QvKAteUKiyJJQ NEEDS QR
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] XANaSkgQzW5Z1VfmIvCs NEEDS QR
+[SessionManager] C9mLWO3s3nx5ckQBlmUE NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] C7xKBICjBaeibmkmfYN8 NEEDS QR
+[SessionManager] vWPV8yMvNyCab1kl5S0U NEEDS QR
+[SessionManager] New account detected: K22D5aEwi4PHCDw94E1l
+[SessionManager] Starting K22D5aEwi4PHCDw94E1l (Wow party) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] K22D5aEwi4PHCDw94E1l NEEDS QR
+{"level":50,"time":1772014496923,"pid":111094,"hostname":"Whats","fullErrorNode":{"tag":"stream:error","attrs":{"code":"515"}},"msg":"stream errored out"}
+[SessionManager] C7xKBICjBaeibmkmfYN8 CLOSED. Reason: 515
+[SessionManager] C7xKBICjBaeibmkmfYN8 Reconnecting...
+[SessionManager] Starting C7xKBICjBaeibmkmfYN8 (MegaParty) using WA v2.3000.1033846690, isLatest: true
+[HTTP] GET /status
+[SessionManager] kDh1wgFCwwLI8TDpHc0K NEEDS QR
+[SessionManager] lxOxeo2QvKAteUKiyJJQ NEEDS QR
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 NEEDS QR
+[SessionManager] C7xKBICjBaeibmkmfYN8 CONNECTED
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[syncMessageToFirestore] Syncing message: A5235B4A09A739D7FA242E8BF3289BF7 to convo: 40761103129@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: A56816752C7608DB550A7A34C91FE9EE to convo: 40761103129@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: A58856FAAB2F110360405C4917DA7DC2 to convo: 40761103129@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: A589A67ADA6DFC0F505E536F721247C5 to convo: 40761103129@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: A5E06FF91616006D9366E60F2034ABE9 to convo: 40761103129@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: A57A4C497AA635C9F7D5AE71013B68F5 to convo: 40761103129@s.whatsapp.net
+[SessionManager] XANaSkgQzW5Z1VfmIvCs NEEDS QR
+[syncMessageToFirestore] Syncing message: A50DE9CB64207ADBFBAD83206987150C to convo: 40761103129@s.whatsapp.net
+[SessionManager] C9mLWO3s3nx5ckQBlmUE CLOSED. Reason: 408
+[SessionManager] C9mLWO3s3nx5ckQBlmUE Reconnecting...
+[SessionManager] 7ei5E0SiunhP686M0EVX CLOSED. Reason: 408
+[SessionManager] 7ei5E0SiunhP686M0EVX Reconnecting...
+[SessionManager] vWPV8yMvNyCab1kl5S0U CLOSED. Reason: 408
+[SessionManager] vWPV8yMvNyCab1kl5S0U Reconnecting...
+[syncMessageToFirestore] Syncing message: A54F6390CA7F2181C410B0C620914D02 to convo: 40761103129@s.whatsapp.net
+[SessionManager] Starting C9mLWO3s3nx5ckQBlmUE (SweetParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting 7ei5E0SiunhP686M0EVX (Animaparty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] C9mLWO3s3nx5ckQBlmUE NEEDS QR
+[SessionManager] Starting vWPV8yMvNyCab1kl5S0U (Epic Parti) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] vWPV8yMvNyCab1kl5S0U NEEDS QR
+[SessionManager] kDh1wgFCwwLI8TDpHc0K NEEDS QR
+[SessionManager] lxOxeo2QvKAteUKiyJJQ NEEDS QR
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] XANaSkgQzW5Z1VfmIvCs NEEDS QR
+[SessionManager] kDh1wgFCwwLI8TDpHc0K CLOSED. Reason: 408
+[SessionManager] kDh1wgFCwwLI8TDpHc0K Reconnecting...
+[SessionManager] lxOxeo2QvKAteUKiyJJQ CLOSED. Reason: 408
+[SessionManager] lxOxeo2QvKAteUKiyJJQ Reconnecting...
+[SessionManager] LKvZfsJMz7IO8dBLuotj CLOSED. Reason: 408
+[SessionManager] LKvZfsJMz7IO8dBLuotj Reconnecting...
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 CLOSED. Reason: 408
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 Reconnecting...
+[SessionManager] 3WNp31pw5MEZJa4peUut CLOSED. Reason: 408
+[SessionManager] 3WNp31pw5MEZJa4peUut Reconnecting...
+[SessionManager] XANaSkgQzW5Z1VfmIvCs CLOSED. Reason: 408
+[SessionManager] XANaSkgQzW5Z1VfmIvCs Reconnecting...
+[SessionManager] Starting kDh1wgFCwwLI8TDpHc0K () using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting lxOxeo2QvKAteUKiyJJQ () using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting LKvZfsJMz7IO8dBLuotj (PinkyParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting 7MXiCIPXm1ZGeXxk5X58 (DivertixParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting 3WNp31pw5MEZJa4peUut () using WA v2.3000.1033846690, isLatest: true
+[SessionManager] kDh1wgFCwwLI8TDpHc0K NEEDS QR
+[SessionManager] lxOxeo2QvKAteUKiyJJQ NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 NEEDS QR
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+[SessionManager] Starting XANaSkgQzW5Z1VfmIvCs (HappyParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] XANaSkgQzW5Z1VfmIvCs NEEDS QR
+[SessionManager] K22D5aEwi4PHCDw94E1l NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] C9mLWO3s3nx5ckQBlmUE NEEDS QR
+[SessionManager] K22D5aEwi4PHCDw94E1l NEEDS QR
+[SessionManager] vWPV8yMvNyCab1kl5S0U NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] C9mLWO3s3nx5ckQBlmUE NEEDS QR
+[SessionManager] K22D5aEwi4PHCDw94E1l NEEDS QR
+[SessionManager] vWPV8yMvNyCab1kl5S0U NEEDS QR
+[SessionManager] kDh1wgFCwwLI8TDpHc0K NEEDS QR
+[SessionManager] lxOxeo2QvKAteUKiyJJQ NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 NEEDS QR
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+[SessionManager] XANaSkgQzW5Z1VfmIvCs NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] C9mLWO3s3nx5ckQBlmUE NEEDS QR
+[SessionManager] K22D5aEwi4PHCDw94E1l NEEDS QR
+[SessionManager] vWPV8yMvNyCab1kl5S0U NEEDS QR
+[SessionManager] kDh1wgFCwwLI8TDpHc0K NEEDS QR
+[SessionManager] lxOxeo2QvKAteUKiyJJQ NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 NEEDS QR
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+[SessionManager] XANaSkgQzW5Z1VfmIvCs NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] C9mLWO3s3nx5ckQBlmUE NEEDS QR
+[SessionManager] K22D5aEwi4PHCDw94E1l NEEDS QR
+[SessionManager] vWPV8yMvNyCab1kl5S0U NEEDS QR
+[SessionManager] kDh1wgFCwwLI8TDpHc0K NEEDS QR
+[SessionManager] lxOxeo2QvKAteUKiyJJQ NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 NEEDS QR
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+[SessionManager] XANaSkgQzW5Z1VfmIvCs NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] C9mLWO3s3nx5ckQBlmUE NEEDS QR
+[SessionManager] K22D5aEwi4PHCDw94E1l CLOSED. Reason: 408
+[SessionManager] K22D5aEwi4PHCDw94E1l Reconnecting...
+[SessionManager] vWPV8yMvNyCab1kl5S0U NEEDS QR
+[SessionManager] Starting K22D5aEwi4PHCDw94E1l (Wow party) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] K22D5aEwi4PHCDw94E1l NEEDS QR
+[SessionManager] Account removed: 3WNp31pw5MEZJa4peUut
+[SessionManager] Stopping session 3WNp31pw5MEZJa4peUut
+[SessionManager] 3WNp31pw5MEZJa4peUut CLOSED. Reason: undefined
+[SessionManager] 3WNp31pw5MEZJa4peUut Reconnecting...
+[SessionManager] New account detected: 3WNp31pw5MEZJa4peUut
+[SessionManager] Account removed: lxOxeo2QvKAteUKiyJJQ
+[SessionManager] Stopping session lxOxeo2QvKAteUKiyJJQ
+[SessionManager] lxOxeo2QvKAteUKiyJJQ CLOSED. Reason: undefined
+[SessionManager] Starting 3WNp31pw5MEZJa4peUut () using WA v2.3000.1033846690, isLatest: true
+[SessionManager] lxOxeo2QvKAteUKiyJJQ Reconnecting...
+[SessionManager] New account detected: lxOxeo2QvKAteUKiyJJQ
+[SessionManager] Starting lxOxeo2QvKAteUKiyJJQ () using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Account removed: kDh1wgFCwwLI8TDpHc0K
+[SessionManager] Stopping session kDh1wgFCwwLI8TDpHc0K
+[SessionManager] kDh1wgFCwwLI8TDpHc0K CLOSED. Reason: undefined
+[SessionManager] kDh1wgFCwwLI8TDpHc0K Reconnecting...
+[SessionManager] New account detected: kDh1wgFCwwLI8TDpHc0K
+[SessionManager] Starting kDh1wgFCwwLI8TDpHc0K () using WA v2.3000.1033846690, isLatest: true
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] lxOxeo2QvKAteUKiyJJQ NEEDS QR
+[SessionManager] kDh1wgFCwwLI8TDpHc0K NEEDS QR
+[SessionManager] Session 3WNp31pw5MEZJa4peUut already active.
+[SessionManager] Session lxOxeo2QvKAteUKiyJJQ already active.
+[SessionManager] Session kDh1wgFCwwLI8TDpHc0K already active.
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 NEEDS QR
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+[SessionManager] XANaSkgQzW5Z1VfmIvCs NEEDS QR
+SIGINT received. Saving store...
+🔥 Firestore Initialized (from local file) ./firebase-service-account.json
+[SessionManager] Initializing...
+API Server running on port 3001
+[SessionManager] New account detected: 3WNp31pw5MEZJa4peUut
+[SessionManager] New account detected: 7MXiCIPXm1ZGeXxk5X58
+[SessionManager] New account detected: 7ei5E0SiunhP686M0EVX
+[SessionManager] New account detected: C7xKBICjBaeibmkmfYN8
+[SessionManager] New account detected: C9mLWO3s3nx5ckQBlmUE
+[SessionManager] New account detected: K22D5aEwi4PHCDw94E1l
+[SessionManager] New account detected: LKvZfsJMz7IO8dBLuotj
+[SessionManager] New account detected: XANaSkgQzW5Z1VfmIvCs
+[SessionManager] New account detected: ZHRI9O3O3Lx6yRWzqOWg
+[SessionManager] New account detected: Ztj2SRhRWAflLQh7iVi5
+[SessionManager] New account detected: hQtWagPAA490T7FD3vdb
+[SessionManager] New account detected: kDh1wgFCwwLI8TDpHc0K
+[SessionManager] New account detected: lxOxeo2QvKAteUKiyJJQ
+[SessionManager] New account detected: vWPV8yMvNyCab1kl5S0U
+[SessionManager] Starting 3WNp31pw5MEZJa4peUut () using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting 7ei5E0SiunhP686M0EVX (Animaparty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting LKvZfsJMz7IO8dBLuotj (PinkyParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting XANaSkgQzW5Z1VfmIvCs (HappyParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting 7MXiCIPXm1ZGeXxk5X58 (DivertixParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting K22D5aEwi4PHCDw94E1l (Wow party) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting C9mLWO3s3nx5ckQBlmUE (SweetParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting kDh1wgFCwwLI8TDpHc0K () using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting vWPV8yMvNyCab1kl5S0U (Epic Parti) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting lxOxeo2QvKAteUKiyJJQ () using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting Ztj2SRhRWAflLQh7iVi5 (Kassy) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting C7xKBICjBaeibmkmfYN8 (MegaParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting ZHRI9O3O3Lx6yRWzqOWg (SuperParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting hQtWagPAA490T7FD3vdb (Galaxy Party) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] kDh1wgFCwwLI8TDpHc0K NEEDS QR
+[SessionManager] lxOxeo2QvKAteUKiyJJQ NEEDS QR
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+[SessionManager] K22D5aEwi4PHCDw94E1l NEEDS QR
+[SessionManager] XANaSkgQzW5Z1VfmIvCs NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] C9mLWO3s3nx5ckQBlmUE NEEDS QR
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] vWPV8yMvNyCab1kl5S0U NEEDS QR
+[SessionManager] C7xKBICjBaeibmkmfYN8 CONNECTED
+[SessionManager] ZHRI9O3O3Lx6yRWzqOWg CONNECTED
+[SessionManager] Ztj2SRhRWAflLQh7iVi5 CONNECTED
+[SessionManager] hQtWagPAA490T7FD3vdb CONNECTED
+{"level":40,"time":1772014690896,"pid":111298,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772014690947,"pid":111298,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772014691166,"pid":111298,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772014691226,"pid":111298,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+[SessionManager] Account removed: 3WNp31pw5MEZJa4peUut
+[SessionManager] Stopping session 3WNp31pw5MEZJa4peUut
+[SessionManager] 3WNp31pw5MEZJa4peUut CLOSED. Reason: undefined
+[SessionManager] 3WNp31pw5MEZJa4peUut Reconnecting...
+[SessionManager] New account detected: 3WNp31pw5MEZJa4peUut
+[SessionManager] Account removed: kDh1wgFCwwLI8TDpHc0K
+[SessionManager] Stopping session kDh1wgFCwwLI8TDpHc0K
+[SessionManager] kDh1wgFCwwLI8TDpHc0K CLOSED. Reason: undefined
+[SessionManager] Starting 3WNp31pw5MEZJa4peUut () using WA v2.3000.1033846690, isLatest: true
+[SessionManager] kDh1wgFCwwLI8TDpHc0K Reconnecting...
+[SessionManager] New account detected: kDh1wgFCwwLI8TDpHc0K
+[SessionManager] Starting kDh1wgFCwwLI8TDpHc0K () using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Account removed: lxOxeo2QvKAteUKiyJJQ
+[SessionManager] Stopping session lxOxeo2QvKAteUKiyJJQ
+[SessionManager] lxOxeo2QvKAteUKiyJJQ CLOSED. Reason: undefined
+[SessionManager] lxOxeo2QvKAteUKiyJJQ Reconnecting...
+[SessionManager] New account detected: lxOxeo2QvKAteUKiyJJQ
+[SessionManager] Starting lxOxeo2QvKAteUKiyJJQ () using WA v2.3000.1033846690, isLatest: true
+[SessionManager] kDh1wgFCwwLI8TDpHc0K NEEDS QR
+[SessionManager] lxOxeo2QvKAteUKiyJJQ NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] Session 3WNp31pw5MEZJa4peUut already active.
+[SessionManager] Session kDh1wgFCwwLI8TDpHc0K already active.
+[SessionManager] Session lxOxeo2QvKAteUKiyJJQ already active.
+SIGINT received. Saving store...
+🔥 Firestore Initialized (from local file) ./firebase-service-account.json
+[SessionManager] Initializing...
+API Server running on port 3001
+[SessionManager] New account detected: 3WNp31pw5MEZJa4peUut
+[SessionManager] New account detected: 7MXiCIPXm1ZGeXxk5X58
+[SessionManager] New account detected: 7ei5E0SiunhP686M0EVX
+[SessionManager] New account detected: C7xKBICjBaeibmkmfYN8
+[SessionManager] New account detected: C9mLWO3s3nx5ckQBlmUE
+[SessionManager] New account detected: K22D5aEwi4PHCDw94E1l
+[SessionManager] New account detected: LKvZfsJMz7IO8dBLuotj
+[SessionManager] New account detected: XANaSkgQzW5Z1VfmIvCs
+[SessionManager] New account detected: ZHRI9O3O3Lx6yRWzqOWg
+[SessionManager] New account detected: Ztj2SRhRWAflLQh7iVi5
+[SessionManager] New account detected: hQtWagPAA490T7FD3vdb
+[SessionManager] New account detected: kDh1wgFCwwLI8TDpHc0K
+[SessionManager] New account detected: lxOxeo2QvKAteUKiyJJQ
+[SessionManager] New account detected: vWPV8yMvNyCab1kl5S0U
+[SessionManager] Starting 3WNp31pw5MEZJa4peUut () using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting LKvZfsJMz7IO8dBLuotj (PinkyParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting 7ei5E0SiunhP686M0EVX (Animaparty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting 7MXiCIPXm1ZGeXxk5X58 (DivertixParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting K22D5aEwi4PHCDw94E1l (Wow party) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting kDh1wgFCwwLI8TDpHc0K () using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting C9mLWO3s3nx5ckQBlmUE (SweetParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting XANaSkgQzW5Z1VfmIvCs (HappyParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting vWPV8yMvNyCab1kl5S0U (Epic Parti) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting lxOxeo2QvKAteUKiyJJQ () using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting ZHRI9O3O3Lx6yRWzqOWg (SuperParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting C7xKBICjBaeibmkmfYN8 (MegaParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting Ztj2SRhRWAflLQh7iVi5 (Kassy) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting hQtWagPAA490T7FD3vdb (Galaxy Party) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 NEEDS QR
+[SessionManager] vWPV8yMvNyCab1kl5S0U NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] lxOxeo2QvKAteUKiyJJQ NEEDS QR
+[SessionManager] K22D5aEwi4PHCDw94E1l NEEDS QR
+[SessionManager] C9mLWO3s3nx5ckQBlmUE NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] XANaSkgQzW5Z1VfmIvCs NEEDS QR
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+[SessionManager] kDh1wgFCwwLI8TDpHc0K NEEDS QR
+[SessionManager] ZHRI9O3O3Lx6yRWzqOWg CONNECTED
+[SessionManager] hQtWagPAA490T7FD3vdb CONNECTED
+[SessionManager] C7xKBICjBaeibmkmfYN8 CONNECTED
+[SessionManager] Ztj2SRhRWAflLQh7iVi5 CONNECTED
+[HTTP] GET /status
+{"level":40,"time":1772014740878,"pid":111430,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772014740880,"pid":111430,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772014741130,"pid":111430,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772014741260,"pid":111430,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+SIGINT received. Saving store...
+🔥 Firestore Initialized (from local file) ./firebase-service-account.json
+[SessionManager] Initializing...
+API Server running on port 3001
+[SessionManager] New account detected: 3WNp31pw5MEZJa4peUut
+[SessionManager] New account detected: 7MXiCIPXm1ZGeXxk5X58
+[SessionManager] New account detected: 7ei5E0SiunhP686M0EVX
+[SessionManager] New account detected: C7xKBICjBaeibmkmfYN8
+[SessionManager] New account detected: C9mLWO3s3nx5ckQBlmUE
+[SessionManager] New account detected: K22D5aEwi4PHCDw94E1l
+[SessionManager] New account detected: LKvZfsJMz7IO8dBLuotj
+[SessionManager] New account detected: XANaSkgQzW5Z1VfmIvCs
+[SessionManager] New account detected: ZHRI9O3O3Lx6yRWzqOWg
+[SessionManager] New account detected: Ztj2SRhRWAflLQh7iVi5
+[SessionManager] New account detected: hQtWagPAA490T7FD3vdb
+[SessionManager] New account detected: kDh1wgFCwwLI8TDpHc0K
+[SessionManager] New account detected: lxOxeo2QvKAteUKiyJJQ
+[SessionManager] New account detected: vWPV8yMvNyCab1kl5S0U
+[SessionManager] Starting 7ei5E0SiunhP686M0EVX (Animaparty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting kDh1wgFCwwLI8TDpHc0K () using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting 7MXiCIPXm1ZGeXxk5X58 (DivertixParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting XANaSkgQzW5Z1VfmIvCs (HappyParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting lxOxeo2QvKAteUKiyJJQ () using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting C9mLWO3s3nx5ckQBlmUE (SweetParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting LKvZfsJMz7IO8dBLuotj (PinkyParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting vWPV8yMvNyCab1kl5S0U (Epic Parti) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting 3WNp31pw5MEZJa4peUut () using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting K22D5aEwi4PHCDw94E1l (Wow party) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting Ztj2SRhRWAflLQh7iVi5 (Kassy) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting ZHRI9O3O3Lx6yRWzqOWg (SuperParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting hQtWagPAA490T7FD3vdb (Galaxy Party) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting C7xKBICjBaeibmkmfYN8 (MegaParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 NEEDS QR
+[SessionManager] lxOxeo2QvKAteUKiyJJQ NEEDS QR
+[SessionManager] kDh1wgFCwwLI8TDpHc0K NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] K22D5aEwi4PHCDw94E1l NEEDS QR
+[SessionManager] C9mLWO3s3nx5ckQBlmUE NEEDS QR
+[SessionManager] vWPV8yMvNyCab1kl5S0U NEEDS QR
+[SessionManager] XANaSkgQzW5Z1VfmIvCs NEEDS QR
+[SessionManager] hQtWagPAA490T7FD3vdb CONNECTED
+[SessionManager] ZHRI9O3O3Lx6yRWzqOWg CONNECTED
+[SessionManager] C7xKBICjBaeibmkmfYN8 CONNECTED
+[SessionManager] Ztj2SRhRWAflLQh7iVi5 CONNECTED
+[HTTP] GET /status
+{"level":40,"time":1772014796235,"pid":111562,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772014796314,"pid":111562,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772014796394,"pid":111562,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772014796931,"pid":111562,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+SIGINT received. Saving store...
+🔥 Firestore Initialized (from local file) ./firebase-service-account.json
+[SessionManager] Initializing...
+API Server running on port 3001
+[SessionManager] New account detected: 3WNp31pw5MEZJa4peUut
+[SessionManager] New account detected: 7MXiCIPXm1ZGeXxk5X58
+[SessionManager] New account detected: 7ei5E0SiunhP686M0EVX
+[SessionManager] New account detected: C7xKBICjBaeibmkmfYN8
+[SessionManager] New account detected: C9mLWO3s3nx5ckQBlmUE
+[SessionManager] New account detected: K22D5aEwi4PHCDw94E1l
+[SessionManager] New account detected: LKvZfsJMz7IO8dBLuotj
+[SessionManager] New account detected: XANaSkgQzW5Z1VfmIvCs
+[SessionManager] New account detected: ZHRI9O3O3Lx6yRWzqOWg
+[SessionManager] New account detected: Ztj2SRhRWAflLQh7iVi5
+[SessionManager] New account detected: hQtWagPAA490T7FD3vdb
+[SessionManager] New account detected: vWPV8yMvNyCab1kl5S0U
+[SessionManager] Starting 7MXiCIPXm1ZGeXxk5X58 (DivertixParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting LKvZfsJMz7IO8dBLuotj (PinkyParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting 7ei5E0SiunhP686M0EVX (Animaparty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting C9mLWO3s3nx5ckQBlmUE (SweetParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting 3WNp31pw5MEZJa4peUut () using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting K22D5aEwi4PHCDw94E1l (Wow party) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting XANaSkgQzW5Z1VfmIvCs (HappyParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting vWPV8yMvNyCab1kl5S0U (Epic Parti) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting ZHRI9O3O3Lx6yRWzqOWg (SuperParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting Ztj2SRhRWAflLQh7iVi5 (Kassy) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting C7xKBICjBaeibmkmfYN8 (MegaParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting hQtWagPAA490T7FD3vdb (Galaxy Party) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] K22D5aEwi4PHCDw94E1l NEEDS QR
+[SessionManager] vWPV8yMvNyCab1kl5S0U NEEDS QR
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] C9mLWO3s3nx5ckQBlmUE NEEDS QR
+[SessionManager] XANaSkgQzW5Z1VfmIvCs NEEDS QR
+[SessionManager] C7xKBICjBaeibmkmfYN8 CONNECTED
+[SessionManager] hQtWagPAA490T7FD3vdb CONNECTED
+[SessionManager] ZHRI9O3O3Lx6yRWzqOWg CONNECTED
+[SessionManager] Ztj2SRhRWAflLQh7iVi5 CONNECTED
+[HTTP] GET /status
+{"level":40,"time":1772014865338,"pid":111789,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772014865361,"pid":111789,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772014865364,"pid":111789,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772014865475,"pid":111789,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+SIGINT received. Saving store...
+🔥 Firestore Initialized (from local file) ./firebase-service-account.json
+[SessionManager] Initializing...
+API Server running on port 3001
+[SessionManager] New account detected: 3WNp31pw5MEZJa4peUut
+[SessionManager] New account detected: 7MXiCIPXm1ZGeXxk5X58
+[SessionManager] New account detected: 7ei5E0SiunhP686M0EVX
+[SessionManager] New account detected: C7xKBICjBaeibmkmfYN8
+[SessionManager] New account detected: C9mLWO3s3nx5ckQBlmUE
+[SessionManager] New account detected: K22D5aEwi4PHCDw94E1l
+[SessionManager] New account detected: LKvZfsJMz7IO8dBLuotj
+[SessionManager] New account detected: XANaSkgQzW5Z1VfmIvCs
+[SessionManager] New account detected: ZHRI9O3O3Lx6yRWzqOWg
+[SessionManager] New account detected: Ztj2SRhRWAflLQh7iVi5
+[SessionManager] New account detected: hQtWagPAA490T7FD3vdb
+[SessionManager] New account detected: vWPV8yMvNyCab1kl5S0U
+[SessionManager] Starting 3WNp31pw5MEZJa4peUut () using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting 7ei5E0SiunhP686M0EVX (Animaparty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting 7MXiCIPXm1ZGeXxk5X58 (DivertixParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting C9mLWO3s3nx5ckQBlmUE (SweetParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting LKvZfsJMz7IO8dBLuotj (PinkyParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting K22D5aEwi4PHCDw94E1l (Wow party) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting vWPV8yMvNyCab1kl5S0U (Epic Parti) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting XANaSkgQzW5Z1VfmIvCs (HappyParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting Ztj2SRhRWAflLQh7iVi5 (Kassy) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting C7xKBICjBaeibmkmfYN8 (MegaParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting ZHRI9O3O3Lx6yRWzqOWg (SuperParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting hQtWagPAA490T7FD3vdb (Galaxy Party) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] vWPV8yMvNyCab1kl5S0U NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] K22D5aEwi4PHCDw94E1l NEEDS QR
+[SessionManager] C9mLWO3s3nx5ckQBlmUE NEEDS QR
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] XANaSkgQzW5Z1VfmIvCs NEEDS QR
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 NEEDS QR
+[SessionManager] ZHRI9O3O3Lx6yRWzqOWg CONNECTED
+[SessionManager] C7xKBICjBaeibmkmfYN8 CONNECTED
+[SessionManager] hQtWagPAA490T7FD3vdb CONNECTED
+[SessionManager] Ztj2SRhRWAflLQh7iVi5 CONNECTED
+[HTTP] GET /status
+{"level":50,"time":1772014880637,"pid":111863,"hostname":"Whats","fullErrorNode":{"tag":"stream:error","attrs":{"code":"515"}},"msg":"stream errored out"}
+[SessionManager] vWPV8yMvNyCab1kl5S0U CLOSED. Reason: 515
+[SessionManager] vWPV8yMvNyCab1kl5S0U Reconnecting...
+[SessionManager] Starting vWPV8yMvNyCab1kl5S0U (Epic Parti) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] vWPV8yMvNyCab1kl5S0U CONNECTED
+[syncMessageToFirestore] Syncing message: A580C479E60404561FE80C75EA07B32E to convo: 40720220445@s.whatsapp.net
+{"level":40,"time":1772014889630,"pid":111863,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772014889699,"pid":111863,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772014889748,"pid":111863,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772014890254,"pid":111863,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+[syncMessageToFirestore] Syncing message: A58CCB6B074BF255964ACE4F0B0BBDB5 to convo: 40720220445@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: A5C1BD25D38EBE52FBB60C5905B86992 to convo: 40720220445@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: A5AFE96DABA70BE5EA20C6172C88FEFC to convo: 40720220445@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: A5DCC1CF9B53B349CE6EC556BC79B1D3 to convo: 40720220445@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: A58A451EFBDBDB1E5C25A663D1706BC0 to convo: 40720220445@s.whatsapp.net
+SIGINT received. Saving store...
+🔥 Firestore Initialized (from local file) ./firebase-service-account.json
+[SessionManager] Initializing...
+API Server running on port 3001
+[SessionManager] New account detected: 3WNp31pw5MEZJa4peUut
+[SessionManager] New account detected: 7MXiCIPXm1ZGeXxk5X58
+[SessionManager] New account detected: 7ei5E0SiunhP686M0EVX
+[SessionManager] New account detected: C7xKBICjBaeibmkmfYN8
+[SessionManager] New account detected: C9mLWO3s3nx5ckQBlmUE
+[SessionManager] New account detected: K22D5aEwi4PHCDw94E1l
+[SessionManager] New account detected: LKvZfsJMz7IO8dBLuotj
+[SessionManager] New account detected: XANaSkgQzW5Z1VfmIvCs
+[SessionManager] New account detected: ZHRI9O3O3Lx6yRWzqOWg
+[SessionManager] New account detected: Ztj2SRhRWAflLQh7iVi5
+[SessionManager] New account detected: hQtWagPAA490T7FD3vdb
+[SessionManager] New account detected: vWPV8yMvNyCab1kl5S0U
+[SessionManager] Starting C9mLWO3s3nx5ckQBlmUE (SweetParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting 7MXiCIPXm1ZGeXxk5X58 (DivertixParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting 7ei5E0SiunhP686M0EVX (Animaparty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting XANaSkgQzW5Z1VfmIvCs (HappyParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting LKvZfsJMz7IO8dBLuotj (PinkyParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting 3WNp31pw5MEZJa4peUut () using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting K22D5aEwi4PHCDw94E1l (Wow party) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting hQtWagPAA490T7FD3vdb (Galaxy Party) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting ZHRI9O3O3Lx6yRWzqOWg (SuperParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting vWPV8yMvNyCab1kl5S0U (Epic Parti) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting C7xKBICjBaeibmkmfYN8 (MegaParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting Ztj2SRhRWAflLQh7iVi5 (Kassy) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] K22D5aEwi4PHCDw94E1l NEEDS QR
+[SessionManager] C9mLWO3s3nx5ckQBlmUE NEEDS QR
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+[SessionManager] XANaSkgQzW5Z1VfmIvCs NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 NEEDS QR
+[SessionManager] ZHRI9O3O3Lx6yRWzqOWg CONNECTED
+[SessionManager] vWPV8yMvNyCab1kl5S0U CONNECTED
+[SessionManager] C7xKBICjBaeibmkmfYN8 CONNECTED
+[SessionManager] Ztj2SRhRWAflLQh7iVi5 CONNECTED
+[SessionManager] hQtWagPAA490T7FD3vdb CONNECTED
+Doing contacts.upsert for 1069 contacts
+[syncMessageToFirestore] Syncing message: A5D604E34D5E7A1EACA739484E1940C5 to convo: 40720220445@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: A57332075F896D89F5C44357E32AF16E to convo: 40720220445@s.whatsapp.net
+{"level":40,"time":1772014916080,"pid":111946,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772014916285,"pid":111946,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772014916461,"pid":111946,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772014916541,"pid":111946,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+[syncMessageToFirestore] Syncing message: A5C56F7A2CFE289092FE75E4335EAB8D to convo: 40720220445@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: A54E850BEEAD442B31FCD87AC152E3ED to convo: 40720220445@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: A5C21B541CB8D21B0FEF8F369807D5BB to convo: 40720220445@s.whatsapp.net
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] K22D5aEwi4PHCDw94E1l NEEDS QR
+[SessionManager] C9mLWO3s3nx5ckQBlmUE NEEDS QR
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+[SessionManager] XANaSkgQzW5Z1VfmIvCs NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 NEEDS QR
+[syncMessageToFirestore] Syncing message: A542C9C56FBC3662AE4801A77E73B303 to convo: 40720220445@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: A5D765AD023E73DD42B47140C8BE03F8 to convo: 40720220445@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: A53A47FC2F71FDBDDCA742296CE52D41 to convo: 40720220445@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: A5187E47468711116BFD3EEC547DC49F to convo: 40720220445@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: A5265610FB4D828C7503DCCE63E0F977 to convo: 40720220445@s.whatsapp.net
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] K22D5aEwi4PHCDw94E1l NEEDS QR
+[SessionManager] C9mLWO3s3nx5ckQBlmUE NEEDS QR
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+[SessionManager] XANaSkgQzW5Z1VfmIvCs NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] K22D5aEwi4PHCDw94E1l NEEDS QR
+[SessionManager] C9mLWO3s3nx5ckQBlmUE NEEDS QR
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+[SessionManager] XANaSkgQzW5Z1VfmIvCs NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] K22D5aEwi4PHCDw94E1l NEEDS QR
+[SessionManager] C9mLWO3s3nx5ckQBlmUE NEEDS QR
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+[SessionManager] XANaSkgQzW5Z1VfmIvCs NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] K22D5aEwi4PHCDw94E1l NEEDS QR
+[SessionManager] C9mLWO3s3nx5ckQBlmUE NEEDS QR
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+[SessionManager] XANaSkgQzW5Z1VfmIvCs NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX CLOSED. Reason: 408
+[SessionManager] K22D5aEwi4PHCDw94E1l CLOSED. Reason: 408
+[SessionManager] C9mLWO3s3nx5ckQBlmUE CLOSED. Reason: 408
+[SessionManager] LKvZfsJMz7IO8dBLuotj CLOSED. Reason: 408
+[SessionManager] XANaSkgQzW5Z1VfmIvCs CLOSED. Reason: 408
+[SessionManager] 3WNp31pw5MEZJa4peUut CLOSED. Reason: 408
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 CLOSED. Reason: 408
+[SessionManager] C9mLWO3s3nx5ckQBlmUE Reconnecting...
+[SessionManager] 7ei5E0SiunhP686M0EVX Reconnecting...
+[SessionManager] K22D5aEwi4PHCDw94E1l Reconnecting...
+[SessionManager] LKvZfsJMz7IO8dBLuotj Reconnecting...
+[SessionManager] 3WNp31pw5MEZJa4peUut Reconnecting...
+[SessionManager] XANaSkgQzW5Z1VfmIvCs Reconnecting...
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 Reconnecting...
+[SessionManager] Starting C9mLWO3s3nx5ckQBlmUE (SweetParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting 7ei5E0SiunhP686M0EVX (Animaparty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting LKvZfsJMz7IO8dBLuotj (PinkyParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting K22D5aEwi4PHCDw94E1l (Wow party) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting 7MXiCIPXm1ZGeXxk5X58 (DivertixParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting 3WNp31pw5MEZJa4peUut () using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting XANaSkgQzW5Z1VfmIvCs (HappyParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] C9mLWO3s3nx5ckQBlmUE NEEDS QR
+[SessionManager] XANaSkgQzW5Z1VfmIvCs NEEDS QR
+[SessionManager] K22D5aEwi4PHCDw94E1l NEEDS QR
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 NEEDS QR
+{"level":50,"time":1772015070521,"pid":111946,"hostname":"Whats","fullErrorNode":{"tag":"stream:error","attrs":{"code":"515"}},"msg":"stream errored out"}
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 CLOSED. Reason: 515
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 Reconnecting...
+[SessionManager] Starting 7MXiCIPXm1ZGeXxk5X58 (DivertixParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 CONNECTED
+{"level":40,"time":1772015075476,"pid":111946,"hostname":"Whats","msg":"no name present, ignoring presence update request..."}
+[syncMessageToFirestore] Syncing message: ACB8B6E4C5900CC23C1C2B562830805B to convo: 40786893938@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: AC93E5BA41841D592AAC86D4FF652675 to convo: 40786893938@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: ACF421765C54F2DF2AA9C37E1BE7A157 to convo: 40786893938@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: AC0C3A801BEA791441DD3F7D9725C049 to convo: 40786893938@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: AC6826EAAFCBC13536C7E90BBB246CC7 to convo: 40786893938@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: AC7934B8700D1BD7A6A068F555EB13CC to convo: 40786893938@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: AC45BA59D0D63631A36C7502744880F0 to convo: 40786893938@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: ACFEA200E5119C7EAD31C323CC0BEAE5 to convo: 40786893938@s.whatsapp.net
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] C9mLWO3s3nx5ckQBlmUE NEEDS QR
+[SessionManager] XANaSkgQzW5Z1VfmIvCs NEEDS QR
+[SessionManager] K22D5aEwi4PHCDw94E1l NEEDS QR
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] C9mLWO3s3nx5ckQBlmUE NEEDS QR
+[SessionManager] XANaSkgQzW5Z1VfmIvCs NEEDS QR
+[SessionManager] K22D5aEwi4PHCDw94E1l NEEDS QR
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] C9mLWO3s3nx5ckQBlmUE NEEDS QR
+[SessionManager] XANaSkgQzW5Z1VfmIvCs NEEDS QR
+[SessionManager] K22D5aEwi4PHCDw94E1l NEEDS QR
+{"level":50,"time":1772015172422,"pid":111946,"hostname":"Whats","fullErrorNode":{"tag":"stream:error","attrs":{"code":"515"}},"msg":"stream errored out"}
+[SessionManager] XANaSkgQzW5Z1VfmIvCs CLOSED. Reason: 515
+[SessionManager] XANaSkgQzW5Z1VfmIvCs Reconnecting...
+[SessionManager] Starting XANaSkgQzW5Z1VfmIvCs (HappyParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] XANaSkgQzW5Z1VfmIvCs CONNECTED
+[syncMessageToFirestore] Syncing message: A52A432CE321987E6C3BD8D4A2DF7510 to convo: 40734032795@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: A542F21E1EF0EC6F0317F21E9AF96A2A to convo: 40734032795@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: A5A044CDC0C776FE3F1145A5FC2B74FC to convo: 40734032795@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: A58AB257EC3D79A18BB01753DE547103 to convo: 40734032795@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: A5493AD295C6AD9559880257598DBD76 to convo: 40734032795@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: A531DCF5757700FCC8F0B35CBF152BB0 to convo: 40734032795@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: A51FE61AD58AE4776FC22AC1DE994A8E to convo: 40734032795@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: A55FCDCE8F4D46EE84CBE068E77871A0 to convo: 40734032795@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: A54613AE3D141552A481B3755277DF7E to convo: 40734032795@s.whatsapp.net
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] C9mLWO3s3nx5ckQBlmUE NEEDS QR
+[SessionManager] K22D5aEwi4PHCDw94E1l NEEDS QR
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] C9mLWO3s3nx5ckQBlmUE NEEDS QR
+[SessionManager] K22D5aEwi4PHCDw94E1l NEEDS QR
+[SessionManager] LKvZfsJMz7IO8dBLuotj CLOSED. Reason: 408
+[SessionManager] 7ei5E0SiunhP686M0EVX CLOSED. Reason: 408
+[SessionManager] LKvZfsJMz7IO8dBLuotj Reconnecting...
+[SessionManager] 3WNp31pw5MEZJa4peUut CLOSED. Reason: 408
+[SessionManager] 3WNp31pw5MEZJa4peUut Reconnecting...
+[SessionManager] 7ei5E0SiunhP686M0EVX Reconnecting...
+[SessionManager] C9mLWO3s3nx5ckQBlmUE CLOSED. Reason: 408
+[SessionManager] C9mLWO3s3nx5ckQBlmUE Reconnecting...
+[SessionManager] K22D5aEwi4PHCDw94E1l CLOSED. Reason: 408
+[SessionManager] K22D5aEwi4PHCDw94E1l Reconnecting...
+[SessionManager] Starting LKvZfsJMz7IO8dBLuotj (PinkyParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting 3WNp31pw5MEZJa4peUut () using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting 7ei5E0SiunhP686M0EVX (Animaparty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting C9mLWO3s3nx5ckQBlmUE (SweetParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting K22D5aEwi4PHCDw94E1l (Wow party) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] K22D5aEwi4PHCDw94E1l NEEDS QR
+[SessionManager] C9mLWO3s3nx5ckQBlmUE NEEDS QR
+{"level":50,"time":1772015245020,"pid":111946,"hostname":"Whats","reasonNode":{"tag":"conflict","attrs":{"type":"device_removed"}},"fullErrorNode":{"tag":"stream:error","attrs":{"code":"401"},"content":[{"tag":"conflict","attrs":{"type":"device_removed"}}]},"msg":"stream errored out"}
+[SessionManager] vWPV8yMvNyCab1kl5S0U CLOSED. Reason: 401
+[SessionManager] vWPV8yMvNyCab1kl5S0U LOGGED OUT. Stopping.
+[SessionManager] Stopping session vWPV8yMvNyCab1kl5S0U
+{"level":50,"time":1772015253207,"pid":111946,"hostname":"Whats","fullErrorNode":{"tag":"stream:error","attrs":{"code":"515"}},"msg":"stream errored out"}
+[SessionManager] K22D5aEwi4PHCDw94E1l CLOSED. Reason: 515
+[SessionManager] K22D5aEwi4PHCDw94E1l Reconnecting...
+[SessionManager] Starting K22D5aEwi4PHCDw94E1l (Wow party) using WA v2.3000.1033846690, isLatest: true
+[syncMessageToFirestore] Syncing message: A59CB6A0ADC9B037CC873BE7C47A95C2 to convo: 40720220445@s.whatsapp.net
+[SessionManager] K22D5aEwi4PHCDw94E1l CONNECTED
+[syncMessageToFirestore] Syncing message: A5FBA7AA61CCF0A340473E8965E8270B to convo: 40720220445@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: A563B060A7CF1A421234EF0881F364B7 to convo: 40720220445@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: A556AC6D6FE0CA944BC045188E856926 to convo: 40720220445@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: A5B86DDAB90577D702964B92BAA776BC to convo: 40720220445@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: A5605967624969140751C150D64D3A38 to convo: 40720220445@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: A513CDD12DC90EAB895087A34A9EEAD4 to convo: 235660594135123@lid
+Doing contacts.upsert for 1069 contacts
+[syncMessageToFirestore] Syncing message: A5C18A95A0F361D22605B0EFABEA9476 to convo: 235660594135123@lid
+[syncMessageToFirestore] Syncing message: A5CA9E83C6E9957CE89402A55BB49A37 to convo: 40720220445@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: A53C601F420D3DE4C4F0D055E58332DC to convo: 40720220445@s.whatsapp.net
+{"level":50,"time":1772015283697,"pid":111946,"hostname":"Whats","reasonNode":{"tag":"conflict","attrs":{"type":"device_removed"}},"fullErrorNode":{"tag":"stream:error","attrs":{"code":"401"},"content":[{"tag":"conflict","attrs":{"type":"device_removed"}}]},"msg":"stream errored out"}
+[SessionManager] K22D5aEwi4PHCDw94E1l CLOSED. Reason: 401
+[SessionManager] K22D5aEwi4PHCDw94E1l LOGGED OUT. Stopping.
+[SessionManager] Stopping session K22D5aEwi4PHCDw94E1l
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] C9mLWO3s3nx5ckQBlmUE NEEDS QR
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] C9mLWO3s3nx5ckQBlmUE NEEDS QR
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] C9mLWO3s3nx5ckQBlmUE NEEDS QR
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] C9mLWO3s3nx5ckQBlmUE NEEDS QR
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] C9mLWO3s3nx5ckQBlmUE NEEDS QR
+[SessionManager] LKvZfsJMz7IO8dBLuotj CLOSED. Reason: 408
+[SessionManager] LKvZfsJMz7IO8dBLuotj Reconnecting...
+[SessionManager] 3WNp31pw5MEZJa4peUut CLOSED. Reason: 408
+[SessionManager] 3WNp31pw5MEZJa4peUut Reconnecting...
+[SessionManager] 7ei5E0SiunhP686M0EVX CLOSED. Reason: 408
+[SessionManager] 7ei5E0SiunhP686M0EVX Reconnecting...
+[SessionManager] C9mLWO3s3nx5ckQBlmUE CLOSED. Reason: 408
+[SessionManager] C9mLWO3s3nx5ckQBlmUE Reconnecting...
+[SessionManager] Starting LKvZfsJMz7IO8dBLuotj (PinkyParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting 3WNp31pw5MEZJa4peUut () using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting 7ei5E0SiunhP686M0EVX (Animaparty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting C9mLWO3s3nx5ckQBlmUE (SweetParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] C9mLWO3s3nx5ckQBlmUE NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+{"level":50,"time":1772015396818,"pid":111946,"hostname":"Whats","reasonNode":{"tag":"conflict","attrs":{"type":"device_removed"}},"fullErrorNode":{"tag":"stream:error","attrs":{"code":"401"},"content":[{"tag":"conflict","attrs":{"type":"device_removed"}}]},"msg":"stream errored out"}
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 CLOSED. Reason: 401
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 LOGGED OUT. Stopping.
+[SessionManager] Stopping session 7MXiCIPXm1ZGeXxk5X58
+SIGINT received. Saving store...
+🔥 Firestore Initialized (from local file) ./firebase-service-account.json
+[SessionManager] Initializing...
+API Server running on port 3001
+[SessionManager] New account detected: 3WNp31pw5MEZJa4peUut
+[SessionManager] New account detected: 7MXiCIPXm1ZGeXxk5X58
+[SessionManager] New account detected: 7ei5E0SiunhP686M0EVX
+[SessionManager] New account detected: C7xKBICjBaeibmkmfYN8
+[SessionManager] New account detected: C9mLWO3s3nx5ckQBlmUE
+[SessionManager] New account detected: K22D5aEwi4PHCDw94E1l
+[SessionManager] New account detected: LKvZfsJMz7IO8dBLuotj
+[SessionManager] New account detected: XANaSkgQzW5Z1VfmIvCs
+[SessionManager] New account detected: ZHRI9O3O3Lx6yRWzqOWg
+[SessionManager] New account detected: Ztj2SRhRWAflLQh7iVi5
+[SessionManager] New account detected: hQtWagPAA490T7FD3vdb
+[SessionManager] New account detected: vWPV8yMvNyCab1kl5S0U
+[SessionManager] Starting C9mLWO3s3nx5ckQBlmUE (SweetParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting 3WNp31pw5MEZJa4peUut () using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting 7ei5E0SiunhP686M0EVX (Animaparty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting LKvZfsJMz7IO8dBLuotj (PinkyParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting 7MXiCIPXm1ZGeXxk5X58 (DivertixParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting K22D5aEwi4PHCDw94E1l (Wow party) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting XANaSkgQzW5Z1VfmIvCs (HappyParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting C7xKBICjBaeibmkmfYN8 (MegaParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting Ztj2SRhRWAflLQh7iVi5 (Kassy) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting ZHRI9O3O3Lx6yRWzqOWg (SuperParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting vWPV8yMvNyCab1kl5S0U (Epic Parti) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting hQtWagPAA490T7FD3vdb (Galaxy Party) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] C9mLWO3s3nx5ckQBlmUE NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] ZHRI9O3O3Lx6yRWzqOWg CONNECTED
+[SessionManager] hQtWagPAA490T7FD3vdb CONNECTED
+[SessionManager] XANaSkgQzW5Z1VfmIvCs CONNECTED
+[SessionManager] Ztj2SRhRWAflLQh7iVi5 CONNECTED
+[SessionManager] K22D5aEwi4PHCDw94E1l CLOSED. Reason: 401
+[SessionManager] K22D5aEwi4PHCDw94E1l LOGGED OUT. Stopping.
+[SessionManager] Stopping session K22D5aEwi4PHCDw94E1l
+[SessionManager] C7xKBICjBaeibmkmfYN8 CONNECTED
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 CLOSED. Reason: 401
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 LOGGED OUT. Stopping.
+[SessionManager] Stopping session 7MXiCIPXm1ZGeXxk5X58
+[SessionManager] vWPV8yMvNyCab1kl5S0U CLOSED. Reason: 401
+[SessionManager] vWPV8yMvNyCab1kl5S0U LOGGED OUT. Stopping.
+[SessionManager] Stopping session vWPV8yMvNyCab1kl5S0U
+{"level":40,"time":1772015433816,"pid":113298,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772015433918,"pid":113298,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772015434030,"pid":113298,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772015434088,"pid":113298,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772015434210,"pid":113298,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+[HTTP] GET /status
+{"level":40,"time":1772015443135,"pid":113298,"hostname":"Whats","msg":"Buffer timeout reached, auto-flushing"}
+{"level":40,"time":1772015443140,"pid":113298,"hostname":"Whats","msg":"Buffer timeout reached, auto-flushing"}
+{"level":40,"time":1772015443168,"pid":113298,"hostname":"Whats","msg":"Buffer timeout reached, auto-flushing"}
+[SessionManager] C9mLWO3s3nx5ckQBlmUE NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+{"level":50,"time":1772015482080,"pid":113298,"hostname":"Whats","reasonNode":{"tag":"conflict","attrs":{"type":"device_removed"}},"fullErrorNode":{"tag":"stream:error","attrs":{"code":"401"},"content":[{"tag":"conflict","attrs":{"type":"device_removed"}}]},"msg":"stream errored out"}
+[SessionManager] C7xKBICjBaeibmkmfYN8 CLOSED. Reason: 401
+[SessionManager] C7xKBICjBaeibmkmfYN8 LOGGED OUT. Stopping.
+[SessionManager] Stopping session C7xKBICjBaeibmkmfYN8
+[SessionManager] C9mLWO3s3nx5ckQBlmUE NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+SIGINT received. Saving store...
+🔥 Firestore Initialized (from local file) ./firebase-service-account.json
+[SessionManager] Initializing...
+API Server running on port 3001
+[SessionManager] New account detected: 3WNp31pw5MEZJa4peUut
+[SessionManager] New account detected: 7MXiCIPXm1ZGeXxk5X58
+[SessionManager] New account detected: 7ei5E0SiunhP686M0EVX
+[SessionManager] New account detected: C7xKBICjBaeibmkmfYN8
+[SessionManager] New account detected: C9mLWO3s3nx5ckQBlmUE
+[SessionManager] New account detected: K22D5aEwi4PHCDw94E1l
+[SessionManager] New account detected: LKvZfsJMz7IO8dBLuotj
+[SessionManager] New account detected: XANaSkgQzW5Z1VfmIvCs
+[SessionManager] New account detected: ZHRI9O3O3Lx6yRWzqOWg
+[SessionManager] New account detected: Ztj2SRhRWAflLQh7iVi5
+[SessionManager] New account detected: hQtWagPAA490T7FD3vdb
+[SessionManager] New account detected: vWPV8yMvNyCab1kl5S0U
+[SessionManager] Starting 3WNp31pw5MEZJa4peUut () using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting C9mLWO3s3nx5ckQBlmUE (SweetParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting LKvZfsJMz7IO8dBLuotj (PinkyParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting K22D5aEwi4PHCDw94E1l (Wow party) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting 7ei5E0SiunhP686M0EVX (Animaparty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting C7xKBICjBaeibmkmfYN8 (MegaParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting ZHRI9O3O3Lx6yRWzqOWg (SuperParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting Ztj2SRhRWAflLQh7iVi5 (Kassy) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting XANaSkgQzW5Z1VfmIvCs (HappyParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting vWPV8yMvNyCab1kl5S0U (Epic Parti) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting hQtWagPAA490T7FD3vdb (Galaxy Party) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting 7MXiCIPXm1ZGeXxk5X58 (DivertixParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] C9mLWO3s3nx5ckQBlmUE NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] K22D5aEwi4PHCDw94E1l NEEDS QR
+[SessionManager] LKvZfsJMz7IO8dBLuotj NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] ZHRI9O3O3Lx6yRWzqOWg CONNECTED
+[SessionManager] Ztj2SRhRWAflLQh7iVi5 CONNECTED
+[SessionManager] hQtWagPAA490T7FD3vdb CONNECTED
+[SessionManager] vWPV8yMvNyCab1kl5S0U CLOSED. Reason: 401
+[SessionManager] vWPV8yMvNyCab1kl5S0U LOGGED OUT. Stopping.
+[SessionManager] Stopping session vWPV8yMvNyCab1kl5S0U
+[SessionManager] XANaSkgQzW5Z1VfmIvCs CONNECTED
+[SessionManager] C7xKBICjBaeibmkmfYN8 CLOSED. Reason: 401
+[SessionManager] C7xKBICjBaeibmkmfYN8 LOGGED OUT. Stopping.
+[SessionManager] Stopping session C7xKBICjBaeibmkmfYN8
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 CLOSED. Reason: 401
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 LOGGED OUT. Stopping.
+[SessionManager] Stopping session 7MXiCIPXm1ZGeXxk5X58
+[HTTP] GET /status
+[SessionManager] LKvZfsJMz7IO8dBLuotj CLOSED. Reason: 515
+{"level":50,"time":1772015511293,"pid":113450,"hostname":"Whats","fullErrorNode":{"tag":"stream:error","attrs":{"code":"515"}},"msg":"stream errored out"}
+[SessionManager] LKvZfsJMz7IO8dBLuotj Reconnecting...
+[SessionManager] Starting LKvZfsJMz7IO8dBLuotj (PinkyParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] LKvZfsJMz7IO8dBLuotj CONNECTED
+[syncMessageToFirestore] Syncing message: A5E04F4AA71BB2EB8C16D68F5D2D5715 to convo: 40761138140@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: A5CA3FB16475BC14763C3F9411C15949 to convo: 40761138140@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: A5C0BC5569B831E97BE5CEB261CA0F46 to convo: 40761138140@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: A518040176001C66BAA542952AB8F8C3 to convo: 40761138140@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: A54D7CB00EE180EB39D5A06C135AE56A to convo: 40761138140@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: A53713A71DE957D3B7800FCB46C3ED33 to convo: 40761138140@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: A557223BF1E5AAE1581BF4DE1097290F to convo: 40761138140@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: A5157215873121280A4039AA50269017 to convo: 40761138140@s.whatsapp.net
+{"level":40,"time":1772015520445,"pid":113450,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772015520483,"pid":113450,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772015520557,"pid":113450,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772015521269,"pid":113450,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772015529446,"pid":113450,"hostname":"Whats","msg":"Buffer timeout reached, auto-flushing"}
+{"level":40,"time":1772015529460,"pid":113450,"hostname":"Whats","msg":"Buffer timeout reached, auto-flushing"}
+{"level":40,"time":1772015529465,"pid":113450,"hostname":"Whats","msg":"Buffer timeout reached, auto-flushing"}
+[SessionManager] C9mLWO3s3nx5ckQBlmUE NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] K22D5aEwi4PHCDw94E1l NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] K22D5aEwi4PHCDw94E1l CLOSED. Reason: 515
+{"level":50,"time":1772015565584,"pid":113450,"hostname":"Whats","fullErrorNode":{"tag":"stream:error","attrs":{"code":"515"}},"msg":"stream errored out"}
+[SessionManager] K22D5aEwi4PHCDw94E1l Reconnecting...
+[SessionManager] Starting K22D5aEwi4PHCDw94E1l (Wow party) using WA v2.3000.1033846690, isLatest: true
+{"level":40,"time":1772015570692,"pid":113450,"hostname":"Whats","msg":"no name present, ignoring presence update request..."}
+[SessionManager] K22D5aEwi4PHCDw94E1l CONNECTED
+[syncMessageToFirestore] Syncing message: AC096CE8CC74449BB175319261D0B37D to convo: 40769029474@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: ACEEEC9C485AA7A95748F30BEE34908F to convo: 40769029474@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: AC8CDD87C3E7D38F6D9F85994039B42F to convo: 40769029474@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: AC385D0E2A33F413CF19CBA80E62168B to convo: 40769029474@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: AC0E54E81B45A56F4C00294CC177AD5B to convo: 40769029474@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: ACB8645ACD0F2B18160E30E08BD344BA to convo: 40769029474@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: AC99D5BCC8EF0D385EE7018589A073A0 to convo: 40769029474@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: AC9BA8EBAFA22A0A8E866E7172693388 to convo: 40769029474@s.whatsapp.net
+[SessionManager] C9mLWO3s3nx5ckQBlmUE NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] C9mLWO3s3nx5ckQBlmUE NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] C9mLWO3s3nx5ckQBlmUE NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[syncMessageToFirestore] Syncing message: AC3D8D8BB4E9D0EBC22E2CD34E45F8AE to convo: 25555223240941@lid
+[SessionManager] C9mLWO3s3nx5ckQBlmUE NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] C9mLWO3s3nx5ckQBlmUE CLOSED. Reason: 408
+[SessionManager] 3WNp31pw5MEZJa4peUut CLOSED. Reason: 408
+[SessionManager] C9mLWO3s3nx5ckQBlmUE Reconnecting...
+[SessionManager] 3WNp31pw5MEZJa4peUut Reconnecting...
+[SessionManager] 7ei5E0SiunhP686M0EVX CLOSED. Reason: 408
+[SessionManager] 7ei5E0SiunhP686M0EVX Reconnecting...
+[SessionManager] Starting C9mLWO3s3nx5ckQBlmUE (SweetParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting 3WNp31pw5MEZJa4peUut () using WA v2.3000.1033846690, isLatest: true
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] Starting 7ei5E0SiunhP686M0EVX (Animaparty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] C9mLWO3s3nx5ckQBlmUE NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[syncMessageToFirestore] Syncing message: AC77ADAEC9DE2B41C90FA8FBBE52760F to convo: 25555223240941@lid
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] C9mLWO3s3nx5ckQBlmUE NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] C9mLWO3s3nx5ckQBlmUE NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+SIGINT received. Saving store...
+🔥 Firestore Initialized (from local file) ./firebase-service-account.json
+[SessionManager] Initializing...
+API Server running on port 3001
+[SessionManager] New account detected: 3WNp31pw5MEZJa4peUut
+[SessionManager] New account detected: 7MXiCIPXm1ZGeXxk5X58
+[SessionManager] New account detected: 7ei5E0SiunhP686M0EVX
+[SessionManager] New account detected: C7xKBICjBaeibmkmfYN8
+[SessionManager] New account detected: C9mLWO3s3nx5ckQBlmUE
+[SessionManager] New account detected: K22D5aEwi4PHCDw94E1l
+[SessionManager] New account detected: LKvZfsJMz7IO8dBLuotj
+[SessionManager] New account detected: XANaSkgQzW5Z1VfmIvCs
+[SessionManager] New account detected: ZHRI9O3O3Lx6yRWzqOWg
+[SessionManager] New account detected: Ztj2SRhRWAflLQh7iVi5
+[SessionManager] New account detected: hQtWagPAA490T7FD3vdb
+[SessionManager] New account detected: vWPV8yMvNyCab1kl5S0U
+[SessionManager] Starting 3WNp31pw5MEZJa4peUut () using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting 7ei5E0SiunhP686M0EVX (Animaparty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting vWPV8yMvNyCab1kl5S0U (Epic Parti) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting C9mLWO3s3nx5ckQBlmUE (SweetParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting 7MXiCIPXm1ZGeXxk5X58 (DivertixParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting ZHRI9O3O3Lx6yRWzqOWg (SuperParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting LKvZfsJMz7IO8dBLuotj (PinkyParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting C7xKBICjBaeibmkmfYN8 (MegaParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting K22D5aEwi4PHCDw94E1l (Wow party) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting hQtWagPAA490T7FD3vdb (Galaxy Party) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting Ztj2SRhRWAflLQh7iVi5 (Kassy) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting XANaSkgQzW5Z1VfmIvCs (HappyParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] C9mLWO3s3nx5ckQBlmUE NEEDS QR
+[SessionManager] vWPV8yMvNyCab1kl5S0U NEEDS QR
+[SessionManager] ZHRI9O3O3Lx6yRWzqOWg CONNECTED
+[SessionManager] hQtWagPAA490T7FD3vdb CONNECTED
+[SessionManager] K22D5aEwi4PHCDw94E1l CONNECTED
+[SessionManager] LKvZfsJMz7IO8dBLuotj CONNECTED
+[SessionManager] C7xKBICjBaeibmkmfYN8 CLOSED. Reason: 401
+[SessionManager] C7xKBICjBaeibmkmfYN8 LOGGED OUT. Stopping.
+[SessionManager] Stopping session C7xKBICjBaeibmkmfYN8
+[SessionManager] Ztj2SRhRWAflLQh7iVi5 CONNECTED
+[SessionManager] XANaSkgQzW5Z1VfmIvCs CONNECTED
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 CLOSED. Reason: 401
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 LOGGED OUT. Stopping.
+[SessionManager] Stopping session 7MXiCIPXm1ZGeXxk5X58
+[HTTP] GET /status
+{"level":40,"time":1772015785605,"pid":113565,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772015785638,"pid":113565,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772015785924,"pid":113565,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772015786106,"pid":113565,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772015786220,"pid":113565,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772015786330,"pid":113565,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772015794996,"pid":113565,"hostname":"Whats","msg":"Buffer timeout reached, auto-flushing"}
+{"level":40,"time":1772015795018,"pid":113565,"hostname":"Whats","msg":"Buffer timeout reached, auto-flushing"}
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] C9mLWO3s3nx5ckQBlmUE NEEDS QR
+[SessionManager] vWPV8yMvNyCab1kl5S0U NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] C9mLWO3s3nx5ckQBlmUE NEEDS QR
+[SessionManager] vWPV8yMvNyCab1kl5S0U NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] C9mLWO3s3nx5ckQBlmUE NEEDS QR
+[SessionManager] vWPV8yMvNyCab1kl5S0U NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] C9mLWO3s3nx5ckQBlmUE NEEDS QR
+[SessionManager] vWPV8yMvNyCab1kl5S0U NEEDS QR
+{"level":50,"time":1772015898276,"pid":113565,"hostname":"Whats","fullErrorNode":{"tag":"stream:error","attrs":{"code":"515"}},"msg":"stream errored out"}
+[SessionManager] C9mLWO3s3nx5ckQBlmUE CLOSED. Reason: 515
+[SessionManager] C9mLWO3s3nx5ckQBlmUE Reconnecting...
+[SessionManager] Starting C9mLWO3s3nx5ckQBlmUE (SweetParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] C9mLWO3s3nx5ckQBlmUE CONNECTED
+{"level":40,"time":1772015903118,"pid":113565,"hostname":"Whats","msg":"no name present, ignoring presence update request..."}
+[syncMessageToFirestore] Syncing message: ACC2CE42514A32C060AD27178C8FB954 to convo: 40750457600@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: ACCAE2B414E32DC8CE7F335F16315862 to convo: 40750457600@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: AC329C05A662ED3259717B52B0991D9C to convo: 40750457600@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: ACC4CDC7B0C0EED5CE169CF64A2B1B83 to convo: 40750457600@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: AC904430C63569C54F625D5CAA2C9C47 to convo: 40750457600@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: AC5BE50CB0EA4E7D089FBC3BD5854C55 to convo: 40750457600@s.whatsapp.net
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] vWPV8yMvNyCab1kl5S0U NEEDS QR
+[syncMessageToFirestore] Syncing message: AC68C44C8707EADE366006BE65E6F444 to convo: 40750457600@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: AC2AFBC2C59C1ACADFA4BFEC9AC70F28 to convo: 40750457600@s.whatsapp.net
+[SessionManager] 3WNp31pw5MEZJa4peUut CLOSED. Reason: 408
+[SessionManager] 7ei5E0SiunhP686M0EVX CLOSED. Reason: 408
+[SessionManager] 3WNp31pw5MEZJa4peUut Reconnecting...
+[SessionManager] 7ei5E0SiunhP686M0EVX Reconnecting...
+[SessionManager] vWPV8yMvNyCab1kl5S0U CLOSED. Reason: 408
+[SessionManager] vWPV8yMvNyCab1kl5S0U Reconnecting...
+[SessionManager] Starting 3WNp31pw5MEZJa4peUut () using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting 7ei5E0SiunhP686M0EVX (Animaparty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting vWPV8yMvNyCab1kl5S0U (Epic Parti) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] vWPV8yMvNyCab1kl5S0U NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] vWPV8yMvNyCab1kl5S0U NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+SIGINT received. Saving store...
+🔥 Firestore Initialized (from local file) ./firebase-service-account.json
+[SessionManager] Initializing...
+API Server running on port 3001
+[SessionManager] New account detected: 3WNp31pw5MEZJa4peUut
+[SessionManager] New account detected: 7MXiCIPXm1ZGeXxk5X58
+[SessionManager] New account detected: 7ei5E0SiunhP686M0EVX
+[SessionManager] New account detected: C7xKBICjBaeibmkmfYN8
+[SessionManager] New account detected: C9mLWO3s3nx5ckQBlmUE
+[SessionManager] New account detected: K22D5aEwi4PHCDw94E1l
+[SessionManager] New account detected: LKvZfsJMz7IO8dBLuotj
+[SessionManager] New account detected: XANaSkgQzW5Z1VfmIvCs
+[SessionManager] New account detected: ZHRI9O3O3Lx6yRWzqOWg
+[SessionManager] New account detected: Ztj2SRhRWAflLQh7iVi5
+[SessionManager] New account detected: hQtWagPAA490T7FD3vdb
+[SessionManager] New account detected: vWPV8yMvNyCab1kl5S0U
+[SessionManager] Starting 3WNp31pw5MEZJa4peUut () using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting vWPV8yMvNyCab1kl5S0U (Epic Parti) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting 7MXiCIPXm1ZGeXxk5X58 (DivertixParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting 7ei5E0SiunhP686M0EVX (Animaparty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting C7xKBICjBaeibmkmfYN8 (MegaParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting C9mLWO3s3nx5ckQBlmUE (SweetParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting LKvZfsJMz7IO8dBLuotj (PinkyParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting K22D5aEwi4PHCDw94E1l (Wow party) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting XANaSkgQzW5Z1VfmIvCs (HappyParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting hQtWagPAA490T7FD3vdb (Galaxy Party) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting Ztj2SRhRWAflLQh7iVi5 (Kassy) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting ZHRI9O3O3Lx6yRWzqOWg (SuperParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] vWPV8yMvNyCab1kl5S0U NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 NEEDS QR
+[SessionManager] hQtWagPAA490T7FD3vdb CONNECTED
+[SessionManager] Ztj2SRhRWAflLQh7iVi5 CONNECTED
+[SessionManager] K22D5aEwi4PHCDw94E1l CONNECTED
+[SessionManager] C9mLWO3s3nx5ckQBlmUE CONNECTED
+[SessionManager] XANaSkgQzW5Z1VfmIvCs CONNECTED
+[SessionManager] LKvZfsJMz7IO8dBLuotj CONNECTED
+[SessionManager] ZHRI9O3O3Lx6yRWzqOWg CONNECTED
+[SessionManager] C7xKBICjBaeibmkmfYN8 CLOSED. Reason: 401
+[SessionManager] C7xKBICjBaeibmkmfYN8 LOGGED OUT. Stopping.
+[SessionManager] Stopping session C7xKBICjBaeibmkmfYN8
+{"level":50,"time":1772016045043,"pid":113751,"hostname":"Whats","fullErrorNode":{"tag":"stream:error","attrs":{"code":"515"}},"msg":"stream errored out"}
+[SessionManager] vWPV8yMvNyCab1kl5S0U CLOSED. Reason: 515
+[SessionManager] vWPV8yMvNyCab1kl5S0U Reconnecting...
+[SessionManager] Starting vWPV8yMvNyCab1kl5S0U (Epic Parti) using WA v2.3000.1033846690, isLatest: true
+[HTTP] GET /status
+[SessionManager] vWPV8yMvNyCab1kl5S0U CONNECTED
+[syncMessageToFirestore] Syncing message: A556CFF11913E0BC8D20885624A9ED11 to convo: 40720220445@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: A51E34D275E5996FF821C64DA40320DA to convo: 40720220445@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: A5346780C608868383DB3F5CF9573641 to convo: 40720220445@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: A50F5738524CE7D08B34D2F92A70BD01 to convo: 40720220445@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: A5A6B6768DF587D3C406EA7EFAE7B4F9 to convo: 40720220445@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: A5D1919D4E8BE9A006BDE8BB1DA8060F to convo: 40720220445@s.whatsapp.net
+{"level":40,"time":1772016056741,"pid":113751,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772016056911,"pid":113751,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772016056971,"pid":113751,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772016057008,"pid":113751,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772016057174,"pid":113751,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772016057343,"pid":113751,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772016057481,"pid":113751,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+Doing contacts.upsert for 1069 contacts
+[syncMessageToFirestore] Syncing message: A5BE1700E13BCD3B2306032CD44B7195 to convo: 40720220445@s.whatsapp.net
+{"level":40,"time":1772016066006,"pid":113751,"hostname":"Whats","msg":"Buffer timeout reached, auto-flushing"}
+[syncMessageToFirestore] Syncing message: A5C42A29794CF205D1F447772DD2FB79 to convo: 40720220445@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: A507E7116FD2D452B30862A436F7D9DB to convo: 40720220445@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: A5F5D078EE9137384C4B426FFA87C473 to convo: 40720220445@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: A5B47DCC2A16142C2B7D8369EACBDFB4 to convo: 40720220445@s.whatsapp.net
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 NEEDS QR
+[syncMessageToFirestore] Syncing message: A5B685160D9410ADE2B712403C1872B7 to convo: 40720220445@s.whatsapp.net
+[HTTP] GET /status
+[syncMessageToFirestore] Syncing message: A51F62569E6B82FD45A1429FED5BCE47 to convo: 40720220445@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: A55EBE9F4A347A8B8379CEB5D1630D7C to convo: 40720220445@s.whatsapp.net
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 NEEDS QR
+[syncMessageToFirestore] Syncing message: A51E869566B4F38697897D77F10A0BF5 to convo: 40720220445@s.whatsapp.net
+{"level":50,"time":1772016123590,"pid":113751,"hostname":"Whats","fullErrorNode":{"tag":"stream:error","attrs":{"code":"515"}},"msg":"stream errored out"}
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 CLOSED. Reason: 515
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 Reconnecting...
+[SessionManager] Starting 7MXiCIPXm1ZGeXxk5X58 (DivertixParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 CONNECTED
+{"level":40,"time":1772016128378,"pid":113751,"hostname":"Whats","msg":"no name present, ignoring presence update request..."}
+[syncMessageToFirestore] Syncing message: AC6224049D4454DC103E04F3E31C9615 to convo: 40786893938@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: ACE4BFD2A1CCC2C3963C4CDA309BF909 to convo: 40786893938@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: ACCD03435E1A964B3B8DAD1B36912789 to convo: 40786893938@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: AC7D6FC53FFE9B16ED4970E36DCF79A1 to convo: 40786893938@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: AC7C534483AAFF44C46543C093863B9B to convo: 40786893938@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: AC43E7A1FA35D8A111A286AA8C89EE75 to convo: 40786893938@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: ACA38FC9233E2EA485073EA8FE795952 to convo: 40786893938@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: AC1761B53CDA3BF65922B8BBC8020876 to convo: 40786893938@s.whatsapp.net
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[HTTP] GET /status
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+SIGINT received. Saving store...
+🔥 Firestore Initialized (from local file) ./firebase-service-account.json
+[SessionManager] Initializing...
+API Server running on port 3001
+[SessionManager] New account detected: 3WNp31pw5MEZJa4peUut
+[SessionManager] New account detected: 7MXiCIPXm1ZGeXxk5X58
+[SessionManager] New account detected: 7ei5E0SiunhP686M0EVX
+[SessionManager] New account detected: C7xKBICjBaeibmkmfYN8
+[SessionManager] New account detected: C9mLWO3s3nx5ckQBlmUE
+[SessionManager] New account detected: K22D5aEwi4PHCDw94E1l
+[SessionManager] New account detected: LKvZfsJMz7IO8dBLuotj
+[SessionManager] New account detected: XANaSkgQzW5Z1VfmIvCs
+[SessionManager] New account detected: ZHRI9O3O3Lx6yRWzqOWg
+[SessionManager] New account detected: Ztj2SRhRWAflLQh7iVi5
+[SessionManager] New account detected: hQtWagPAA490T7FD3vdb
+[SessionManager] New account detected: vWPV8yMvNyCab1kl5S0U
+[SessionManager] Starting 7ei5E0SiunhP686M0EVX (Animaparty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting 3WNp31pw5MEZJa4peUut () using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting C7xKBICjBaeibmkmfYN8 (MegaParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting 7MXiCIPXm1ZGeXxk5X58 (DivertixParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting C9mLWO3s3nx5ckQBlmUE (SweetParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting XANaSkgQzW5Z1VfmIvCs (HappyParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting LKvZfsJMz7IO8dBLuotj (PinkyParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting vWPV8yMvNyCab1kl5S0U (Epic Parti) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting K22D5aEwi4PHCDw94E1l (Wow party) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting hQtWagPAA490T7FD3vdb (Galaxy Party) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting ZHRI9O3O3Lx6yRWzqOWg (SuperParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting Ztj2SRhRWAflLQh7iVi5 (Kassy) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] C7xKBICjBaeibmkmfYN8 NEEDS QR
+[SessionManager] hQtWagPAA490T7FD3vdb CONNECTED
+[SessionManager] ZHRI9O3O3Lx6yRWzqOWg CONNECTED
+[SessionManager] K22D5aEwi4PHCDw94E1l CONNECTED
+[SessionManager] vWPV8yMvNyCab1kl5S0U CONNECTED
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 CONNECTED
+[SessionManager] Ztj2SRhRWAflLQh7iVi5 CONNECTED
+[SessionManager] C9mLWO3s3nx5ckQBlmUE CONNECTED
+[SessionManager] LKvZfsJMz7IO8dBLuotj CONNECTED
+[SessionManager] XANaSkgQzW5Z1VfmIvCs CONNECTED
+[HTTP] GET /status
+{"level":40,"time":1772016208474,"pid":113994,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772016208639,"pid":113994,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772016208668,"pid":113994,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772016208686,"pid":113994,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772016208786,"pid":113994,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772016208810,"pid":113994,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772016208822,"pid":113994,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772016208854,"pid":113994,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772016209945,"pid":113994,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] C7xKBICjBaeibmkmfYN8 NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] C7xKBICjBaeibmkmfYN8 NEEDS QR
+{"level":50,"time":1772016280931,"pid":113994,"hostname":"Whats","fullErrorNode":{"tag":"stream:error","attrs":{"code":"515"}},"msg":"stream errored out"}
+[SessionManager] C7xKBICjBaeibmkmfYN8 CLOSED. Reason: 515
+[SessionManager] C7xKBICjBaeibmkmfYN8 Reconnecting...
+[SessionManager] Starting C7xKBICjBaeibmkmfYN8 (MegaParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] C7xKBICjBaeibmkmfYN8 CONNECTED
+[syncMessageToFirestore] Syncing message: A548A1B0697F3EACED7AF6047A8D0B05 to convo: 40761103129@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: A51338E2ECA6AEC1C91E7B08CAF6066F to convo: 40761103129@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: A59FBBFBFA18863A18F19CA5A37178A9 to convo: 40761103129@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: A5255F804E0D6C7B219F63A607093CFB to convo: 40761103129@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: A58273A9609BE3155F39192613BD61ED to convo: 40761103129@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: A59DA345096C1B03A9DC111366B171DB to convo: 40761103129@s.whatsapp.net
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[syncMessageToFirestore] Syncing message: A5F5933E0D0747F7EB460EF70C4707B8 to convo: 40761103129@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: A50F4378E8A3A532321124FB7796E99E to convo: 40761103129@s.whatsapp.net
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX CLOSED. Reason: 408
+[SessionManager] 7ei5E0SiunhP686M0EVX Reconnecting...
+[SessionManager] 3WNp31pw5MEZJa4peUut CLOSED. Reason: 408
+[SessionManager] 3WNp31pw5MEZJa4peUut Reconnecting...
+[SessionManager] Starting 7ei5E0SiunhP686M0EVX (Animaparty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting 3WNp31pw5MEZJa4peUut () using WA v2.3000.1033846690, isLatest: true
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[STORE] Incrementing unread for 40737571397@s.whatsapp.net. New count: 2
+[syncMessageToFirestore] Syncing message: 3EB00D688A8C4A37B247CB to convo: 40737571397@s.whatsapp.net
+Doing contacts.upsert for 655 contacts
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX CLOSED. Reason: 408
+[SessionManager] 7ei5E0SiunhP686M0EVX Reconnecting...
+[SessionManager] 3WNp31pw5MEZJa4peUut CLOSED. Reason: 408
+[SessionManager] 3WNp31pw5MEZJa4peUut Reconnecting...
+[SessionManager] Starting 7ei5E0SiunhP686M0EVX (Animaparty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting 3WNp31pw5MEZJa4peUut () using WA v2.3000.1033846690, isLatest: true
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[HTTP] GET /api/employees/me
+GET /employees/me ursache.andrei1995@gmail.com
+[HTTP] GET /api/user/me
+[HTTP] POST /api/voice/registerDevice
+[Twilio VoIP] Registered device 9cdad6b4-c17b-44a4-baf9-593158d5760a for user FBQUjlK2dFNjv9uvUOseV85uXmE3 with identity: user_FBQUjlK2dFNjv9uvUOseV85uXmE3_dev_9cdad6b4-c17b-44a4-baf9-593158d5760a
+[HTTP] GET /api/voice/getVoipToken?userId=FBQUjlK2dFNjv9uvUOseV85uXmE3&deviceId=9cdad6b4-c17b-44a4-baf9-593158d5760a
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[HTTP] GET /
+[HTTP] GET /
+[SessionManager] 7ei5E0SiunhP686M0EVX CLOSED. Reason: 408
+[SessionManager] 7ei5E0SiunhP686M0EVX Reconnecting...
+[SessionManager] 3WNp31pw5MEZJa4peUut CLOSED. Reason: 408
+[SessionManager] 3WNp31pw5MEZJa4peUut Reconnecting...
+[HTTP] GET /robots.txt
+[SessionManager] Starting 7ei5E0SiunhP686M0EVX (Animaparty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting 3WNp31pw5MEZJa4peUut () using WA v2.3000.1033846690, isLatest: true
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] Account removed: 3WNp31pw5MEZJa4peUut
+[SessionManager] Stopping session 3WNp31pw5MEZJa4peUut
+[SessionManager] 3WNp31pw5MEZJa4peUut CLOSED. Reason: undefined
+[SessionManager] 3WNp31pw5MEZJa4peUut Reconnecting...
+[SessionManager] New account detected: 3WNp31pw5MEZJa4peUut
+[SessionManager] Starting 3WNp31pw5MEZJa4peUut () using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Account removed: 3WNp31pw5MEZJa4peUut
+[SessionManager] Stopping session 3WNp31pw5MEZJa4peUut
+[SessionManager] 3WNp31pw5MEZJa4peUut CLOSED. Reason: undefined
+[SessionManager] 3WNp31pw5MEZJa4peUut Reconnecting...
+[SessionManager] New account detected: 3WNp31pw5MEZJa4peUut
+[SessionManager] Starting 3WNp31pw5MEZJa4peUut () using WA v2.3000.1033846690, isLatest: true
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] Session 3WNp31pw5MEZJa4peUut already active.
+[SessionManager] Session 3WNp31pw5MEZJa4peUut already active.
+SIGINT received. Saving store...
+🔥 Firestore Initialized (from local file) ./firebase-service-account.json
+[SessionManager] Initializing...
+API Server running on port 3001
+[SessionManager] New account detected: 3WNp31pw5MEZJa4peUut
+[SessionManager] New account detected: 7MXiCIPXm1ZGeXxk5X58
+[SessionManager] New account detected: 7ei5E0SiunhP686M0EVX
+[SessionManager] New account detected: C7xKBICjBaeibmkmfYN8
+[SessionManager] New account detected: C9mLWO3s3nx5ckQBlmUE
+[SessionManager] New account detected: K22D5aEwi4PHCDw94E1l
+[SessionManager] New account detected: LKvZfsJMz7IO8dBLuotj
+[SessionManager] New account detected: XANaSkgQzW5Z1VfmIvCs
+[SessionManager] New account detected: ZHRI9O3O3Lx6yRWzqOWg
+[SessionManager] New account detected: Ztj2SRhRWAflLQh7iVi5
+[SessionManager] New account detected: hQtWagPAA490T7FD3vdb
+[SessionManager] New account detected: vWPV8yMvNyCab1kl5S0U
+[SessionManager] Starting 3WNp31pw5MEZJa4peUut () using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting 7ei5E0SiunhP686M0EVX (Animaparty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting 7MXiCIPXm1ZGeXxk5X58 (DivertixParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting C9mLWO3s3nx5ckQBlmUE (SweetParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting K22D5aEwi4PHCDw94E1l (Wow party) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting LKvZfsJMz7IO8dBLuotj (PinkyParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting ZHRI9O3O3Lx6yRWzqOWg (SuperParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting vWPV8yMvNyCab1kl5S0U (Epic Parti) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting hQtWagPAA490T7FD3vdb (Galaxy Party) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting Ztj2SRhRWAflLQh7iVi5 (Kassy) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting C7xKBICjBaeibmkmfYN8 (MegaParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting XANaSkgQzW5Z1VfmIvCs (HappyParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] 3WNp31pw5MEZJa4peUut NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] ZHRI9O3O3Lx6yRWzqOWg CONNECTED
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 CONNECTED
+[SessionManager] hQtWagPAA490T7FD3vdb CONNECTED
+[SessionManager] C7xKBICjBaeibmkmfYN8 CONNECTED
+[SessionManager] Ztj2SRhRWAflLQh7iVi5 CONNECTED
+[SessionManager] LKvZfsJMz7IO8dBLuotj CONNECTED
+[SessionManager] vWPV8yMvNyCab1kl5S0U CONNECTED
+[SessionManager] XANaSkgQzW5Z1VfmIvCs CONNECTED
+[SessionManager] C9mLWO3s3nx5ckQBlmUE CONNECTED
+[SessionManager] K22D5aEwi4PHCDw94E1l CONNECTED
+{"level":40,"time":1772016755409,"pid":114195,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772016755413,"pid":114195,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772016755464,"pid":114195,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772016755620,"pid":114195,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772016755625,"pid":114195,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772016755669,"pid":114195,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772016755674,"pid":114195,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772016755736,"pid":114195,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772016755866,"pid":114195,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772016756103,"pid":114195,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+[HTTP] GET /status
+SIGINT received. Saving store...
+🔥 Firestore Initialized (from local file) ./firebase-service-account.json
+[SessionManager] Initializing...
+API Server running on port 3001
+[SessionManager] New account detected: 7MXiCIPXm1ZGeXxk5X58
+[SessionManager] New account detected: 7ei5E0SiunhP686M0EVX
+[SessionManager] New account detected: C7xKBICjBaeibmkmfYN8
+[SessionManager] New account detected: C9mLWO3s3nx5ckQBlmUE
+[SessionManager] New account detected: K22D5aEwi4PHCDw94E1l
+[SessionManager] New account detected: LKvZfsJMz7IO8dBLuotj
+[SessionManager] New account detected: XANaSkgQzW5Z1VfmIvCs
+[SessionManager] New account detected: ZHRI9O3O3Lx6yRWzqOWg
+[SessionManager] New account detected: Ztj2SRhRWAflLQh7iVi5
+[SessionManager] New account detected: hQtWagPAA490T7FD3vdb
+[SessionManager] New account detected: vWPV8yMvNyCab1kl5S0U
+[SessionManager] Starting 7ei5E0SiunhP686M0EVX (Animaparty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting C9mLWO3s3nx5ckQBlmUE (SweetParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting 7MXiCIPXm1ZGeXxk5X58 (DivertixParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting K22D5aEwi4PHCDw94E1l (Wow party) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting C7xKBICjBaeibmkmfYN8 (MegaParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting ZHRI9O3O3Lx6yRWzqOWg (SuperParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting Ztj2SRhRWAflLQh7iVi5 (Kassy) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting hQtWagPAA490T7FD3vdb (Galaxy Party) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting LKvZfsJMz7IO8dBLuotj (PinkyParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting XANaSkgQzW5Z1VfmIvCs (HappyParty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] Starting vWPV8yMvNyCab1kl5S0U (Epic Parti) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] 7MXiCIPXm1ZGeXxk5X58 CONNECTED
+[SessionManager] Ztj2SRhRWAflLQh7iVi5 CONNECTED
+[SessionManager] C9mLWO3s3nx5ckQBlmUE CONNECTED
+[SessionManager] C7xKBICjBaeibmkmfYN8 CONNECTED
+[SessionManager] ZHRI9O3O3Lx6yRWzqOWg CONNECTED
+[SessionManager] vWPV8yMvNyCab1kl5S0U CONNECTED
+[SessionManager] hQtWagPAA490T7FD3vdb CONNECTED
+[SessionManager] K22D5aEwi4PHCDw94E1l CONNECTED
+[SessionManager] XANaSkgQzW5Z1VfmIvCs CONNECTED
+[SessionManager] LKvZfsJMz7IO8dBLuotj CONNECTED
+[HTTP] GET /status
+{"level":40,"time":1772016839370,"pid":114335,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772016839660,"pid":114335,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772016839666,"pid":114335,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772016839667,"pid":114335,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772016839678,"pid":114335,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772016839713,"pid":114335,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772016839902,"pid":114335,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772016839973,"pid":114335,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772016840148,"pid":114335,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+{"level":40,"time":1772016840291,"pid":114335,"hostname":"Whats","msg":"Timeout in AwaitingInitialSync, forcing state to Online and flushing buffer"}
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+[SessionManager] 7ei5E0SiunhP686M0EVX NEEDS QR
+{"level":50,"time":1772016968715,"pid":114335,"hostname":"Whats","fullErrorNode":{"tag":"stream:error","attrs":{"code":"515"}},"msg":"stream errored out"}
+[SessionManager] 7ei5E0SiunhP686M0EVX CLOSED. Reason: 515
+[SessionManager] 7ei5E0SiunhP686M0EVX Reconnecting...
+[SessionManager] Starting 7ei5E0SiunhP686M0EVX (Animaparty) using WA v2.3000.1033846690, isLatest: true
+[SessionManager] 7ei5E0SiunhP686M0EVX CONNECTED
+[syncMessageToFirestore] Syncing message: A5E6F69EB79E6EE4899EEAE9518B7EE6 to convo: 40792864811@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: A56C695611CEE6E6420EB9DF0D79E66C to convo: 40792864811@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: A526AE999408C6FB10D501165265C342 to convo: 40792864811@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: A54ED52B987B1ED53D269ABAFD4141A1 to convo: 40792864811@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: A5BBCEB05CD09D4F27C9142C58E05FB1 to convo: 40792864811@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: A5D6030897E89D9DFB042435883DE541 to convo: 40792864811@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: A5741F8E472F167021AF5B244816FED2 to convo: 40792864811@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: A5B6A0CC04B81505434767FDB1FC0E35 to convo: 40792864811@s.whatsapp.net
+[syncMessageToFirestore] Syncing message: 3A3D8A4ED392A1DA29D9 to convo: 235901095510199@lid
+Doing contacts.upsert for 657 contacts
+[HTTP] POST /
+SIGINT received. Saving store...

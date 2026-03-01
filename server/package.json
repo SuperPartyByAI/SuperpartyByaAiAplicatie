@@ -1,0 +1,103 @@
+{
+  "name": "superparty-perfect-monitor",
+  "version": "4.0.0",
+  "type": "module",
+  "description": "PERFECT monitoring: AI prediction, multi-region, <30s downtime/month, 90% prevention",
+  "main": "monitoring/multi-project-monitor.js",
+  "scripts": {
+    "start": "node railway-monitor/v7-start.js",
+    "start:v7": "node railway-monitor/v7-start.js",
+    "start:multi": "node monitoring/multi-project-monitor.js",
+    "start:perfect": "node monitoring/perfect-monitor.js",
+    "start:ultimate": "node monitoring/ultimate-monitor.js",
+    "start:extreme": "node monitoring/extreme-monitor.js",
+    "start:normal": "node monitoring/ultra-fast-monitor.js",
+    "smoke:run": "node tools/smoke_run_emulator.js",
+    "smoke:server": "node tools/smoke_server.js",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "test:coverage": "jest --coverage",
+    "test:integration": "node monitoring/test-recovery.js",
+    "demo": "node monitoring/demo-auto-repair.js",
+    "chaos": "node -e \"const UltimateMonitor = require('./monitoring/ultimate-monitor'); const m = new UltimateMonitor(); m.runChaosTest();\"",
+    "ci:status": "./scripts/ci-status.sh",
+    "migrate:evenimente:v2": "node scripts/migrate_evenimente_schema_v2.js",
+    "migrate:evenimente:v2:dry": "DRY_RUN=true node scripts/migrate_evenimente_schema_v2.js",
+    "lint": "eslint functions/",
+    "lint:fix": "eslint functions/ --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "prepare": "husky",
+    "emulators": "firebase.cmd emulators:start --config .\\firebase.json --only firestore,functions,auth --project demo-test",
+    "emu": "npm run emulators",
+    "emu:android": "powershell.exe -ExecutionPolicy Bypass -File tools\\run_emulators.ps1",
+    "emu:fix": "tools\\fix_local_emulators_windows.cmd",
+    "emu:check": "powershell.exe -ExecutionPolicy Bypass -NoProfile -File scripts\\check_emu_ports.ps1",
+    "seed:emu": "node tools/seed_firestore.js --emulator --project demo-test",
+    "functions:build": "cd functions && npm.cmd ci && npm.cmd run build",
+    "functions:deploy": "cd functions && npm.cmd run build && firebase.cmd deploy --only functions",
+    "rules:deploy": "firebase.cmd deploy --only firestore:rules"
+  },
+  "dependencies": {
+    "@logtail/node": "^0.5.6",
+    "@logtail/pino": "^0.5.7",
+    "@sentry/node": "^10.40.0",
+    "@sentry/profiling-node": "^10.32.1",
+    "@whiskeysockets/baileys": "^7.0.0-rc.9",
+    "axios": "^1.6.0",
+    "cors": "^2.8.6",
+    "express": "^4.18.2",
+    "firebase-admin": "^13.7.0",
+    "google-spreadsheet": "^5.2.0",
+    "googleapis": "^171.4.0",
+    "https-proxy-agent": "^7.0.6",
+    "ioredis": "^5.8.2",
+    "libphonenumber-js": "^1.12.38",
+    "multer": "^2.0.2",
+    "node-fetch": "^2.6.7",
+    "pino": "^10.3.1",
+    "prom-client": "^15.1.3",
+    "qrcode": "^1.5.4",
+    "qrcode-terminal": "^0.12.0",
+    "socket.io": "^4.8.3",
+    "socks-proxy-agent": "^8.0.5",
+    "twilio": "^5.12.2"
+  },
+  "engines": {
+    "node": ">=14.0.0"
+  },
+  "keywords": [
+    "monitoring",
+    "auto-repair",
+    "self-healing",
+    "intelligent",
+    "ai-prediction",
+    "multi-region",
+    "distributed",
+    "chaos-engineering",
+    "canary-deployment",
+    "perfect"
+  ],
+  "devDependencies": {
+    "@eslint/js": "^9.39.2",
+    "@types/jest": "^30.0.0",
+    "@types/node": "^25.0.3",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-prettier": "^5.5.4",
+    "husky": "^9.1.7",
+    "jest": "^30.2.0",
+    "lint-staged": "^16.2.7",
+    "prettier": "^3.7.4",
+    "typescript": "^5.9.3"
+  },
+  "lint-staged": {
+    "*.js": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{json,md}": [
+      "prettier --write"
+    ]
+  }
+}

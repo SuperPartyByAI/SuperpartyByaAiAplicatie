@@ -1,0 +1,9 @@
+torch
+TTS
+flask
+gunicorn
+numpy
+scipy
+librosa
+soundfile
+pydub

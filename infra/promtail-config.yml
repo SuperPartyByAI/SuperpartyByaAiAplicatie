@@ -1,0 +1,76 @@
+# Promtail Configuration
+# Colectează logs de la: backend Node (JSON), Caddy access logs, system logs
+
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  # ─── Backend Node Logs (JSON structured, pino) ─────────────
+  - job_name: superparty-backend
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          service: superparty-backend
+          env: production
+          __path__: /opt/superparty/logs/*.log
+    pipeline_stages:
+      - json:
+          expressions:
+            level: level
+            msg: msg
+            requestId: requestId
+            method: method
+            url: url
+            statusCode: statusCode
+            duration: duration
+      - labels:
+          level:
+          requestId:
+      - timestamp:
+          source: time
+          format: RFC3339Nano
+
+  # ─── Caddy Access Logs (JSON) ──────────────────────────────
+  - job_name: caddy
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          service: caddy
+          env: production
+          __path__: /var/log/caddy/access.log
+    pipeline_stages:
+      - json:
+          expressions:
+            status: resp_headers.status
+            method: request.method
+            uri: request.uri
+            remote_ip: request.remote_ip
+            duration: duration
+      - labels:
+          status:
+          method:
+
+  # ─── System Logs (auth, syslog) ────────────────────────────
+  - job_name: system
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          service: system
+          env: production
+          __path__: /var/log/syslog
+      - targets:
+          - localhost
+        labels:
+          service: auth
+          env: production
+          __path__: /var/log/auth.log

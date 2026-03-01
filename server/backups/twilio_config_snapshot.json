@@ -1,0 +1,99 @@
+{
+  "timestamp": "2026-02-27T23:38:13.431Z",
+  "label": "WORKING_SNAPSHOT_voice_module",
+  "phoneNumbers": [
+    {
+      "phoneNumber": "+40373810882",
+      "sid": "PNfd32fed2a7836adbfc3e03779d34ce4f",
+      "voiceUrl": "http://46.225.182.127/api/voice/incoming",
+      "voiceMethod": "POST",
+      "statusCallback": "http://46.225.182.127/api/voice/status",
+      "statusCallbackMethod": "POST"
+    },
+    {
+      "phoneNumber": "+40373809672",
+      "sid": "PN0fe2dbfd5b3d9cedd928f53d090f0ba9",
+      "voiceUrl": "http://46.225.182.127/api/voice/incoming",
+      "voiceMethod": "POST",
+      "statusCallback": "http://46.225.182.127/api/voice/status",
+      "statusCallbackMethod": "POST"
+    },
+    {
+      "phoneNumber": "+12182204425",
+      "sid": "PN41e5fd83d27c3e43596807200511e99f",
+      "voiceUrl": "http://46.225.182.127/api/voice/incoming",
+      "voiceMethod": "POST",
+      "statusCallback": "http://46.225.182.127/api/voice/status",
+      "statusCallbackMethod": "POST"
+    },
+    {
+      "phoneNumber": "+40373812671",
+      "sid": "PN339fa3da30f8a6d4a07e8c4009e2d399",
+      "voiceUrl": "http://46.225.182.127/api/voice/incoming",
+      "voiceMethod": "POST",
+      "statusCallback": "http://46.225.182.127/api/voice/status",
+      "statusCallbackMethod": "POST"
+    },
+    {
+      "phoneNumber": "+40373816118",
+      "sid": "PN5087651aecb7403ca141a5c9fd4aec90",
+      "voiceUrl": "http://46.225.182.127/api/voice/incoming",
+      "voiceMethod": "POST",
+      "statusCallback": "http://46.225.182.127/api/voice/status",
+      "statusCallbackMethod": "POST"
+    },
+    {
+      "phoneNumber": "+40373805878",
+      "sid": "PNf0f8b98d6963f5208058addbcd7b3d0a",
+      "voiceUrl": "http://46.225.182.127/api/voice/incoming",
+      "voiceMethod": "POST",
+      "statusCallback": "http://46.225.182.127/api/voice/status",
+      "statusCallbackMethod": "POST"
+    },
+    {
+      "phoneNumber": "+40373806293",
+      "sid": "PNc4a3961d2492497931cb8b721a59aa74",
+      "voiceUrl": "http://46.225.182.127/api/voice/incoming",
+      "voiceMethod": "POST",
+      "statusCallback": "http://46.225.182.127/api/voice/status",
+      "statusCallbackMethod": "POST"
+    },
+    {
+      "phoneNumber": "+40373810093",
+      "sid": "PN24d4ac802125c80bcb59964a7f8b936f",
+      "voiceUrl": "http://46.225.182.127/api/voice/incoming",
+      "voiceMethod": "POST",
+      "statusCallback": "http://46.225.182.127/api/voice/status",
+      "statusCallbackMethod": "POST"
+    },
+    {
+      "phoneNumber": "+40373805657",
+      "sid": "PN14701a487913935a166d828846043419",
+      "voiceUrl": "http://46.225.182.127/api/voice/incoming",
+      "voiceMethod": "POST",
+      "statusCallback": "http://46.225.182.127/api/voice/status",
+      "statusCallbackMethod": "POST"
+    },
+    {
+      "phoneNumber": "+40373805828",
+      "sid": "PN88bbc95fa429e891b888239d729be124",
+      "voiceUrl": "http://46.225.182.127/api/voice/incoming",
+      "voiceMethod": "POST",
+      "statusCallback": "http://46.225.182.127/api/voice/status",
+      "statusCallbackMethod": "POST"
+    }
+  ],
+  "twimlApps": [
+    {
+      "sid": "APfb3fc62f3ecd536f4ce49de55382cd65",
+      "friendlyName": "Superparty Mobile VoIP",
+      "voiceUrl": "http://46.225.182.127/api/voice/incoming",
+      "voiceMethod": "POST"
+    }
+  ],
+  "envVars": {
+    "PUBLIC_URL": "http://46.225.182.127",
+    "TWIML_APP_SID": "APfb3fc62f3ecd536f4ce49de55382cd65",
+    "TWILIO_NUMBERS": "+40373810882,+40373809672,+12182204425,+40373812671,+40373816118,+40373805878,+40373806293,+40373810093,+40373805657,+40373805828"
+  }
+}

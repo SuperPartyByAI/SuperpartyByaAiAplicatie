@@ -1,0 +1,612 @@
+02-23 15:36:24.643 21248 21248 V ActivityThread: callActivityOnCreate
+02-23 15:36:24.718  2792 14930 I HnContentRegService: getWhiteActivityConfig: callingApp com.whatsapp
+02-23 15:36:24.722  1919  6468 D CoreBackPreview: Window{79bcf36 u0 com.whatsapp/com.whatsapp.Conversation}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@9968fa4, mPriority=0, mIsAnimationCallback=false}
+02-23 15:36:24.723  2792 14930 I HnContentRegService: getBlackActivityConfig: callingApp com.whatsapp
+02-23 15:36:24.726  2792 14930 I HnContentRegService: getBlackActivityConfig: no callingApp com.whatsapp
+02-23 15:36:24.840  1919  1952 V WindowManager:     startWCT=WindowContainerTransaction { changes = {} hops = [] errorCallbackToken=null taskFragmentOrganizer=null }
+02-23 15:36:24.867  1919  6468 I BLASTSyncEngine: transaction commit callback: 8110
+02-23 15:36:28.915  1919  1953 I TransitionController: first create transition: TransitionRecord{e7307de id=-1 type=OPEN flags=0x0}, caller: com.android.server.wm.ActivityStarter.executeRequest:1793 com.android.server.wm.HwActivityStarter.executeRequest:352 com.android.server.wm.ActivityStarter.execute:1001 com.android.server.wm.HwActivityStarter.execute:683 com.android.server.wm.ActivityStartController.startHomeActivity:227 
+02-23 15:36:28.915  1919  1953 I ActivityStarter: shouldShowFreeformWindow realCallingPackage = isRes= true rotation= 0 orientation = -1 isPortarait = false sourceRecord = null isMagicWin = false isForceRotation = false r.packageName = com.hihonor.android.launcher isAE= false sourceLaunchedFromPackage=  isInBlackList= false r.info = ActivityInfo{7a90e63 com.hihonor.android.launcher.unihome.UniHomeLauncher}
+02-23 15:36:28.919  1919  1953 W HwActivityTaskManagerServiceEx: setResumedActivityUncheckLocked start call, from: ActivityRecord{55feb0c u0 com.whatsapp/.Conversation t24755 mVisible=true mOccludesParent=true mode=fullscreen boundsRect(0, 0 - 720, 1612)}, to: ActivityRecord{c423c3f u0 com.hihonor.android.launcher/.unihome.UniHomeLauncher t5 mVisible=false mOccludesParent=true mode=fullscreen boundsRect(0, 0 - 720, 1612)}
+02-23 15:36:28.928  2822  2822 I ActivityThread: Performing restart of ActivityRecord{ec7fba3 token=android.os.BinderProxy@e4cd847 {com.hihonor.android.launcher/com.hihonor.android.launcher.unihome.UniHomeLauncher}} start=false callers:android.app.servertransaction.TransactionExecutor.performLifecycleSequence:264 android.app.servertransaction.TransactionExecutor.cycleToPath:219 android.app.servertransaction.TransactionExecutor.executeLifecycleState:191 android.app.servertransaction.TransactionExecutor.execute:106 android.app.ActivityThread$H.handleMessage:3078 android.os.Handler.dispatchMessage:117 android.os.Looper.loopOnce:210 android.os.Looper.loop:302 android.app.ActivityThread.main:9675 java.lang.reflect.Method.invoke:-2 
+02-23 15:36:28.931  1919  2122 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:36:29.015  1919  2122 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:36:29.036  1919  2019 I BLASTSyncEngine: transaction commit callback: 8111
+02-23 15:36:29.049  1919  1952 V WindowManager:     startWCT=WindowContainerTransaction { changes = {} hops = [] errorCallbackToken=null taskFragmentOrganizer=null }
+02-23 15:36:29.063  1919  2718 I HwAudioService: now type = 0,reportForegroundAppType = 28,pkg = null,systemload = 0VOIP_OPTIMIZE_IN_GAMEMODEfalse
+02-23 15:36:29.094  1919  2122 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:36:29.906  1919  2019 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:37:20.911  1919  2019 I PackageManager: setEnabledSetting pkg:com.android.vending, className:com.android.vending.AssetBrowserActivity, newState:1, flags:1, userId:0, CallingPid:24982, CallingUid:10140
+02-23 15:37:21.528  1919  6470 I PackageManager: setEnabledSetting pkg:com.android.vending, className:com.google.android.finsky.activities.DebugActivity, newState:2, flags:1, userId:0, CallingPid:24982, CallingUid:10140
+02-23 15:37:21.528  1919  2718 I PackageManager: setEnabledSetting pkg:com.android.vending, className:com.google.android.finsky.systemupdateactivity.SystemUpdateActivity, newState:2, flags:1, userId:0, CallingPid:24982, CallingUid:10140
+02-23 15:37:21.528  1919  6466 I PackageManager: setEnabledSetting pkg:com.android.vending, className:com.google.android.finsky.hibernation.impl.UnhibernateActivity, newState:1, flags:1, userId:0, CallingPid:24982, CallingUid:10140
+02-23 15:37:21.532  1919  2718 I PackageManager: setEnabledSetting pkg:com.android.vending, className:com.google.android.finsky.systemcomponentupdateui.common.SystemComponentUpdateActivity, newState:1, flags:1, userId:0, CallingPid:24982, CallingUid:10140
+02-23 15:37:22.885  1919  1974 I WindowManager: setSurfaceControl null, caller = com.android.server.wm.WindowContainer.removeImmediately:874 com.android.server.wm.WindowState.removeImmediately:3014 com.android.server.wm.WindowState.removeIfPossible:3189 com.android.server.wm.WindowToken.removeAllWindowsIfPossible:293 com.android.server.wm.ActivityRecord.removeIfPossible:5459 com.android.server.wm.ActivityRecord.onRemovedFromDisplay:5547 com.android.server.wm.DisplayContent.removeAppToken:1835 com.android.server.wm.ActivityRecord.removeFromHistory:5133 com.android.server.wm.ActivityRecord.handleAppDied:5434 com.android.server.wm.WindowProcessController.handleAppDied:1524 
+02-23 15:37:23.084  1919  1974 I WindowManager: setSurfaceControl null, caller = com.android.server.wm.ActivityRecord.setSurfaceControl:2183 com.android.server.wm.WindowContainer.removeImmediately:874 com.android.server.wm.WindowToken.removeImmediately:413 com.android.server.wm.ActivityRecord.removeImmediately:5453 com.android.server.wm.ActivityRecord.removeIfPossible:5460 com.android.server.wm.ActivityRecord.onRemovedFromDisplay:5547 com.android.server.wm.DisplayContent.removeAppToken:1835 com.android.server.wm.ActivityRecord.removeFromHistory:5133 com.android.server.wm.ActivityRecord.handleAppDied:5434 com.android.server.wm.WindowProcessController.handleAppDied:1524 
+02-23 15:37:23.090  1919  1974 I WindowManager: setSurfaceControl null, caller = com.android.server.wm.TaskFragment.setSurfaceControl:3124 com.android.server.wm.Task.setSurfaceControl:5814 com.android.server.wm.WindowContainer.removeImmediately:874 com.android.server.wm.TaskFragment.removeImmediately:3444 com.android.server.wm.Task.removeImmediately:3739 com.android.server.wm.Task.removeIfPossible:1123 com.android.server.wm.Task.removeChild:2046 com.android.server.wm.Task.removeChild:1989 com.android.server.wm.WindowContainer.removeImmediately:887 com.android.server.wm.WindowToken.removeImmediately:413 
+02-23 15:37:23.091  1919  1974 I removeFromHistory: ActivityRecord{3a6fb4d u0 com.superpartybyai.app/.MainActivity t-1 f} mVisible=false mOccludesParent=true mode=fullscreen boundsRect(0, 0 - 720, 1612)} reason appDied Callers=com.android.server.wm.ActivityRecord.handleAppDied:5434 com.android.server.wm.WindowProcessController.handleAppDied:1524 com.android.server.wm.ActivityTaskManagerService$LocalService.handleAppDied:7561 com.android.server.am.ActivityManagerService.handleAppDiedLocked:3728 com.android.server.am.ProcessList.removeProcessLocked:3427 com.android.server.am.ProcessList.killPackageProcessesLSP:3282 com.android.server.am.ActivityManagerService.forceStopPackageLocked:4823 com.android.server.am.ActivityManagerService$MainHandler.handleMessage:2093 
+02-23 15:37:23.143  1919  1955 W ActivityManager: setHasOverlayUi called on unknown pid: 20011
+02-23 15:37:23.191  1919  2020 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:37:23.193  1919  3089 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:37:23.194  1919  3089 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:37:23.542  1919  2003 W ContextImpl: Calling a method in the system process without a qualified user: android.app.ContextImpl.sendBroadcast:1351 com.android.server.pm.HwPackageManagerServiceExImpl.parseInstalledPkgInfo:5055 com.android.server.pm.InstallPackageHelper.parseInstalledPkgInfo:3665 com.android.server.pm.InstallPackageHelper.handlePackagePostInstall:3624 com.android.server.pm.PackageHandler.doHandleMessage:100 
+02-23 15:37:23.640  1919  2151 I HwUninstalledAppManager: getScanInstallList, calling UserId:0, callingUid = 1000, callingPid =  1919
+02-23 15:37:23.719  1919  2495 D PackageManager: PackageManagerNative getApplicationType callingAppId: 0
+02-23 15:37:23.799  1919  2151 I HwUninstalledAppManager: getScanInstallList, calling UserId:0, callingUid = 1000, callingPid =  1919
+02-23 15:37:23.857  2805  2936 W ContextImpl: Calling a method in the system process without a qualified user: android.app.ContextImpl.bindService:2124 android.content.ContextWrapper.bindService:861 com.hihonor.securityserver.d.a:23 com.hihonor.securityserver.e.b:6 com.hihonor.securityserver.e.a:1 
+02-23 15:37:24.057  1919  1941 I ContentProviderHelper: Need to start process com.hihonor.dsdscardmanager for provider ContentProviderInfo{name=com.hihonor.dsdscardmanager.db.PriorityAppProvider className=com.hihonor.dsdscardmanager.database.provider.PriorityAppProvider}, callerApp: ProcessRecord{bdba9b0 2792:com.hihonor.systemserver/1000}
+02-23 15:37:24.095  2792  3731 W ContextImpl: Calling a method in the system process without a qualified user: android.app.ContextImpl.bindService:2124 android.content.ContextWrapper.bindService:861 com.hihonor.systemserver.searchservice.connect.RemoteServiceConnection.open:137 com.hihonor.systemserver.searchservice.connect.NotifyServiceConnector.connect:48 com.hihonor.systemserver.searchservice.connect.NotifyServiceClient.checkConnection:55 
+02-23 15:37:24.188  9202  9202 W ContextImpl: Calling a method in the system process without a qualified user: android.app.ContextImpl.startService:2035 android.content.ContextWrapper.startService:825 android.content.ContextWrapper.startService:825 com.android.settings.applications.BlackListReceiver.onReceive:104 android.app.ActivityThread.handleReceiver:5349 
+02-23 15:37:24.292  1919  2495 I HwUninstalledAppManager: getScanInstallList, calling UserId:0, callingUid = 1000, callingPid =  23613
+02-23 15:37:24.311  1919  2718 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:37:24.322  1919  1955 W ActivityManager: setHasOverlayUi called on unknown pid: 23501
+02-23 15:37:24.351  2463  2463 W ContextImpl: Calling a method in the system process without a qualified user: android.app.ContextImpl.startService:2035 android.content.ContextWrapper.startService:825 android.content.ContextWrapper.startService:825 com.hihonor.antivirus.utils.AntiVirusTools.deleteVirusApk:1098 com.hihonor.antivirus.AntiVirusReceiver.onReceive:65 
+02-23 15:37:24.614  2463  5859 W ContextImpl: Calling a method in the system process without a qualified user: android.app.ContextImpl.startService:2035 android.content.ContextWrapper.startService:825 com.hihonor.systemmanager.spacecleanner.receiver.SpaceCleanReceiver.doInBackground:266 java.lang.reflect.Method.invoke:-2 com.bumptech.glide.g.V:16 
+02-23 15:37:24.615  2463 16603 W ContextImpl: Calling a method in the system process without a qualified user: android.app.ContextImpl.startService:2035 android.content.ContextWrapper.startService:825 com.hihonor.systemmanager.spacecleanner.receiver.SpaceCleanReceiver.doInBackground:266 java.lang.reflect.Method.invoke:-2 com.bumptech.glide.g.V:16 
+02-23 15:37:24.616  2463  2463 W ContextImpl: Calling a method in the system process without a qualified user: android.app.ContextImpl.startService:2035 android.content.ContextWrapper.startService:825 android.content.ContextWrapper.startService:825 com.hihonor.antivirus.utils.AntiVirusTools.checkVirusForNewInstalledApk:1075 com.hihonor.antivirus.AntiVirusReceiver.onReceive:54 
+02-23 15:37:24.633  2463  2463 W ContextImpl: Calling a method in the system process without a qualified user: android.app.ContextImpl.startService:2035 android.content.ContextWrapper.startService:825 com.hihonor.antivirus.AntiVirusService.handleInstalledApkCheck:250 com.hihonor.antivirus.AntiVirusService.onStartCommand:173 android.app.ActivityThread.handleServiceArgs:5735 
+02-23 15:37:24.666  1919  3556 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:37:24.668  1919  4712 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:37:24.669  1919  4712 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:37:24.720  9202  9202 W ContextImpl: Calling a method in the system process without a qualified user: android.app.ContextImpl.startService:2035 android.content.ContextWrapper.startService:825 android.content.ContextWrapper.startService:825 com.android.settings.applications.BlackListReceiver.onReceive:104 android.app.ActivityThread.handleReceiver:5349 
+02-23 15:37:24.753  9202  9202 W ContextImpl: Calling a method in the system process without a qualified user: android.app.ContextImpl.startService:2035 android.content.ContextWrapper.startService:825 android.content.ContextWrapper.startService:825 com.android.settings.applications.BlackListReceiver.onReceive:104 android.app.ActivityThread.handleReceiver:5349 
+02-23 15:37:25.231  1919  2718 I UsageStatsService: queryEvents beginTime:1771853702339 endTime:1771853845221 callingPackage:com.google.android.gms flags:15
+02-23 15:37:25.326 25242 25307 W ModemPowerProfile: getAverageBatteryDrainMaH called with unexpected key: 0x0, drain:SLEEP,RAT:DEFAULT
+02-23 15:37:25.326 25242 25307 W ModemPowerProfile: getAverageBatteryDrainMaH called with unexpected key: 0x10000000, drain:IDLE,RAT:DEFAULT
+02-23 15:37:25.326 25242 25307 W ModemPowerProfile: getAverageBatteryDrainMaH called with unexpected key: 0x20000000, drain:RX,RAT:DEFAULT
+02-23 15:37:25.326 25242 25307 W ModemPowerProfile: getAverageBatteryDrainMaH called with unexpected key: 0x30000000, drain:TX,level:0,RAT:DEFAULT
+02-23 15:37:25.326 25242 25307 W ModemPowerProfile: getAverageBatteryDrainMaH called with unexpected key: 0x31000000, drain:TX,level:1,RAT:DEFAULT
+02-23 15:37:25.326 25242 25307 W ModemPowerProfile: getAverageBatteryDrainMaH called with unexpected key: 0x32000000, drain:TX,level:2,RAT:DEFAULT
+02-23 15:37:25.326 25242 25307 W ModemPowerProfile: getAverageBatteryDrainMaH called with unexpected key: 0x33000000, drain:TX,level:3,RAT:DEFAULT
+02-23 15:37:25.326 25242 25307 W ModemPowerProfile: getAverageBatteryDrainMaH called with unexpected key: 0x34000000, drain:TX,level:4,RAT:DEFAULT
+02-23 15:37:25.335 25242 25242 W ContextImpl: Calling a method in the system process without a qualified user: android.app.ContextImpl.startService:2035 android.content.ContextWrapper.startService:825 com.hihonor.antivirus.AntivirusPluginEx.init:69 com.hihonor.securitycenter.antivirus.plugin.AntivirusPluginHelper.init:44 com.hihonor.securitycenter.antivirus.AntivirusModule.startAntivirusService:21 
+02-23 15:37:25.335 25274 25274 W ContextImpl: Calling a method in the system process without a qualified user: android.app.ContextImpl.startService:2035 android.content.ContextWrapper.startService:825 com.hihonor.antivirus.AntivirusPluginEx.init:69 com.hihonor.securitycenter.antivirus.plugin.AntivirusPluginHelper.init:44 com.hihonor.securitycenter.antivirus.AntivirusModule.startAntivirusService:21 
+02-23 15:37:25.354 25274 25274 W ContextImpl: Calling a method in the system process without a qualified user: android.app.ContextImpl.startService:2035 android.content.ContextWrapper.startService:825 com.hihonor.securitycentersdk.SecurityCenterContext.startHwSecService:10 com.hihonor.securitycentersdk.SecurityCenterContext.startServices:0 com.hihonor.securitycentersdk.SecurityCenterContext.inject:7 
+02-23 15:37:25.354 25242 25242 W ContextImpl: Calling a method in the system process without a qualified user: android.app.ContextImpl.startService:2035 android.content.ContextWrapper.startService:825 com.hihonor.securitycentersdk.SecurityCenterContext.startHwSecService:10 com.hihonor.securitycentersdk.SecurityCenterContext.startServices:0 com.hihonor.securitycentersdk.SecurityCenterContext.inject:7 
+02-23 15:37:25.373  1919  2495 I UsageStatsService: queryEvents beginTime:1771853845221 endTime:1771853845368 callingPackage:com.google.android.gms flags:15
+02-23 15:37:25.422 25274 25332 W ContextImpl: Calling a method in the system process without a qualified user: android.app.ContextImpl.bindService:2124 com.hihonor.antivirus.features.plugin.PluginAntivirusEngineManager.bindPluginService:108 com.hihonor.antivirus.features.plugin.PluginAntivirusEngineManager.getPluginEngineBinder:66 com.hihonor.antivirus.features.engine.TrustLookAntivirusEngine.checkPluginAntivirusEngine:272 com.hihonor.antivirus.features.engine.TrustLookAntivirusEngine.<init>:40 
+02-23 15:37:25.736  1919  3573 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:37:25.738  1919  2322 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:37:25.740  1919  2496 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:37:26.109  1919  2495 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:37:26.111  1919  3558 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:37:26.579  1919  2718 W ActivityTaskManager: callingPackage for (uid=2000, pid=25136) has no WPC
+02-23 15:37:26.590  1919  2718 I TransitionController: first create transition: TransitionRecord{9ee9a74 id=-1 type=OPEN flags=0x0}, caller: com.android.server.wm.ActivityStarter.executeRequest:1793 com.android.server.wm.HwActivityStarter.executeRequest:352 com.android.server.wm.ActivityStarter.execute:1001 com.android.server.wm.HwActivityStarter.execute:683 com.android.server.wm.ActivityTaskManagerService.startActivityAsUser:1565 
+02-23 15:37:26.590  1919  2718 I ActivityStarter: shouldShowFreeformWindow realCallingPackage = isRes= true rotation= 0 orientation = -1 isPortarait = false sourceRecord = null isMagicWin = false isForceRotation = false r.packageName = com.superpartybyai.app isAE= false sourceLaunchedFromPackage=  isInBlackList= false r.info = ActivityInfo{354a9c8 com.superpartybyai.app.MainActivity}
+02-23 15:37:26.657  1919  3558 D CoreBackPreview: Window{26a14f8 u0 Splash Screen com.superpartybyai.app}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@ee433d3, mPriority=0, mIsAnimationCallback=false}
+02-23 15:37:26.694  1919  1956 D TaskOrganizerController: onTaskAppeared add task: Task{75f4b9d #24758 type=standard I=com.superpartybyai.app/.MainActivity} called by :com.android.server.wm.Task.sendTaskAppeared:5728 com.android.server.wm.Task.setDeferTaskAppear:5697 com.android.server.wm.Transition.commitVisibleActivities:2358 com.android.server.wm.Transition.onTransactionReady:1917 com.android.server.wm.BLASTSyncEngine$SyncGroup.finishNow:388 com.android.server.wm.BLASTSyncEngine$SyncGroup.tryFinish:258 com.android.server.wm.BLASTSyncEngine$SyncGroup.-$$Nest$mtryFinish:0 com.android.server.wm.BLASTSyncEngine.onSurfacePlacement:736 
+02-23 15:37:26.708  1919  1952 V WindowManager:     startWCT=WindowContainerTransaction { changes = {} hops = [] errorCallbackToken=null taskFragmentOrganizer=null }
+02-23 15:37:26.754  1919  3558 I BLASTSyncEngine: transaction commit callback: 8112
+02-23 15:37:26.849  1919  2122 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:37:26.851  1919  2122 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:37:26.886  1919  2495 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:37:26.888  1919  2322 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:37:26.907  1919  2322 E WindowManager: check permission error, current package is com.superpartybyai.app , it is not systemApp, callers is com.hihonor.android.view.IHwWindowManager$Stub.onTransact:1227 android.os.Binder.execTransactInternal:1366 android.os.Binder.execTransact:1310 <bottom of call stack> <bottom of call stack> <bottom of call stack> <bottom of call stack> <bottom of call stack> <bottom of call stack> <bottom of call stack> 
+02-23 15:37:26.932  2664  2993 W ContextImpl: Calling a method in the system process without a qualified user: android.app.ContextImpl.sendBroadcast:1366 android.content.ContextWrapper.sendBroadcast:509 com.hihonor.iaware.userhabit.recog.NRTAppTypeRecogManager.reportAppTypeUpdate:901 com.hihonor.iaware.userhabit.recog.NRTAppTypeRecogManager.addAppType:515 com.hihonor.iaware.userhabit.recog.NRTAppTypeRecogManager.recoAppType:199 
+02-23 15:37:26.942  1919  2718 I HwAudioService: now type = 28,reportForegroundAppType = -1,pkg = null,systemload = 28VOIP_OPTIMIZE_IN_GAMEMODEfalse
+02-23 15:37:27.784 25410 25410 V ActivityThread: callActivityOnCreate
+02-23 15:37:29.560  1919  2122 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:37:29.561  1919  2122 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:37:29.871  1919  2019 D CoreBackPreview: Window{bdb87f5 u0 com.superpartybyai.app/com.superpartybyai.app.MainActivity}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@c1b3951, mPriority=0, mIsAnimationCallback=false}
+02-23 15:37:29.878  1919  2122 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:37:29.903 25410 25410 W ViewTreeObserver: onPreDraw return false io.flutter.embedding.android.FlutterActivityAndFragmentDelegate$2@70815f8
+02-23 15:37:30.175 25410 25410 W ViewTreeObserver: onPreDraw return false io.flutter.embedding.android.FlutterActivityAndFragmentDelegate$2@70815f8
+02-23 15:37:30.211 25410 25410 W ViewTreeObserver: onPreDraw return false io.flutter.embedding.android.FlutterActivityAndFragmentDelegate$2@70815f8
+02-23 15:37:30.226 25410 25410 W ViewTreeObserver: onPreDraw return false io.flutter.embedding.android.FlutterActivityAndFragmentDelegate$2@70815f8
+02-23 15:37:30.243 25410 25410 W ViewTreeObserver: onPreDraw return false io.flutter.embedding.android.FlutterActivityAndFragmentDelegate$2@70815f8
+02-23 15:37:30.259 25410 25410 W ViewTreeObserver: onPreDraw return false io.flutter.embedding.android.FlutterActivityAndFragmentDelegate$2@70815f8
+02-23 15:37:30.276 25410 25410 W ViewTreeObserver: onPreDraw return false io.flutter.embedding.android.FlutterActivityAndFragmentDelegate$2@70815f8
+02-23 15:37:30.292 25410 25410 W ViewTreeObserver: onPreDraw return false io.flutter.embedding.android.FlutterActivityAndFragmentDelegate$2@70815f8
+02-23 15:37:30.309 25410 25410 W ViewTreeObserver: onPreDraw return false io.flutter.embedding.android.FlutterActivityAndFragmentDelegate$2@70815f8
+02-23 15:37:30.326 25410 25410 W ViewTreeObserver: onPreDraw return false io.flutter.embedding.android.FlutterActivityAndFragmentDelegate$2@70815f8
+02-23 15:37:30.342 25410 25410 W ViewTreeObserver: onPreDraw return false io.flutter.embedding.android.FlutterActivityAndFragmentDelegate$2@70815f8
+02-23 15:37:30.359 25410 25410 W ViewTreeObserver: onPreDraw return false io.flutter.embedding.android.FlutterActivityAndFragmentDelegate$2@70815f8
+02-23 15:37:30.376 25410 25410 W ViewTreeObserver: onPreDraw return false io.flutter.embedding.android.FlutterActivityAndFragmentDelegate$2@70815f8
+02-23 15:37:30.392 25410 25410 W ViewTreeObserver: onPreDraw return false io.flutter.embedding.android.FlutterActivityAndFragmentDelegate$2@70815f8
+02-23 15:37:30.409 25410 25410 W ViewTreeObserver: onPreDraw return false io.flutter.embedding.android.FlutterActivityAndFragmentDelegate$2@70815f8
+02-23 15:37:30.425 25410 25410 W ViewTreeObserver: onPreDraw return false io.flutter.embedding.android.FlutterActivityAndFragmentDelegate$2@70815f8
+02-23 15:37:30.442 25410 25410 W ViewTreeObserver: onPreDraw return false io.flutter.embedding.android.FlutterActivityAndFragmentDelegate$2@70815f8
+02-23 15:37:30.459 25410 25410 W ViewTreeObserver: onPreDraw return false io.flutter.embedding.android.FlutterActivityAndFragmentDelegate$2@70815f8
+02-23 15:37:30.475 25410 25410 W ViewTreeObserver: onPreDraw return false io.flutter.embedding.android.FlutterActivityAndFragmentDelegate$2@70815f8
+02-23 15:37:30.492 25410 25410 W ViewTreeObserver: onPreDraw return false io.flutter.embedding.android.FlutterActivityAndFragmentDelegate$2@70815f8
+02-23 15:37:30.508 25410 25410 W ViewTreeObserver: onPreDraw return false io.flutter.embedding.android.FlutterActivityAndFragmentDelegate$2@70815f8
+02-23 15:37:30.525 25410 25410 W ViewTreeObserver: onPreDraw return false io.flutter.embedding.android.FlutterActivityAndFragmentDelegate$2@70815f8
+02-23 15:37:30.542 25410 25410 W ViewTreeObserver: onPreDraw return false io.flutter.embedding.android.FlutterActivityAndFragmentDelegate$2@70815f8
+02-23 15:37:30.559 25410 25410 W ViewTreeObserver: onPreDraw return false io.flutter.embedding.android.FlutterActivityAndFragmentDelegate$2@70815f8
+02-23 15:37:30.576 25410 25410 W ViewTreeObserver: onPreDraw return false io.flutter.embedding.android.FlutterActivityAndFragmentDelegate$2@70815f8
+02-23 15:37:30.592 25410 25410 W ViewTreeObserver: onPreDraw return false io.flutter.embedding.android.FlutterActivityAndFragmentDelegate$2@70815f8
+02-23 15:37:30.608 25410 25410 W ViewTreeObserver: onPreDraw return false io.flutter.embedding.android.FlutterActivityAndFragmentDelegate$2@70815f8
+02-23 15:37:30.625 25410 25410 W ViewTreeObserver: onPreDraw return false io.flutter.embedding.android.FlutterActivityAndFragmentDelegate$2@70815f8
+02-23 15:37:30.642 25410 25410 W ViewTreeObserver: onPreDraw return false io.flutter.embedding.android.FlutterActivityAndFragmentDelegate$2@70815f8
+02-23 15:37:30.658 25410 25410 W ViewTreeObserver: onPreDraw return false io.flutter.embedding.android.FlutterActivityAndFragmentDelegate$2@70815f8
+02-23 15:37:30.675 25410 25410 W ViewTreeObserver: onPreDraw return false io.flutter.embedding.android.FlutterActivityAndFragmentDelegate$2@70815f8
+02-23 15:37:30.692 25410 25410 W ViewTreeObserver: onPreDraw return false io.flutter.embedding.android.FlutterActivityAndFragmentDelegate$2@70815f8
+02-23 15:37:30.708 25410 25410 W ViewTreeObserver: onPreDraw return false io.flutter.embedding.android.FlutterActivityAndFragmentDelegate$2@70815f8
+02-23 15:37:30.725 25410 25410 W ViewTreeObserver: onPreDraw return false io.flutter.embedding.android.FlutterActivityAndFragmentDelegate$2@70815f8
+02-23 15:37:30.760 25410 25410 W ViewTreeObserver: onPreDraw return false io.flutter.embedding.android.FlutterActivityAndFragmentDelegate$2@70815f8
+02-23 15:37:30.775 25410 25410 W ViewTreeObserver: onPreDraw return false io.flutter.embedding.android.FlutterActivityAndFragmentDelegate$2@70815f8
+02-23 15:37:31.088  1919  2019 I PackageManager: setEnabledSetting pkg:com.android.vending, className:com.google.android.finsky.wearsupport.WearSupportService, newState:2, flags:1, userId:0, CallingPid:24982, CallingUid:10140
+02-23 15:37:31.089  1919  2019 I PackageManager: setEnabledSetting pkg:com.android.vending, className:com.google.android.finsky.wearsupport.WearChangeListenerService, newState:2, flags:1, userId:0, CallingPid:24982, CallingUid:10140
+02-23 15:37:31.746  1919  1942 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:37:31.747  1919  2327 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:37:31.748  1919  2327 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:37:32.995 25410 25410 W ViewTreeObserver: onPreDraw return false io.flutter.embedding.android.FlutterActivityAndFragmentDelegate$2@70815f8
+02-23 15:37:33.274 25410 25410 I VRI[MainActivity]: setLayoutParams: not fullscreen caller = android.view.WindowManagerGlobal.updateViewLayout:521 android.view.WindowManagerImpl.updateViewLayout:184 android.app.Activity.onWindowAttributesChanged:4408 android.view.Window.dispatchWindowAttributesChanged:1375 com.android.internal.policy.PhoneWindow.dispatchWindowAttributesChanged:3355 com.android.internal.policy.HwPhoneWindow.updateLayoutParamsColor:302 com.android.internal.policy.PhoneWindow.setNavigationBarColor:4183 io.flutter.plugin.platform.PlatformPlugin.setSystemChromeSystemUIOverlayStyle:503 io.flutter.plugin.platform.PlatformPlugin.access$700:36 io.flutter.plugin.platform.PlatformPlugin$1.setSystemUiOverlayStyle:123 
+02-23 15:37:33.361  1919  2322 I WindowManager: getHwWindowInformation callingUid = 0
+02-23 15:37:33.406  1919  2322 D HnPermissionUtil: callingPackage is empty for uid: 0
+02-23 15:37:33.508  1919  2322 D CoreBackPreview: Window{26a14f8 u0 Splash Screen com.superpartybyai.app EXITING}: Setting back callback null
+02-23 15:37:33.542  1919  3095 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:37:33.560  1919  1956 I WindowManager: setSurfaceControl null, caller = com.android.server.wm.WindowContainer.removeImmediately:874 com.android.server.wm.WindowState.removeImmediately:3014 com.android.server.wm.WindowState.destroySurface:4311 com.android.server.wm.WindowState.onExitAnimationDone:5952 com.android.server.wm.WindowStateAnimator.onAnimationFinished:250 com.android.server.wm.WindowState.onAnimationFinished:6241 com.android.server.wm.WindowContainer$$ExternalSyntheticLambda4.onAnimationFinished:0 com.android.server.wm.SurfaceAnimator.lambda$getFinishedCallback$0:166 com.android.server.wm.SurfaceAnimator.$r8$lambda$eYT7rjaBOE8bCIRq043wVzQ_RTM:0 com.android.server.wm.SurfaceAnimator$$ExternalSyntheticLambda1.run:0 
+02-23 15:37:40.913 25410 25410 W HwApsManager: HwApsManagerService, registerCallback, start !
+02-23 15:37:40.914  1919  3095 I HwApsManagerConfig: registerCallbackLocked success, pkgName:com.superpartybyai.app, callback_count:48
+02-23 15:37:40.914  1919  3095 I HwApsManagerConfig: doCallbackAtFirstRegisterLocked, start ! pkgName:com.superpartybyai.app
+02-23 15:37:43.825   633   659 D keystore2: system/security/keystore2/src/database.rs:1476 - caller_name:"com.superpartybyai.app" in with_transaction
+02-23 15:37:44.822   633   659 D keystore2: system/security/keystore2/src/database.rs:1476 - caller_name:"com.superpartybyai.app" in with_transaction
+02-23 15:37:44.861   633   659 D keystore2: system/security/keystore2/src/database.rs:1476 - caller_name:"com.superpartybyai.app" in with_transaction
+02-23 15:37:44.868   633 25677 D keystore2: system/security/keystore2/src/database.rs:1476 - caller_name:"/system/bin/keystore2" in with_transaction
+02-23 15:37:45.066   633   659 D keystore2: system/security/keystore2/src/database.rs:1476 - caller_name:"com.superpartybyai.app" in with_transaction
+02-23 15:37:45.074   633 25677 D keystore2: system/security/keystore2/src/database.rs:1476 - caller_name:"/system/bin/keystore2" in with_transaction
+02-23 15:37:53.744  1919  4714 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:37:53.754  1919  3568 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:37:53.754  1919  3568 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:37:53.755  1919  3568 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:38:14.774  1919  1942 I ClipboardService: callingPackage:com.superpartybyai.app, uid =10298, isDefaultDeviceFocusedWindow =true, isVirtualDeviceFocusedWindow =false
+02-23 15:38:26.161  1919  2716 I ClipboardService: callingPackage:com.superpartybyai.app, uid =10298, isDefaultDeviceFocusedWindow =true, isVirtualDeviceFocusedWindow =false
+02-23 15:38:27.879  1919  2716 I ClipboardService: callingPackage:com.superpartybyai.app, uid =10298, isDefaultDeviceFocusedWindow =true, isVirtualDeviceFocusedWindow =false
+02-23 15:38:29.924  1919  2716 I ClipboardService: callingPackage:com.superpartybyai.app, uid =10298, isDefaultDeviceFocusedWindow =true, isVirtualDeviceFocusedWindow =false
+02-23 15:38:32.070  1919  6470 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:38:32.073  1919  4714 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:38:32.074  1919  4714 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:38:32.129  1919  2019 I WindowManager: setSurfaceControl null, caller = com.android.server.wm.WindowContainer.removeImmediately:874 com.android.server.wm.WindowState.removeImmediately:3014 com.android.server.wm.WindowState.removeIfPossible:3189 com.android.server.wm.WindowState$DeathRecipient.binderDied:3836 android.os.IBinder$DeathRecipient.binderDied:329 android.os.BinderProxy.sendDeathNotice:749 <bottom of call stack> <bottom of call stack> <bottom of call stack> <bottom of call stack> 
+02-23 15:38:32.144  1919  1955 W ActivityManager: setHasOverlayUi called on unknown pid: 23348
+02-23 15:38:33.850  1919  1953 I TransitionController: first create transition: TransitionRecord{375928b id=-1 type=OPEN flags=0x0}, caller: com.android.server.wm.ActivityStarter.executeRequest:1793 com.android.server.wm.HwActivityStarter.executeRequest:352 com.android.server.wm.ActivityStarter.execute:1001 com.android.server.wm.HwActivityStarter.execute:683 com.android.server.wm.ActivityStartController.startHomeActivity:227 
+02-23 15:38:33.851  1919  1953 I ActivityStarter: shouldShowFreeformWindow realCallingPackage = isRes= true rotation= 0 orientation = -1 isPortarait = false sourceRecord = null isMagicWin = false isForceRotation = false r.packageName = com.hihonor.android.launcher isAE= false sourceLaunchedFromPackage=  isInBlackList= false r.info = ActivityInfo{496d77c com.hihonor.android.launcher.unihome.UniHomeLauncher}
+02-23 15:38:33.856  1919  1953 W HwActivityTaskManagerServiceEx: setResumedActivityUncheckLocked start call, from: ActivityRecord{480986 u0 com.superpartybyai.app/.MainActivity t24758 mVisible=true mOccludesParent=true mode=fullscreen boundsRect(0, 0 - 720, 1612)}, to: ActivityRecord{c423c3f u0 com.hihonor.android.launcher/.unihome.UniHomeLauncher t5 mVisible=false mOccludesParent=true mode=fullscreen boundsRect(0, 0 - 720, 1612)}
+02-23 15:38:33.871  1919  2122 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:38:33.873  2822  2822 I ActivityThread: Performing restart of ActivityRecord{ec7fba3 token=android.os.BinderProxy@e4cd847 {com.hihonor.android.launcher/com.hihonor.android.launcher.unihome.UniHomeLauncher}} start=false callers:android.app.servertransaction.TransactionExecutor.performLifecycleSequence:264 android.app.servertransaction.TransactionExecutor.cycleToPath:219 android.app.servertransaction.TransactionExecutor.executeLifecycleState:191 android.app.servertransaction.TransactionExecutor.execute:106 android.app.ActivityThread$H.handleMessage:3078 android.os.Handler.dispatchMessage:117 android.os.Looper.loopOnce:210 android.os.Looper.loop:302 android.app.ActivityThread.main:9675 java.lang.reflect.Method.invoke:-2 
+02-23 15:38:33.965  1919  2122 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:38:33.973  1919  2495 I HwAudioService: now type = -1,reportForegroundAppType = 28,pkg = null,systemload = -1VOIP_OPTIMIZE_IN_GAMEMODEfalse
+02-23 15:38:33.985  1919  2122 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:38:34.006  1919  1952 V WindowManager:     startWCT=WindowContainerTransaction { changes = {} hops = [] errorCallbackToken=null taskFragmentOrganizer=null }
+02-23 15:38:34.016  1919  2019 I BLASTSyncEngine: transaction commit callback: 8113
+02-23 15:38:34.918  1919  2719 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:38:37.271  1919  2019 E WindowManager: check permission error, current package is android.uid.contacts:10050 , it is not systemApp, callers is com.hihonor.android.view.IHwWindowManager$Stub.onTransact:1227 android.os.Binder.execTransactInternal:1366 android.os.Binder.execTransact:1310 <bottom of call stack> <bottom of call stack> <bottom of call stack> <bottom of call stack> <bottom of call stack> <bottom of call stack> <bottom of call stack> 
+02-23 15:38:37.503  1919  2019 I ContentProviderHelper: Need to start process android.process.acore for provider ContentProviderInfo{name=call_log className=com.android.providers.contacts.CallLogProvider}, callerApp: ProcessRecord{810be1c 25773:com.hihonor.contacts/u0a50}
+02-23 15:38:37.524  1919  1975 I ActivityManager: Start proc 25794:android.process.acore/u0a25 for content provider {com.android.providers.contacts/com.android.providers.contacts.CallLogProvider}
+02-23 15:38:37.577  1919  2019 E WindowManager: check permission error, current package is android.uid.shared:10025 , it is not systemApp, callers is com.hihonor.android.view.IHwWindowManager$Stub.onTransact:1227 android.os.Binder.execTransactInternal:1366 android.os.Binder.execTransact:1310 <bottom of call stack> <bottom of call stack> <bottom of call stack> <bottom of call stack> <bottom of call stack> <bottom of call stack> <bottom of call stack> 
+02-23 15:38:40.063  1919  3557 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:38:40.063  1919  3557 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:39:00.962  1919  1919 W ContextImpl: Calling a method in the system process without a qualified user: android.app.ContextImpl.sendBroadcast:1351 com.android.server.GcmFixer.HeartbeatReceiver.onReceive:31 android.app.LoadedApk$ReceiverDispatcher$Args$ReceiverRunnable.run:1996 android.os.Handler.handleCallback:996 android.os.Handler.dispatchMessage:110 
+02-23 15:39:00.963  1919  1919 W ContextImpl: Calling a method in the system process without a qualified user: android.app.ContextImpl.sendBroadcast:1351 com.android.server.GcmFixer.HeartbeatReceiver.onReceive:32 android.app.LoadedApk$ReceiverDispatcher$Args$ReceiverRunnable.run:1996 android.os.Handler.handleCallback:996 android.os.Handler.dispatchMessage:110 
+02-23 15:39:11.009  1919  2019 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:39:11.011  1919  2020 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:39:11.012  1919  4703 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:39:17.386  1919  2122 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:39:17.392  1919  2122 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:39:17.885  1919  2019 I WindowManager: getHwWindowInformation callingUid = 0
+02-23 15:39:19.567  1919  2122 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:39:19.619  1919  2122 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:39:20.867  2818  2818 W SettingsEx: SettingsEx.Systemex.getString deprecated use Settings.System.getString instead, callers = com.android.internal.telephony.gsm.HwCustGsmServiceStateManagerImpl.isMccForShowNetname:224 com.android.internal.telephony.gsm.HwCustGsmServiceStateManagerImpl.isShowNetnameByMcc:215 com.android.internal.telephony.gsm.HwCustGsmServiceStateManagerImpl.setOnsDisplayCustomization:165 
+02-23 15:39:20.887  1919  2434 W ContextImpl: Calling a method in the system process without a qualified user: android.app.ContextImpl.sendBroadcastMultiplePermissions:1401 android.content.Context.sendBroadcastMultiplePermissions:2477 com.android.server.TelephonyRegistry.broadcastServiceStateChanged:3639 com.android.server.TelephonyRegistry.notifyServiceStateForPhoneId:1790 com.android.internal.telephony.ITelephonyRegistry$Stub.onTransact:534 
+02-23 15:39:20.891  1919  2434 W ContextImpl: Calling a method in the system process without a qualified user: android.app.ContextImpl.sendBroadcastMultiplePermissions:1434 com.android.server.TelephonyRegistry.broadcastServiceStateChanged:3644 com.android.server.TelephonyRegistry.notifyServiceStateForPhoneId:1790 com.android.internal.telephony.ITelephonyRegistry$Stub.onTransact:534 android.os.Binder.execTransactInternal:1371 
+02-23 15:39:20.894  1919  2434 W ContextImpl: Calling a method in the system process without a qualified user: android.app.ContextImpl.sendBroadcastMultiplePermissions:1434 com.android.server.TelephonyRegistry.broadcastServiceStateChanged:3653 com.android.server.TelephonyRegistry.notifyServiceStateForPhoneId:1790 com.android.internal.telephony.ITelephonyRegistry$Stub.onTransact:534 android.os.Binder.execTransactInternal:1371 
+02-23 15:39:20.909  1919  2434 W ContextImpl: Calling a method in the system process without a qualified user: android.app.ContextImpl.sendBroadcastMultiplePermissions:1434 com.android.server.TelephonyRegistry.broadcastServiceStateChanged:3659 com.android.server.TelephonyRegistry.notifyServiceStateForPhoneId:1790 com.android.internal.telephony.ITelephonyRegistry$Stub.onTransact:534 android.os.Binder.execTransactInternal:1371 
+02-23 15:39:21.439  1919  4703 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:39:21.443  1919  2434 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:39:21.444  1919  2434 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:39:28.723  1919  3093 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:39:28.724  1919  3093 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:39:29.010  1919  3557 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:39:29.010  1919  3557 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:39:29.011  1919  3557 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:39:29.125  1919  2495 I PackageManager: setEnabledSetting pkg:com.google.android.googlequicksearchbox, className:com.google.android.apps.search.googleapp.saves.savefeature.sharereceiver.SavesShareReceiver, newState:1, flags:1, userId:0, CallingPid:25933, CallingUid:10143
+02-23 15:39:29.126  1919  2495 I PackageManager: setEnabledSetting pkg:com.google.android.googlequicksearchbox, className:com.google.android.apps.search.googleapp.saves.savefeature.sharereceiver.SavesShareReceiverWithImageType, newState:1, flags:1, userId:0, CallingPid:25933, CallingUid:10143
+02-23 15:39:52.803  1919  2434 I TransitionController: first create transition: TransitionRecord{d689306 id=-1 type=OPEN flags=0x0}, caller: com.android.server.wm.ActivityStarter.executeRequest:1793 com.android.server.wm.HwActivityStarter.executeRequest:352 com.android.server.wm.ActivityStarter.execute:1001 com.android.server.wm.HwActivityStarter.execute:683 com.android.server.wm.ActivityTaskManagerService.startActivityAsUser:1565 
+02-23 15:39:52.803  1919  2434 I ActivityStarter: shouldShowFreeformWindow realCallingPackage =com.hihonor.android.launcher isRes= true rotation= 0 orientation = -1 isPortarait = false sourceRecord = ActivityRecord{c423c3f u0 com.hihonor.android.launcher/.unihome.UniHomeLauncher t5 mVisible=true mOccludesParent=true mode=fullscreen boundsRect(0, 0 - 720, 1612)} isMagicWin = false isForceRotation = false r.packageName = com.superpartybyai.app isAE= false sourceLaunchedFromPackage= null isInBlackList= false r.info = ActivityInfo{fb70deb com.superpartybyai.app.MainActivity}
+02-23 15:39:52.852 25410 25410 I ActivityThread: Performing restart of ActivityRecord{99d8256 token=android.os.BinderProxy@2670471 {com.superpartybyai.app/com.superpartybyai.app.MainActivity}} start=false callers:android.app.servertransaction.TransactionExecutor.performLifecycleSequence:264 android.app.servertransaction.TransactionExecutor.cycleToPath:219 android.app.servertransaction.TransactionExecutor.cycleToPath:201 android.app.servertransaction.TransactionExecutor.executeCallbacks:149 android.app.servertransaction.TransactionExecutor.execute:104 android.app.ActivityThread$H.handleMessage:3078 android.os.Handler.dispatchMessage:117 android.os.Looper.loopOnce:210 android.os.Looper.loop:302 android.app.ActivityThread.main:9675 
+02-23 15:39:52.885  1919  1952 V WindowManager:     startWCT=WindowContainerTransaction { changes = {} hops = [] errorCallbackToken=null taskFragmentOrganizer=null }
+02-23 15:39:52.887  1919  2122 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:39:52.890  1919  2719 I BLASTSyncEngine: transaction commit callback: 8114
+02-23 15:39:52.904  1919  2122 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:39:52.905  1919  2020 I HwAudioService: now type = 28,reportForegroundAppType = -1,pkg = null,systemload = 28VOIP_OPTIMIZE_IN_GAMEMODEfalse
+02-23 15:39:52.923  1919  2122 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:39:53.252  1919  2327 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:39:53.273  1919  2019 I ClipboardService: callingPackage:com.superpartybyai.app, uid =10298, isDefaultDeviceFocusedWindow =true, isVirtualDeviceFocusedWindow =false
+02-23 15:39:53.390  1919  1956 I WindowManager: setSurfaceControl null, caller = com.android.server.wm.WindowContainer.removeImmediately:874 com.android.server.wm.WindowState.removeImmediately:3014 com.android.server.wm.WindowState.destroySurface:4311 com.android.server.wm.WindowState.onExitAnimationDone:5952 com.android.server.wm.WindowStateAnimator.onAnimationFinished:250 com.android.server.wm.WindowState.onAnimationFinished:6241 com.android.server.wm.WindowContainer$$ExternalSyntheticLambda4.onAnimationFinished:0 com.android.server.wm.SurfaceAnimator.lambda$getFinishedCallback$0:166 com.android.server.wm.SurfaceAnimator.$r8$lambda$eYT7rjaBOE8bCIRq043wVzQ_RTM:0 com.android.server.wm.SurfaceAnimator$$ExternalSyntheticLambda1.run:0 
+02-23 15:39:54.932  1919  2327 I ContentProviderHelper: Need to start process com.google.android.apps.messaging for provider ContentProviderInfo{name=com.google.android.apps.messaging.shared.datamodel.provider.sharedstorage.SharedStorageProvider className=com.google.android.apps.messaging.shared.datamodel.provider.sharedstorage.SharedStorageProvider}, callerApp: ProcessRecord{7dc5c35 18331:com.google.android.apps.messaging:rcs/u0a139}
+02-23 15:39:56.229  1919  4703 I PackageManager: setEnabledSetting pkg:com.google.android.apps.messaging, className:com.google.android.ims.binding.SystemBindingService, newState:1, flags:1, userId:0, CallingPid:25998, CallingUid:10139
+02-23 15:39:56.272  1919  4703 I PackageManager: setEnabledSetting pkg:com.google.android.apps.messaging, className:com.google.android.apps.messaging.auto.MessagingTemplateScreenServiceModule, newState:1, flags:1, userId:0, CallingPid:25998, CallingUid:10139
+02-23 15:39:59.353  1919  2019 I PackageManager: setEnabledSetting pkg:com.facebook.appmanager, className:com.facebook.oxygen.appmanager.helium.trampoline.HeliumSandboxedService, newState:1, flags:1, userId:0, CallingPid:26057, CallingUid:10182
+02-23 15:39:59.354  1919  2019 I PackageManager: setEnabledSetting pkg:com.facebook.appmanager, className:com.facebook.oxygen.appmanager.helium.trampoline.HeliumSandboxedService0, newState:1, flags:1, userId:0, CallingPid:26057, CallingUid:10182
+02-23 15:39:59.355  1919  2019 I PackageManager: setEnabledSetting pkg:com.facebook.appmanager, className:com.facebook.oxygen.appmanager.helium.trampoline.HeliumSandboxedService1, newState:1, flags:1, userId:0, CallingPid:26057, CallingUid:10182
+02-23 15:39:59.403  1919  6471 I PackageManager: setEnabledSetting pkg:com.facebook.appmanager, className:com.facebook.oxygen.appmanager.webinstall.WebInstallAppLinkActivityV2, newState:1, flags:1, userId:0, CallingPid:26057, CallingUid:10182
+02-23 15:39:59.410  1919  2019 I PackageManager: setEnabledSetting pkg:com.facebook.appmanager, className:com.facebook.oxygen.appmanager.webinstall.WebInstallAppLinkActivityV2, newState:1, flags:1, userId:0, CallingPid:26057, CallingUid:10182
+02-23 15:39:59.415  1919  2019 I PackageManager: setEnabledSetting pkg:com.facebook.appmanager, className:com.facebook.oxygen.appmanager.webinstall.WebInstallAppLinkIgliteActivity, newState:1, flags:1, userId:0, CallingPid:26057, CallingUid:10182
+02-23 15:39:59.418  1919  2019 I PackageManager: setEnabledSetting pkg:com.facebook.appmanager, className:com.facebook.oxygen.appmanager.webinstall.WebInstallAppLinkIgliteActivity, newState:2, flags:1, userId:0, CallingPid:26057, CallingUid:10182
+02-23 15:39:59.420  1919  2019 I PackageManager: setEnabledSetting pkg:com.facebook.appmanager, className:com.facebook.oxygen.appmanager.webinstall.WebInstallAppLinkWhatsAppActivity, newState:2, flags:1, userId:0, CallingPid:26057, CallingUid:10182
+02-23 15:39:59.424  1919  2019 I PackageManager: setEnabledSetting pkg:com.facebook.appmanager, className:com.facebook.oxygen.appmanager.webinstall.WebInstallAppLinkFbliteActivity, newState:1, flags:1, userId:0, CallingPid:26057, CallingUid:10182
+02-23 15:39:59.428  1919  2019 I PackageManager: setEnabledSetting pkg:com.facebook.appmanager, className:com.facebook.oxygen.appmanager.webinstall.WebInstallAppLinkFB4AActivity, newState:2, flags:1, userId:0, CallingPid:26057, CallingUid:10182
+02-23 15:39:59.433  1919  2019 I PackageManager: setEnabledSetting pkg:com.facebook.appmanager, className:com.facebook.oxygen.appmanager.webinstall.WebInstallAppLinkMetaAIActivity, newState:1, flags:1, userId:0, CallingPid:26057, CallingUid:10182
+02-23 15:39:59.474  1919  2019 I PackageManager: setEnabledSetting pkg:com.facebook.appmanager, className:com.facebook.oxygen.appmanager.webinstall.WebInstallAppLinkMetaAIActivity, newState:2, flags:1, userId:0, CallingPid:26057, CallingUid:10182
+02-23 15:39:59.477  1919  2019 I PackageManager: setEnabledSetting pkg:com.facebook.appmanager, className:com.facebook.oxygen.appmanager.webinstall.WebInstallAppLinkInstagramActivity, newState:2, flags:1, userId:0, CallingPid:26057, CallingUid:10182
+02-23 15:39:59.482  1919  2019 I PackageManager: setEnabledSetting pkg:com.facebook.appmanager, className:com.facebook.oxygen.appmanager.webinstall.WebInstallAppLinkThreadsActivity, newState:1, flags:1, userId:0, CallingPid:26057, CallingUid:10182
+02-23 15:39:59.491  1919  2019 I PackageManager: setEnabledSetting pkg:com.facebook.appmanager, className:com.facebook.oxygen.appmanager.webinstall.WebInstallAppLinkMessengerActivity, newState:1, flags:1, userId:0, CallingPid:26057, CallingUid:10182
+02-23 15:39:59.498  1919  2019 I PackageManager: setEnabledSetting pkg:com.facebook.appmanager, className:com.facebook.oxygen.appmanager.webinstall.WebInstallAppLinkIgliteLoggedOutActivity, newState:1, flags:1, userId:0, CallingPid:26057, CallingUid:10182
+02-23 15:39:59.502  1919  2019 I PackageManager: setEnabledSetting pkg:com.facebook.appmanager, className:com.facebook.oxygen.appmanager.webinstall.WebInstallAppLinkIgliteLoggedOutActivity, newState:2, flags:1, userId:0, CallingPid:26057, CallingUid:10182
+02-23 15:39:59.505  1919  2019 I PackageManager: setEnabledSetting pkg:com.facebook.appmanager, className:com.facebook.oxygen.appmanager.webinstall.WebInstallAppLinkWhatsAppLoggedOutActivity, newState:2, flags:1, userId:0, CallingPid:26057, CallingUid:10182
+02-23 15:39:59.509  1919  2019 I PackageManager: setEnabledSetting pkg:com.facebook.appmanager, className:com.facebook.oxygen.appmanager.webinstall.WebInstallAppLinkFbliteLoggedOutActivity, newState:1, flags:1, userId:0, CallingPid:26057, CallingUid:10182
+02-23 15:39:59.514  1919  2019 I PackageManager: setEnabledSetting pkg:com.facebook.appmanager, className:com.facebook.oxygen.appmanager.webinstall.WebInstallAppLinkFB4ALoggedOutActivity, newState:2, flags:1, userId:0, CallingPid:26057, CallingUid:10182
+02-23 15:39:59.518  1919  2019 I PackageManager: setEnabledSetting pkg:com.facebook.appmanager, className:com.facebook.oxygen.appmanager.webinstall.WebInstallAppLinkMetaAILoggedOutActivity, newState:1, flags:1, userId:0, CallingPid:26057, CallingUid:10182
+02-23 15:39:59.527  1919  2019 I PackageManager: setEnabledSetting pkg:com.facebook.appmanager, className:com.facebook.oxygen.appmanager.webinstall.WebInstallAppLinkMetaAILoggedOutActivity, newState:2, flags:1, userId:0, CallingPid:26057, CallingUid:10182
+02-23 15:39:59.530  1919  2019 I PackageManager: setEnabledSetting pkg:com.facebook.appmanager, className:com.facebook.oxygen.appmanager.webinstall.WebInstallAppLinkInstagramLoggedOutActivity, newState:2, flags:1, userId:0, CallingPid:26057, CallingUid:10182
+02-23 15:39:59.534  1919  2019 I PackageManager: setEnabledSetting pkg:com.facebook.appmanager, className:com.facebook.oxygen.appmanager.webinstall.WebInstallAppLinkThreadsLoggedOutActivity, newState:1, flags:1, userId:0, CallingPid:26057, CallingUid:10182
+02-23 15:39:59.541  1919  2019 I PackageManager: setEnabledSetting pkg:com.facebook.appmanager, className:com.facebook.oxygen.appmanager.webinstall.WebInstallAppLinkMessengerLoggedOutActivity, newState:1, flags:1, userId:0, CallingPid:26057, CallingUid:10182
+02-23 15:39:59.546  1919  2019 I PackageManager: setEnabledSetting pkg:com.facebook.appmanager, className:com.facebook.oxygen.appmanager.webinstall.WebInstallAppLinkIgliteRestrictedActivity, newState:2, flags:1, userId:0, CallingPid:26057, CallingUid:10182
+02-23 15:39:59.547  1919  2019 I PackageManager: setEnabledSetting pkg:com.facebook.appmanager, className:com.facebook.oxygen.appmanager.webinstall.WebInstallAppLinkWhatsAppRestrictedActivity, newState:2, flags:1, userId:0, CallingPid:26057, CallingUid:10182
+02-23 15:39:59.548  1919  2019 I PackageManager: setEnabledSetting pkg:com.facebook.appmanager, className:com.facebook.oxygen.appmanager.webinstall.WebInstallAppLinkFbliteRestrictedActivity, newState:2, flags:1, userId:0, CallingPid:26057, CallingUid:10182
+02-23 15:39:59.549  1919  2019 I PackageManager: setEnabledSetting pkg:com.facebook.appmanager, className:com.facebook.oxygen.appmanager.webinstall.WebInstallAppLinkFB4ARestrictedActivity, newState:2, flags:1, userId:0, CallingPid:26057, CallingUid:10182
+02-23 15:39:59.550  1919  2019 I PackageManager: setEnabledSetting pkg:com.facebook.appmanager, className:com.facebook.oxygen.appmanager.webinstall.WebInstallAppLinkMetaAIRestrictedActivity, newState:2, flags:1, userId:0, CallingPid:26057, CallingUid:10182
+02-23 15:39:59.552  1919  2019 I PackageManager: setEnabledSetting pkg:com.facebook.appmanager, className:com.facebook.oxygen.appmanager.webinstall.WebInstallAppLinkInstagramRestrictedActivity, newState:2, flags:1, userId:0, CallingPid:26057, CallingUid:10182
+02-23 15:39:59.553  1919  2019 I PackageManager: setEnabledSetting pkg:com.facebook.appmanager, className:com.facebook.oxygen.appmanager.webinstall.WebInstallAppLinkThreadsRestrictedActivity, newState:2, flags:1, userId:0, CallingPid:26057, CallingUid:10182
+02-23 15:39:59.554  1919  2019 I PackageManager: setEnabledSetting pkg:com.facebook.appmanager, className:com.facebook.oxygen.appmanager.webinstall.WebInstallAppLinkMessengerRestrictedActivity, newState:2, flags:1, userId:0, CallingPid:26057, CallingUid:10182
+02-23 15:39:59.555  1919  2019 I PackageManager: setEnabledSetting pkg:com.facebook.appmanager, className:com.facebook.oxygen.appmanager.modules.api.ModulesApiProvider, newState:1, flags:1, userId:0, CallingPid:26057, CallingUid:10182
+02-23 15:39:59.557  1919  2019 I PackageManager: setEnabledSetting pkg:com.facebook.appmanager, className:com.facebook.oxygen.appmanager.firstparty.tos.ShouldAcceptTos, newState:2, flags:1, userId:0, CallingPid:26057, CallingUid:10182
+02-23 15:39:59.558  1919  2019 I PackageManager: setEnabledSetting pkg:com.facebook.appmanager, className:com.facebook.oxygen.appmanager.firstparty.tos.ShouldShowTos, newState:2, flags:1, userId:0, CallingPid:26057, CallingUid:10182
+02-23 15:39:59.558  1919  2019 I PackageManager: setEnabledSetting pkg:com.facebook.appmanager, className:com.facebook.oxygen.appmanager.firstparty.tos.ShouldShowExplicitTos, newState:2, flags:1, userId:0, CallingPid:26057, CallingUid:10182
+02-23 15:39:59.583  1919  2019 I ContentProviderHelper: Need to start process com.facebook.system for provider ContentProviderInfo{name=com.facebook.system.api.appmanager className=com.facebook.oxygen.installer.api.AppManagerApiProvider}, callerApp: ProcessRecord{34ec5a9 26057:com.facebook.appmanager/u0a182}
+02-23 15:39:59.746  1919  2019 I PackageManager: setEnabledSetting pkg:com.facebook.appmanager, className:com.facebook.oxygen.appmanager.nekodirect.NekoDirectProvider, newState:2, flags:1, userId:0, CallingPid:26057, CallingUid:10182
+02-23 15:39:59.751  1919  2019 I PackageManager: setEnabledSetting pkg:com.facebook.appmanager, className:com.facebook.oxygen.appmanager.installapi.OxInstallApiProvider, newState:1, flags:1, userId:0, CallingPid:26057, CallingUid:10182
+02-23 15:39:59.754  1919  2019 I PackageManager: setEnabledSetting pkg:com.facebook.appmanager, className:com.facebook.oxygen.appmanager.experimentation.AppManagerExperimentProvider, newState:1, flags:1, userId:0, CallingPid:26057, CallingUid:10182
+02-23 15:40:10.689  1919  4703 I PackageManager: setEnabledSetting pkg:com.google.android.apps.messaging, className:com.google.android.apps.messaging.shared.receiver.SmsReceiver, newState:2, flags:1, userId:0, CallingPid:25998, CallingUid:10139
+02-23 15:40:10.691  1919  4703 I PackageManager: setEnabledSetting pkg:com.google.android.apps.messaging, className:com.google.android.apps.messaging.shared.receiver.TelephonyChangeReceiver, newState:1, flags:1, userId:0, CallingPid:25998, CallingUid:10139
+02-23 15:40:10.692  1919  4703 I PackageManager: setEnabledSetting pkg:com.google.android.apps.messaging, className:com.google.android.apps.messaging.shared.receiver.DefaultSmsPackageChangedReceiver, newState:1, flags:1, userId:0, CallingPid:25998, CallingUid:10139
+02-23 15:40:10.693  1919  4703 I PackageManager: setEnabledSetting pkg:com.google.android.apps.messaging, className:com.google.android.apps.messaging.shared.receiver.RestoreReceiver, newState:1, flags:1, userId:0, CallingPid:25998, CallingUid:10139
+02-23 15:40:10.694  1919  4703 I PackageManager: setEnabledSetting pkg:com.google.android.apps.messaging, className:com.google.android.apps.messaging.shared.receiver.SmsRejectedReceiver, newState:2, flags:1, userId:0, CallingPid:25998, CallingUid:10139
+02-23 15:40:10.696  1919  4703 I PackageManager: setEnabledSetting pkg:com.google.android.apps.messaging, className:com.google.android.apps.messaging.ui.conversationlist.VideoShareIntentActivity, newState:1, flags:1, userId:0, CallingPid:25998, CallingUid:10139
+02-23 15:40:11.024  1919  2019 I PackageManager: setEnabledSetting pkg:com.google.android.apps.messaging, className:com.google.android.apps.messaging.shared.fcm.impl.BugleFirebaseMessagingService, newState:1, flags:1, userId:0, CallingPid:25998, CallingUid:10139
+02-23 15:40:11.044  1919  2019 I PackageManager: setEnabledSetting pkg:com.google.android.apps.messaging, className:com.google.android.ims.binding.SystemBindingService, newState:1, flags:1, userId:0, CallingPid:25998, CallingUid:10139
+02-23 15:40:11.067  1919  2019 I PackageManager: setEnabledSetting pkg:com.google.android.apps.messaging, className:com.google.android.ims.binding.SystemBindingService, newState:1, flags:1, userId:0, CallingPid:25998, CallingUid:10139
+02-23 15:40:11.172  1919  6468 I PackageManager: setEnabledSetting pkg:com.google.android.apps.messaging, className:com.google.android.apps.messaging.auto.MessagingTemplateScreenServiceModule, newState:1, flags:1, userId:0, CallingPid:25998, CallingUid:10139
+02-23 15:40:11.369  1919  2151 D CoreBackPreview: startBackNavigation currentTask=Task{75f4b9d #24758 type=standard I=com.superpartybyai.app/.MainActivity}, topRunningActivity=ActivityRecord{480986 u0 com.superpartybyai.app/.MainActivity t24758 mVisible=true mOccludesParent=true mode=fullscreen boundsRect(0, 0 - 720, 1612)}, callbackInfo=OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@c1b3951, mPriority=0, mIsAnimationCallback=false}, currentFocus=Window{bdb87f5 u0 com.superpartybyai.app/com.superpartybyai.app.MainActivity}
+02-23 15:40:11.369  1919  2151 I CoreBackPreview: startBackNavigation currentTask= Task{75f4b9d #24758 type=standard I=com.superpartybyai.app/.MainActivity}, topRunningActivity= ActivityRecord{480986 u0 com.superpartybyai.app/.MainActivity t24758 mVisible=true mOccludesParent=true mode=fullscreen boundsRect(0, 0 - 720, 1612)}, callbackInfo= OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@c1b3951, mPriority=0, mIsAnimationCallback=false}, currentFocus= Window{bdb87f5 u0 com.superpartybyai.app/com.superpartybyai.app.MainActivity}
+02-23 15:40:11.566   939  1344 I Scheduler: touchTimerCallback timer change to TimerState: Expired
+02-23 15:40:11.579   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Expired
+02-23 15:40:11.579   939  1352 I Scheduler: idleTimerCallback call boostTimerCallback Expired
+02-23 15:40:11.579   939  1352 I Scheduler: boostTimerCallback timer change to TimerState: Expiring
+02-23 15:40:11.978   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Reset
+02-23 15:40:12.179   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Expired
+02-23 15:40:12.852  1919  2170 D fingersense_manager: Calling fingersense_classify_touch()
+02-23 15:40:12.868   939  2351 I Scheduler: boostTimerCallback timer change to TimerState: Reset
+02-23 15:40:12.868   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Reset
+02-23 15:40:12.870   939  1344 I Scheduler: touchTimerCallback timer change to TimerState: Reset
+02-23 15:40:13.071   939  1344 I Scheduler: touchTimerCallback timer change to TimerState: Expired
+02-23 15:40:13.734   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Expired
+02-23 15:40:13.735   939  1352 I Scheduler: idleTimerCallback call boostTimerCallback Expired
+02-23 15:40:13.735   939  1352 I Scheduler: boostTimerCallback timer change to TimerState: Expiring
+02-23 15:40:15.830  1919  2170 D fingersense_manager: Calling fingersense_classify_touch()
+02-23 15:40:15.849   939  1083 I Scheduler: boostTimerCallback timer change to TimerState: Reset
+02-23 15:40:15.850   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Reset
+02-23 15:40:15.852   939  1344 I Scheduler: touchTimerCallback timer change to TimerState: Reset
+02-23 15:40:15.872  1919  6471 D HwCustPhoneWindowManager: answer call by keyCode = 3, down = true, isSupVolumnkeyAnswerCall = false
+02-23 15:40:15.904  1919  6468 D HwCustPhoneWindowManager: answer call by keyCode = 3, down = false, isSupVolumnkeyAnswerCall = false
+02-23 15:40:15.927  1919  1953 I TransitionController: first create transition: TransitionRecord{162e2ca id=-1 type=OPEN flags=0x0}, caller: com.android.server.wm.ActivityStarter.executeRequest:1793 com.android.server.wm.HwActivityStarter.executeRequest:352 com.android.server.wm.ActivityStarter.execute:1001 com.android.server.wm.HwActivityStarter.execute:683 com.android.server.wm.ActivityStartController.startHomeActivity:227 
+02-23 15:40:15.928  2664  2679 I PGServer: android calls fast HApps
+02-23 15:40:15.928  2664  2679 I AppFastHibernation: call fast hibernation app: 
+02-23 15:40:15.928  1919  1953 I ActivityStarter: shouldShowFreeformWindow realCallingPackage = isRes= true rotation= 0 orientation = -1 isPortarait = false sourceRecord = null isMagicWin = false isForceRotation = false r.packageName = com.hihonor.android.launcher isAE= false sourceLaunchedFromPackage=  isInBlackList= false r.info = ActivityInfo{6cefd1f com.hihonor.android.launcher.unihome.UniHomeLauncher}
+02-23 15:40:15.934  1919  1953 W HwActivityTaskManagerServiceEx: setResumedActivityUncheckLocked start call, from: ActivityRecord{480986 u0 com.superpartybyai.app/.MainActivity t24758 mVisible=true mOccludesParent=true mode=fullscreen boundsRect(0, 0 - 720, 1612)}, to: ActivityRecord{c423c3f u0 com.hihonor.android.launcher/.unihome.UniHomeLauncher t5 mVisible=false mOccludesParent=true mode=fullscreen boundsRect(0, 0 - 720, 1612)}
+02-23 15:40:15.947  2822  2822 I ActivityThread: Performing restart of ActivityRecord{ec7fba3 token=android.os.BinderProxy@e4cd847 {com.hihonor.android.launcher/com.hihonor.android.launcher.unihome.UniHomeLauncher}} start=false callers:android.app.servertransaction.TransactionExecutor.performLifecycleSequence:264 android.app.servertransaction.TransactionExecutor.cycleToPath:219 android.app.servertransaction.TransactionExecutor.executeLifecycleState:191 android.app.servertransaction.TransactionExecutor.execute:106 android.app.ActivityThread$H.handleMessage:3078 android.os.Handler.dispatchMessage:117 android.os.Looper.loopOnce:210 android.os.Looper.loop:302 android.app.ActivityThread.main:9675 java.lang.reflect.Method.invoke:-2 
+02-23 15:40:15.952  1919  2122 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:40:15.985  4777 29834 I AWARENESS_RecentAppAbility: callingPackage: to:com.hihonor.android.launcher launchMode:-1 uid :0
+02-23 15:40:15.986  4777  4797 W AWARENESS_AmsRegister: app switch from : com.superpartybyai.app to com.hihonor.android.launcher as ComponentInfo{com.hihonor.android.launcher/com.hihonor.android.launcher.unihome.UniHomeLauncher} taskId : 5  label:callingPackage:launchMode:-1processUid:0
+02-23 15:40:15.989  4777  4789 W AWARENESS_AmsRegister: state : onPause comp : ComponentInfo{com.superpartybyai.app/com.superpartybyai.app.MainActivity} taskId : 24758callingPackage:launchMode:-1processUid_act:0
+02-23 15:40:15.989  4777 29834 I AWARENESS_RecentAppAbility: insertRecentList startFrom -1, appRecoList after is [SimpleRecentAppData{packageName='com.superpartybyai.app0', openTime=1771853992, aliveTime=23}, SimpleRecentAppData{packageName='com.whatsapp0', openTime=1771853774, aliveTime=14}, SimpleRecentAppData{packageName='com.google.android.youtube0', openTime=1771851018, aliveTime=106}, SimpleRecentAppData{packageName='com.hihonor.contacts0', openTime=1771847284, aliveTime=13}, SimpleRecentAppData{packageName='eu.mobile.mypos0', openTime=1771843797, aliveTime=12}], hyperHoldList after is [SimpleRecentAppData{packageName='com.superpartybyai.app0', openTime=1771853992, aliveTime=23}, SimpleRecentAppData{packageName='com.hihonor.android.launcher0', openTime=1771853913, aliveTime=79}, SimpleRecentAppData{packageName='com.whatsapp0', openTime=1771853774, aliveTime=14}, SimpleRecentAppData{packageName='com.google.android.youtube0', openTime=1771851018, aliveTime=106}, SimpleRecentAppData{packageName='com.hihonor.contacts0', openTime=1771847284, aliveTime=13}, SimpleRecentAppData{packageName='com.android.incallui0', openTime=1771847193, aliveTime=3}, SimpleRecentAppData{packageName='com.google.android.gms0', openTime=1771847163, aliveTime=7}, SimpleRecentAppData{packageName='com.google.android.apps.walletnfcrel0', openTime=1771847117, aliveTime=5}, SimpleRecentAppData{packageName='eu.mobile.mypos0', openTime=1771843797, aliveTime=12}, SimpleRecentAppData{packageName='com.hihonor.android.launcher0', openTime=1771854015, aliveTime=0}]
+02-23 15:40:15.991  1919  2327 E WifiEnhanceServiceImpl: WifiP2pExtendService only allow system uid calling
+02-23 15:40:15.991  4777  4789 W AWARENESS_AmsRegister: state : onResume_begin comp : ComponentInfo{com.hihonor.android.launcher/com.hihonor.android.launcher.unihome.UniHomeLauncher} taskId : 5callingPackage:launchMode:-1processUid_act:0
+02-23 15:40:15.996   939   939 I BpBinder: onLastStrongRef automatically unlinking death recipients: 
+02-23 15:40:16.006  1919  2122 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:40:16.026  1919  2122 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:40:16.045  1919  2327 I HwAudioService: now type = -1,reportForegroundAppType = 28,pkg = null,systemload = -1VOIP_OPTIMIZE_IN_GAMEMODEfalse
+02-23 15:40:16.051  1919  1956 I SurfaceControl: setWindowCrop sc Surface(name=Task=24758)/@0xbd44a4b width 0 height 0 callers com.android.server.wm.Transition.buildFinishTransaction:1096 com.android.server.wm.Transition.onTransactionReady:2157 com.android.server.wm.BLASTSyncEngine$SyncGroup.finishNow:388 com.android.server.wm.BLASTSyncEngine$SyncGroup.tryFinish:258 
+02-23 15:40:16.051  1919  1956 I SurfaceControl: setWindowCrop sc Surface(name=Task=24758)/@0xbd44a4b width -1 height -1 callers com.android.server.wm.Transition.buildFinishTransaction:1109 com.android.server.wm.Transition.onTransactionReady:2157 com.android.server.wm.BLASTSyncEngine$SyncGroup.finishNow:388 com.android.server.wm.BLASTSyncEngine$SyncGroup.tryFinish:258 
+02-23 15:40:16.052  1919  1956 I SurfaceControl: setWindowCrop sc Surface(name=Task=1)/@0xb480d86 width 0 height 0 callers com.android.server.wm.Transition.buildFinishTransaction:1096 com.android.server.wm.Transition.onTransactionReady:2157 com.android.server.wm.BLASTSyncEngine$SyncGroup.finishNow:388 com.android.server.wm.BLASTSyncEngine$SyncGroup.tryFinish:258 
+02-23 15:40:16.052  1919  1956 I SurfaceControl: setWindowCrop sc Surface(name=Task=1)/@0xb480d86 width -1 height -1 callers com.android.server.wm.Transition.buildFinishTransaction:1109 com.android.server.wm.Transition.onTransactionReady:2157 com.android.server.wm.BLASTSyncEngine$SyncGroup.finishNow:388 com.android.server.wm.BLASTSyncEngine$SyncGroup.tryFinish:258 
+02-23 15:40:16.059  2382  2504 I PipTransition: call startAnimation type:1, mInFixedRotation:false, mEndFixedRotation:-1, currentPipTaskChange:null
+02-23 15:40:16.073  1919  1952 V WindowManager:     startWCT=WindowContainerTransaction { changes = {} hops = [] errorCallbackToken=null taskFragmentOrganizer=null }
+02-23 15:40:16.074  4777  4797 W AWARENESS_AmsRegister: state : onResume comp : ComponentInfo{com.hihonor.android.launcher/com.hihonor.android.launcher.unihome.UniHomeLauncher} taskId : 5callingPackage:launchMode:-1processUid_act:0
+02-23 15:40:16.079  1919  2327 I BLASTSyncEngine: transaction commit callback: 8115
+02-23 15:40:16.085  2792  3061 D NetworkQoe: handleVoipCallMonitorMsg: mTopActivity=0
+02-23 15:40:16.111   939  1344 I Scheduler: touchTimerCallback timer change to TimerState: Expired
+02-23 15:40:16.127 27746 27746 V InputMethodService: CALL: doFinishInput
+02-23 15:40:16.127 27746 27746 V InputMethodService: CALL: onFinishInput
+02-23 15:40:16.129 27746 27746 V InputMethodService: CALL: onStartInput
+02-23 15:40:16.166 27746 27746 W z       : 	at com.android.internal.os.HandlerCaller$MyHandler.handleMessage(HandlerCaller.java:44)
+02-23 15:40:16.166 27746 27746 W z       : 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:601)
+02-23 15:40:16.404  2822  2849 W System  : A resource failed to call release. 
+02-23 15:40:16.404  2822  2849 W System  : A resource failed to call release. 
+02-23 15:40:16.404  2822  2849 W System  : A resource failed to call release. 
+02-23 15:40:16.404  2822  2849 W System  : A resource failed to call release. 
+02-23 15:40:16.406  2822  2849 W System  : A resource failed to call release. 
+02-23 15:40:16.406  2822  2849 W System  : A resource failed to call release. 
+02-23 15:40:16.406  2822  2849 W System  : A resource failed to call release. 
+02-23 15:40:16.406  2822  2849 W System  : A resource failed to call release. 
+02-23 15:40:16.407  2822  2849 W System  : A resource failed to call MemoryIntArray.close. 
+02-23 15:40:16.848   939  1604 I Scheduler: boostTimerCallback timer change to TimerState: Expiring
+02-23 15:40:16.853  2822 28169 I HnAppRec_14.1.0.50YOYOCardClient: getRecommendApps isForceUpdate:false mRequestId:a769cfc1-9e6c-4bf1-8bbf-729a7f3db7b4 lastTime:1771853915033 args:{"appWidgetInfo":"[{\"addTime\":1771382272581,\"addWay\":\"byUser\",\"displayPkg\":\"com.hihonor.android.launcher\",\"itemId\":163,\"screenId\":0,\"screenIndex\":0,\"widgetId\":24,\"widgetPit\":8,\"widgetSize\":\"2x4\"}]","currentPageId":0,"isSupportPlugin":true,"isTwoColumnLayout":false,"pageCount":{"7":1},"relatePageId":{},"supportAbility":["page_widget_order_tblr","report_card_show_event","recall"],"supportWidgetSize":["11","12","22"],"supportWidgetType":["1","2","3","4","5","6","7","8","9","10","11"],"allCount":1,"dockAppList":[{"packageName":"com.hihonor.calculator","type":0},{"packageName":"com.hihonor.contacts","type":0},{"packageName":"com.android.chrome","type":0}],"innerCount":1,"outCount":0,"pageApps":[{"appList":[{"packageName":"com.hihonor.appmarket","type":0},{"packageName":"com.whatsapp","type":0},{"packageName":"com.waze","type":0},{"packageName":"com.whatsapp.w4b","type":0}],"appSize":16,"cardTypeList":[5],"pageId":0,"recoWidgets":[{"id":24,"type":5}],"widgetSize":1}],"requestId":"a769cfc1-9e6c-4bf1-8bbf-729a7f3db7b4","sdkVersion":0}
+02-23 15:40:16.854  2822 14790 I Hos_8.0.8.100: u0 log_hos_sdk->callRemote action =  , packageName = 
+02-23 15:40:16.854  2822 14790 I Hos_8.0.8.100: u0 log_hos_sdk->callbackError errorCode : 1006
+02-23 15:40:16.866 23394 23410 I Assistant.8.0.53.90.RecommendCardProvider: call method: getRecommendApps
+02-23 15:40:16.868  4777  4797 W AWARENESS_AmsRegister: state : onStop comp : ComponentInfo{com.superpartybyai.app/com.superpartybyai.app.MainActivity} taskId : 24758callingPackage:launchMode:-1processUid_act:0
+02-23 15:40:16.879  2792  3061 I UidCloseNrStateMachine: enter uidStateChanged, ForeGrountApp=com.superpartybyai.app, mIsCallOn=false, mIsUsbPlugged=true, openLowPowerSwitch=true, QoeSlowState=false, powerMode=1, isSpeedSensitivityApp=false
+02-23 15:40:16.885 23394 23410 I Assistant.8.0.53.90.CardProxy: proxy in:$Proxy3 call getRecommendInfo 
+02-23 15:40:16.888 23394 23410 I Assistant.8.0.53.90.RecommendAppArgInterceptor: callingPackage: com.hihonor.android.launcher interceptor: false
+02-23 15:40:16.888 23394 23410 E Assistant.8.0.53.90.AgreementInterceptor: apply in  method name: getRecommendInfo  ,callingPackage: com.hihonor.android.launcher  ,interceptor: false
+02-23 15:40:16.888 23394 23410 I Assistant.8.0.53.90.RecommendImpl: getRecommendInfo in callingPackage:com.hihonor.android.launcher,parma:{"appWidgetInfo":"[{\"addTime\":1771382272581,\"addWay\":\"byUser\",\"displayPkg\":\"com.hihonor.android.launcher\",\"itemId\":163,\"screenId\":0,\"screenIndex\":0,\"widgetId\":24,\"widgetPit\":8,\"widgetSize\":\"2x4\"}]","currentPageId":0,"isSupportPlugin":true,"isTwoColumnLayout":false,"pageCount":{"7":1},"relatePageId":{},"supportAbility":["page_widget_order_tblr","report_card_show_event","recall"],"supportWidgetSize":["11","12","22"],"supportWidgetType":["1","2","3","4","5","6","7","8","9","10","11"],"allCount":1,"dockAppList":[{"packageName":"com.hihonor.calculator","type":0},{"packageName":"com.hihonor.contacts","type":0},{"packageName":"com.android.chrome","type":0}],"innerCount":1,"outCount":0,"pageApps":[{"appList":[{"packageName":"com.hihonor.appmarket","type":0},{"packageName":"com.whatsapp","type":0},{"packageName":"com.waze","type":0},{"packageName":"com.whatsapp.w4b","type":0}],"appSize":16,"cardTypeList":[5],"pageId":0,"recoWidgets":[{"id":24,"type":5}],"widgetSize":1}],"requestId":"a769cfc1-9e6c-4bf1-8bbf-729a7f3db7b4","sdkVersion":0}
+02-23 15:40:16.901 23394 23410 I Assistant.8.0.53.90.RecommendImpl: parma to brain: {"allCount":1,"appWidgetInfo":"[{\"addTime\":1771382272581,\"addWay\":\"byUser\",\"displayPkg\":\"com.hihonor.android.launcher\",\"itemId\":163,\"screenId\":0,\"screenIndex\":0,\"widgetId\":24,\"widgetPit\":8,\"widgetSize\":\"2x4\"}]","blockList":[{"packageName":"com.google.android.youtube","type":0}],"blockService":[{"serviceType":"CHECK_THE_HEALTH_CODE"},{"serviceType":"CHECK_THE_SCAN"},{"serviceType":"CHECK_THE_PAYMENT_CODE"}],"currentPageId":0,"dockAppList":[{"packageName":"com.hihonor.calculator","type":0},{"packageName":"com.hihonor.contacts","type":0},{"packageName":"com.android.chrome","type":0}],"innerCount":1,"isNeedAllService":false,"isSupportPlugin":true,"isTwoColumnLayout":false,"outCount":0,"pageApps":[{"appList":[{"packageName":"com.hihonor.appmarket","type":0},{"packageName":"com.whatsapp","type":0},{"packageName":"com.waze","type":0},{"packageName":"com.whatsapp.w4b","type":0}],"appSize":16,"cardTypeList":[5],"pageId":0,"recoWidgets":[{"id":24,"type":5}],"widgetSize":1}],"pageCount":{"7":1},"relatePageId":{},"requestId":"a769cfc1-9e6c-4bf1-8bbf-729a7f3db7b4","sdkVersion":6,"supportAbility":["page_widget_order_tblr","report_card_show_event","recall","yoyoSupportFirstRom8"],"supportWidgetSize":["11","12","22"],"supportWidgetType":["1","2","3","4","5","6","7","8","9","10","11"]}
+02-23 15:40:16.901 23394 23410 D BrainClient: BrainClient: call disconnect, caller is com.hihonor.assistant
+02-23 15:40:16.901 23394 23410 D BrainClient: BrainClient: call connect, caller is com.hihonor.assistant
+02-23 15:40:16.927 23394 23410 D BrainClient: BrainClient: call executeTrigger 20000, caller is com.hihonor.assistant
+02-23 15:40:16.966  1919  4703 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:40:16.970 21776 21797 I Brain_PredictHelper: caller is com.hihonor.android.launcher
+02-23 15:40:16.971  1919  2327 D ITouchService: itouch ITouchManagerImpl:NotifyDirectDeliverState CallBack state:0
+02-23 15:40:16.971  1919  6471 D ITouchService: itouch ITouchManagerImpl:NotifyDirectDeliverState CallBack state:0
+02-23 15:40:16.983  4777 22062 I AWARENESS_SnapshotManager: onResult, WorkingEventCallback=null, code=10000
+02-23 15:40:16.985  4777 22062 I AWARENESS_D_P_InquiryProviderCallExecMethod: invoke begin, calling pkg name: com.hihonor.awareness
+02-23 15:40:16.985  4777 22062 I AWARENESS_D_P_InquiryProviderCallExecMethod: invoke duration is 0
+02-23 15:40:16.987  4777 22378 I AWARENESS_D_P_InquiryProviderCallExecMethod: invoke begin, calling pkg name: com.hihonor.awareness
+02-23 15:40:16.988  4777 22378 I AWARENESS_D_P_InquiryProviderCallExecMethod: invoke duration is 0
+02-23 15:40:16.988 21776 21797 I Brain_AppRecoRecentUseRecall: appRecoRecentUseRecall is 5, {com.superpartybyai.app0=0.03, com.whatsapp0=0.027, com.google.android.youtube0=0.008, com.hihonor.contacts0=0.002, eu.mobile.mypos0=0.0}
+02-23 15:40:16.989 21776 21797 I Brain_PredictAbilityUtil: getRecallDataBySp data size is 22
+02-23 15:40:16.989 21776 21797 I Brain_AppRecoRecentHotRecall: appRecoRecentHotRecall is 22, {com.superpartybyai.app0=0.016880814, com.whatsapp0=0.015892876, com.hihonor.contacts0=0.012930751, com.google.android.permissioncontroller0=0.012682837, com.openai.chatgpt0=0.0112907505, com.google.android.gms0=0.010819725, com.android.vending0=0.010767815, com.google.android.providers.media.module0=0.010433703, com.google.android.youtube0=0.010373807, com.android.chrome0=0.010373807, com.android.settings0=0.009765702, ro.raiffeisen.smartmobile.le0=0.0077209906, com.google.android.packageinstaller0=0.0073799, com.google.android.projection.gearhead0=0.0069899256, eu.mobile.mypos0=0.0067717955, com.hihonor.search0=0.0067717955}
+02-23 15:40:16.993 21776 21797 I Brain_AppRecoBluetoothRecall: appRecoBluetoothRecall is 0, {}
+02-23 15:40:16.998 21776 21797 I Brain_AppRecoTimeRegularRecall: appRecoTimeRegularRecall is 0, {}
+02-23 15:40:16.998 21776 21797 I Brain_AppRecoBusiness: merge recall is 15, [com.superpartybyai.app0, com.whatsapp0, com.google.android.youtube0, com.hihonor.contacts0, com.openai.chatgpt0, com.android.vending0, com.android.chrome0, com.android.settings0, ro.raiffeisen.smartmobile.le0, eu.mobile.mypos0, com.oceanwing.battery.cam0, com.hihonor.calculator0, com.hihonor.deskclock0, com.google.android.apps.walletnfcrel0, com.google.android.gm0]
+02-23 15:40:16.998 21776 21797 I Brain_PredictAbilityUtil: getRecallDataBySp data size is 0
+02-23 15:40:16.998 21776 21797 I Brain_PredictAbilityUtil: getRecallDataBySp data size is 0
+02-23 15:40:17.004 21776 21797 I Brain_PreDataPro: getAppRecordResData caller is launcher
+02-23 15:40:17.004 21776 21793 I Brain_Sched: [ts]start tsk appReco_callback
+02-23 15:40:17.013 23394 23410 I Assistant.8.0.53.90.CardProxy: proxy out:$Proxy3 call getRecommendInfo 
+02-23 15:40:17.200   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Expired
+02-23 15:40:17.386 21776 26176 I Intelli_Analytics_NetworkMeterEventListener: requestType = query latency -> {dnsSE:1-9,connSE:9-257,sslSE:86-256,connAcquired:259,reqHeaderSE:259-259,reqBodySE:259-260,resHeaderSE:429-429,resBodySE:430-430,callEnd:430,callFailed:-1}
+02-23 15:40:18.222  4777  4797 I AWARENESS_D_P_InquiryProviderCallExecMethod: invoke begin, calling pkg name: com.hihonor.brain
+02-23 15:40:18.226  4777  4797 E SQLiteLog: (1) no such table: SubjectEventSet in "select min(eventTimestamp) as eventTimestamp from SubjectEventSet where itemTypeId = ? and callingPackage in (?,?) and startFrom in (?,?,?,?,?,?) "
+02-23 15:40:18.229  4777  4797 E AWARENESS_D_P_DbEngine: raw query failed:Get table involved in SQL failed :no such table: SubjectEventSet (Sqlite code 1): , while compiling: select min(eventTimestamp) as eventTimestamp from SubjectEventSet where itemTypeId = ? and callingPackage in (?,?) and startFrom in (?,?,?,?,?,?) , (OS error - 2:No such file or directory)
+02-23 15:40:18.229  4777  4797 I AWARENESS_D_P_InquiryProviderCallExecMethod: invoke duration is 7
+02-23 15:40:18.231  4777  4797 I AWARENESS_D_P_InquiryProviderCallExecMethod: invoke begin, calling pkg name: com.hihonor.brain
+02-23 15:40:18.232  4777  4797 I AWARENESS_D_P_InquiryProviderCallExecMethod: invoke duration is 1
+02-23 15:40:18.625   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Reset
+02-23 15:40:18.826   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Expired
+02-23 15:40:18.911   939  1345 I Scheduler: boostTimerCallback timer change to TimerState: Expired
+02-23 15:40:19.000  1919  1951 I EventHub: wake() called
+02-23 15:40:19.002  2664  4694 I PGServer: getTopFrontApp. calling pkg: android
+02-23 15:40:19.004  2664  4694 I PGServer: getTopFrontApp. calling pkg: android
+02-23 15:40:19.007  2664  4694 I PGServer: getTopFrontApp. calling pkg: android
+02-23 15:40:19.023   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Reset
+02-23 15:40:19.224   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Expired
+02-23 15:40:20.018   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Reset
+02-23 15:40:20.219   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Expired
+02-23 15:40:21.033   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Reset
+02-23 15:40:21.233   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Expired
+02-23 15:40:22.011 23394 23394 D BrainClient: BrainClient: call disconnect, caller is com.hihonor.assistant
+02-23 15:40:23.028   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Reset
+02-23 15:40:23.228   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Expired
+02-23 15:40:24.044   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Reset
+02-23 15:40:24.245   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Expired
+02-23 15:40:24.577  1919  2327 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:40:24.580  1919  2716 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:40:24.581  2792 23786 I MediaProcessHandler: executedCallBack opType: 1 mMediaStatusObservers.size=0
+02-23 15:40:24.582  1919  2327 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:40:24.736  2664 18738 I PGServer: getTopFrontApp. calling pkg: android
+02-23 15:40:33.091   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Reset
+02-23 15:40:33.291   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Expired
+02-23 15:40:34.094   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Reset
+02-23 15:40:34.295   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Expired
+02-23 15:40:35.104   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Reset
+02-23 15:40:35.306   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Expired
+02-23 15:40:36.105   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Reset
+02-23 15:40:36.305   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Expired
+02-23 15:40:37.940  1919  2170 D fingersense_manager: Calling fingersense_classify_touch()
+02-23 15:40:37.967   939  1345 I Scheduler: boostTimerCallback timer change to TimerState: Reset
+02-23 15:40:37.967   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Reset
+02-23 15:40:37.972   939  1344 I Scheduler: touchTimerCallback timer change to TimerState: Reset
+02-23 15:40:38.012  1919  1941 I TransitionController: first create transition: TransitionRecord{8ac0b6 id=-1 type=OPEN flags=0x0}, caller: com.android.server.wm.ActivityStarter.executeRequest:1793 com.android.server.wm.HwActivityStarter.executeRequest:352 com.android.server.wm.ActivityStarter.execute:1001 com.android.server.wm.HwActivityStarter.execute:683 com.android.server.wm.ActivityTaskManagerService.startActivityAsUser:1565 
+02-23 15:40:38.012  2664 18738 I PGServer: android calls fast HApps
+02-23 15:40:38.012  2664 18738 I AppFastHibernation: call fast hibernation app: 
+02-23 15:40:38.012  1919  1941 I ActivityStarter: shouldShowFreeformWindow realCallingPackage =com.hihonor.android.launcher isRes= true rotation= 0 orientation = -1 isPortarait = false sourceRecord = ActivityRecord{c423c3f u0 com.hihonor.android.launcher/.unihome.UniHomeLauncher t5 mVisible=true mOccludesParent=true mode=fullscreen boundsRect(0, 0 - 720, 1612)} isMagicWin = false isForceRotation = false r.packageName = com.superpartybyai.app isAE= false sourceLaunchedFromPackage= null isInBlackList= false r.info = ActivityInfo{f41c2db com.superpartybyai.app.MainActivity}
+02-23 15:40:38.028  1919  6471 W WindowManager: Failed looking up window session=Session{3b72e9c 2382:u0a10083} callers=com.android.server.wm.WindowManagerService.windowForClientLocked:7386 com.android.server.wm.WindowManagerService.removeWindow:2602 com.android.server.wm.Session.remove:248 
+02-23 15:40:38.035  4777  4797 I AWARENESS_RecentAppAbility: callingPackage:com.hihonor.android.launcher to:com.superpartybyai.app launchMode:102 uid :0
+02-23 15:40:38.036  4777 29834 W AWARENESS_AmsRegister: state : onPause comp : ComponentInfo{com.hihonor.android.launcher/com.hihonor.android.launcher.unihome.UniHomeLauncher} taskId : 5callingPackage:launchMode:-1processUid_act:0
+02-23 15:40:38.036  4777  4789 W AWARENESS_AmsRegister: app switch from : com.hihonor.android.launcher to com.superpartybyai.app as ComponentInfo{com.superpartybyai.app/com.superpartybyai.app.MainActivity} taskId : 24758  label:Superparty WhatsAppcallingPackage:com.hihonor.android.launcherlaunchMode:102processUid:0
+02-23 15:40:38.040   939   939 I BpBinder: onLastStrongRef automatically unlinking death recipients: 
+02-23 15:40:38.043  4777  4797 I AWARENESS_RecentAppAbility: insertRecentList startFrom 102, appRecoList after is [SimpleRecentAppData{packageName='com.superpartybyai.app0', openTime=1771853992, aliveTime=23}, SimpleRecentAppData{packageName='com.whatsapp0', openTime=1771853774, aliveTime=14}, SimpleRecentAppData{packageName='com.google.android.youtube0', openTime=1771851018, aliveTime=106}, SimpleRecentAppData{packageName='com.hihonor.contacts0', openTime=1771847284, aliveTime=13}, SimpleRecentAppData{packageName='eu.mobile.mypos0', openTime=1771843797, aliveTime=12}, SimpleRecentAppData{packageName='com.superpartybyai.app0', openTime=1771854038, aliveTime=0}], hyperHoldList after is [SimpleRecentAppData{packageName='com.hihonor.android.launcher0', openTime=1771854015, aliveTime=23}, SimpleRecentAppData{packageName='com.superpartybyai.app0', openTime=1771853992, aliveTime=23}, SimpleRecentAppData{packageName='com.whatsapp0', openTime=1771853774, aliveTime=14}, SimpleRecentAppData{packageName='com.google.android.youtube0', openTime=1771851018, aliveTime=106}, SimpleRecentAppData{packageName='com.hihonor.contacts0', openTime=1771847284, aliveTime=13}, SimpleRecentAppData{packageName='com.android.incallui0', openTime=1771847193, aliveTime=3}, SimpleRecentAppData{packageName='com.google.android.gms0', openTime=1771847163, aliveTime=7}, SimpleRecentAppData{packageName='com.google.android.apps.walletnfcrel0', openTime=1771847117, aliveTime=5}, SimpleRecentAppData{packageName='eu.mobile.mypos0', openTime=1771843797, aliveTime=12}, SimpleRecentAppData{packageName='com.superpartybyai.app0', openTime=1771854038, aliveTime=0}]
+02-23 15:40:38.044 23394 23410 I Assistant.8.0.53.90.RecommendCardProvider: call method: handleBusiness
+02-23 15:40:38.047 23394 23410 I Assistant.8.0.53.90.CardProxy: proxy in:$Proxy3 call handleBusiness 
+02-23 15:40:38.047 23394 23410 I Assistant.8.0.53.90.RecommendImpl: actionName:app_click callPkg:com.hihonor.android.launcher
+02-23 15:40:38.047 23394 23410 I Assistant.8.0.53.90.RecommendService: begin execTrigger without callback: com.hihonor.assistant.COMMON_TRIGGER_TYPE
+02-23 15:40:38.047 23394 23410 D BrainClient: BrainClient: call disconnect, caller is com.hihonor.assistant
+02-23 15:40:38.047 23394 23410 D BrainClient: BrainClient: call connect, caller is com.hihonor.assistant
+02-23 15:40:38.049  1919  2434 E WifiEnhanceServiceImpl: WifiP2pExtendService only allow system uid calling
+02-23 15:40:38.053 23394 23863 I Assistant.8.0.53.90.RecommendCardProvider: call method: handleBusiness
+02-23 15:40:38.053  2664  2934 I PGServer: getTopFrontApp. calling pkg: android
+02-23 15:40:38.054 23394 23863 I Assistant.8.0.53.90.CardProxy: proxy in:$Proxy3 call handleBusiness 
+02-23 15:40:38.054 23394 23863 I Assistant.8.0.53.90.RecommendImpl: actionName:widgetExpose callPkg:com.hihonor.android.launcher
+02-23 15:40:38.056 23394 23863 I Assistant.8.0.53.90.RecommendService: begin execTrigger without callback: com.hihonor.assistant.APPRECO_WIDGET_SHOW_TIME
+02-23 15:40:38.060  2822 14790 I Hos_8.0.8.100: u0 log_hos_sdk->callRemote action =  , packageName = 
+02-23 15:40:38.063  2822 14790 I Hos_8.0.8.100: u0 log_hos_sdk->callbackError errorCode : 1006
+02-23 15:40:38.065  4777  4797 W AWARENESS_AmsRegister: state : onResume_begin comp : ComponentInfo{com.superpartybyai.app/com.superpartybyai.app.MainActivity} taskId : 24758callingPackage:com.hihonor.android.launcherlaunchMode:102processUid_act:0
+02-23 15:40:38.068 25410 25410 I ActivityThread: Performing restart of ActivityRecord{99d8256 token=android.os.BinderProxy@2670471 {com.superpartybyai.app/com.superpartybyai.app.MainActivity}} start=false callers:android.app.servertransaction.TransactionExecutor.performLifecycleSequence:264 android.app.servertransaction.TransactionExecutor.cycleToPath:219 android.app.servertransaction.TransactionExecutor.cycleToPath:201 android.app.servertransaction.TransactionExecutor.executeCallbacks:149 android.app.servertransaction.TransactionExecutor.execute:104 android.app.ActivityThread$H.handleMessage:3078 android.os.Handler.dispatchMessage:117 android.os.Looper.loopOnce:210 android.os.Looper.loop:302 android.app.ActivityThread.main:9675 
+02-23 15:40:38.070 23394 23410 D BrainClient: BrainClient: call executeTrigger 20000, caller is com.hihonor.assistant
+02-23 15:40:38.070 23394 23863 D BrainClient: BrainClient: call executeTrigger 20000, caller is com.hihonor.assistant
+02-23 15:40:38.073 23394 23410 I Assistant.8.0.53.90.CardProxy: proxy out:$Proxy3 call handleBusiness 
+02-23 15:40:38.073 23394 23863 I Assistant.8.0.53.90.CardProxy: proxy out:$Proxy3 call handleBusiness 
+02-23 15:40:38.074  1919  2327 I SurfaceControl: setWindowCrop sc Surface(name=Task=1)/@0xb480d86 width 0 height 0 callers com.android.server.wm.Transition.buildFinishTransaction:1096 com.android.server.wm.Transition.onTransactionReady:2157 com.android.server.wm.BLASTSyncEngine$SyncGroup.finishNow:388 com.android.server.wm.BLASTSyncEngine$SyncGroup.tryFinish:258 
+02-23 15:40:38.074  1919  2327 I SurfaceControl: setWindowCrop sc Surface(name=Task=1)/@0xb480d86 width -1 height -1 callers com.android.server.wm.Transition.buildFinishTransaction:1109 com.android.server.wm.Transition.onTransactionReady:2157 com.android.server.wm.BLASTSyncEngine$SyncGroup.finishNow:388 com.android.server.wm.BLASTSyncEngine$SyncGroup.tryFinish:258 
+02-23 15:40:38.074 23394 23410 I Assistant.8.0.53.90.RecommendCardProvider: call method: handleBusiness
+02-23 15:40:38.074  1919  2327 I SurfaceControl: setWindowCrop sc Surface(name=Task=24758)/@0xbd44a4b width 0 height 0 callers com.android.server.wm.Transition.buildFinishTransaction:1096 com.android.server.wm.Transition.onTransactionReady:2157 com.android.server.wm.BLASTSyncEngine$SyncGroup.finishNow:388 com.android.server.wm.BLASTSyncEngine$SyncGroup.tryFinish:258 
+02-23 15:40:38.075  1919  2327 I SurfaceControl: setWindowCrop sc Surface(name=Task=24758)/@0xbd44a4b width -1 height -1 callers com.android.server.wm.Transition.buildFinishTransaction:1109 com.android.server.wm.Transition.onTransactionReady:2157 com.android.server.wm.BLASTSyncEngine$SyncGroup.finishNow:388 com.android.server.wm.BLASTSyncEngine$SyncGroup.tryFinish:258 
+02-23 15:40:38.075 23394 23410 I Assistant.8.0.53.90.CardProxy: proxy in:$Proxy3 call handleBusiness 
+02-23 15:40:38.075 23394 23410 I Assistant.8.0.53.90.RecommendImpl: actionName:app_expose callPkg:com.hihonor.android.launcher
+02-23 15:40:38.075 23394 23410 I Assistant.8.0.53.90.RecommendService: begin execTrigger without callback: com.hihonor.assistant.COMMON_TRIGGER_TYPE
+02-23 15:40:38.075 23394 23410 D BrainClient: BrainClient: call executeTrigger 20000, caller is com.hihonor.assistant
+02-23 15:40:38.077 23394 23410 I Assistant.8.0.53.90.CardProxy: proxy out:$Proxy3 call handleBusiness 
+02-23 15:40:38.078  1919  1952 V WindowManager:     startWCT=WindowContainerTransaction { changes = {} hops = [] errorCallbackToken=null taskFragmentOrganizer=null }
+02-23 15:40:38.080  4777  4797 I AWARENESS_D_P_InquiryProviderCallExecMethod: invoke begin, calling pkg name: com.hihonor.brain
+02-23 15:40:38.080  4777  4797 I AWARENESS_D_P_InquiryProviderCallExecMethod: invoke duration is 0
+02-23 15:40:38.083  2382  2504 I PipTransition: call startAnimation type:1, mInFixedRotation:false, mEndFixedRotation:-1, currentPipTaskChange:null
+02-23 15:40:38.087 25410 25410 D TwilioVoicePlugin: onNewIntent
+02-23 15:40:38.104  1919  2122 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:40:38.109  1919  2122 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:40:38.110  1919  1941 I BLASTSyncEngine: transaction commit callback: 8116
+02-23 15:40:38.119  4777  4797 W AWARENESS_AmsRegister: state : onResume comp : ComponentInfo{com.superpartybyai.app/com.superpartybyai.app.MainActivity} taskId : 24758callingPackage:launchMode:-1processUid_act:0
+02-23 15:40:38.137  2792  3061 D NetworkQoe: handleVoipCallMonitorMsg: mTopActivity=0
+02-23 15:40:38.143  1919  2122 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:40:38.145  1919  2434 D ITouchService: itouch ITouchManagerImpl:NotifyDirectDeliverState CallBack state:0
+02-23 15:40:38.150  1919  4703 I HwAudioService: now type = 28,reportForegroundAppType = -1,pkg = null,systemload = 28VOIP_OPTIMIZE_IN_GAMEMODEfalse
+02-23 15:40:38.150  2792  3803 I MediaProcessHandler: executedCallBack opType: 1 mMediaStatusObservers.size=0
+02-23 15:40:38.152  1919  6468 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:40:38.153  1919  6468 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:40:38.153  1919  6468 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:40:38.155  1919  2716 D ITouchService: itouch ITouchManagerImpl:NotifyDirectDeliverState CallBack state:0
+02-23 15:40:38.171 25410 25410 I SurfaceCallbackHelper: Run surfaceRedrawNeededAsync of app because callback is Callback2
+02-23 15:40:38.172   939  1344 I Scheduler: touchTimerCallback timer change to TimerState: Expired
+02-23 15:40:38.204  2792  3061 I SmartDualCardSM: boosterDump:prop=false SdcSwitchOn=false DataSwitchOn=true WifiConnect=false AirplaneOn=false ScreenOn=true VSimEnabled=false CallOn=false AppState=GENERAL_FOREGROUND HidataAppState=GENERAL_BACKGROUND defaultDataSlotId=0 default4GSlot=0 mForeAppRouteSlotId=0 DataOn=true M_MmsUtPdp=false S_MmsUtPdp=false userType=2 supportNetworkQoe=true GameBattleStatus=-1
+02-23 15:40:38.236 27746 27746 V InputMethodService: CALL: doFinishInput
+02-23 15:40:38.237 27746 27746 V InputMethodService: CALL: onFinishInput
+02-23 15:40:38.241 27746 27746 V InputMethodService: CALL: onStartInput
+02-23 15:40:38.247 27746 27746 W z       : 	at com.android.internal.os.HandlerCaller$MyHandler.handleMessage(HandlerCaller.java:44)
+02-23 15:40:38.247 27746 27746 W z       : 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:601)
+02-23 15:40:38.323   939  1344 I Scheduler: touchTimerCallback timer change to TimerState: Reset
+02-23 15:40:38.355   939  1083 I Scheduler: boostTimerCallback timer change to TimerState: Expiring
+02-23 15:40:38.362  4777  4797 W AWARENESS_AmsRegister: state : onStop comp : ComponentInfo{com.hihonor.android.launcher/com.hihonor.android.launcher.unihome.UniHomeLauncher} taskId : 5callingPackage:launchMode:-1processUid_act:0
+02-23 15:40:38.366  2822  2822 W HnLauncher: 	at android.app.Instrumentation.callActivityOnStop(Instrumentation.java:1644)
+02-23 15:40:38.366  2822  2822 W HnLauncher: 	at android.app.ActivityThread.callActivityOnStop(ActivityThread.java:6368)
+02-23 15:40:38.366  2822  2822 W HnLauncher: 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:601)
+02-23 15:40:38.367  2822  2822 W HnLauncher: 	at android.app.Instrumentation.callActivityOnStop(Instrumentation.java:1644)
+02-23 15:40:38.367  2822  2822 W HnLauncher: 	at android.app.ActivityThread.callActivityOnStop(ActivityThread.java:6368)
+02-23 15:40:38.367  2822  2822 W HnLauncher: 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:601)
+02-23 15:40:38.369  2792  3061 I UidCloseNrStateMachine: enter uidStateChanged, ForeGrountApp=com.hihonor.android.launcher, mIsCallOn=false, mIsUsbPlugged=true, openLowPowerSwitch=true, QoeSlowState=false, powerMode=1, isSpeedSensitivityApp=false
+02-23 15:40:38.376  1919  2327 D HwActivityManagerServiceEx: getPackageNameForPid callingAppId: 1000
+02-23 15:40:38.381  1919  1956 I WindowManager: setSurfaceControl null, caller = com.android.server.wm.WindowContainer.removeImmediately:874 com.android.server.wm.WindowState.removeImmediately:3014 com.android.server.wm.WindowState.destroySurface:4311 com.android.server.wm.WindowState.onExitAnimationDone:5952 com.android.server.wm.WindowStateAnimator.onAnimationFinished:250 com.android.server.wm.WindowState.onAnimationFinished:6241 com.android.server.wm.WindowContainer$$ExternalSyntheticLambda4.onAnimationFinished:0 com.android.server.wm.SurfaceAnimator.lambda$getFinishedCallback$0:166 com.android.server.wm.SurfaceAnimator.$r8$lambda$eYT7rjaBOE8bCIRq043wVzQ_RTM:0 com.android.server.wm.SurfaceAnimator$$ExternalSyntheticLambda1.run:0 
+02-23 15:40:38.523   939  1344 I Scheduler: touchTimerCallback timer change to TimerState: Expired
+02-23 15:40:38.606   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Expired
+02-23 15:40:38.724  1919  1934 W JavaBinder: BinderProxy is being destroyed but the application did not call unlinkToDeath to unlink all of its death recipients beforehand.  Releasing leaked death recipient: com.android.server.input.InputManagerService$$ExternalSyntheticLambda7
+02-23 15:40:38.724  1919  1934 I BpBinder: onLastStrongRef automatically unlinking death recipients: 
+02-23 15:40:38.730  1919  1935 W System  : A resource failed to call HardwareBuffer.close. 
+02-23 15:40:39.286  1919  2170 D fingersense_manager: Calling fingersense_classify_touch()
+02-23 15:40:39.300   939  1604 I Scheduler: boostTimerCallback timer change to TimerState: Reset
+02-23 15:40:39.300   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Reset
+02-23 15:40:39.301   939  1344 I Scheduler: touchTimerCallback timer change to TimerState: Reset
+02-23 15:40:39.501   939  1344 I Scheduler: touchTimerCallback timer change to TimerState: Expired
+02-23 15:40:40.093   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Expired
+02-23 15:40:40.093   939  1352 I Scheduler: idleTimerCallback call boostTimerCallback Expired
+02-23 15:40:40.093   939  1352 I Scheduler: boostTimerCallback timer change to TimerState: Expiring
+02-23 15:40:40.106   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Reset
+02-23 15:40:40.140  2792  3061 I ConnCureController: checkDataWhenCallPending isCaredApp:false,isAllowed:true,isDataEnabled:true
+02-23 15:40:40.140  2792  3061 E ConnCureController: checkDataWhileSlaveCall oversea version, return.
+02-23 15:40:40.289  1919  2327 I ClipboardService: callingPackage:com.superpartybyai.app, uid =10298, isDefaultDeviceFocusedWindow =true, isVirtualDeviceFocusedWindow =false
+02-23 15:40:40.540   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Expired
+02-23 15:40:41.066  1919  2170 D fingersense_manager: Calling fingersense_classify_touch()
+02-23 15:40:41.083   939  2350 I Scheduler: boostTimerCallback timer change to TimerState: Reset
+02-23 15:40:41.084   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Reset
+02-23 15:40:41.086   939  1344 I Scheduler: touchTimerCallback timer change to TimerState: Reset
+02-23 15:40:41.503   939  1344 I Scheduler: touchTimerCallback timer change to TimerState: Expired
+02-23 15:40:42.307  1919  1941 I ClipboardService: callingPackage:com.superpartybyai.app, uid =10298, isDefaultDeviceFocusedWindow =true, isVirtualDeviceFocusedWindow =false
+02-23 15:40:42.527   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Expired
+02-23 15:40:42.527   939  1352 I Scheduler: idleTimerCallback call boostTimerCallback Expired
+02-23 15:40:42.527   939  1352 I Scheduler: boostTimerCallback timer change to TimerState: Expiring
+02-23 15:40:43.075  4777  5035 I AWARENESS_D_P_InquiryProviderCallExecMethod: invoke begin, calling pkg name: com.hihonor.awareness
+02-23 15:40:43.075  4777  5035 I AWARENESS_D_P_InquiryProviderCallExecMethod: invoke duration is 0
+02-23 15:40:43.083 23394 23394 D BrainClient: BrainClient: call disconnect, caller is com.hihonor.assistant
+02-23 15:40:43.137   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Reset
+02-23 15:40:43.338   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Expired
+02-23 15:40:44.136   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Reset
+02-23 15:40:44.303   939  1345 I Scheduler: boostTimerCallback timer change to TimerState: Expired
+02-23 15:40:44.337   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Expired
+02-23 15:40:48.996  1919  1951 I EventHub: wake() called
+02-23 15:40:52.717  2792 23786 I Booster_SarControlManager: processBandCallback, type=4, slotId=0, bundle_key1=0
+02-23 15:40:52.718  2792  3061 I SwitchFastToSlow: handleSwitchFastToSlow mIsDoneSwitchToSlow = false, is2GAndCall = false, isBigPowerState = false, isGprsEdge = false
+02-23 15:40:52.718  2792  3061 I SwitchFastToSlow: handleBigPowerCallback, end, slotId = 0, isBigPower=false
+02-23 15:40:52.718  2792  3061 I Booster_SarControlManager: handleBigPowerCallback, enter, slotId=0, powerState=0, is_sub0_big_power=0, is_sub1_big_power=-1, isChange=true
+02-23 15:40:52.727  2792  3061 I Booster_SarControlManager: handleControlSAR, hasFind=true, ruleData value: is_earpiece_on=0, is_speaker_phoneon=0, is_sub0_big_power=0, is_sub0_voice=0, is_sub1_voice=0, is_usb_ac_charge=0, is_voip_voice=0, is_wifi_ap_opened=1, is_wifi_connected=0, is_wifi_p2p_connected=0, sar_cell_reduce=7, sar_wifi_24GHz_reduce=16, sar_wifi_5GHz_reduce=16, sim_type=3, wifi_ap_band=1, wifi_band=1, wifi_p2p_band=9, wifi_station_band=9, 
+02-23 15:40:54.224  2792 23786 I Booster_SarControlManager: processBandCallback, type=4, slotId=0, bundle_key1=1
+02-23 15:40:54.225  2792  3061 I SwitchFastToSlow: handleSwitchFastToSlow mIsDoneSwitchToSlow = false, is2GAndCall = false, isBigPowerState = true, isGprsEdge = false
+02-23 15:40:54.225  2792  3061 I SwitchFastToSlow: handleBigPowerCallback, end, slotId = 0, isBigPower=true
+02-23 15:40:54.225  2792  3061 I Booster_SarControlManager: handleBigPowerCallback, enter, slotId=0, powerState=1, is_sub0_big_power=1, is_sub1_big_power=-1, isChange=true
+02-23 15:40:54.230  2792  3061 I Booster_SarControlManager: handleControlSAR, hasFind=true, ruleData value: is_earpiece_on=0, is_speaker_phoneon=0, is_sub0_big_power=1, is_sub0_voice=0, is_sub1_voice=0, is_usb_ac_charge=0, is_voip_voice=0, is_wifi_ap_opened=1, is_wifi_connected=0, is_wifi_p2p_connected=0, sar_cell_reduce=7, sar_wifi_24GHz_reduce=16, sar_wifi_5GHz_reduce=16, sim_type=3, wifi_ap_band=1, wifi_band=1, wifi_p2p_band=9, wifi_station_band=9, 
+02-23 15:40:57.221   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Reset
+02-23 15:40:57.422   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Expired
+02-23 15:40:58.220  2382  2382 D Choreographer: still have 492 traversal callbacks
+02-23 15:40:58.231   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Reset
+02-23 15:40:58.432   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Expired
+02-23 15:41:00.086   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Reset
+02-23 15:41:00.287   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Expired
+02-23 15:41:03.241   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Reset
+02-23 15:41:03.442   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Expired
+02-23 15:41:04.254   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Reset
+02-23 15:41:04.455   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Expired
+02-23 15:41:05.268   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Reset
+02-23 15:41:05.468   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Expired
+02-23 15:41:10.300   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Reset
+02-23 15:41:10.501   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Expired
+02-23 15:41:11.292   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Reset
+02-23 15:41:11.492   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Expired
+02-23 15:41:16.953  1919  2170 D fingersense_manager: Calling fingersense_classify_touch()
+02-23 15:41:16.977   939  1345 I Scheduler: boostTimerCallback timer change to TimerState: Reset
+02-23 15:41:16.979   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Reset
+02-23 15:41:16.980   939  1344 I Scheduler: touchTimerCallback timer change to TimerState: Reset
+02-23 15:41:16.994  2822  2822 D Choreographer: still have 3 traversal callbacks
+02-23 15:41:17.389   939  1344 I Scheduler: touchTimerCallback timer change to TimerState: Expired
+02-23 15:41:17.683  1919  2170 D fingersense_manager: Calling fingersense_classify_touch()
+02-23 15:41:17.699   939  1344 I Scheduler: touchTimerCallback timer change to TimerState: Reset
+02-23 15:41:18.072   939  1344 I Scheduler: touchTimerCallback timer change to TimerState: Expired
+02-23 15:41:18.152   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Expired
+02-23 15:41:18.152   939  1352 I Scheduler: idleTimerCallback call boostTimerCallback Expired
+02-23 15:41:18.152   939  1352 I Scheduler: boostTimerCallback timer change to TimerState: Expiring
+02-23 15:41:18.232  1919  2170 D fingersense_manager: Calling fingersense_classify_touch()
+02-23 15:41:18.246   939  2351 I Scheduler: boostTimerCallback timer change to TimerState: Reset
+02-23 15:41:18.246   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Reset
+02-23 15:41:18.247   939  1344 I Scheduler: touchTimerCallback timer change to TimerState: Reset
+02-23 15:41:18.620   939  1344 I Scheduler: touchTimerCallback timer change to TimerState: Expired
+02-23 15:41:18.715  1919  2170 D fingersense_manager: Calling fingersense_classify_touch()
+02-23 15:41:18.730   939  1344 I Scheduler: touchTimerCallback timer change to TimerState: Reset
+02-23 15:41:18.996  1919  1951 I EventHub: wake() called
+02-23 15:41:19.052   939  1344 I Scheduler: touchTimerCallback timer change to TimerState: Expired
+02-23 15:41:19.105   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Expired
+02-23 15:41:19.105   939  1352 I Scheduler: idleTimerCallback call boostTimerCallback Expired
+02-23 15:41:19.105   939  1352 I Scheduler: boostTimerCallback timer change to TimerState: Expiring
+02-23 15:41:19.247  1919  2170 D fingersense_manager: Calling fingersense_classify_touch()
+02-23 15:41:19.261   939  1604 I Scheduler: boostTimerCallback timer change to TimerState: Reset
+02-23 15:41:19.261   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Reset
+02-23 15:41:19.262   939  1344 I Scheduler: touchTimerCallback timer change to TimerState: Reset
+02-23 15:41:19.537   939  1344 I Scheduler: touchTimerCallback timer change to TimerState: Expired
+02-23 15:41:19.561   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Expired
+02-23 15:41:19.562   939  1352 I Scheduler: idleTimerCallback call boostTimerCallback Expired
+02-23 15:41:19.562   939  1352 I Scheduler: boostTimerCallback timer change to TimerState: Expiring
+02-23 15:41:20.335   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Reset
+02-23 15:41:20.536   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Expired
+02-23 15:41:21.334   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Reset
+02-23 15:41:21.535   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Expired
+02-23 15:41:21.809  1919  2170 D fingersense_manager: Calling fingersense_classify_touch()
+02-23 15:41:21.823   939  2351 I Scheduler: boostTimerCallback timer change to TimerState: Reset
+02-23 15:41:21.823   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Reset
+02-23 15:41:21.825   939  1344 I Scheduler: touchTimerCallback timer change to TimerState: Reset
+02-23 15:41:22.162   939  1344 I Scheduler: touchTimerCallback timer change to TimerState: Expired
+02-23 15:41:22.582   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Expired
+02-23 15:41:22.582   939  1352 I Scheduler: idleTimerCallback call boostTimerCallback Expired
+02-23 15:41:22.582   939  1352 I Scheduler: boostTimerCallback timer change to TimerState: Expiring
+02-23 15:41:23.347   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Reset
+02-23 15:41:23.547   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Expired
+02-23 15:41:24.346   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Reset
+02-23 15:41:24.547   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Expired
+02-23 15:41:24.962   939  1345 I Scheduler: boostTimerCallback timer change to TimerState: Expired
+02-23 15:41:25.362   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Reset
+02-23 15:41:25.563   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Expired
+02-23 15:41:26.366   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Reset
+02-23 15:41:26.567   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Expired
+02-23 15:41:33.411   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Reset
+02-23 15:41:33.612   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Expired
+02-23 15:41:34.421   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Reset
+02-23 15:41:34.621   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Expired
+02-23 15:41:38.430   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Reset
+02-23 15:41:38.631   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Expired
+02-23 15:41:39.439   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Reset
+02-23 15:41:39.640   939  1352 I Scheduler: idleTimerCallback timer change to TimerState: Expired

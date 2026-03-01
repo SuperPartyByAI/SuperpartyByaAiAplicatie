@@ -1,0 +1,156 @@
+/* Modern Floating Dock - Dribbble Inspired */
+
+.dock {
+  position: fixed;
+  bottom: var(--space-lg);
+  left: var(--space-lg);
+  right: var(--space-lg);
+  height: 72px;
+  background: var(--bg-primary);
+  backdrop-filter: blur(20px);
+  border-radius: var(--radius-2xl);
+  box-shadow:
+    var(--shadow-xl),
+    0 0 0 1px var(--border-light);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  padding: 0 var(--space-sm);
+  z-index: var(--z-fixed);
+  margin-bottom: env(safe-area-inset-bottom);
+}
+
+.dock-button {
+  flex: 1;
+  max-width: 72px;
+  height: 56px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-xs);
+  border-radius: var(--radius-lg);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+}
+
+.dock-button:hover {
+  background: var(--bg-tertiary);
+  color: var(--text-primary);
+}
+
+.dock-button:active {
+  transform: scale(0.95);
+}
+
+.dock-button.active {
+  color: var(--primary);
+}
+
+.dock-button.active::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 24px;
+  height: 3px;
+  background: var(--gradient-primary);
+  border-radius: var(--radius-full);
+}
+
+/* FAB Button (Center) */
+.dock-button.fab-button {
+  background: var(--gradient-primary);
+  color: white;
+  box-shadow:
+    var(--shadow-lg),
+    0 0 20px rgba(99, 102, 241, 0.3);
+  transform: scale(1.1);
+}
+
+.dock-button.fab-button:hover {
+  transform: scale(1.15);
+  box-shadow:
+    var(--shadow-xl),
+    0 0 25px rgba(99, 102, 241, 0.4);
+}
+
+.dock-button.fab-button:active {
+  transform: scale(1.05);
+}
+
+.dock-button.fab-button::before {
+  display: none;
+}
+
+/* Icons */
+.dock-icon {
+  font-size: 24px;
+  line-height: 1;
+}
+
+.dock-button.fab-button .dock-icon {
+  font-size: 28px;
+}
+
+/* Labels */
+.dock-label {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  line-height: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.dock-button.fab-button .dock-label {
+  font-size: 0.625rem;
+}
+
+/* Mobile Optimizations */
+@media (max-width: 390px) {
+  .dock {
+    bottom: var(--space-md);
+    left: var(--space-md);
+    right: var(--space-md);
+    height: 68px;
+    padding: 0 var(--space-xs);
+  }
+
+  .dock-button {
+    max-width: 64px;
+    height: 52px;
+  }
+
+  .dock-icon {
+    font-size: 22px;
+  }
+
+  .dock-button.fab-button .dock-icon {
+    font-size: 26px;
+  }
+}
+
+/* Larger phones */
+@media (min-width: 430px) {
+  .dock {
+    max-width: 430px;
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+  }
+}
+
+/* Touch target minimum (44x44 for accessibility) */
+@media (hover: none) and (pointer: coarse) {
+  .dock-button {
+    min-height: 44px;
+    min-width: 44px;
+  }
+}

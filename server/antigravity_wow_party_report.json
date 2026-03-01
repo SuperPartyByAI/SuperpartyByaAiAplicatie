@@ -1,0 +1,25 @@
+{
+  "created_routes": [
+    {
+      "route_id": "route-K22D5aEwi4PHCDw94E1l",
+      "name": "Wow party",
+      "metadata": {
+        "whatsapp_phone": "unknown",
+        "phone_id": "K22D5aEwi4PHCDw94E1l",
+        "channel_id": "whatsapp-baileys"
+      },
+      "destination": {
+        "url": "firestore://wa_accounts/K22D5aEwi4PHCDw94E1l",
+        "method": "POST",
+        "headers": {
+          "X-Route-Id": "route-K22D5aEwi4PHCDw94E1l"
+        }
+      },
+      "binding_id": "bind-K22D5aEwi4PHCDw94E1l",
+      "created_by": "bayine-service",
+      "created_at": "2026-02-25T10:14:48.591Z",
+      "status": "disabled",
+      "description": "WhatsApp Connection - needs_qr"
+    }
+  ]
+}

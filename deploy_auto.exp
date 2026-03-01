@@ -1,0 +1,7 @@
+#!/usr/bin/expect -f
+set timeout 20
+spawn ssh -o PubkeyAuthentication=no -o StrictHostKeyChecking=no root@37.27.34.179 "mkdir -p /root/.ssh && chmod 700 /root/.ssh && echo 'ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIM2E5zAzworekWUKJ6GzY3Dp7gR+OeQirkEaibRCsb6Z antigravity-deploy@superparty' >> /root/.ssh/authorized_keys && chmod 600 /root/.ssh/authorized_keys"
+expect {
+  "password:" { send "jgrNb3XrvP7M\r"; exp_continue }
+  eof
+}

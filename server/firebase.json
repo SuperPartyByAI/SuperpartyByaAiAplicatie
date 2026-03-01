@@ -1,0 +1,41 @@
+{
+  "hosting": {
+    "public": "superparty_flutter/build/web",
+    "ignore": ["firebase.json", "**/.*", "**/node_modules/**"],
+    "rewrites": [{ "source": "**", "destination": "/index.html" }]
+  },
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "functions": {
+    "source": "functions",
+    "predeploy": [
+      "npm --prefix functions ci",
+      "npm --prefix functions run build"
+    ]
+  },
+  "emulators": {
+    "auth": {
+      "host": "127.0.0.1",
+      "port": 9098
+    },
+    "firestore": {
+      "host": "127.0.0.1",
+      "port": 8082
+    },
+    "functions": {
+      "host": "127.0.0.1",
+      "port": 5002
+    },
+    "ui": {
+      "host": "127.0.0.1",
+      "enabled": true,
+      "port": 4001
+    },
+    "hub": {
+      "host": "127.0.0.1",
+      "port": 4401
+    }
+  }
+}

@@ -1,0 +1,38 @@
+groups:
+  - name: voip.rules
+    rules:
+      - alert: VoIPCallFailureHigh
+        expr: increase(voip_call_failures_total[5m]) > 5
+        for: 2m
+        labels:
+          severity: critical
+          service: superparty-backend
+        annotations:
+          summary: "High rate of VoIP call failures"
+          description: "voip_call_failures_total increased by >5 in 5m on {{ $labels.instance }}"
+      - alert: VoIPCallFailureSpike
+        expr: rate(voip_call_failures_total[1m]) > 1
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Spike in VoIP call failures"
+          description: "Short spike in voip_call_failures_total on {{ $labels.instance }}"
+      - alert: HTTP5xxSpike
+        expr: increase(http_responses_total{code=~"5.."}[5m]) > 10
+        for: 2m
+        labels:
+          severity: critical
+          service: superparty-backend
+        annotations:
+          summary: "High rate of HTTP 5xx responses"
+          description: "HTTP 5xx responses increased by >10 in 5m on {{ $labels.instance }}"
+      - alert: NativeCrashSpike
+        expr: increase(android_native_crash_total[10m]) > 0
+        for: 1m
+        labels:
+          severity: critical
+          service: superparty-app
+        annotations:
+          summary: "Android Native Crash detected"
+          description: "One or more native crashes detected on Android clients in the last 10m."

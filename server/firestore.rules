@@ -1,0 +1,509 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper function: check if user is authenticated
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Helper function: check if user has staff profile
+    function hasStaffProfile() {
+      return isAuthenticated() && exists(/databases/$(database)/documents/staffProfiles/$(request.auth.uid));
+    }
+    
+    // Helper function: check if user is employee (authenticated + has staff profile)
+    function isEmployee() {
+      return isAuthenticated() && hasStaffProfile();
+    }
+
+    // Admin = STRICT email only. No claims, users.role, allowlists, ENV.
+    function isAdminUser() {
+      return isAuthenticated() && request.auth.token.email == 'ursache.andrei1995@gmail.com';
+    }
+    
+    // DEPRECATED: Prefer isAdminUser()
+    function isAdmin() {
+      return isAdminUser();
+    }
+
+    // ─── Field Validation Helpers ────────────────────────────
+    function isValidString(field, maxLen) {
+      return field is string && field.size() > 0 && field.size() <= maxLen;
+    }
+    
+    function isValidTimestamp(field) {
+      return field is timestamp;
+    }
+    
+    function isValidInt(field, min, max) {
+      return field is int && field >= min && field <= max;
+    }
+    
+    // Users collection - restricted, prefer staffProfiles for employee data
+    match /users/{userId} {
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isAdminUser());
+      
+      // Create: admin-only OR self-register with strictly restricted fields (no role/admin).
+      allow create: if isAdminUser() || (isAuthenticated() && request.auth.uid == userId
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.email is string
+        && request.resource.data.phone is string
+        && request.resource.data.status is string
+        && !('role' in request.resource.data)
+        && !('admin' in request.resource.data)
+        && !('adminSetAt' in request.resource.data)
+        && !('staffSetupDone' in request.resource.data));
+      allow update: if isAdminUser() || (isAuthenticated() && request.auth.uid == userId &&
+        request.resource.data.diff(resource.data).changedKeys().hasOnly([
+          'displayName',
+          'phone',
+          'kycDone',
+          'kycData',
+          'updatedAt'
+        ])
+      );
+      allow delete: if false;
+    }
+    
+    // Staff profiles - user can only update phone; admin can manage all fields.
+    match /staffProfiles/{profileId} {
+      allow read: if isAuthenticated() && (request.auth.uid == profileId || isAdminUser());
+      
+      // Create: admin only
+      allow create: if isAdminUser();
+      
+      // Update:
+      // - Admin can update anything
+      // - User can update ONLY their phone (+ updatedAt). All assignment/team fields are server-only.
+      allow update: if isAdminUser() || (isAuthenticated() && request.auth.uid == profileId &&
+        request.resource.data.diff(resource.data).changedKeys().hasOnly(['phone', 'updatedAt'])
+      );
+      
+      // Delete: Never allow (use isArchived instead)
+      allow delete: if false;
+    }
+
+    // Teams are readable by authenticated users; writable by admin/GM.
+    match /teams/{teamId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdminUser();
+    }
+
+    // Code pools are server-only writable (Cloud Functions using Admin SDK).
+    match /teamCodePools/{teamId} {
+      allow read: if isAdminUser();
+      allow write: if false;
+    }
+
+    // Assignments are server-only writable; readable by admin/GM.
+    match /teamAssignments/{docId} {
+      allow read: if isAdminUser();
+      allow write: if false;
+    }
+
+    // Assignment history is server-only; readable by admin/GM.
+    match /teamAssignmentsHistory/{docId} {
+      allow read: if isAdminUser();
+      allow write: if false;
+    }
+
+    // Admin action logs are server-only; readable by admin/GM.
+    match /adminActions/{docId} {
+      allow read: if isAdminUser();
+      allow write: if false;
+    }
+
+    // Request tokens for idempotency (server-only)
+    match /staffRequestTokens/{tokenId} {
+      allow read: if false; // No client reads needed
+      allow write: if false; // Only server (Functions) can write
+    }
+    
+    // KYC Submissions
+    match /kycSubmissions/{submissionId} {
+      allow read: if isAuthenticated() && (resource.data.uid == request.auth.uid || isAdmin());
+      allow create: if isAuthenticated() && request.resource.data.uid == request.auth.uid;
+      allow update, delete: if isAdmin();
+    }
+    
+    // Events collection (alias for evenimente)
+    match /events/{eventId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+      allow update: if isEmployee() || (isAuthenticated() && resource.data.createdBy == request.auth.uid);
+      allow delete: if false;
+    }
+    
+    // Evenimente - POLITICA: NEVER DELETE
+    // All authenticated users can read and create events
+    // Only employees or event owner can update/archive
+    match /evenimente/{eventId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() 
+                    && request.resource.data.createdBy == request.auth.uid
+                    && request.resource.data.isArchived == false
+                    && request.resource.data.schemaVersion in [2, 3]
+                    && isValidString(request.resource.data.titlu, 200)
+                    && request.resource.data.keys().hasAll(['createdBy', 'isArchived', 'schemaVersion', 'titlu']);
+      allow update: if isAdminUser() || isEmployee() || (isAuthenticated() && resource.data.createdBy == request.auth.uid);
+      allow delete: if false; // NEVER DELETE - use isArchived instead
+      
+      // Audit logs subcollection - only server can write, only GM/admin can read
+      match /audit/{logId} {
+        allow read: if isAdminUser();
+        allow write: if false; // Only server (Admin SDK) can write audit logs
+      }
+      
+      // Dovezi subcollection
+      match /dovezi/{evidenceId} {
+        allow read: if isAuthenticated();
+        allow create: if isEmployee();
+        // Update doar dacă categoria nu e locked (check both new and old schema)
+        allow update: if isEmployee() && (
+          ((!exists(/databases/$(database)/documents/evenimente/$(eventId)/evidenceState/$(resource.data.category)) ||
+            !get(/databases/$(database)/documents/evenimente/$(eventId)/evidenceState/$(resource.data.category)).data.locked) &&
+           (!exists(/databases/$(database)/documents/evenimente/$(eventId)/dovezi_meta/$(resource.data.categorie)) ||
+            !get(/databases/$(database)/documents/evenimente/$(eventId)/dovezi_meta/$(resource.data.categorie)).data.locked))
+        );
+        allow delete: if false; // NEVER DELETE - use isArchived instead
+      }
+      
+      // Evidence state (new schema)
+      match /evidenceState/{categoryId} {
+        allow read: if isAuthenticated();
+        allow create, update: if isAdmin();
+        allow delete: if false; // NEVER DELETE
+      }
+      
+      // Dovezi metadata (old schema - backward compatibility)
+      match /dovezi_meta/{categorie} {
+        allow read: if isAuthenticated();
+        allow create, update: if isAdmin();
+        allow delete: if false; // NEVER DELETE
+      }
+      
+      // Alte subcolecții: comentarii, istoric
+      match /{subcollection}/{docId} {
+        allow read: if isAuthenticated();
+        allow create, update: if isAdmin();
+        allow delete: if false; // Nimeni nu poate șterge din subcolecții
+      }
+    }
+    
+    // AI Conversations
+    match /aiConversations/{conversationId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated();
+    }
+    
+    // AI Corrections
+    match /aiCorrections/{correctionId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+    
+    // Outbox - WhatsApp message queue - POLITICA: NEVER DELETE
+    // SECURITY: Server-only writes (Functions proxy uses Admin SDK)
+    match /outbox/{messageId} {
+      // Employees can read outbox messages (for status checking)
+      allow read: if isEmployee();
+      
+      // Server-only writes (Functions proxy uses Admin SDK)
+      allow create, update, delete: if false;
+    }
+    
+    // Config: admin-only accountIds (0737571397). Written by scripts/set_admin_only_account.mjs.
+    match /config/whatsapp_inbox {
+      allow read, write: if false;
+    }
+
+    // Threads (WhatsApp Conversations) - USED BY BACKEND - POLITICA: NEVER DELETE
+    // Admin read all. Any authenticated user can read non-admin-only threads.
+    // My Inbox: user can read threads for their users/{uid}.myWhatsAppAccountId only; admin-only accounts excluded for non-admin.
+    match /threads/{threadId} {
+      allow read: if isAuthenticated() && (
+        isAdminUser()
+        || (
+          !exists(/databases/$(database)/documents/config/whatsapp_inbox)
+          || !(resource.data.accountId in get(/databases/$(database)/documents/config/whatsapp_inbox).data.adminOnlyAccountIds)
+        )
+        || (exists(/databases/$(database)/documents/users/$(request.auth.uid))
+            && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.myWhatsAppAccountId == resource.data.accountId
+            && (!exists(/databases/$(database)/documents/config/whatsapp_inbox)
+                || !(resource.data.accountId in get(/databases/$(database)/documents/config/whatsapp_inbox).data.adminOnlyAccountIds)))
+      );
+      allow create, update: if false;
+      allow delete: if false;
+
+      match /messages/{messageId} {
+        allow read: if isAuthenticated() && (
+          isAdminUser()
+          || (
+            !exists(/databases/$(database)/documents/config/whatsapp_inbox)
+            || !(get(/databases/$(database)/documents/threads/$(threadId)).data.accountId in get(/databases/$(database)/documents/config/whatsapp_inbox).data.adminOnlyAccountIds)
+          )
+          || (exists(/databases/$(database)/documents/users/$(request.auth.uid))
+              && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.myWhatsAppAccountId == get(/databases/$(database)/documents/threads/$(threadId)).data.accountId
+              && (!exists(/databases/$(database)/documents/config/whatsapp_inbox)
+                  || !(get(/databases/$(database)/documents/threads/$(threadId)).data.accountId in get(/databases/$(database)/documents/config/whatsapp_inbox).data.adminOnlyAccountIds)))
+        );
+        allow create: if false;
+        allow update: if false;
+        allow delete: if false;
+      }
+      
+      match /extractions/{messageId} {
+        allow read: if isAuthenticated() && (
+          isAdminUser()
+          || (
+            !exists(/databases/$(database)/documents/config/whatsapp_inbox)
+            || !(get(/databases/$(database)/documents/threads/$(threadId)).data.accountId in get(/databases/$(database)/documents/config/whatsapp_inbox).data.adminOnlyAccountIds)
+          )
+          || (exists(/databases/$(database)/documents/users/$(request.auth.uid))
+              && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.myWhatsAppAccountId == get(/databases/$(database)/documents/threads/$(threadId)).data.accountId
+              && (!exists(/databases/$(database)/documents/config/whatsapp_inbox)
+                  || !(get(/databases/$(database)/documents/threads/$(threadId)).data.accountId in get(/databases/$(database)/documents/config/whatsapp_inbox).data.adminOnlyAccountIds)))
+        );
+        allow create, update: if false;
+        allow delete: if false;
+      }
+    }
+    
+    // WhatsApp Conversations - NEW (not used yet) - POLITICA: NEVER DELETE
+    match /whatsappConversations/{conversationId} {
+      allow read: if isAuthenticated() && hasStaffProfile();
+      allow create: if isAuthenticated() && hasStaffProfile();
+      allow update: if isAuthenticated() && hasStaffProfile();
+      allow delete: if false; // Use isArchived instead
+    }
+    
+    // WhatsApp Messages - NEW (not used yet) - POLITICA: NEVER DELETE
+    match /whatsappMessages/{messageId} {
+      allow read: if isAuthenticated() && hasStaffProfile();
+      allow create: if isAuthenticated() && hasStaffProfile();
+      allow update: if false; // Messages are immutable
+      allow delete: if false; // Never delete messages
+    }
+    
+    // WhatsApp Messages (flat collection) - ACTIVE - POLITICA: NEVER DELETE
+    match /whatsapp_messages/{messageId} {
+      allow read: if isAuthenticated();
+      // SECURITY: server-only writes (Admin SDK bypasses rules)
+      allow create, update: if false;
+      allow delete: if false; // Never delete messages
+    }
+    
+    // WhatsApp Threads (flat collection) - ACTIVE - POLITICA: NEVER DELETE
+    match /whatsapp_threads/{threadId} {
+      allow read: if isAuthenticated();
+      // SECURITY: server-only writes (Admin SDK bypasses rules)
+      allow create, update: if false;
+      allow delete: if false; // Use isArchived instead
+    }
+    
+    // WhatsApp Accounts - POLITICA: NEVER DELETE
+    match /accounts/{accountId} {
+      allow read: if isAuthenticated();
+      // SECURITY: server-only writes (Admin SDK bypasses rules)
+      allow create, update: if false;
+      allow delete: if false; // Use isArchived instead
+      
+      // Chats subcollection
+      match /chats/{chatId} {
+        allow read: if isAuthenticated();
+        // SECURITY: server-only writes (Admin SDK bypasses rules)
+        allow create, update: if false;
+        allow delete: if false; // Use isArchived instead
+        
+        // Messages subcollection
+        match /messages/{messageId} {
+          allow read: if isAuthenticated();
+          // SECURITY: server-only writes (Admin SDK bypasses rules)
+          allow create, update: if false;
+          allow delete: if false; // Never delete messages
+        }
+      }
+    }
+    
+    // App configuration (version, force update, etc.)
+    match /app_config/{document} {
+      allow read: if document != 'ai_prompts';  // version etc. public for update checks
+      allow create, update: if isAdminUser();
+      allow delete: if false;
+    }
+    // AI prompts: employees read, admins write. Never delete.
+    match /app_config/ai_prompts {
+      allow read: if isEmployee();
+      allow create, update: if isAdminUser();
+      allow delete: if false;
+    }
+    
+    // Conversation states for interactive event creation
+    // Only accessible by the user who owns the session
+    match /conversationStates/{sessionId} {
+      allow create: if isAuthenticated() && request.resource.data.ownerUid == request.auth.uid;
+      allow read, update, delete: if isAuthenticated() && resource.data.ownerUid == request.auth.uid;
+    }
+    
+    // User event quota for rate limiting
+    match /userEventQuota/{userId} {
+      allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+      allow write: if false; // Only backend can write
+    }
+    
+    // V3 EN Collections
+    
+    // AI Global Rules (only super admin can write)
+    match /ai_global_rules/{ruleId} {
+      allow read: if isEmployee();
+      allow write: if isAdminUser();
+    }
+    
+    // Staff hours tracking (for salary calculation)
+    match /staffHours/{entryId} {
+      allow read: if isAdminUser() || 
+                     (isAuthenticated() && hasStaffProfile() && 
+                      resource.data.staffUid == request.auth.uid);
+      allow write: if false; // Only backend
+    }
+    
+    // Tasks (follow-ups, pending actions)
+    match /tasks/{taskId} {
+      allow read: if isEmployee() && (
+        resource.data.assigneeUid == request.auth.uid ||
+        resource.data.status == 'OPEN' ||
+        isAdminUser()
+      );
+      allow write: if false; // Only backend
+    }
+    
+    // Notifications (for staff)
+    match /notifications/{notificationId} {
+      allow read: if isAuthenticated() && (
+        resource.data.assigneeUid == request.auth.uid ||
+        isAdminUser()
+      );
+      allow update: if isAuthenticated() && 
+                       resource.data.assigneeUid == request.auth.uid &&
+                       request.resource.data.status == 'READ';
+      allow create, delete: if false; // Only backend
+    }
+    
+    // Counters (for eventShortId generation)
+    match /counters/{counterId} {
+      allow read: if isAuthenticated();
+      allow write: if false; // Only backend via transactions
+    }
+    
+    // Event history subcollection
+    match /evenimente/{eventId}/history/{historyId} {
+      allow read: if isEmployee();
+      allow write: if false; // Only backend
+    }
+    
+    // Conversations (for AI chat + WhatsApp chat list)
+    match /conversations/{conversationId} {
+      allow create: if isAuthenticated() &&
+                     request.resource.data.userId == request.auth.uid;
+      // All authenticated users can read (admin doesn't have staffProfile, so isEmployee() fails)
+      allow read: if isAuthenticated();
+      allow update, delete: if isAuthenticated() &&
+                                   resource.data.userId == request.auth.uid;
+      
+      // Messages subcollection - readable by all authenticated users
+      match /messages/{messageId} {
+        allow read: if isAuthenticated();
+        allow create, update, delete: if false; // Server-only writes
+      }
+    }
+    
+    // Customers collection (CRM profiles) - POLITICA: NEVER DELETE
+    match /customers/{customerId} {
+      // Employees can read customer profiles
+      allow read: if isEmployee();
+      
+      // SECURITY: server-only writes (Admin SDK bypasses rules)
+      allow create, update: if false;
+      
+      // NEVER DELETE - customer profiles must persist
+      allow delete: if false;
+      
+      // Orders subcollection
+      match /orders/{orderId} {
+        // Employees can read orders
+        allow read: if isEmployee();
+        
+        // SECURITY: server-only writes (Admin SDK bypasses rules)
+        allow create, update: if false;
+        
+        // NEVER DELETE - order history must persist
+        allow delete: if false;
+      }
+      
+      // Events subcollection (optional: party history/feedback)
+      match /events/{eventId} {
+        // Employees can read events
+        allow read: if isEmployee();
+        
+        // SECURITY: server-only writes (Admin SDK bypasses rules)
+        allow create, update: if false;
+        
+        // NEVER DELETE - event history must persist
+        allow delete: if false;
+      }
+    }
+    
+    // Clients collection (phone-based CRM profiles) - POLITICA: NEVER DELETE
+    match /clients/{phoneE164} {
+      // Employees can read client profiles
+      allow read: if isEmployee();
+      
+      // SECURITY: server-only writes (Admin SDK bypasses rules)
+      allow create, update: if false;
+      
+      // NEVER DELETE - client profiles must persist
+      allow delete: if false;
+    }
+    
+    // Salarii collection
+    match /salarii/{salaryId} {
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdminUser());
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      // Allow user to update/delete their own entries, or admin
+      allow update, delete: if isAdminUser() || (isAuthenticated() && resource.data.userId == request.auth.uid);
+    }
+    
+    // App Inbox - System alerts and announcements
+    // Server creates via Admin SDK (bypasses rules)
+    // Authenticated users can read and mark messages as read
+    match /app_inbox/{messageId} {
+      allow read: if isAuthenticated();
+      // Allow authenticated users to update ONLY the readBy field
+      allow update: if isAuthenticated()
+                    && request.resource.data.diff(resource.data).changedKeys().hasOnly(['readBy']);
+      allow create: if isAdminUser(); // Admin can also create manually
+      allow delete: if false;
+    }
+
+    // WhatsApp Accounts (used by chat_list_screen for account discovery)
+    match /wa_accounts/{accountId} {
+      allow read: if isAuthenticated();
+      allow create, update: if false; // Server-only writes
+      allow delete: if false;
+    }
+    
+    // Employees Roster (used by the Team Management screen)
+    match /employees/{employeeId} {
+      allow read: if isAuthenticated();
+      // Server-only updates for permissions (bypasses rules)
+      allow create, update, delete: if false;
+    }
+    
+    // Default deny all other collections
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -1,0 +1,106 @@
+# Prometheus Alert Rules
+# Alerte minime cerute: 5xx, latency, CPU, disk, RAM, service down, cert expiry
+
+groups:
+  - name: superparty-infra
+    rules:
+      # ─── CPU > 85% ──────────────────────────────────────────
+      - alert: HighCpuUsage
+        expr: 100 - (avg by(instance) (rate(node_cpu_seconds_total{mode="idle"}[5m])) * 100) > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'CPU usage > 85% ({{ $value | printf "%.1f" }}%)'
+          description: 'CPU usage pe {{ $labels.instance }} este {{ $value | printf "%.1f" }}% de mai mult de 5 minute.'
+
+      # ─── RAM > 85% ──────────────────────────────────────────
+      - alert: HighMemoryUsage
+        expr: (1 - (node_memory_MemAvailable_bytes / node_memory_MemTotal_bytes)) * 100 > 85
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'Memory usage > 85% ({{ $value | printf "%.1f" }}%)'
+          description: 'RAM usage pe {{ $labels.instance }} este {{ $value | printf "%.1f" }}%.'
+
+      # ─── Disk > 80% ─────────────────────────────────────────
+      - alert: HighDiskUsage
+        expr: (1 - (node_filesystem_avail_bytes{mountpoint="/"} / node_filesystem_size_bytes{mountpoint="/"})) * 100 > 80
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'Disk usage > 80% ({{ $value | printf "%.1f" }}%)'
+          description: 'Disk pe {{ $labels.instance }} este {{ $value | printf "%.1f" }}% plin.'
+
+  - name: superparty-backend
+    rules:
+      # ─── API 5xx Rate > 5% ──────────────────────────────────
+      - alert: High5xxRate
+        expr: |
+          (
+            sum(rate(http_requests_total{status=~"5.."}[5m]))
+            /
+            sum(rate(http_requests_total[5m]))
+          ) * 100 > 5
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: 'API 5xx rate > 5% ({{ $value | printf "%.1f" }}%)'
+          description: 'Rata de erori 5xx este {{ $value | printf "%.1f" }}%. Verifică logurile backend.'
+
+      # ─── Latency P95 > 2s ───────────────────────────────────
+      - alert: HighLatencyP95
+        expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket[5m])) by (le)) > 2
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: 'API P95 latency > 2s ({{ $value | printf "%.2f" }}s)'
+          description: 'P95 latency este {{ $value | printf "%.2f" }} secunde.'
+
+      # ─── Service Down (no metrics) ──────────────────────────
+      - alert: BackendDown
+        expr: up{job="superparty-backend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "SuperParty backend is DOWN"
+          description: "Backend-ul nu răspunde la /metrics de {{ $value }} secunde. Verifică: systemctl status superparty-backend"
+
+      # ─── Node Exporter Down ─────────────────────────────────
+      - alert: NodeExporterDown
+        expr: up{job="node-exporter"} == 0
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Node Exporter is DOWN"
+          description: "node-exporter nu răspunde. Server metrics indisponibile."
+
+  - name: superparty-ssl
+    rules:
+      # ─── Certificate Expiry < 7 days ────────────────────────
+      # Necesită probe_ssl_earliest_cert_expiry din blackbox_exporter
+      # SAU monitorizare Caddy cert
+      - alert: SSLCertExpiringSoon
+        expr: (probe_ssl_earliest_cert_expiry - time()) / 86400 < 7
+        for: 1h
+        labels:
+          severity: critical
+        annotations:
+          summary: 'SSL Certificate expiră în {{ $value | printf "%.0f" }} zile'
+          description: "Certificatul SSL expiră în mai puțin de 7 zile. Let's Encrypt ar trebui să reînnoiască automat — verifică Caddy logs."
+
+      # ─── WhatsApp Disconnected ───
+      - alert: WhatsAppDisconnected
+        expr: whatsapp_sessions_status{status="needs_qr"} > 0
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "WhatsApp Account Disconnected"
+          description: "Un cont de WhatsApp necesita rescanare QR de mai mult de 5 minute."

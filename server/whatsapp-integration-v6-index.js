@@ -1,0 +1,2921 @@
+// index.js
+import express from "express";
+import cors from "cors";
+import fs from "fs";
+import path from 'path';
+import crypto from 'crypto';
+import twilio from 'twilio'; // Twilio Import
+
+// ... existing imports ...
+
+import pino from "pino";
+import qrcode from "qrcode-terminal";
+
+/* ========== Structured Logger (pino JSON) ========== */
+const LOG_DIR = process.env.LOG_DIR || path.join(process.cwd(), 'logs');
+try { fs.mkdirSync(LOG_DIR, { recursive: true }); } catch {}
+
+const logger = pino({
+  level: process.env.LOG_LEVEL || 'info',
+  timestamp: pino.stdTimeFunctions.isoTime,
+  base: { service: 'superparty-backend', env: process.env.NODE_ENV || 'production' },
+  transport: process.env.NODE_ENV !== 'production' ? {
+    target: 'pino-pretty',
+    options: { colorize: true }
+  } : undefined,
+});
+
+/* ========== Prometheus Metrics (prom-client) ========== */
+import promClient from 'prom-client';
+
+const metricsRegistry = new promClient.Registry();
+promClient.collectDefaultMetrics({ register: metricsRegistry });
+
+const httpRequestsTotal = new promClient.Counter({
+  name: 'http_requests_total',
+  help: 'Total HTTP requests',
+  labelNames: ['method', 'path', 'status'],
+  registers: [metricsRegistry],
+});
+
+const httpRequestDuration = new promClient.Histogram({
+  name: 'http_request_duration_seconds',
+  help: 'HTTP request duration in seconds',
+  labelNames: ['method', 'path'],
+  buckets: [0.01, 0.05, 0.1, 0.25, 0.5, 1, 2.5, 5, 10],
+  registers: [metricsRegistry],
+});
+
+const whatsappMessagesTotal = new promClient.Counter({
+  name: 'whatsapp_messages_total',
+  help: 'Total WhatsApp messages processed',
+  labelNames: ['direction'],
+  registers: [metricsRegistry],
+});
+
+const canonicalMismatchTotal = new promClient.Counter({
+  name: 'canonical_mismatch_total',
+  help: 'Firestore writes where convoId did not match canonical JID (indicates amestec risk)',
+  labelNames: ['route'],
+  registers: [metricsRegistry],
+});
+
+/**
+ * Anti-amestec: log + guardrail for every media operation.
+ * Increments canonical_mismatch_total if convoId doesn't match expected canonical form.
+ */
+function logMediaOp(route, { inputJid, canonicalJid, accountId, convoId, msgId, storagePath, requestId }) {
+  const expected = accountId ? `${accountId}_${canonicalJid}` : canonicalJid;
+  const mismatch = convoId && convoId !== expected;
+  if (mismatch) {
+    canonicalMismatchTotal.inc({ route });
+    logger.warn({ route, inputJid, canonicalJid, accountId, convoId, expected, msgId, storagePath, requestId, mismatch: true },
+      `[CANONICAL MISMATCH] convoId="${convoId}" != expected="${expected}"`);
+  } else {
+    logger.info({ route, inputJid, canonicalJid, accountId, convoId, msgId, storagePath, requestId, mismatch: false },
+      `[MediaOp] ${route}`);
+  }
+  return mismatch;
+}
+import { createRequire } from "module";
+const require = createRequire(import.meta.url);
+import {
+  makeWASocket,
+  useMultiFileAuthState,
+  DisconnectReason,
+  downloadAndProcessHistorySyncNotification,
+  downloadMediaMessage,
+} from "@whiskeysockets/baileys";
+import { makeCustomStore } from "./store.js";
+// import { logMessage } from "./sheets.js"; 
+import admin from "firebase-admin";
+// ── Firebase Admin default app init (required for admin.auth().verifyIdToken) ──
+if (!admin.apps.length) {
+  const _fbKey = require('./firebase-service-account.json');
+  admin.initializeApp({ credential: admin.credential.cert(_fbKey) });
+}
+
+import { SessionManager } from "./session-manager.js"; // Import SessionManager
+import { FieldValue } from "firebase-admin/firestore";
+
+import * as Sentry from '@sentry/node';
+if (process.env.SENTRY_DSN) {
+  Sentry.init({
+    dsn: process.env.SENTRY_DSN,
+    environment: process.env.NODE_ENV || 'production',
+    tracesSampleRate: 0.05,
+  });
+}
+
+/* ========== Config ========== */
+const PORT = process.env.PORT || 3001;
+const LID_MAPPING_FILE = "lid_mappings.json";
+const STORE_FILE = "baileys_store_multi.json";
+
+/* ========== Firebase Admin Init ========== */
+import { initFirebase, syncMessageToFirestore, uploadMediaToStorage, getSignedMediaUrl, setCanonicalMismatchCallback, getAuth } from "./firebase-sync.js";
+import multer from "multer";
+const upload = multer({ limits: { fileSize: 25 * 1024 * 1024 }, storage: multer.memoryStorage() });
+
+// Init immediately
+const db = initFirebase(); 
+
+// Wire anti-amestec callback: increment Prometheus counter on canonical mismatch
+setCanonicalMismatchCallback((route, details) => {
+  canonicalMismatchTotal.inc({ route });
+  logger.warn({ ...details, route, mismatch: true }, `[CANONICAL MISMATCH] in ${route}`);
+});
+
+/* ========== Lid overrides (file-based) ========== */
+let lidOverrides = {};
+const phoneToLidMap = new Map();
+
+function loadLidOverrides() {
+  try {
+    if (fs.existsSync(LID_MAPPING_FILE)) {
+      const raw = fs.readFileSync(LID_MAPPING_FILE, "utf8");
+      lidOverrides = raw ? JSON.parse(raw) : {};
+    } else {
+      lidOverrides = {};
+    }
+  } catch (e) {
+    console.error("Failed to load lid_mappings.json:", e);
+    lidOverrides = {};
+  }
+  phoneToLidMap.clear();
+  for (const [lid, phoneJid] of Object.entries(lidOverrides)) {
+    phoneToLidMap.set(phoneJid, lid);
+  }
+}
+function saveLidOverrides() {
+  try {
+    fs.writeFileSync(LID_MAPPING_FILE, JSON.stringify(lidOverrides, null, 2), "utf8");
+  } catch (e) {
+    console.error("Failed to write lid_mappings.json:", e);
+  }
+  phoneToLidMap.clear();
+  for (const [lid, phoneJid] of Object.entries(lidOverrides)) {
+    phoneToLidMap.set(phoneJid, lid);
+  }
+}
+loadLidOverrides();
+
+/* ========== Store setup ========== */
+const store = makeCustomStore();
+if (fs.existsSync(STORE_FILE)) {
+  try { store.readFromFile(STORE_FILE); } catch (e) { console.error("Failed to read store:", e); }
+}
+
+/* Debounced writes */
+let pendingWrite = null;
+function scheduleStoreWrite(delay = 2000) {
+  if (pendingWrite) return;
+  pendingWrite = setTimeout(() => {
+    try {
+      store.writeToFile(STORE_FILE);
+    } catch (e) {
+      console.error("store.writeToFile error:", e);
+    } finally {
+      clearTimeout(pendingWrite);
+      pendingWrite = null;
+    }
+  }, delay);
+}
+setInterval(() => { try { store.writeToFile(STORE_FILE); } catch (e) {} }, 10000);
+
+/* ========== Google Sync Init ========== */
+// import googleSync from "./google-sync.js"; // Removed duplicate
+// googleSync.initGoogleSync().catch(e => console.error("Failed to init Google Sync:", e));
+
+/* ========== Session Manager ========== */
+const sessionManager = new SessionManager(store);
+// Inject resolveCanonicalJid so inbound messages are canonicalized before Firestore write
+sessionManager._resolveCanonicalJid = resolveCanonicalJid;
+// Start initialization
+sessionManager.init().catch(err => console.error("Failed to init SessionManager:", err));
+
+
+/* ========== Helpers to access store (Map or Object) ========== */
+function getContact(id) {
+  if (!store || !store.contacts) return null;
+  if (store.contacts instanceof Map) return store.contacts.get(id);
+  return store.contacts[id];
+}
+function setContact(id, value) {
+  if (store.contacts instanceof Map) store.contacts.set(id, value);
+  else store.contacts[id] = value;
+}
+function getAllContactsArray() {
+  if (!store || !store.contacts) return [];
+  if (store.contacts instanceof Map) return Array.from(store.contacts.values());
+  return Object.values(store.contacts);
+}
+function getMessagesForJid(jid) {
+  if (!store || !store.messages) return [];
+  if (store.messages instanceof Map) return store.messages.get(jid) || [];
+  return store.messages[jid] || [];
+}
+function getChatsArray() {
+  if (!store || !store.chats) return [];
+  if (store.chats instanceof Map) return Array.from(store.chats.values());
+  return Object.values(store.chats);
+}
+
+/* ========== Canonicalization logic ========== */
+function resolveCanonicalJid(jid) {
+  if (!jid) return jid;
+  if (jid.endsWith("@g.us")) return jid; // groups keep their own id
+
+  const suffix = jid.split("@")[1] || "";
+
+  if (suffix === "s.whatsapp.net" || suffix === "c.us") {
+    return jid;
+  }
+
+  if (suffix === "lid") {
+    const contact = getContact(jid);
+    if (contact && contact.phoneNumber) return contact.phoneNumber;
+    if (lidOverrides[jid]) return lidOverrides[jid];
+    const contacts = getAllContactsArray();
+    for (const c of contacts) {
+      if (!c) continue;
+      if (c.id === jid && c.phoneNumber) return c.phoneNumber;
+    }
+    for (const c of contacts) {
+      if (!c) continue;
+      if (c.lid && c.lid === jid && c.phoneNumber) return c.phoneNumber;
+    }
+    for (const c of contacts) {
+      if (!c) continue;
+      if (c.phoneNumber && typeof c.phoneNumber === "string") {
+        const candidatePhone = c.phoneNumber.split("@")[0];
+        const lidNumeric = jid.split("@")[0];
+        if (String(candidatePhone).includes(String(lidNumeric).slice(-6)) ) {
+          return c.phoneNumber;
+        }
+      }
+    }
+    for (const [k, v] of Object.entries(lidOverrides)) {
+      if (k === jid) return v;
+    }
+    return jid;
+  }
+
+  const c = getContact(jid);
+  if (c && c.phoneNumber) return c.phoneNumber;
+  const phonePart = jid.split("@")[0];
+  for (const contact of getAllContactsArray()) {
+    if (!contact) continue;
+    if (contact.phoneNumber && contact.phoneNumber.split("@")[0] === phonePart) return contact.phoneNumber;
+    if (contact.id && contact.id.split("@")[0] === phonePart) return contact.id;
+  }
+  return jid;
+}
+
+/* ========== JID Resolution Helpers ========== */
+function findPartnerJids(target) {
+  const partners = new Set();
+  partners.add(target);
+
+  // canonical
+  try {
+    const canonical = resolveCanonicalJid(target);
+    if (canonical) partners.add(canonical);
+  } catch (e) {}
+
+  // dacă target e phone, adaugă lid-urile care au phoneNumber
+  if (target.endsWith('@s.whatsapp.net')) {
+    const contacts = store.contacts instanceof Map ? Array.from(store.contacts.values()) : Object.values(store.contacts || {});
+    for (const c of contacts) {
+      if (!c) continue;
+      if (c.phoneNumber === target) partners.add(c.id);
+      if (c.id && c.id.endsWith('@lid') && c.phoneNumber === target) partners.add(c.id);
+    }
+    // și mapping file
+    for (const [lid, phone] of Object.entries(lidOverrides || {})) {
+      if (phone === target) partners.add(lid);
+    }
+  }
+
+  // dacă target e lid, adaugă phone din contact sau din lidOverrides
+  if (target.endsWith('@lid')) {
+    const contact = store.contacts instanceof Map ? store.contacts.get(target) : (store.contacts || {})[target];
+    if (contact && contact.phoneNumber) partners.add(contact.phoneNumber);
+    if (lidOverrides && lidOverrides[target]) partners.add(lidOverrides[target]);
+  }
+
+  return Array.from(partners);
+}
+
+
+// import googleSync from "./google-sync.js";
+
+/* ========== Express app ========== */
+const app = express();
+app.use(cors());
+app.use(express.json());
+app.use('/media', express.static(path.join(process.cwd(), 'public', 'media')));
+
+// ─── Boot Safety ─────────────────────────────────────────
+try { fs.mkdirSync(path.join(process.cwd(), 'public', 'media'), { recursive: true }); } catch {}
+
+// ─── Admin Token Middleware ──────────────────────────────
+const ADMIN_TOKEN = process.env.ADMIN_TOKEN;
+if (!ADMIN_TOKEN) logger.warn('⚠️ ADMIN_TOKEN not set — admin endpoints will reject all requests');
+function requireAdminToken(req, res, next) {
+  // Allow token via header or query param
+  const auth = req.headers.authorization;
+  const qToken = req.query.token;
+  const token = (auth && auth.startsWith('Bearer ') ? auth.split('Bearer ')[1] : null) || qToken;
+  if (token !== ADMIN_TOKEN) {
+    return res.status(401).json({ error: 'unauthorized', message: 'Missing or invalid admin token' });
+  }
+  next();
+}
+
+// ─── Rate Limiter for regenerate ─────────────────────────
+const _regenRateLimit = new Map();
+function regenRateLimit(req, res, next) {
+  const ip = req.ip || req.connection?.remoteAddress || 'unknown';
+  const now = Date.now();
+  const WINDOW_MS = 60_000;
+  const MAX_PER_WINDOW = 10;
+  let entry = _regenRateLimit.get(ip);
+  if (!entry || now - entry.windowStart > WINDOW_MS) {
+    entry = { count: 0, windowStart: now };
+    _regenRateLimit.set(ip, entry);
+  }
+  entry.count++;
+  if (entry.count > MAX_PER_WINDOW) {
+    return res.status(429).json({ error: 'rate_limited', message: 'Too many requests. Wait 60s.', retryAfterMs: WINDOW_MS - (now - entry.windowStart) });
+  }
+  next();
+}
+
+/* ========== RequestId + Metrics Middleware ========== */
+app.use((req, res, next) => {
+  // Generate or propagate requestId
+  const requestId = req.headers['x-request-id'] || crypto.randomUUID();
+  req.requestId = requestId;
+  res.setHeader('X-Request-Id', requestId);
+
+  // Timing
+  const startTime = process.hrtime.bigint();
+
+  // Log + metrics on response finish
+  res.on('finish', () => {
+    const durationNs = Number(process.hrtime.bigint() - startTime);
+    const durationS = durationNs / 1e9;
+    const routePath = req.route?.path || req.path || req.url;
+
+    // Prometheus metrics
+    httpRequestsTotal.inc({ method: req.method, path: routePath, status: res.statusCode });
+    httpRequestDuration.observe({ method: req.method, path: routePath }, durationS);
+
+    // Structured JSON log
+    logger.info({
+      requestId,
+      method: req.method,
+      url: req.url,
+      statusCode: res.statusCode,
+      duration: Math.round(durationS * 1000),
+      ip: req.ip || req.connection?.remoteAddress,
+    }, `${req.method} ${req.url} ${res.statusCode} ${Math.round(durationS * 1000)}ms`);
+  });
+
+  next();
+});
+
+/* ========== Twilio Config (from env only — no hardcoded secrets) ========== */
+const TWILIO_SID = process.env.TWILIO_SID;
+const TWILIO_TOKEN = process.env.TWILIO_TOKEN;
+const API_KEY_SID = process.env.TWILIO_API_KEY_SID;
+const API_KEY_SECRET = process.env.TWILIO_API_KEY_SECRET;
+const TWIML_APP_SID = process.env.TWIML_APP_SID;
+if (!TWILIO_SID || !TWILIO_TOKEN) logger.warn('⚠️ TWILIO_SID/TWILIO_TOKEN not set — Twilio calls will fail');
+const twilioClient = (TWILIO_SID && TWILIO_TOKEN) ? twilio(TWILIO_SID, TWILIO_TOKEN) : null;
+
+/* ========== Twilio Webhook ========== */
+// Add urlencoded for Twilio
+app.use(express.urlencoded({ extended: true }));
+
+
+app.post('/api/voice/incoming', async (req, res) => {
+  const { From, To, CallSid } = req.body;
+  
+  // LOOP PREVENTION: If Twilio dials the GSM client and the client's carrier forwards it back to our Centrala,
+  // the From will be our own Twilio number. We MUST drop this to prevent ringing the agents twice!
+  if (From === '+40373805828' || From === '+40373810882' || From === To) {
+    console.warn(`[Twilio] LOOP DETECTED! Dropping forwarded call From: ${From} To: ${To}`);
+    const twiml = new twilio.twiml.VoiceResponse();
+    twiml.reject();
+    res.type('text/xml');
+    return res.send(twiml.toString());
+  }
+
+  console.log(`[Twilio] Incoming Voice Request. From: ${From}, To: ${To}, SID: ${CallSid}`);
+
+  
+  // 1. Log to Firestore
+  // 1. Log to Firestore
+  try {
+    if (From && To && CallSid) {
+      await db.collection('calls').doc(CallSid).set({
+        callSid: CallSid,
+        from: From,
+        to: To,
+        direction: (From.startsWith('client:') || !From.startsWith('+')) ? 'outgoing' : 'incoming',
+        status: 'ringing',
+        timestamp: admin.firestore.FieldValue.serverTimestamp(),
+        noticePlayed: true
+      }, { merge: true });
+    }
+  } catch(e) { console.error('Error logging call:', e); }
+
+  const twiml = new twilio.twiml.VoiceResponse();
+  const BASE_URL = process.env.PUBLIC_URL || 'http://46.225.182.127:3001';
+
+  // 3. Routing Logic
+  // Outbound: From starts with 'client:', OR is a known SDK identity (no '+' prefix = not a phone number)
+  const isOutbound = From && (From.startsWith('client:') || !From.startsWith('+'));
+  if (isOutbound) {
+      // OUTGOING CALL (From Mobile App -> To external number)
+      // NOTE: NO compliance message here — it causes the SDK session to timeout before connecting
+      console.log(`[Twilio] Handling Outgoing Call from App (${From}) to: ${To}`);
+
+      const CALLER_ID = '+40373805828'; // Your Twilio Number
+
+      if (!To || To.includes('centrala')) {
+          twiml.say({ language: 'ro-RO' }, 'Ați sunat la Centrală. Testul de apel este reușit. O zi bună!');
+      } else if (To.startsWith('bridge_')) {
+          const targetCallSid = To.split('_')[1];
+          console.log(`[Twilio] Agent bridging into conference for parked call: ${targetCallSid}`);
+          
+          const dial = twiml.dial();
+          dial.conference({
+            beep: false,
+            startConferenceOnEnter: true,
+            endConferenceOnExit: true
+          }, targetCallSid);
+          
+          // Also mark the firestore document as answered
+          try {
+             db.collection('active_incoming_calls').doc(targetCallSid).update({
+               status: 'answered',
+               answeredBy: From
+             }).catch(e => console.error('Firestore bridge update error:', e));
+          } catch(e) {}
+      } else {
+          let target = To;
+          // Clean target completely to digits-only
+          let digitsOnly = target.replace(/\D/g, '');
+          
+          if (digitsOnly.startsWith('07')) {
+             target = '+4' + digitsOnly;
+          } else if (digitsOnly.startsWith('40') || digitsOnly.startsWith('44') || digitsOnly.startsWith('39')) {
+             // Basic international handling for RO/UK/IT
+             target = '+' + digitsOnly;
+          } else if (digitsOnly.length >= 10) {
+             // Fallback default
+             target = '+' + digitsOnly;
+          }
+
+          if (target.length > 9) {
+             console.log(`[Twilio] Dialing external number: ${target} executed by ${From}`);
+             const dial = twiml.dial({
+               callerId: CALLER_ID,
+               record: 'record-from-answer',
+               recordingStatusCallback: `${BASE_URL}/api/voice/recording-status`,
+               recordingStatusCallbackMethod: 'POST',
+               timeout: 60,
+               // NOTE: no `action` URL — returning non-TwiML from action causes immediate hangup
+             });
+             dial.number(target);
+          } else {
+             twiml.say({ language: 'ro-RO' }, 'Numărul format este incorect.');
+          }
+      }
+  } else {
+      // INCOMING CALL (From World -> To Mobile App)
+      console.log(`[Twilio] Handling Incoming Call to App`);
+      
+      twiml.say({ language: 'ro-RO' }, 'Ați sunat la Super Party animatori petreceri copii. În câteva momente apelul dumneavoastră va fi preluat de un operator.');
+
+      // Bridge directly to Flutter app via Twilio Client SDK
+      // Push Credentials are configured on Twilio Dashboard, so SDK receives the call
+      
+      try {
+         await db.collection('active_incoming_calls').doc(CallSid).set({
+           callSid: CallSid,
+           from: From,
+           to: To,
+           status: 'ringing',
+           timestamp: admin.firestore.FieldValue.serverTimestamp()
+         });
+         console.log(`[VoIP] Logged incoming call to Firestore. SID: ${CallSid}`);
+      } catch(e) { console.error('[VoIP] Error logging to Firestore:', e); }
+
+      // Dial the Flutter app client directly — SDK will ring the app
+      const dial = twiml.dial({
+        callerId: From,
+        timeout: 45,
+        record: 'record-from-answer',
+        recordingStatusCallback: `${BASE_URL}/api/voice/recording-status`,
+        recordingStatusCallbackMethod: 'POST',
+        action: `${BASE_URL}/api/voice/park-fallback?callSid=\${CallSid}`
+      });
+      // Query ONLY the absolute most recent active device from Firestore
+      let identities = [];
+      try {
+        const devSnap = await db.collectionGroup('devices')
+          .orderBy('lastSeen', 'desc')
+          .limit(1)
+          .get();
+        if (!devSnap.empty) {
+          const identity = devSnap.docs[0].data().identity;
+          if (identity) identities.push(identity);
+        }
+        console.log('[Twilio] Dialing absolute most recent identity:', identities);
+      } catch(e) { console.error('[Twilio] Identity lookup error:', e.message); }
+      
+      if (identities.length === 0) {
+        // Fallback: dial superparty_admin if no devices registered
+        dial.client('superparty_admin');
+      } else {
+        for (const id of identities) {
+          dial.client({
+            statusCallback: `${BASE_URL}/api/voice/client-status`,
+            statusCallbackEvent: 'initiated ringing answered completed',
+          }, id);
+        }
+      }
+      
+      // If the client rejects the call (Bypass), the TwiML continues here
+      // We redirect the caller to a holding conference so the Outbound bridge can connect!
+      twiml.redirect(`${BASE_URL}/api/voice/park-fallback?callSid=\${CallSid}`);
+  }
+
+  res.type('text/xml');
+  res.send(twiml.toString());
+});
+
+app.post('/api/voice/park-fallback', (req, res) => {
+  const { callSid } = req.query;
+  const twiml = new twilio.twiml.VoiceResponse();
+  console.log(`[Twilio] Call ${callSid} dropped by client, moving caller to holding conference...`);
+  const dial = twiml.dial();
+  dial.conference({
+    beep: false,
+    waitUrl: 'http://twimlets.com/holdmusic?Bucket=com.twilio.music.classical',
+    startConferenceOnEnter: true,
+    endConferenceOnExit: true
+  }, callSid);
+
+  res.type('text/xml');
+  res.send(twiml.toString());
+});
+
+// ─── AGENT BRIDGE: Flutter app calls this when the user presses Answer ─────────
+app.post('/api/voice/bridge-agent', async (req, res) => {
+  try {
+    const { callSid, agentIdentity, fcmToken } = req.body;
+    if (!callSid || !agentIdentity) return res.status(400).json({ error: 'Missing callSid or agentIdentity' });
+
+    console.log(`[VoIP Bridge] Agent ${agentIdentity} answering CallSid: ${callSid}`);
+    
+    // Create an OUTBOUND call from Twilio to the Agent's Twilio Client Identity
+    // When the agent answers implicitly, Twilio drops them into the SAME conference as the caller
+    const BASE_URL = process.env.PUBLIC_URL || 'http://46.225.182.127:3001';
+    
+    const call = await twilioClient.calls.create({
+      to: `client:${agentIdentity}`,
+      from: '+40373810882', // The company number
+      twiml: `<Response><Dial><Conference beep="false" startConferenceOnEnter="true" endConferenceOnExit="true">${callSid}</Conference></Dial></Response>`,
+    });
+
+    // Mark Firestore as answered
+    await db.collection('active_incoming_calls').doc(callSid).update({
+       status: 'answered',
+       answeredBy: agentIdentity
+    });
+
+    res.json({ success: true, agentCallSid: call.sid });
+  } catch (error) {
+    console.error(`[VoIP Bridge] Error bridging agent:`, error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+app.post('/api/voice/dial-status', (req, res) => {
+  console.log("[Twilio] Dial Status:", req.body.DialCallStatus, "CallSid:", req.body.CallSid);
+  res.sendStatus(200);
+});
+
+// ─── FORCE HANGUP FLUTTER ──────────────────────────────
+app.post('/api/voice/cancel', async (req, res) => {
+  try {
+    const { callSid } = req.body;
+    if (!callSid) return res.status(400).json({ error: 'Missing callSid' });
+
+    console.log(`[VoIP] Force-canceling CallSid: ${callSid} requested by app...`);
+    const call = await twilioClient.calls(callSid).update({ status: 'completed' });
+    console.log(`[VoIP] Call ${callSid} successfully terminated to state: ${call.status}`);
+    res.json({ success: true, status: call.status });
+  } catch (error) {
+    console.error(`[VoIP] Error force-canceling call ${req.body.callSid}:`, error.message);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ─── HELPER: Generare ID Unic Conferinta ──────────────────────────────────────────
+function makeConfName() {
+  return `conf_${Date.now()}_${Math.random().toString(36).slice(2,8)}`;
+}
+
+// ─── REST Callback: apelează clientul şi agentul simultan într-o Conferinţă ────────
+app.post('/api/voice/callback', async (req, res) => {
+  try {
+    const { to, agentIdentity, callerId } = req.body;
+    if (!to) return res.status(400).json({ error: 'Missing `to` phone number' });
+
+    // Folosim callerId trimis de Flutter (care extrage numărul destinație original, ex: +4037...)
+    const { validateCallerId } = require('/tmp/caller_allow.js');
+    const CALLER_ID = validateCallerId(callerId);
+    const BASE_URL  = process.env.PUBLIC_URL || 'http://46.225.182.127:3001';
+
+    // Fetch the agent identity from Firestore if not provided
+    let identity = agentIdentity;
+    let fallbackIdentities = [];
+    if (!identity) {
+      const snap = await db.collectionGroup('devices').limit(3).get();
+      fallbackIdentities = snap.docs.map(d => d.data()?.identity).filter(Boolean);
+      identity = fallbackIdentities[0] || 'superparty_admin';
+    }
+
+    const confName = makeConfName();
+    console.log(`[Callback-Conf] Initiating Conference: ${confName} | Agent: ${identity} | Client: ${to}`);
+
+    // Endpoint-ul de join în conferință pentru ambele call-uri
+    const joinUrl = `${BASE_URL}/api/voice/joinConference?name=${encodeURIComponent(confName)}`;
+
+    // 1. Call Client (GSM)
+    const clientCall = await twilioClient.calls.create({
+      to: to,
+      from: CALLER_ID,
+      url: joinUrl,
+      timeout: 60,
+      record: true,
+      recordingStatusCallback: `${BASE_URL}/api/voice/recording-status`,
+      recordingStatusCallbackMethod: 'POST',
+      statusCallback: `${BASE_URL}/api/voice/status?conf=${encodeURIComponent(confName)}&role=client`,
+      statusCallbackEvent: ['initiated', 'ringing', 'answered', 'completed'],
+      statusCallbackMethod: 'POST'
+    });
+
+    // 2. Call Agent (VoIP)
+    const agentCall = await twilioClient.calls.create({
+      to: `client:${identity}`,
+      from: to,
+      url: joinUrl,
+      timeout: 60,
+      statusCallback: `${BASE_URL}/api/voice/status?conf=${encodeURIComponent(confName)}&role=agent`,
+      statusCallbackEvent: ['initiated', 'ringing', 'answered', 'completed'],
+      statusCallbackMethod: 'POST'
+    });
+
+    console.log(`[Callback-Conf] Dispatch OK! Client SID: ${clientCall.sid} | Agent SID: ${agentCall.sid}`);
+
+    const metadata = {
+      confName,
+      from: to,
+      to,
+      agentIdentity: identity,
+      direction: 'outgoing',
+      status: 'ringing',
+      clientCallSid: clientCall.sid,
+      agentCallSid: agentCall.sid,
+      timestamp: admin.firestore.FieldValue.serverTimestamp()
+    };
+
+    // Logging to Firestore
+    await db.collection('calls').doc(confName).set(metadata);
+    await db.collection('voiceConfs').doc(confName).set(metadata);
+
+    res.json({ success: true, confName, clientCallSid: clientCall.sid, agentCallSid: agentCall.sid });
+  } catch (e) {
+    console.error('[Callback-Conf] Error creating conference:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ─── TwiML: aruncă participanții în conferință când răspund ───────────────────────
+app.post('/api/voice/joinConference', (req, res) => {
+  const name = req.query.name;
+  if (!name) return res.status(400).send('missing conference name');
+
+  console.log(`[JoinConference] Participant joined: ${name}`);
+
+  const twiml = new twilio.twiml.VoiceResponse();
+  const dial = twiml.dial();
+  dial.conference({
+    beep: false,
+    startConferenceOnEnter: true,
+    endConferenceOnExit: true, // when the first participant to join the conference drops, it ends for everyone.
+    waitUrl: 'http://twimlets.com/holdmusic?Bucket=com.twilio.music.ambient'
+  }, name);
+
+  res.type('text/xml');
+  res.send(twiml.toString());
+});
+
+// ─── Call Log: Cancel an outgoing REST call and its bridged child legs ──────────
+// Deprecated/Adapted for Conference App
+app.delete('/api/voice/callback/:sid', async (req, res) => {
+  try {
+    // If we receive the ConfName or CallSid, we just kill the conference legs if we can find them
+    const sid = req.params.sid;
+    console.log(`[Callback-Conf] Force hanging up: ${sid}`);
+    
+    let targetConfId = sid;
+    
+    // Check if it's a CallSid or a ConfName
+    if (sid.startsWith('CA')) {
+       try {
+         await twilioClient.calls(sid).update({ status: 'completed' });
+       } catch(e) {}
+    } else if (sid.startsWith('conf_')) {
+       try {
+          const doc = await db.collection('voiceConfs').doc(sid).get();
+          if (doc.exists) {
+             const data = doc.data();
+             if (data.clientCallSid) await twilioClient.calls(data.clientCallSid).update({ status: 'completed' }).catch(console.error);
+             if (data.agentCallSid) await twilioClient.calls(data.agentCallSid).update({ status: 'completed' }).catch(console.error);
+          }
+       } catch(e) {}
+    }
+
+    res.json({ success: true, message: 'Force cancel triggered' });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+
+
+// ── Call Log: Save every inbound call to Firestore ────────────────────────────
+app.post('/api/voice/status', async (req, res) => {
+  const { CallSid, CallStatus, From, To, CallDuration, StartTime, EndTime } = req.body;
+  const { conf, role } = req.query; // NEW: Track the conference legs
+  console.log(`[Twilio] Call Status: ${CallStatus} SID:${CallSid} From:${From} Duration:${CallDuration}s`);
+  try {
+    const cleanFrom = (From || '').replace('client:', '').replace('+', '');
+    await db.collection('calls').doc(CallSid).set({
+      callSid: CallSid,
+      from: From || '',
+      fromClean: cleanFrom,
+      to: To || '',
+      status: CallStatus || '',
+      duration: parseInt(CallDuration || '0', 10),
+      startTime: StartTime ? new Date(StartTime) : admin.firestore.FieldValue.serverTimestamp(),
+      endTime: EndTime ? new Date(EndTime) : null,
+      timestamp: admin.firestore.FieldValue.serverTimestamp(),
+    }, { merge: true });
+    console.log(`[CallLog] Saved call ${CallSid} to Firestore`);
+
+    // --- NEW: Mutual Conference Teardown Logic ---
+    if (conf && role && ['completed', 'failed', 'canceled', 'no-answer', 'busy'].includes(CallStatus)) {
+      console.log(`[Conference-Teardown] Terminal state (${CallStatus}) reached for ${role} on ${conf}. Tearing down other leg...`);
+      const confDoc = await db.collection('voiceConfs').doc(conf).get();
+      if (confDoc.exists) {
+        const data = confDoc.data();
+        const otherLegSid = (role === 'agent') ? data.clientCallSid : data.agentCallSid;
+        if (otherLegSid) {
+          try {
+            await twilioClient.calls(otherLegSid).update({ status: 'completed' });
+            console.log(`[Conference-Teardown] Successfully canceled ${role}'s counterpart: ${otherLegSid}`);
+          } catch (cancelErr) {
+             if (!cancelErr.message.includes('already completed') && !cancelErr.message.includes('not in-progress')) {
+               console.error(`[Conference-Teardown] Failed to cancel ${otherLegSid}:`, cancelErr.message);
+             }
+          }
+        }
+      }
+    }
+  } catch (e) {
+    console.error('[CallLog] Failed to save call log:', e.message);
+  }
+  res.sendStatus(200);
+});
+
+// ── Recording Status: Save recording URL when Twilio finishes ────────────────
+app.post('/api/voice/recording-status', async (req, res) => {
+  const { CallSid, RecordingSid, RecordingUrl, RecordingDuration, RecordingStatus } = req.body;
+  console.log(`[Recording] SID:${RecordingSid} CallSid:${CallSid} Status:${RecordingStatus} Duration:${RecordingDuration}s`);
+  if (RecordingStatus === 'completed' && CallSid && RecordingUrl) {
+    try {
+      const url = `${RecordingUrl}.mp3`; // Force MP3 format
+      await db.collection('calls').doc(CallSid).set({
+        recordingUrl: url,
+        recordingSid: RecordingSid,
+        recordingDuration: parseInt(RecordingDuration || '0', 10),
+      }, { merge: true });
+      console.log(`[Recording] Saved recording URL for call ${CallSid}`);
+    } catch (e) {
+      console.error('[Recording] Failed to save recording URL:', e.message);
+    }
+  }
+  res.sendStatus(200);
+});
+
+// ── GET Call History ──────────────────────────────────────────────────────────
+/**
+ * WATCHDOG HEALTH-CHECK: VOICE SERVER
+ * Simple endpoint to verify the Node.js event loop isn't blocked 
+ * and express can serve requests.
+ */
+app.get('/api/voice/health-check', (req, res) => {
+  res.json({
+    status: 'ok',
+    service: 'twilio-voice-backend',
+    memory: process.memoryUsage().rss / 1024 / 1024,
+    uptime: process.uptime()
+  });
+});
+
+app.get('/api/voice/calls', async (req, res) => {
+  try {
+    const limit = parseInt(req.query.limit || '50', 10);
+    const snap = await db.collection('calls')
+      .orderBy('timestamp', 'desc')
+      .limit(limit)
+      .get();
+    const calls = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    // Convert Firestore Timestamps to ISO strings for JSON
+    const serialized = calls.map(c => ({
+      ...c,
+      startTime: c.startTime?.toDate?.()?.toISOString?.() ?? c.startTime,
+      endTime: c.endTime?.toDate?.()?.toISOString?.() ?? c.endTime,
+      timestamp: c.timestamp?.toDate?.()?.toISOString?.() ?? c.timestamp,
+    }));
+    res.json({ calls: serialized });
+  } catch (e) {
+    console.error('[GetCalls] Error fetching calls:', e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ── Call Log: Fetch single call by SID ────────────────────────────────────────
+app.get('/api/voice/calls/:sid', async (req, res) => {
+  try {
+    const sid = req.params.sid;
+    const doc = await db.collection('calls').doc(sid).get();
+    if (!doc.exists) {
+      return res.status(404).json({ error: 'Call not found' });
+    }
+    const data = doc.data();
+    res.json({
+      id: doc.id,
+      ...data,
+      startTime: data.startTime ? data.startTime.toDate().toISOString() : null,
+      endTime: data.endTime ? data.endTime.toDate().toISOString() : null,
+      timestamp: data.timestamp ? data.timestamp.toDate().toISOString() : null,
+    });
+  } catch (e) {
+    console.error(`[GetCall] Error fetching call ${req.params.sid}:`, e.message);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ── Recording Proxy: streams Twilio recording with Basic Auth ─────────────────
+// Flutter cannot add Basic Auth headers to url_launcher — proxy it here.
+app.get('/api/voice/recording/:sid', async (req, res) => {
+  const { sid } = req.params;
+  const url = `https://api.twilio.com/2010-04-01/Accounts/${TWILIO_SID}/Recordings/${sid}.mp3`;
+  try {
+    const fetch = (await import('node-fetch')).default;
+    const auth = Buffer.from(`${TWILIO_SID}:${TWILIO_TOKEN}`).toString('base64');
+    const response = await fetch(url, {
+      headers: { 'Authorization': `Basic ${auth}` }
+    });
+    if (!response.ok) {
+      console.error(`[Recording] Twilio returned ${response.status} for ${sid}`);
+      return res.status(response.status).send('Recording not available');
+    }
+    res.setHeader('Content-Type', 'audio/mpeg');
+    res.setHeader('Content-Disposition', `inline; filename="${sid}.mp3"`);
+    response.body.pipe(res);
+  } catch (e) {
+    console.error('[Recording] Proxy error:', e.message);
+    res.status(500).send('Proxy error');
+  }
+});
+
+// MULTI-DEVICE: Register a specific device hardware ID and its FCM Token
+app.post('/api/voice/registerDevice', async (req, res) => {
+  const { userId, deviceId, fcmToken } = req.body;
+  if (!userId || !deviceId || !fcmToken) {
+    return res.status(400).send('Missing required fields: userId, deviceId, fcmToken');
+  }
+
+  const identity = `user_${userId}_dev_${deviceId}`;
+  try {
+    await db.collection('users').doc(userId)
+      .collection('devices').doc(deviceId)
+      .set({ 
+        identity, 
+        fcmToken, 
+        lastSeen: admin.firestore.FieldValue.serverTimestamp() 
+      }, { merge: true });
+    
+    console.log(`[Twilio VoIP] Registered device ${deviceId} for user ${userId} with identity: ${identity}`);
+    res.json({ identity });
+  } catch (error) {
+    console.error("[Twilio VoIP] Error registering device:", error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+// MULTI-DEVICE: Fetch token scoped to a specific device identity
+app.get('/api/voice/getVoipToken', async (req, res) => {
+  const { userId, deviceId } = req.query;
+  if (!userId || !deviceId) {
+    return res.status(400).send('Missing required query params: userId, deviceId');
+  }
+  
+  try {
+    const deviceDoc = await db.collection('users').doc(userId)
+      .collection('devices').doc(deviceId).get();
+
+    if (!deviceDoc.exists) {
+      return res.status(404).send('device-not-registered');
+    }
+
+    const identity = deviceDoc.data().identity;
+    const AccessToken = twilio.jwt.AccessToken;
+    const VoiceGrant = AccessToken.VoiceGrant;
+
+    const voiceGrant = new VoiceGrant({
+      outgoingApplicationSid: TWIML_APP_SID,
+      incomingAllow: true, // Allow incoming calls
+    });
+
+    const token = new AccessToken(
+      TWILIO_SID,
+      API_KEY_SID,
+      API_KEY_SECRET,
+      { identity: identity }
+    );
+    
+    // RESTORING PUSH CREDENTIAL: The SDK strictly enforces this value to exist in the token
+    // otherwise the backend VoIP client fails to establish SIP, even for foreground calls.
+    const PUSH_CREDENTIAL_SID = 'CR45fcd9835719e90895bf551b87e4ef48'; 
+    voiceGrant.pushCredentialSid = PUSH_CREDENTIAL_SID;
+
+    token.addGrant(voiceGrant);
+
+    res.json({ token: token.toJwt(), identity });
+  } catch (error) {
+    console.error("[Twilio VoIP] Error generating VoIP token:", error);
+    res.status(500).send('Internal Server Error');
+  }
+});
+
+// Status Callback for VoIP - Handles Multi-Device Drop when one answers or client hangs up
+app.post('/api/voice/client-status', async (req, res) => {
+  const { CallStatus, CallSid, Called } = req.body;
+  console.log(`[Twilio VoIP] Client Status Update: ${CallStatus} for CallSid: ${CallSid} (Client: ${Called})`);
+
+  // If the call was canceled, rejected, or completed on this specific client
+  const terminalStates = ['canceled', 'completed'];
+  if (terminalStates.includes(CallStatus) && Called && Called.startsWith('client:user_')) {
+    const identityString = Called.replace('client:', '');
+    
+    // Identity format: user_{userId}_dev_{deviceId}
+    const parts = identityString.split('_');
+    if (parts.length >= 4) {
+      const userId = parts[1];
+      const deviceId = parts[3];
+
+      try {
+        const deviceDoc = await db.collection('users').doc(userId).collection('devices').doc(deviceId).get();
+        if (deviceDoc.exists && deviceDoc.data().fcmToken) {
+          const fcmToken = deviceDoc.data().fcmToken;
+          
+          console.log(`[Twilio VoIP] Sending explicit CANCEL signal via FCM to device ${deviceId} (Identity: ${identityString})`);
+          
+          // We send a custom data payload that our Kotlin CustomVoiceFirebaseMessagingService will intercept
+          const message = {
+            token: fcmToken,
+            android: { priority: 'high' },
+            data: {
+              target_action: 'CANCEL_RINGING_UI',
+              twi_call_sid: CallSid
+            }
+          };
+          
+          await admin.messaging().send(message);
+          console.log(`[Twilio VoIP] CANCEL signal fired to FCM successfully.`);
+        }
+      } catch (err) {
+        console.error(`[Twilio VoIP] Failed to send CANCEL FCM to device ${deviceId}:`, err);
+      }
+    }
+  }
+
+  res.sendStatus(200);
+});
+
+// ─── Remote VoIP Diagnostics ───────────────────────────────────────────────
+// POST  /api/voice/diag          — receive diagnostic payload from Flutter app
+// GET   /api/voice/diag/latest   — read last N reports (dev tool)
+const _voipDiagReports = [];  // in-memory, last 20 reports
+
+function _analyzeTimeline(timeline, report) {
+  if (!Array.isArray(timeline) || timeline.length === 0) {
+    return { verdict: 'NO_TIMELINE', detail: 'Zero events — diag trimis fără events VoIP (probabil fără apel).' };
+  }
+  const tags = timeline.map(e => e.tag);
+  const evts = timeline.map(e => e.msg);
+  const has = (t) => tags.includes(t) || evts.some(m => m && m.includes(t));
+
+  const hasInvite    = has('INVITE') || has('INCOMING') || has('onCallInvite');
+  const hasAccept    = has('ACCEPT_TAPPED') || has('ACCEPT');
+  const hasAnswerTrue = timeline.some(e => e.tag === 'ANSWER' && e.data?.result === true);
+  const hasAnswerFalse = timeline.some(e => e.tag === 'ANSWER') && !hasAnswerTrue;
+  const hasConnected = has('CONNECTED');
+  const hasAuthErr   = has('AUTH_ERROR') || (report.network?.lastAuthError);
+  const lastCallSid  = report.voip?.lastCallSid || null;
+
+  const lines = [];
+  lines.push(`=== AUTO-VERDICT ===`);
+  lines.push(`INVITE: ${hasInvite}, ACCEPT: ${hasAccept}, ANSWER_TRUE: ${hasAnswerTrue}, CONNECTED: ${hasConnected}`);
+  lines.push(`AUTH_ERR: ${hasAuthErr ? report.network?.lastAuthError || 'yes' : 'no'}, CallSid: ${lastCallSid || 'unknown'}`);
+
+  // AUTH_ERROR → warning (separate from main verdict, doesn't override it)
+  const warnings = [];
+  if (hasAuthErr) {
+    warnings.push(`WARN: AUTH_ERROR: ${report.network?.lastAuthError || 'yes'} — testele VoIP pot fi neconcludente.`);
+  }
+
+  let verdict, detail;
+
+  if (!hasInvite) {
+    verdict = 'FAIL: NO_INVITE';
+    detail = 'Twilio push/notification nu a ajuns la app (FCM delivery, credential, binding invalid).';
+  } else if (!hasAccept) {
+    verdict = 'FAIL: ACCEPT_MISSING';
+    detail = 'Invite a ajuns dar butonul Accept nu a livrat evenimentul în Flutter (bridge IncomingCallActivity → Flutter rupt).';
+  } else if (hasAnswerFalse) {
+    verdict = 'FAIL: ANSWER_FALSE';
+    detail = 'accept() trimis dar answer() eșuat (PhoneAccount neregistrat, READ_PHONE_* lipsă, timing).';
+  } else if (!hasAnswerTrue) {
+    verdict = 'FAIL: NO_ANSWER_EVENT';
+    detail = 'ACCEPT_TAPPED apare dar niciun ANSWER event în timeline — handlerul answerCall nu a rulat.';
+  } else if (hasAnswerTrue && !hasConnected) {
+    verdict = 'FAIL: NO_CONNECTED';
+    detail = 'answer()=true dar CallEvent.connected lipsește — semnal Twilio nu ajunge înapoi (rețea/ICE/timing).';
+  } else if (hasAnswerTrue && hasConnected) {
+    verdict = 'SUSPECT: TWILIO_BRIDGE_OR_MEDIA';
+    detail = `Connected în app dar remote poate auzi ring = media nu e bridged. Verifică Twilio Inspector CallSid=${lastCallSid || '?'}: "Client answered" + ICE events.`;
+  } else {
+    verdict = 'UNKNOWN';
+    detail = 'Timeline neașteptat — trimite JSON complet.';
+  }
+
+  lines.push(`VERDICT: ${verdict}`);
+  lines.push(`DETAIL: ${detail}`);
+  return { verdict, detail, lines, warnings };
+}
+
+app.post('/api/voice/diag', (req, res) => {
+  try {
+    const report = { receivedAt: new Date().toISOString(), ...req.body };
+    _voipDiagReports.unshift(report);
+    if (_voipDiagReports.length > 20) _voipDiagReports.pop();
+
+    const eventCount = Array.isArray(report.timeline) ? report.timeline.length : 0;
+    console.log(`\n[VoipDiag] ✅ Report from=${report.user} build=${report.build} events=${eventCount}`);
+    console.log(`  permissions: mic=${report.permissions?.mic} notif=${report.permissions?.notif} phone=${report.permissions?.phone} battery=${report.permissions?.battery}`);
+    console.log(`  voipRegistered=${report.voipRegistered} fcmHash=${report.fcmHash}`);
+
+    // Notification channel info
+    if (report.channelInfo) {
+      console.log(`  channel: importance=${report.channelInfo.importance} sound=${report.channelInfo.sound} userSet=${report.channelInfo.userSet}`);
+    }
+    if (report.dndOff !== undefined) console.log(`  DND off=${report.dndOff}`);
+    if (report.network?.lastAuthError) console.log(`  ⚠️ AUTH_ERROR: ${report.network.lastAuthError}`);
+
+    // Timeline summary
+    if (Array.isArray(report.timeline) && report.timeline.length > 0) {
+      console.log('  Timeline:');
+      report.timeline.slice(0, 40).forEach(e =>
+        console.log(`    [${e.ts?.substring(11,19)}] [${e.tag}] ${e.msg}${e.data ? ' ' + JSON.stringify(e.data) : ''}`)
+      );
+    }
+
+    // Auto-verdict
+    const analysis = _analyzeTimeline(report.timeline, report);
+    analysis.lines?.forEach(l => console.log(`  ${l}`));
+    report._verdict = analysis.verdict;
+    report._detail  = analysis.detail;
+
+    res.json({ ok: true, received: eventCount, verdict: analysis.verdict, detail: analysis.detail, warnings: analysis.warnings || [] });
+  } catch (e) {
+    console.error('[VoipDiag] Error:', e);
+    res.status(500).json({ error: String(e) });
+  }
+});
+
+app.get('/api/voice/diag/latest', (req, res) => {
+  const n = Math.min(parseInt(req.query.n) || 3, 20);
+  const reports = _voipDiagReports.slice(0, n).map(r => ({
+    receivedAt:    r.receivedAt,
+    build:         r.build,
+    user:          r.user,
+    voipRegistered: r.voipRegistered,
+    permissions:   r.permissions,
+    channelInfo:   r.channelInfo,
+    dndOff:        r.dndOff,
+    network:       r.network,
+    fcmHash:       r.fcmHash,
+    _verdict:      r._verdict,
+    _detail:       r._detail,
+    timeline:      r.timeline,
+  }));
+  res.json({ reports });
+});
+
+
+// ─── DEV/TEST: Simulate incoming VoIP push ──────────────────────────────────
+// Usage: POST /api/voice/simulate_push { "fcmToken": "...", "callSid": "CA_TEST" }
+// Remove or gate behind auth before going to production.
+app.post('/api/voice/simulate_push', async (req, res) => {
+  const { fcmToken, callSid = 'CA_SIMULATED_0000000001' } = req.body;
+  if (!fcmToken) return res.status(400).json({ error: 'fcmToken is required' });
+  try {
+    const message = {
+      token: fcmToken,
+      android: { priority: 'high' },
+      data: {
+        twi_message_type: 'twilio.voice.call',
+        twi_call_sid: callSid,
+        message: '[DiagTest] Simulated incoming call',
+      },
+    };
+    const result = await admin.messaging().send(message);
+    console.log('[SimulatePush] Sent FCM message:', result);
+    res.json({ ok: true, result });
+  } catch (e) {
+    console.error('[SimulatePush] Error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+
+app.all('/DEBUG_TEST', (req, res) => {
+  res.send(`DEBUG: Running index.js in ${process.cwd()}`);
+});
+
+// DEBUG: Trigger profile pic backfill
+app.get('/debug/fetch-avatars/:docId', requireAdminToken, async (req, res) => {
+  const { docId } = req.params;
+  try {
+    const result = await sessionManager.backfillProfilePictures(docId);
+    res.json(result);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// DEBUG: Trigger profile pic backfill
+app.get('/debug/fetch-avatars/:docId', requireAdminToken, async (req, res) => {
+  const { docId } = req.params;
+  try {
+    const result = await sessionManager.backfillProfilePictures(docId);
+    res.json(result);
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+
+// --- API Aliases for Flutter App ---
+app.use((req, res, next) => {
+  // Debug log for API routes
+  if (req.url.startsWith('/api/conversations')) {
+    console.log(`[API Debug] Hit: ${req.method} ${req.url}`);
+  }
+  next();
+});
+
+// ─── POST /api/conversations — Create or find a conversation ───
+// Called from Flutter when user taps "Open conversation on WhatsApp"
+// Body: { phone: "+407...", accountId: "docId", label: "Client Name" }
+// Returns: { conversationId, jid }
+app.post("/api/conversations", async (req, res) => {
+  const { phone, accountId, label } = req.body;
+  console.log(`[OpenConvo] Request: phone=${phone} accountId=${accountId} label=${label}`);
+
+  if (!phone || !accountId) {
+    return res.status(400).json({ error: "phone and accountId are required" });
+  }
+
+  // 1) Normalize phone → JID
+  let digits = String(phone).replace(/[^0-9]/g, '');
+  // If starts with 0 and looks Romanian (10 digits), prepend 40
+  if (digits.startsWith('0') && digits.length === 10) {
+    digits = '40' + digits.substring(1);
+  }
+  // Remove leading + if it snuck through
+  if (digits.startsWith('+')) digits = digits.substring(1);
+
+  if (digits.length < 8 || digits.length > 15) {
+    return res.status(400).json({ error: "invalid_phone", message: `Invalid phone number: ${phone}` });
+  }
+
+  const jid = digits + '@s.whatsapp.net';
+  // ── Canonical JID: ensure we use the same ID as inbound messages ──
+  const canonicalJid = resolveCanonicalJid(jid);
+  const convoId = `${accountId}_${canonicalJid}`;
+  console.log(`[OpenConvo] Normalized: jid=${jid} canonical=${canonicalJid} convoId=${convoId}`);
+
+  // 2) Check session
+  const session = sessionManager.sessions.get(accountId);
+  if (!session || session.status !== 'connected') {
+    return res.status(503).json({
+      error: "no_active_session",
+      accountId,
+      message: "No active WhatsApp session for this account. Please scan QR first."
+    });
+  }
+
+  try {
+    // 3) Get or create conversation in Firestore
+    const convoRef = db.collection('conversations').doc(convoId);
+    const convoSnap = await convoRef.get();
+
+    if (!convoSnap.exists) {
+      console.log(`[OpenConvo] Creating new conversation: ${convoId}`);
+      await convoRef.set({
+        jid: canonicalJid,
+        canonicalJid: canonicalJid,
+        phone: '+' + digits,
+        accountId,
+        accountLabel: session.label || '',
+        name: label || null,
+        pushName: label || null,
+        createdAt: new Date(),
+        lastMessageAt: new Date(),
+        lastMessagePreview: '',
+        unreadCount: 0,
+      });
+    } else {
+      console.log(`[OpenConvo] Conversation exists: ${convoId}`);
+      // Update name/label if provided and different
+      if (label) {
+        await convoRef.set({ name: label, pushName: label }, { merge: true });
+      }
+    }
+
+    console.log(`[OpenConvo] Success: conversationId=${convoId}`);
+    return res.json({ conversationId: convoId, jid, canonicalJid });
+  } catch (err) {
+    console.error('[OpenConvo] Error:', err);
+    return res.status(500).json({ error: "internal_error", message: err.message });
+  }
+});
+app.get("/api/conversations/:jid/messages", (req, res) => {
+  const { jid } = req.params;
+  console.log(`[API Alias] GET /api/conversations/${jid}/messages -> Rewriting to /messages/${jid}`);
+  req.url = `/messages/${encodeURIComponent(jid)}`;
+  req.originalUrl = req.url;
+  app.handle(req, res);
+});
+
+app.post("/api/conversations/:jid/messages", (req, res) => {
+  const { jid } = req.params;
+  console.log(`[API Alias] POST /api/conversations/${jid}/messages -> Rewriting to /messages/${jid}`);
+  req.url = `/messages/${encodeURIComponent(jid)}`;
+  req.originalUrl = req.url;
+  app.handle(req, res);
+});
+
+// --- JWT Helper (Unsafe Decode for MVP) ---
+function getEmailFromToken(req) {
+  // Return email from already-verified user (set by verifyFirebaseToken middleware)
+  if (req.user && req.user.email) return req.user.email;
+  
+  // Fallback: decode WITHOUT verification — only for logging/non-critical use.
+  // SECURITY: NEVER use this for authorization decisions!
+  try {
+    const auth = req.headers['authorization'];
+    if (!auth) return null;
+    const token = auth.split(' ')[1];
+    if (!token) return null;
+    const payload = token.split('.')[1];
+    if (!payload) return null;
+    // Replace base64url characters with base64 characters
+    const base64 = payload.replace(/-/g, '+').replace(/_/g, '/');
+    const decoded = JSON.parse(Buffer.from(base64, 'base64').toString());
+    return decoded.email || null;
+  } catch (e) {
+    return null;
+  }
+}
+
+// ── Secure admin middleware: verifyIdToken + role check ────────────────
+async function requireAdminSecure(req, res, next) {
+  // 1. Try admin token (for CLI/scripts — should be rotated regularly)
+  const auth = req.headers.authorization;
+  const qToken = req.query.token;
+  const token = (auth && auth.startsWith('Bearer ') ? auth.split('Bearer ')[1] : null) || qToken;
+  if (token === ADMIN_TOKEN) return next();
+  
+  // 2. Verify Firebase ID token (cryptographic verification)
+  if (!auth || !auth.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'unauthorized', message: 'Missing Bearer token' });
+  }
+  try {
+    const idToken = auth.split('Bearer ')[1];
+    const decoded = await admin.auth().verifyIdToken(idToken);
+    req.user = decoded;
+    const email = decoded.email;
+    
+    // Master admin bypass
+    if (email === 'ursache.andrei1995@gmail.com') return next();
+    
+    // Check employees collection for admin role
+    const snap = await db.collection('employees').where('email', '==', email).limit(1).get();
+    if (!snap.empty && snap.docs[0].data().role === 'admin') return next();
+    
+    return res.status(403).json({ error: 'forbidden', message: 'Admin role required' });
+  } catch (e) {
+    return res.status(401).json({ error: 'unauthorized', message: 'Invalid token' });
+  }
+}
+
+// ── Person Code Generator (atomic, case-insensitive unique) ────────────
+// crypto already imported at top of file
+
+async function generatePersonCode() {
+  // Retry loop with uniqueness check (case-insensitive)
+  for (let attempt = 0; attempt < 20; attempt++) {
+    const code = 'SP-' + crypto.randomBytes(2).toString('hex').toUpperCase();
+    // Case-insensitive check: Firestore is case-sensitive, so we store UPPERCASE only
+    const dup = await db.collection('employees').where('personCode', '==', code).limit(1).get();
+    if (dup.empty) return code;
+  }
+  // Fallback: 6-char code (65K possibilities)
+  return 'SP-' + crypto.randomBytes(3).toString('hex').toUpperCase();
+}
+
+// ── Audit Logger ─────────────────────────────────────────────────────
+async function auditLog(action, details) {
+  try {
+    await db.collection('audit_log').add({
+      action,
+      ...details,
+      timestamp: new Date(),
+    });
+  } catch (e) {
+    console.error('[Audit] Failed to write:', e.message);
+  }
+}
+
+// DEPRECATED: Use requireAdminSecure instead.
+// This middleware uses INSECURE JWT decode for the email check.
+// Kept only for backward compat on routes that also accept ADMIN_TOKEN.
+async function requireAdmin(req, res, next) {
+  // First try admin token (for CLI/scripts)
+  const auth = req.headers.authorization;
+  const qToken = req.query.token;
+  const token = (auth && auth.startsWith('Bearer ') ? auth.split('Bearer ')[1] : null) || qToken;
+  if (token === ADMIN_TOKEN) return next();
+  
+  // Use secure verification
+  return requireAdminSecure(req, res, next);
+}
+
+// ── Admin: Set/Change personCode ─────────────────────────────────────
+app.post('/api/admin/set-code', requireAdmin, async (req, res) => {
+  try {
+    const { docId, personCode } = req.body;
+    if (!docId || !personCode) return res.status(400).json({ error: 'docId and personCode required' });
+    
+    // Normalize: trim whitespace, keep original case
+    const normalized = personCode.trim();
+    if (normalized.length < 1 || normalized.length > 50) {
+      return res.status(400).json({ error: 'Codul trebuie sa aiba intre 1 si 50 caractere' });
+    }
+    
+    // Check uniqueness
+    const dup = await db.collection('employees').where('personCode', '==', normalized).limit(1).get();
+    if (!dup.empty && dup.docs[0].id !== docId) {
+      return res.status(409).json({ error: 'code_taken', takenBy: dup.docs[0].data().displayName });
+    }
+    
+    const docRef = db.collection('employees').doc(docId);
+    const oldDoc = await docRef.get();
+    const oldCode = oldDoc.exists ? oldDoc.data().personCode : null;
+    
+    await docRef.set({ personCode: normalized, updatedAt: new Date() }, { merge: true });
+    await auditLog('personCode.changed', { oldCode, newCode: normalized, docId, adminEmail: getEmailFromToken(req) });
+    
+    console.log(`[PersonCode] Changed ${oldCode} -> ${normalized} for ${docId}`);
+    res.json({ ok: true, personCode: normalized });
+  } catch (e) {
+    console.error('[Admin] set-code error:', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// ── Admin: Toggle employee permission ────────────────────────────────
+app.post('/api/admin/toggle-permission', requireAdmin, async (req, res) => {
+  try {
+    const { docId, permission, value } = req.body;
+    if (!docId || !permission) return res.status(400).json({ error: 'docId and permission required' });
+    
+    const validPerms = ['canNoteEvents', 'canViewAllChats', 'canManageAccounts'];
+    if (!validPerms.includes(permission)) {
+      return res.status(400).json({ error: `Invalid permission. Valid: ${validPerms.join(', ')}` });
+    }
+    
+    await db.collection('employees').doc(docId).set({ 
+      [permission]: value === true,
+      updatedAt: new Date() 
+    }, { merge: true });
+    
+    await auditLog('permission.changed', { docId, permission, value, adminEmail: getEmailFromToken(req) });
+    res.json({ ok: true });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// Employee Routes (Delegated to Cloud Functions Proxy)
+// The /api/employees/me and /api/employees/request routes have been removed from this 
+// local Hetzner Node.js service to allow them to fall through to the Firebase Cloud Functions 
+// reverse proxy (which securely uses the Firebase Admin SDK for auth validation).
+
+// --- Admin Employee Management ---
+app.get('/api/employees', async (req, res) => {
+  try {
+     const snapshot = await db.collection('employees').where('approved', '==', true).get(); 
+     const employees = [];
+     const seenEmails = new Set();
+     
+     snapshot.forEach(doc => {
+         const d = doc.data();
+         const key = d.email || doc.id;
+         if (!seenEmails.has(key)) {
+             seenEmails.add(key);
+             employees.push({ 
+               docId: doc.id,
+               displayName: d.displayName,
+               email: d.email,
+               role: d.role,
+               personCode: d.personCode || null,
+               permissions: {
+                 canNoteEvents: d.canNoteEvents === true,
+                 canViewAllChats: d.canViewAllChats === true,
+                 canManageAccounts: d.canManageAccounts === true,
+               }
+             });
+         }
+     });
+     res.json(employees);
+  } catch(e) {
+      console.error("Error listing employees:", e);
+      res.status(500).json({error: e.message});
+  }
+});
+
+app.get('/api/employees/requests', async (req, res) => {
+  try {
+     const snapshot = await db.collection('employees').get(); 
+     const allDocs = [];
+     snapshot.forEach(doc => allDocs.push({ docId: doc.id, ...doc.data() }));
+
+     const approvedEmails = new Set(
+         allDocs.filter(d => d.approved === true).map(d => d.email).filter(Boolean)
+     );
+
+     const requests = [];
+     const seenEmails = new Set();
+
+     for (const d of allDocs) {
+         // 1. Daca are email si emailul exista in Set-ul de Aprobati, sari peste (chiar daca e un cont duplicat pending)
+         if (d.email && approvedEmails.has(d.email)) continue;
+         
+         // 2. Daca e special blocat sau aprobat pe acest document
+         if (d.approved === true || d.suspended === true || d.rejectedAt) continue;
+
+         // 3. Deduplicare vizuala in lista de requests
+         const key = d.email || d.docId;
+         if (!seenEmails.has(key)) {
+             seenEmails.add(key);
+             requests.push(d);
+         }
+     }
+     
+     // Sortam alfabetic pentru ordine
+     requests.sort((a, b) => (a.displayName || '').localeCompare(b.displayName || ''));
+
+     res.json(requests);
+  } catch(e) {
+      console.error("Error listing requests:", e);
+      res.status(500).json({error: e.message});
+  }
+});
+
+app.get('/api/employees/suspended', async (req, res) => {
+  try {
+     const snapshot = await db.collection('employees').where('approved', '==', false).get(); 
+     const suspended = [];
+     const seenEmails = new Set();
+     
+     // Also fetch approved emails to avoid returning suspended if they have an active approved clone
+     const approvedSnap = await db.collection('employees').where('approved', '==', true).get();
+     const approvedEmails = new Set();
+     approvedSnap.forEach(doc => { if(doc.data().email) approvedEmails.add(doc.data().email); });
+     
+     snapshot.forEach(doc => {
+         const data = doc.data();
+         if (data.email && approvedEmails.has(data.email)) return;
+         
+         const key = data.email || doc.id;
+         if ((data.suspended === true || data.rejectedAt) && !seenEmails.has(key)) {
+             seenEmails.add(key);
+             suspended.push({ docId: doc.id, ...data });
+         }
+     });
+     res.json(suspended);
+  } catch(e) {
+      console.error("Error listing suspended:", e);
+      res.status(500).json({error: e.message});
+  }
+});
+
+app.post('/api/employees/:uid/approve', requireAdmin, async (req, res) => {
+    try {
+        const { uid } = req.params;
+
+        // 1. Get current data to find email
+        const docRef = db.collection('employees').doc(uid); // uid here is actually docId from params
+        const docSnap = await docRef.get();
+        if (!docSnap.exists) {
+            return res.status(404).json({error: "Employee not found"});
+        }
+        const empData = docSnap.data();
+        const email = empData.email;
+
+        // 2. Update Firestore Employee Doc (personCode set separately by admin)
+        await docRef.set({ 
+            approved: true,
+            suspended: false, // Clear suspension
+            role: 'employee',
+            approvedAt: new Date()
+        }, { merge: true });
+
+        // 3. Set Custom Claim & CREATE USER PROFILE
+        let authUid = empData.uid; // Try existing field
+        console.log(`[Auth] Attempting claim for docId=${uid}, email=${email}, existingAuthUid=${authUid}`);
+        
+        try {
+             let userRecord;
+             // Try getting via UID if we have it
+             if (authUid) {
+                 try { 
+                    userRecord = await getAuth().getUser(authUid); 
+                    console.log(`[Auth] Found user via existing UID: ${authUid}`);
+                 } catch(e) {
+                    console.log(`[Auth] Failed lookup by existing UID ${authUid}: ${e.message}`);
+                 }
+             }
+             
+             // Fallback to email lookup
+             if (!userRecord && email) {
+                 try {
+                    userRecord = await getAuth().getUserByEmail(email);
+                    authUid = userRecord.uid;
+                    console.log(`[Auth] Found user via Email ${email}: ${authUid}`);
+                    // Save access to real UID in employee doc
+                    await docRef.set({ uid: authUid }, { merge: true }); 
+                 } catch(e) {
+                    console.error(`[Auth] Failed lookup by Email ${email}: ${e.message}`);
+                 }
+             }
+
+             if (userRecord) {
+                 // A. Set Claims
+                 await getAuth().setCustomUserClaims(userRecord.uid, { approved: true, role: 'employee' });
+                 console.log(`[Auth] SUCCESS: Custom claims set for email ${email} (uid: ${userRecord.uid})`);
+
+                 // B. CREATE USER PROFILE IN 'users' COLLECTION
+                 // This ensures the "Profile" exists as requested by user
+                 await db.collection('users').doc(userRecord.uid).set({
+                    email: email,
+                    displayName: empData.displayName || '',
+                    phone: empData.phone || '',
+                    role: 'employee',
+                    approved: true,
+                    createdAt: empData.createdAt || new Date(),
+                    photoURL: userRecord.photoURL || '',
+                    uid: userRecord.uid
+                 }, { merge: true });
+                 console.log(`[Profile] Created/Updated user profile for ${userRecord.uid}`);
+
+             } else {
+                 console.error(`[Auth] FATAL: Could not find Auth User for doc ${uid} / email ${email}`);
+             }
+        } catch (authErr) {
+            console.error(`[Auth] Unexpected error setting claims/profile:`, authErr);
+            // DO NOT THROW. Proceed to return success for Firestore update.
+        }
+
+        res.json({ status: 'approved', docId: uid, authUid });
+    } catch(e) {
+        console.error("Error approving:", e);
+        res.status(500).json({error: e.message});
+    }
+});
+
+app.post('/api/employees/:uid/suspend', requireAdmin, async (req, res) => {
+    try {
+        const { uid } = req.params;
+        await db.collection('employees').doc(uid).set({ 
+            approved: false,
+            suspended: true,
+            suspendedAt: new Date()
+        }, { merge: true });
+
+        // Remove Claim
+        try {
+             await getAuth().setCustomUserClaims(uid, { approved: false });
+        } catch (e) { /* ignore */ }
+
+        res.json({ status: 'suspended', uid });
+    } catch(e) {
+        console.error("Error suspending:", e);
+        res.status(500).json({error: e.message});
+    }
+});
+
+app.post('/api/employees/:uid/reject', requireAdmin, async (req, res) => {
+    try {
+        const { uid } = req.params;
+        await db.collection('employees').doc(uid).set({ 
+            approved: false,
+            rejectedAt: new Date()
+        }, { merge: true });
+
+        // Remove Claim
+        try {
+             await getAuth().setCustomUserClaims(uid, { approved: false });
+        } catch (e) { /* ignore */ }
+
+        res.json({ status: 'rejected', uid });
+    } catch(e) {
+        console.error("Error rejecting:", e);
+        res.status(500).json({error: e.message});
+    }
+});
+
+app.get("/ping", (req, res) => res.send("pong " + Date.now()));
+
+/* ========== Helpers for Normalization ========== */
+function normalizeTs(val) {
+  if (!val) return 0;
+  if (typeof val === 'number') return val;
+  if (typeof val === 'string') {
+    const n = Number(val);
+    return Number.isNaN(n) ? 0 : n;
+  }
+  if (typeof val === 'object' && val !== null) {
+    if ('low' in val) return Number(val.low) || 0;
+    if ('_seconds' in val) return Number(val._seconds) || 0;
+    for (const k of Object.keys(val)) {
+      const n = Number(val[k]);
+      if (!Number.isNaN(n) && n > 0) return n;
+    }
+  }
+  return 0;
+}
+
+function normalizeUnread(u) {
+  if (!u) return 0;
+  if (typeof u === 'number') return Math.floor(u);
+  if (typeof u === 'string') {
+    const n = Number(u);
+    return Number.isNaN(n) ? 0 : Math.floor(n);
+  }
+  if (typeof u === 'object' && u !== null) {
+    if ('low' in u) return Number(u.low) || 0;
+    for (const k of Object.keys(u)) {
+      const n = Number(u[k]);
+      if (!Number.isNaN(n)) return Math.floor(n);
+    }
+  }
+  return 0;
+}
+
+/* ========== Express Routes ========== */
+
+/* ========== DEBUG ROUTE FOR STORE STATS ========== */
+app.get("/debug/store-stats", requireAdminToken, (req, res) => {
+  const chatsCount = (store.chats instanceof Map) ? store.chats.size : Object.keys(store.chats || {}).length;
+  const messagesCount = (store.messages instanceof Map) ? store.messages.size : Object.keys(store.messages || {}).length;
+  const contactsCount = (store.contacts instanceof Map) ? store.contacts.size : Object.keys(store.contacts || {}).length;
+  
+  res.json({
+    chats: chatsCount,
+    messages: messagesCount,
+    contacts: contactsCount,
+    sessions: sessionManager.sessions.size,
+    sessionIds: Array.from(sessionManager.sessions.keys())
+  });
+});
+
+/* ========== API ADAPTERS FOR FLUTTER APP compatibility ========== */
+// Flutter expects /api/conversations etc.
+app.get("/api/conversations", (req, res) => {
+  // redirect to /chats logic
+  req.url = "/chats";
+  app.handle(req, res);
+});
+
+
+
+app.get("/status", (req, res) => {
+  const sessions = [];
+  const sessionsById = {};
+  const summary = { connected: 0, needs_qr: 0, qr_ready: 0, regenerating: 0, reconnecting: 0, disconnected: 0, other: 0 };
+
+  if (sessionManager && sessionManager.sessions) {
+    sessionManager.sessions.forEach((val, key) => {
+      const rstate = sessionManager._regeneratingState?.get(key);
+      const entry = {
+        docId: key,
+        status: val.status,
+        qr: !!val.qr,
+        qrSeq: val.qrSeq || 0,
+        qrUpdatedAt: val.qrUpdatedAt || null,
+        phone: val.sock?.user?.id?.split(':')[0] || null,
+        label: val.label || '',
+        reconnectAttempts: val.reconnectAttempts || 0,
+        pairingPhase: rstate?.phase || null,
+        pairingStartedAt: rstate?.startedAt ? new Date(rstate.startedAt).toISOString() : null,
+        reqId: val.reqId || rstate?.reqId || null,
+        requiresQR: !val.sock && val.status === 'needs_qr',
+      };
+      sessions.push(entry);
+      sessionsById[key] = entry;
+      if (val.status === 'connected') summary.connected++;
+      else if (val.status === 'needs_qr') summary.needs_qr++;
+      else if (val.status === 'reconnecting') summary.reconnecting++;
+      else if (val.status === 'disconnected') summary.disconnected++;
+      else summary.other++;
+      if (rstate) {
+        if (rstate.phase === 'qr_ready') summary.qr_ready++;
+        else if (rstate.phase === 'regenerating') summary.regenerating++;
+      }
+    });
+  }
+
+  res.json({
+    status: "ok",
+    mode: "multi-session",
+    sessions,
+    sessionsById,
+    summary,
+    metrics: sessionManager.metrics || {}
+  });
+});
+
+
+// GET /api/accounts/:id/qr - Get raw QR code data (secured, no-cache)
+app.get('/api/accounts/:id/qr', verifyFirebaseToken, (req, res) => {
+  res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+  const docId = req.params.id;
+  const s = sessionManager.sessions.get(docId);
+  const rstate = sessionManager._regeneratingState?.get(docId);
+  if (!s) return res.status(404).json({ error: 'Session not found', docId });
+  res.json({
+    docId,
+    status: s.status,
+    qr: s.qr || null,
+    qrSeq: s.qrSeq || 0,
+    qrUpdatedAt: s.qrUpdatedAt || null,
+    state: rstate?.phase || (s.status === 'connected' ? 'connected' : 'idle'),
+    reqId: s.reqId || rstate?.reqId || null,
+  });
+});
+
+// --- Pairing UI (secured, JS polling, no auto-refresh, no auto-POST) ---
+app.get("/pair", requireAdminToken, (req, res) => {
+  const accountId = req.query.accountId || '';
+  const token = (req.headers.authorization?.split('Bearer ')[1]) || req.query.token || '';
+
+  res.set('Cache-Control', 'no-store');
+  res.send(`<!DOCTYPE html>
+<html><head>
+  <title>WhatsApp QR Pairing</title>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"><\/script>
+  <style>
+    body { font-family: -apple-system, sans-serif; padding: 20px; background: #1a1a2e; color: #eee; }
+    h1 { color: #e94560; }
+    .status { padding: 4px 12px; border-radius: 20px; font-size: 13px; font-weight: bold; display: inline-block; }
+    .status-connected { background: #2ecc71; color: #000; }
+    .status-needs_qr { background: #e67e22; color: #fff; }
+    .btn { padding: 10px 20px; border: none; border-radius: 8px; cursor: pointer; font-size: 14px; margin: 5px; }
+    .btn-regen { background: #e94560; color: #fff; }
+    .btn-regen:disabled { background: #555; cursor: not-allowed; }
+    .seq { font-size: 12px; color: #888; margin-top: 5px; }
+    select { padding: 8px; border-radius: 8px; background: #16213e; color: #eee; border: 1px solid #333; }
+  </style>
+</head>
+<body>
+  <h1>WhatsApp QR Pairing</h1>
+  <p>Select an account, click Regenerate, then scan with WhatsApp Linked Devices.</p>
+  <div>
+    <label>Account: </label>
+    <select id="accountSelect"></select>
+    <button class="btn btn-regen" id="regenBtn" onclick="doRegenerate()">Regenerate QR</button>
+  </div>
+  <div id="qr-display" style="margin-top:20px;"></div>
+  <div id="status-display" style="margin-top:10px;"></div>
+  <div id="all-accounts" style="margin-top:30px;"></div>
+
+  <script>
+    const TOKEN = '${token}';
+    const BASE = window.location.origin;
+    const headers = TOKEN ? { 'Authorization': 'Bearer ' + TOKEN } : {};
+    let selectedAccount = '${accountId}';
+    let currentQrSeq = 0;
+    let polling = null;
+
+    async function loadAccounts() {
+      try {
+        const r = await fetch(BASE + '/status');
+        const d = await r.json();
+        const sel = document.getElementById('accountSelect');
+        sel.innerHTML = '<option value="">-- select --</option>';
+        d.sessions.forEach(s => {
+          const opt = document.createElement('option');
+          opt.value = s.docId;
+          opt.textContent = s.docId.substring(0,8) + '... [' + s.status + '] ' + (s.phone || '');
+          if (s.docId === selectedAccount) opt.selected = true;
+          sel.appendChild(opt);
+        });
+        const sum = d.summary || {};
+        document.getElementById('all-accounts').innerHTML =
+          '<h3>All Accounts</h3>' +
+          '<p>Connected: ' + (sum.connected||0) +
+          ' | Needs QR: ' + (sum.needs_qr||0) +
+          ' | Reconnecting: ' + (sum.reconnecting||0) +
+          ' | Disconnected: ' + (sum.disconnected||0) + '</p>';
+      } catch(e) { console.error('loadAccounts error:', e); }
+    }
+
+    async function doRegenerate() {
+      const acct = document.getElementById('accountSelect').value;
+      if (!acct) return alert('Select an account first');
+      selectedAccount = acct;
+      const btn = document.getElementById('regenBtn');
+      btn.disabled = true;
+      btn.textContent = 'Regenerating...';
+      try {
+        const r = await fetch(BASE + '/api/accounts/' + acct + '/regenerate-qr', { method: 'POST', headers });
+        const d = await r.json();
+        document.getElementById('status-display').innerHTML = '<pre>' + JSON.stringify(d, null, 2) + '</pre>';
+        startPolling(acct);
+      } catch(e) {
+        document.getElementById('status-display').innerHTML = '<p style="color:red">Error: ' + e.message + '</p>';
+      }
+      setTimeout(() => { btn.disabled = false; btn.textContent = 'Regenerate QR'; }, 10000);
+    }
+
+    function startPolling(acct) {
+      if (polling) clearInterval(polling);
+      currentQrSeq = 0;
+      polling = setInterval(async () => {
+        try {
+          const r = await fetch(BASE + '/api/accounts/' + acct + '/qr', { headers });
+          if (!r.ok) return;
+          const d = await r.json();
+          if (d.qr && d.qrSeq !== currentQrSeq) {
+            currentQrSeq = d.qrSeq;
+            const container = document.getElementById('qr-display');
+            container.innerHTML = '<div id="qr-canvas"></div>';
+            try {
+              if (typeof QRCode !== 'undefined') {
+                QRCode.toCanvas(document.createElement('canvas'), d.qr, {width: 300, margin: 2}, (err, canvas) => {
+                  if (!err) document.getElementById('qr-canvas').appendChild(canvas);
+                });
+              } else { throw new Error('QRCode not loaded'); }
+            } catch(e) {
+              var qrUrl = 'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=' + encodeURIComponent(d.qr);
+              document.getElementById('qr-canvas').innerHTML = '<img src=\"' + qrUrl + '\" width=\"300\" height=\"300\" style=\"border-radius:8px;background:#fff;padding:8px\" />';
+            }
+            container.innerHTML += '<p class="seq">QR #' + d.qrSeq + ' | State: ' + d.state + '</p>';
+          }
+          document.getElementById('status-display').innerHTML =
+            '<p>Status: <span class="status status-' + d.status + '">' + d.status + '</span> | Phase: ' + (d.state||'idle') + '</p>';
+          if (d.status === 'connected') {
+            clearInterval(polling);
+            document.getElementById('qr-display').innerHTML = '<h2 style="color:#2ecc71">CONNECTED!</h2>';
+            loadAccounts();
+          }
+        } catch(e) { console.error('poll error:', e); }
+      }, 2000);
+    }
+
+    document.getElementById('accountSelect').addEventListener('change', (e) => {
+      selectedAccount = e.target.value;
+      if (selectedAccount) startPolling(selectedAccount);
+    });
+
+    loadAccounts();
+    if (selectedAccount) startPolling(selectedAccount);
+  <\/script>
+</body></html>`);
+});
+
+// --- Helper: normalize timestamp extraction
+function getMsgTs(m) {
+  if (!m) return 0;
+  // try many places
+  const tsCandidates = [
+    m.messageTimestamp,
+    m.message && m.message.messageTimestamp,
+    m.message && m.message.messageTimestamp?.low,
+    m.message && m.message.messageTimestamp?._seconds,
+    m.messageTimestamp?.low,
+    m.messageTimestamp?._seconds
+  ];
+  for (const c of tsCandidates) {
+    if (c === undefined || c === null) continue;
+    if (typeof c === 'number') return Number(c);
+    if (typeof c === 'string') {
+      const n = Number(c);
+      if (!Number.isNaN(n)) return n;
+    }
+    if (typeof c === 'object') {
+      if ('low' in c) return Number(c.low || 0);
+      if ('_seconds' in c) return Number(c._seconds || 0);
+    }
+  }
+  return 0;
+}
+
+// --- Robust /chats route with DEDUPLICATION
+app.get("/chats", (req, res) => {
+  try {
+    const rawChats = store.chats;
+    const unifiedMap = new Map(); // canonicalJid -> { ...mergedData }
+
+    const processChat = (jid, meta) => {
+      try {
+        if (!jid || jid === '0@s.whatsapp.net') return;
+        
+        // Resolve canonical (prefer phone number)
+        let canonical = resolveCanonicalJid(jid);
+        if (!canonical) canonical = jid;
+
+        // Extract metadata
+        const unread = normalizeUnread(meta.unreadCount || meta.unread || 0);
+        const lastTs = normalizeTs(
+          meta.conversationTimestamp?.low || 
+          meta.lastMessageRecvTimestamp || 
+          meta.conversationTimestamp || 0
+        );
+        const name = meta.name || meta.subject || meta.notify || '';
+        const lastMsgText = meta.lastMessageText || '';
+        const lastSender = meta.lastSender || '';
+
+        // If generic name, try to find better name from contact
+        let displayName = name;
+        if (!displayName) {
+           const c = getContact(canonical);
+           if (c && (c.name || c.notify)) displayName = c.name || c.notify;
+        }
+
+        // Merge or Create
+        if (unifiedMap.has(canonical)) {
+          const existing = unifiedMap.get(canonical);
+          
+          // Sum unread
+          existing.unread += unread;
+          
+          // Use latest timestamp and message
+          if (lastTs > existing.lastMessage) {
+            existing.lastMessage = lastTs;
+            existing.lastMessageText = lastMsgText;
+            existing.lastSender = lastSender;
+          }
+          
+          // Keep best name
+          if (!existing.name && displayName) existing.name = displayName;
+          
+        } else {
+          unifiedMap.set(canonical, {
+            id: canonical,
+            name: displayName,
+            phoneNumber: (canonical.endsWith('@g.us')) ? null : canonical.split('@')[0],
+            unread: unread,
+            lastMessage: lastTs,
+            lastMessageText: lastMsgText,
+            lastSender: lastSender
+          });
+        }
+      } catch (e) {
+        console.error('Error processing chat:', jid, e);
+      }
+    };
+
+    // Iterate Store
+    if (Array.isArray(rawChats)) {
+      for (const entry of rawChats) {
+        if (entry && entry[0]) processChat(entry[0], entry[1] || {});
+      }
+    } else if (rawChats && typeof rawChats === 'object') {
+      const entries = rawChats instanceof Map ? Array.from(rawChats.entries()) : Object.entries(rawChats);
+      for (const [jid, meta] of entries) {
+        processChat(jid, meta);
+      }
+    }
+
+    // Convert to list
+    const list = Array.from(unifiedMap.values());
+
+    // sort desc by lastMessage
+    list.sort((a,b) => (b.lastMessage || 0) - (a.lastMessage || 0));
+    
+    res.json(list);
+  } catch (err) {
+    console.error('/chats error', err);
+    res.status(500).json({ error: err.toString() });
+  }
+});
+
+// --- Robust /messages/:jid route
+app.get("/messages/:jid", (req, res) => {
+  const { jid } = req.params;
+  const limit = parseInt(req.query.limit) || 1000;
+  
+  if (!jid) return res.status(400).json({ error: "Missing jid" });
+
+  const canonical = resolveCanonicalJid(jid);
+  const partners = findPartnerJids(jid);
+
+  let allMessages = [];
+  
+  // 1. Pull from store.messages (Map or Object)
+  if (store.messages) {
+    for (const p of partners) {
+       // Also try to update contact name if missing
+       if (store.contacts && store.contacts[p]) {
+           const c = store.contacts[p];
+           // If we have a better name here, we might want to return it? 
+           // For now, messages route focuses on messages.
+       }
+
+       const msgs = getMessagesForJid(p);
+       allMessages = allMessages.concat(msgs);
+    }
+  }
+
+  // 2. Sort & Dedupe
+  const seen = new Set();
+  const unique = [];
+  
+  allMessages.sort((a, b) => {
+    const tA = getMsgTs(a);
+    const tB = getMsgTs(b);
+    return tB - tA; // Newest first
+  });
+
+  for (const m of allMessages) {
+    if (!m.key || !m.key.id) continue;
+    if (seen.has(m.key.id)) continue;
+    seen.add(m.key.id);
+    unique.push(m);
+  }
+
+  // 3. Slice if needed (optimization)
+  let result = unique;
+  if (limit > 0 && result.length > limit) {
+     result = result.slice(0, limit);
+  }
+  
+  // 4. Sort ASC for chat
+  result.sort((a, b) => {
+     return getMsgTs(a) - getMsgTs(b);
+  });
+
+  res.json(result);
+});
+
+// --- Media Download Route ---
+app.get("/media/:jid/:id", async (req, res) => {
+  const { jid, id } = req.params;
+  const canonical = resolveCanonicalJid(jid) || jid;
+  const requestId = req.id || req.headers['x-request-id'] || `media-${Date.now()}`;
+  logMediaOp('GET /media/:jid/:id', { inputJid: jid, canonicalJid: canonical, accountId: null, convoId: null, msgId: id, storagePath: null, requestId });
+  
+  try {
+     // 1. Find message
+     const partners = findPartnerJids(jid);
+     
+     let foundMsg = null;
+     if (store.messages) {
+        for (const p of partners) {
+           const msgs = getMessagesForJid(p);
+           const m = msgs.find(x => x.key && x.key.id === id);
+           if (m) {
+              foundMsg = m;
+              break;
+           }
+        }
+     }
+     
+     if (!foundMsg) {
+        return res.status(404).json({ error: "Message not found" });
+     }
+
+     // 2. Download
+     const logger = pino({ level: 'silent' });
+     
+     const buffer = await downloadMediaMessage(
+        foundMsg,
+        'buffer',
+        { logger }
+     );
+     
+     if (!buffer) {
+        return res.status(404).json({ error: "Empty buffer" });
+     }
+
+     // 3. Detect Mime
+     let mimetype = 'application/octet-stream';
+     let msgContent = foundMsg.message;
+     
+     if (msgContent) {
+        // unwraps
+        if (msgContent.message) msgContent = msgContent.message;
+        if (msgContent.ephemeralMessage) msgContent = msgContent.ephemeralMessage.message;
+        if (msgContent.viewOnceMessage) msgContent = msgContent.viewOnceMessage.message;
+
+        if (msgContent.imageMessage) mimetype = msgContent.imageMessage.mimetype || 'image/jpeg';
+        else if (msgContent.videoMessage) mimetype = msgContent.videoMessage.mimetype || 'video/mp4';
+        else if (msgContent.documentMessage) mimetype = msgContent.documentMessage.mimetype || 'application/pdf';
+        else if (msgContent.stickerMessage) mimetype = msgContent.stickerMessage.mimetype || 'image/webp';
+        else if (msgContent.audioMessage) mimetype = msgContent.audioMessage.mimetype || 'audio/mp4';
+     }
+
+     res.set('Content-Type', mimetype);
+     res.send(buffer);
+
+  } catch (e) {
+     console.error("Media download error:", e);
+     res.status(500).json({ error: "Download failed", details: e.message });
+  }
+});
+
+
+/* ========== Signed URL Endpoint (on-demand, 1h expiry) ========== */
+app.get("/api/media/url/:convoId/:msgId", verifyFirebaseToken, async (req, res) => {
+  const { convoId, msgId } = req.params;
+  const requestId = req.id || req.headers['x-request-id'] || `signed-${Date.now()}`;
+
+  try {
+    // Look up message in Firestore to get storage path
+    const msgDoc = await db.collection('conversations').doc(convoId).collection('messages').doc(msgId).get();
+    if (!msgDoc.exists) return res.status(404).json({ error: 'message_not_found' });
+
+    const data = msgDoc.data();
+    const storagePath = data?.media?.path;
+    if (!storagePath) return res.status(404).json({ error: 'no_media', message: 'Message has no media.path' });
+
+    logMediaOp('GET /api/media/url', { inputJid: data?.metadata?.originJid, canonicalJid: data?.metadata?.originJid, accountId: null, convoId, msgId, storagePath, requestId });
+
+    const url = await getSignedMediaUrl(storagePath, 3600000); // 1 hour
+    if (!url) return res.status(500).json({ error: 'signed_url_failed' });
+
+    res.json({ url, expiresIn: 3600, storagePath });
+  } catch (e) {
+    console.error('[SignedURL Error]', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+/* ========== Outbound Media Endpoint ========== */
+app.post("/messages/:jid/media", upload.single('file'), async (req, res) => {
+  let jid = req.params.jid;
+  const { accountId, caption, type: mediaType } = req.body;
+  const requestId = req.id || req.headers['x-request-id'] || `out-media-${Date.now()}`;
+
+  if (!req.file) return res.status(400).json({ error: 'No file uploaded' });
+  if (!jid) return res.status(400).json({ error: 'Missing jid' });
+
+  // Canonicalize JID
+  if (jid) jid = jid.replace('+', '');
+  const canonicalJid = resolveCanonicalJid(jid) || jid;
+  jid = canonicalJid;
+
+  // Find active session
+  let sock = null;
+  let docId = accountId || null;
+  if (docId) {
+    const session = sessionManager.sessions.get(docId);
+    sock = session?.sock;
+  }
+  if (!sock) {
+    for (const [id, session] of sessionManager.sessions) {
+      if (session.sock) { sock = session.sock; docId = id; break; }
+    }
+  }
+  if (!sock) return res.status(503).json({ error: 'No active WhatsApp session' });
+
+  const convoId = docId ? `${docId}_${canonicalJid}` : canonicalJid;
+  logMediaOp('POST /messages/:jid/media', { inputJid: req.params.jid, canonicalJid, accountId: docId, convoId, msgId: null, storagePath: null, requestId });
+
+  try {
+    // Determine Baileys message type
+    const buffer = req.file.buffer;
+    const mime = req.file.mimetype;
+    const fileName = req.file.originalname;
+    let msgPayload;
+
+    const detectedType = mediaType || (mime?.startsWith('image/') ? 'image' : mime?.startsWith('video/') ? 'video' : mime?.startsWith('audio/') ? 'audio' : 'document');
+
+    switch (detectedType) {
+      case 'image':
+        msgPayload = { image: buffer, caption: caption || undefined, mimetype: mime };
+        break;
+      case 'video':
+        msgPayload = { video: buffer, caption: caption || undefined, mimetype: mime };
+        break;
+      case 'audio':
+        msgPayload = { audio: buffer, mimetype: mime, ptt: mime === 'audio/ogg' };
+        break;
+      default:
+        msgPayload = { document: buffer, mimetype: mime, fileName: fileName || 'file' };
+    }
+
+    const sent = await sock.sendMessage(jid, msgPayload);
+    const messageId = sent?.key?.id || `local-${Date.now()}`;
+
+    // Upload to Firebase Storage
+    const mediaObj = await uploadMediaToStorage(buffer, convoId, messageId, mime, buffer.length, fileName);
+
+    logMediaOp('POST /messages/:jid/media (write)', { inputJid: req.params.jid, canonicalJid, accountId: docId, convoId, msgId: messageId, storagePath: mediaObj?.path, requestId });
+
+    // Sync to Firestore
+    const preview = caption || (detectedType === 'image' ? '📷 Photo' : detectedType === 'video' ? '🎥 Video' : '📎 File');
+    const syncOptions = { resolveCanonicalJid, messageId };
+    if (mediaObj) syncOptions.media = mediaObj;
+    await syncMessageToFirestore(sent, jid, preview, null, docId, '', syncOptions);
+
+    res.json({ status: 'sent', messageId, convoId, media: mediaObj || null });
+  } catch (e) {
+    console.error('[OutboundMedia Error]', e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// --- Mark as Read Route
+app.post("/chats/:jid/read", async (req, res) => {
+  const { jid } = req.params;
+  try {
+    const partners = findPartnerJids(jid);
+    let updated = 0;
+
+    // Helper to clear unread
+    const clearUnread = (targetJid) => {
+      if (store.chats && Array.isArray(store.chats)) {
+        for (const entry of store.chats) {
+          if (entry[0] === targetJid && entry[1]) {
+            entry[1].unreadCount = 0;
+            updated++;
+          }
+        }
+      } else if (store.chats && typeof store.chats === 'object') {
+        const meta = store.chats[targetJid] || (store.chats.get && store.chats.get(targetJid));
+        if (meta) {
+          meta.unreadCount = 0;
+          updated++;
+        }
+      }
+    };
+
+    partners.forEach(p => clearUnread(p));
+    
+    res.json({ status: "ok", updated });
+  } catch (e) {
+    console.error("Error marking read:", e);
+    res.status(500).json({ error: e.toString() });
+  }
+});
+
+// --- NEW: Send Message Route
+app.post("/messages/:jid", async (req, res) => {
+  let { jid } = req.params;
+  let { text, accountId } = req.body; 
+
+  // Normalize JID: WhatsApp Baileys requires pure numeric JIDs.
+  // Stripping '+' prevents the duplicate thread bug where outgoing has '+' but incoming network replies don't.
+  if (jid) {
+      jid = jid.replace('+', '');
+  }
+
+  // ── Canonical JID: resolve before sending ──
+  jid = resolveCanonicalJid(jid) || jid;
+
+  console.log(`[Send-Debug] Request received for JID: ${jid} (canonical)`);
+  console.log(`[Send-Debug] Body:`, JSON.stringify(req.body));
+
+  // PARSE COMPOSITE ID (AccountId_ClientJid) for multi-tenancy
+  // If jid starts with a known Account ID, extract it.
+  if (!accountId && jid.includes('_')) {
+      const parts = jid.split('_');
+      // Assume the first part is always the Account ID if an underscore exists
+      accountId = parts[0];
+      jid = parts.slice(1).join('_'); // The rest is the real JID
+      console.log(`[Send-Debug] Extracted AccountId: ${accountId}, Real JID: ${jid}`);
+  }
+
+  // Ensure suffix exists after stripping account ID
+  if (!jid.includes('@')) {
+      jid = `${jid}@s.whatsapp.net`;
+  }
+
+  if (!text) {
+      console.log(`[Send-Debug] Error: Missing text`);
+      return res.status(400).json({ error: "Missing text" });
+  }
+
+  // 1. Determine which session to use
+  let sock = null;
+
+  if (accountId) {
+      // Explicit selection
+      sock = sessionManager.getSession(accountId);
+      if (!sock) console.log(`[Send-Debug] Explicit account ${accountId} not active.`);
+      else console.log(`[Send-Debug] Using explicit account session: ${accountId}`);
+  } else {
+      // Auto-selection (fallback to first connected)
+      // Iterate sessions
+      for (const [docId, s] of sessionManager.sessions) {
+          if (s.status === 'connected' && s.sock) {
+              sock = s.sock;
+              console.log(`[Send-Debug] Auto-selected session: ${docId}`);
+              // Ideally check if this sock has relationship with JID?
+              // For now, first available.
+              break;
+          }
+      }
+      if (!sock) console.log(`[Send-Debug] No auto-selected session found.`);
+  }
+
+  if (!sock) {
+      console.log(`[Send-Debug] CRITICAL: No active WhatsApp session found to send message.`);
+      return res.status(503).json({ error: "No active WhatsApp session found" });
+  }
+
+  try {
+    console.log(`[Send-Debug] Request received for JID: ${jid}`);
+    console.log(`[Send-Debug] Body:`, JSON.stringify(req.body));
+
+    // Retry logic for groups — Baileys may throw 'forbidden' on groupMetadata
+    // right after linking (group data not synced yet)
+    let sent;
+    const maxRetries = jid.endsWith('@g.us') ? 3 : 1;
+    for (let attempt = 1; attempt <= maxRetries; attempt++) {
+      try {
+        sent = await sock.sendMessage(jid, { text });
+        console.log('[Send-Debug] sendMessage result:', JSON.stringify(sent));
+        break; // success
+      } catch (sendErr) {
+        console.log(`[Send-Debug] sendMessage attempt ${attempt}/${maxRetries} failed:`, sendErr.message);
+        if (sendErr.message === 'forbidden' && attempt < maxRetries) {
+          console.log(`[Send-Debug] Group metadata not synced yet, retrying in 3s...`);
+          await new Promise(r => setTimeout(r, 3000));
+        } else {
+          throw sendErr; // re-throw on last attempt or non-forbidden error
+        }
+      }
+    }
+
+    // Defensive extraction of message id
+    const messageId = sent?.key?.id || sent?.id || (sent && sent.message && sent.message.id) || `local-${Date.now()}`;
+
+    // Prepare sync payload
+    const originJid = jid;
+    const isGroup = originJid.endsWith('@g.us');
+    let chatName = isGroup ? null : originJid.split('@')[0];
+
+    if (isGroup) {
+      try {
+        const groupMetadata = await sock.groupMetadata(originJid);
+        if (groupMetadata && groupMetadata.subject) chatName = groupMetadata.subject;
+      } catch (e) {
+        console.log(`[Send] Failed to fetch metadata for ${originJid}:`, e && e.message);
+      }
+    }
+
+    // Find session doc id & label safely
+    let docId = null;
+    let label = '';
+    for (const [dId, s] of sessionManager.sessions) {
+      if (s && s.sock === sock) { docId = dId; label = s.label || ''; break; }
+    }
+
+    // Call sync with fallback messageId and full sent object
+    try {
+      await syncMessageToFirestore(sent, originJid, text, chatName, docId, label, { messageId, resolveCanonicalJid });
+      
+      // TELEMETRY INC: Manually increment OUT message counter because Baileys won't fire messages.upsert locally
+      const finalDocId = docId || accountId;
+      if (finalDocId && db) {
+         try {
+             const inc = FieldValue.increment(1);
+             db.collection("wa_accounts").doc(finalDocId).set({ messagesOut: inc }, { merge: true })
+                  .catch(e => console.error("[Telemetry] Manual OUT bump error:", e));
+         } catch(e) {
+             console.error("[Telemetry] Fallback OUT bump error:", e);
+         }
+      }
+    } catch (syncErr) {
+      console.error('Error syncing outbound message (non-fatal):', syncErr);
+    }
+
+    res.json({ status: 'ok', data: sent });
+  } catch (e) {
+    console.error('Error sending message:', e && (e.stack || e.toString()));
+    res.status(500).json({ error: e.toString() });
+  }
+});
+
+app.post("/admin/link-lid", requireAdminToken, (req, res) => {
+  const { lid, phoneJid } = req.body;
+  if (!lid || !phoneJid) return res.status(400).json({ error: "Missing lid or phoneJid" });
+
+  // Update memory
+  lidOverrides[lid] = phoneJid;
+  saveLidOverrides();
+
+  // Update store contact if exists
+  const contact = getContact(lid);
+  if (contact) {
+    contact.phoneNumber = phoneJid;
+    setContact(lid, contact);
+  } else {
+    setContact(lid, { id: lid, phoneNumber: phoneJid });
+  }
+  scheduleStoreWrite();
+
+  res.json({ status: "ok", mapped: { [lid]: phoneJid } });
+});
+
+app.get("/debug/contact/:id", requireAdminToken, (req, res) => {
+  const c = getContact(req.params.id);
+  res.json(c || { error: "Not found" });
+});
+
+app.get("/download-store", requireAdminToken, (req, res) => {
+  if (fs.existsSync(STORE_FILE)) {
+    res.download(STORE_FILE);
+  } else {
+    res.status(404).json({ error: "Store file not found" });
+  }
+});
+
+app.get("/debug/name-resolution/:jid", requireAdminToken, (req, res) => {
+  const { jid } = req.params;
+  const candidates = findPartnerJids(jid);
+  let msgs = [];
+  for(const k of candidates) {
+     msgs = msgs.concat(getMessagesForJid(k));
+  }
+  msgs.sort((a,b) => (b.messageTimestamp || 0) - (a.messageTimestamp || 0));
+  
+  const sample = msgs.slice(0, 20).map(m => ({
+    key: m.key,
+    pushName: m.pushName,
+    verifiedBizName: m.verifiedBizName,
+    fromMe: m.key ? m.key.fromMe : 'unknown',
+    ts: m.messageTimestamp
+  }));
+  
+  res.json({
+    jid,
+    candidates,
+    totalMessages: msgs.length,
+    sample
+  });
+});
+
+/* ===== ACCOUNT MANAGEMENT API ===== */
+
+// GET /api/wa-accounts - List accounts
+app.get("/api/wa-accounts", (req, res) => {
+  const accounts = [];
+  sessionManager.sessions.forEach((val, key) => {
+      accounts.push({
+          id: key,
+          label: val.label || key, // We might need to fetch label from Firestore if not in memory
+          status: val.status,
+          phoneNumber: val.sock?.user?.id?.split(':')[0] || ''
+      });
+  });
+  res.json(accounts);
+});
+
+
+// POST /api/accounts/:id/regenerate-qr - Secured + rate limited
+app.post("/api/accounts/:id/regenerate-qr", verifyFirebaseToken, regenRateLimit, async (req, res) => {
+  const docId = req.params.id;
+  const force = req.query.force === 'true';
+  const ip = req.ip || req.connection?.remoteAddress || '?';
+  const ua = (req.headers['user-agent'] || '').substring(0, 60);
+  console.log(`[HTTP] POST /regenerate-qr docId=${docId} force=${force} ip=${ip} ua=${ua}`);
+  try {
+    const result = await sessionManager.regenerateQR(docId, { force, ip, ua });
+    const httpCode = result.status === 'cooldown' ? 429 : 200;
+    res.status(httpCode).json({ ok: true, ...result });
+  } catch (e) {
+    console.error("[regenerate-qr] Error:", e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+// POST /api/admin/regenerate-all - Bulk regenerate with concurrency control
+app.post("/api/admin/regenerate-all", requireAdminToken, async (req, res) => {
+  const concurrency = Math.min(parseInt(req.query.concurrency) || 2, 5);
+  const results = [];
+  const accounts = [];
+
+  sessionManager.sessions.forEach((val, key) => {
+    if (val.status === 'needs_qr' || val.status === 'disconnected') accounts.push(key);
+  });
+
+  try {
+    const snap = await db.collection('wa_accounts').where('status', 'in', ['needs_qr', 'disconnected', 'logged_out']).get();
+    snap.forEach(doc => { if (!accounts.includes(doc.id)) accounts.push(doc.id); });
+  } catch (e) {
+    console.error('[regenerate-all] Firestore error:', e.message);
+  }
+
+  console.log(`[Admin] regenerate-all: ${accounts.length} accounts, concurrency=${concurrency}`);
+
+  for (let i = 0; i < accounts.length; i += concurrency) {
+    const batch = accounts.slice(i, i + concurrency);
+    const batchResults = await Promise.allSettled(
+      batch.map(async (docId) => {
+        try {
+          const result = await sessionManager.regenerateQR(docId, { ip: req.ip || '?', ua: 'admin-bulk' });
+          return { docId, ...result };
+        } catch (e) {
+          return { docId, status: 'error', error: e.message };
+        }
+      })
+    );
+    for (const r of batchResults) {
+      results.push(r.status === 'fulfilled' ? r.value : { docId: '?', status: 'error', error: r.reason?.message });
+    }
+    if (i + concurrency < accounts.length) {
+      await new Promise(resolve => setTimeout(resolve, 3000));
+    }
+  }
+
+  res.json({
+    ok: true,
+    total: accounts.length,
+    results,
+    summary: {
+      regenerating: results.filter(r => r.status === 'regenerating').length,
+      already_regenerating: results.filter(r => r.status === 'already_regenerating').length,
+      cooldown: results.filter(r => r.status === 'cooldown').length,
+      error: results.filter(r => r.status === 'error').length,
+    }
+  });
+});
+
+/* ===== SECURE AUTH MIDDLEWARE & RESERVE ROUTES ===== */
+
+// Secure Firebase token verification middleware
+async function verifyFirebaseToken(req, res, next) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'unauthenticated', message: 'Missing Bearer token' });
+  }
+  const token = authHeader.split('Bearer ')[1];
+  try {
+    const decoded = await admin.auth().verifyIdToken(token);
+    req.user = decoded; // decoded.uid available
+    return next();
+  } catch (e) {
+    console.error('Token verify error:', e && e.stack ? e.stack : e);
+    return res.status(401).json({ error: 'unauthenticated', message: 'Invalid token' });
+  }
+}
+
+/**
+ * POST /api/conversations/:id/reserve
+ * Regex route to accept @ in id (groups, phones, lids)
+ * Requires Authorization: Bearer <idToken>
+ */
+app.post(/^\/api\/conversations\/(.+)\/reserve$/, verifyFirebaseToken, async (req, res) => {
+  const convoId = req.params[0];
+  const uid = req.user && req.user.uid;
+  if (!uid) return res.status(401).json({ error: 'unauthenticated', message: 'Missing uid' });
+
+  const ttlMinutes = parseInt(req.body.ttlMinutes, 10) || 15;
+  const reservedUntilTs = admin.firestore.Timestamp.fromMillis(Date.now() + ttlMinutes * 60 * 1000);
+  const convoRef = db.collection('conversations').doc(convoId);
+
+  try {
+    await db.runTransaction(async (t) => {
+      const snap = await t.get(convoRef);
+      if (!snap.exists) throw new Error('conversation_not_found');
+
+      const existingReservedBy = snap.get('reservedBy') || null;
+      const existingReservedUntil = snap.get('reservedUntil') || null;
+
+      // Refresh if same user
+      if (existingReservedBy && existingReservedBy === uid) {
+        t.update(convoRef, {
+          reservedBy: uid,
+          reservedAt: admin.firestore.FieldValue.serverTimestamp(),
+          reservedUntil: reservedUntilTs
+        });
+        return;
+      }
+
+      // If reserved by another user and not expired -> conflict
+      if (existingReservedBy && existingReservedBy !== uid) {
+        if (existingReservedUntil && typeof existingReservedUntil.toMillis === 'function') {
+          const existingUntilMs = existingReservedUntil.toMillis();
+          if (existingUntilMs > Date.now()) {
+            throw new Error('already_reserved');
+          }
+          // expired -> allow reservation
+        } else {
+          throw new Error('already_reserved');
+        }
+      }
+
+      // not reserved or expired -> set reservation
+      t.update(convoRef, {
+        reservedBy: uid,
+        reservedAt: admin.firestore.FieldValue.serverTimestamp(),
+        reservedUntil: reservedUntilTs
+      });
+    });
+
+    console.log('[RESERVE] convo=%s by=%s ttlMinutes=%d', convoId, uid, ttlMinutes);
+    return res.json({ ok: true, convoId, reservedBy: uid, ttlMinutes });
+  } catch (err) {
+    console.error('[RESERVE FAILED] convo=%s err=%s', convoId, err && err.message, err);
+    if (err.message === 'conversation_not_found') return res.status(404).json({ error: 'conversation_not_found' });
+    if (err.message === 'already_reserved') return res.status(409).json({ error: 'already_reserved' });
+    return res.status(500).json({ error: 'Failed to reserve', message: err.message || String(err) });
+  }
+});
+
+/**
+ * GET /api/conversations/:id/reservation
+ * Debug helper to return reservation status (UI-friendly)
+ */
+app.get(/^\/api\/conversations\/(.+)\/reservation$/, async (req, res) => {
+  const convoId = req.params[0];
+  try {
+    const doc = await db.collection('conversations').doc(convoId).get();
+    if (!doc.exists) return res.status(404).json({ error: 'conversation_not_found' });
+    const d = doc.data();
+    return res.json({
+      reservedBy: d.reservedBy || null,
+      reservedAt: d.reservedAt ? d.reservedAt.toDate().toISOString() : null,
+      reservedUntil: d.reservedUntil ? d.reservedUntil.toDate().toISOString() : null
+    });
+  } catch (err) {
+    console.error('GET reservation error', err);
+    return res.status(500).json({ error: 'internal_error' });
+  }
+});
+
+/* ===== END SECURE AUTH & RESERVE ===== */
+
+/* ========== WATCHDOG MONITORING ENDPOINTS ========== */
+
+/**
+ * PING Endpoint for Watchdog E2E Verification
+ * Emits a composing event and waits to verify Baileys socket vitality.
+ */
+app.post("/api/whatsapp/accounts/:id/ping", requireAdminToken, async (req, res) => {
+  const accountId = req.params.id;
+  const session = sessionManager.getSession(accountId);
+
+  if (!session || !session.sock) {
+    return res.status(404).json({ success: false, error: 'Session not found or disconnected' });
+  }
+
+  try {
+    const ownJid = session.sock.user?.id;
+    if (!ownJid) {
+      return res.status(400).json({ success: false, error: 'Socket connected but user JID unknown' });
+    }
+
+    const normalizedJid = ownJid.split(':')[0] + '@s.whatsapp.net';
+    
+    // Send presence update to itself (silent ping to Meta servers)
+    const startTime = Date.now();
+    await session.sock.sendPresenceUpdate('composing', normalizedJid);
+    const latencyMs = Date.now() - startTime;
+    
+    // Optional: wait slightly to clear it, non-blocking
+    setTimeout(async () => {
+      try { await session.sock.sendPresenceUpdate('available', normalizedJid); } catch(e){}
+    }, 1500);
+    
+    // Telemetry: Send Latency to Mobile Dashboard
+    if (sessionManager._pushTelemetry) {
+        sessionManager._pushTelemetry(accountId, { pingMs: latencyMs });
+    }
+
+    return res.json({ success: true, message: 'Ping ACK received', accountId, jid: normalizedJid, latencyMs });
+  } catch (error) {
+    console.error(`[Watchdog] Ping failed for ${accountId}:`, error);
+    
+    // Telemetry log the failure on the dashboard
+    if (sessionManager._pushTelemetry) {
+        sessionManager._pushTelemetry(accountId, { logString: `⚠️ Ping to Meta servers failed: ${error.message}` });
+    }
+    
+    return res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+/**
+ * FORCE RECONNECT Endpoint for Watchdog
+ * Gracefully restarts a single session without crashing PM2
+ */
+app.post("/api/whatsapp/accounts/:id/force-reconnect", requireAdminToken, async (req, res) => {
+  const accountId = req.params.id;
+  console.log(`[Watchdog] Received FORCE-RECONNECT command for account ${accountId}`);
+  
+  try {
+    const session = sessionManager.getSession(accountId);
+    const label = session ? (session.label || '') : '';
+
+    // 1. Stop gracefully
+    await sessionManager.stopSession(accountId, 'watchdog_force_reconnect');
+    
+    // 2. Wait for TCP cleanup
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    // 3. Start again
+    await sessionManager.startSession(accountId, label);
+    
+    return res.json({ success: true, message: `Account ${accountId} force-reconnected successfully` });
+  } catch (error) {
+    console.error(`[Watchdog] Force-reconnect failed for ${accountId}:`, error);
+    return res.status(500).json({ success: false, error: error.message });
+  }
+});
+
+/* ===== COMPLIANCE & PRIVACY APIS (GDPR/Play Safety) ===== */
+
+/**
+ * POST /api/user/consent
+ * Stores user consent for call recording/data processing.
+ */
+app.post('/api/user/consent', verifyFirebaseToken, async (req, res) => {
+  try {
+    const uid = req.user.uid;
+    const { consentVersion, userAgent } = req.body;
+    
+    await db.collection('users').doc(uid).collection('consents').add({
+      consentVersion: consentVersion || 'v1',
+      userAgent: userAgent || req.headers['user-agent'] || 'unknown',
+      ip: req.ip,
+      timestamp: admin.firestore.FieldValue.serverTimestamp(),
+      type: 'employee_recording_agreement'
+    });
+
+    // Also update main user profile with latest consent
+    await db.collection('users').doc(uid).set({
+      latestConsentVersion: consentVersion || 'v1',
+      consentGivenAt: admin.firestore.FieldValue.serverTimestamp()
+    }, { merge: true });
+
+    res.json({ status: 'ok' });
+  } catch (e) {
+    console.error("Error saving consent:", e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+/**
+ * POST /api/user/deletion-request
+ * Creates a ticket for data deletion.
+ */
+app.post('/api/user/deletion-request', verifyFirebaseToken, async (req, res) => {
+  try {
+    const uid = req.user.uid;
+    const { reason } = req.body;
+
+    const ticketRef = await db.collection('deletion_requests').add({
+      uid,
+      email: req.user.email || 'unknown',
+      reason: reason || 'user_request',
+      status: 'pending',
+      requestedAt: admin.firestore.FieldValue.serverTimestamp()
+    });
+
+    res.json({ status: 'received', ticketId: ticketRef.id });
+  } catch (e) {
+    console.error("Error creating deletion request:", e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+/**
+ * POST /api/user/privacy-settings
+ * Updates user privacy preferences (e.g. AI analysis).
+ */
+app.post('/api/user/privacy-settings', verifyFirebaseToken, async (req, res) => {
+  try {
+    const uid = req.user.uid;
+    // explicit check for boolean to allow false
+    const { aiAnalysisEnabled } = req.body;
+
+    if (aiAnalysisEnabled === undefined) {
+      return res.status(400).json({ error: "Missing aiAnalysisEnabled" });
+    }
+
+    await db.collection('users').doc(uid).set({
+      privacySettings: {
+        aiAnalysisEnabled: !!aiAnalysisEnabled,
+        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+      }
+    }, { merge: true });
+
+    res.json({ status: 'updated', aiAnalysisEnabled });
+  } catch (e) {
+    console.error("Error updating privacy settings:", e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+/**
+ * GET /api/user/me
+ * Returns the current user's profile (including consent status).
+ */
+app.get('/api/user/me', verifyFirebaseToken, async (req, res) => {
+  try {
+    const uid = req.user.uid;
+    const doc = await db.collection('users').doc(uid).get();
+    
+    if (!doc.exists) {
+      return res.json({ exists: false, uid });
+    }
+    
+    res.json({ exists: true, ...doc.data() });
+  } catch (e) {
+    console.error("Error fetching user profile:", e);
+    res.status(500).json({ error: e.message });
+  }
+});
+
+/* ===== END COMPLIANCE APIS ===== */
+
+/* ========== Prometheus /metrics endpoint ========== */
+app.get('/metrics', async (req, res) => {
+  try {
+    res.set('Content-Type', metricsRegistry.contentType);
+    res.end(await metricsRegistry.metrics());
+  } catch (e) {
+    res.status(500).end(e.message);
+  }
+});
+
+/* Start server & WhatsApp connect (minimal) */
+const BIND_HOST = process.env.BIND_HOST || '127.0.0.1';
+app.listen(PORT, BIND_HOST, () => {
+  logger.info({ port: PORT, host: BIND_HOST }, `API Server running on ${BIND_HOST}:${PORT}`);
+  console.log(`API Server running on ${BIND_HOST}:${PORT}`);
+});
+
+/* Signal handling for safe shutdown */
+process.on('SIGINT', () => {
+  console.log('SIGINT received. Saving store...');
+  try { store.writeToFile(STORE_FILE); } catch (e) { console.error(e); }
+  process.exit(0);
+});
+process.on('SIGTERM', () => {
+  console.log('SIGTERM received. Saving store...');
+  try { store.writeToFile(STORE_FILE); } catch (e) { console.error(e); }
+  process.exit(0);
+});

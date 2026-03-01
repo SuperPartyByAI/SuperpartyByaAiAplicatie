@@ -1,0 +1,48 @@
+rules_version = '2';
+
+// Firebase Storage Rules pentru SuperParty
+// POLITICA: NEVER DELETE - fișierele nu se șterg niciodată
+// Permite download public pentru APK-uri, restul necesită autentificare
+
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // ===== APK FOLDER - PUBLIC READ =====
+    // Permite oricui să descarce APK-urile
+    // Doar admin poate upload
+    // NEVER DELETE - păstrăm istoric versiuni
+    match /apk/{fileName} {
+      allow read: if true;  // Public read pentru download
+      allow create, update: if request.auth != null && 
+                               request.auth.token.email == 'ursache.andrei1995@gmail.com';
+      allow delete: if false; // NEVER DELETE
+    }
+    
+    // ===== PROFILE IMAGES - AUTHENTICATED =====
+    // NEVER DELETE - păstrăm istoric imagini profil
+    match /profile_images/{userId}/{fileName} {
+      allow read: if request.auth != null;
+      allow create, update: if request.auth != null && request.auth.uid == userId;
+      allow delete: if false; // NEVER DELETE
+    }
+    
+    // ===== EVENT IMAGES - AUTHENTICATED =====
+    // Path: event_images/{eventId}/{categorie}/{fileName}
+    // NEVER DELETE - dovezile rămân permanent
+    match /event_images/{eventId}/{categorie}/{fileName} {
+      allow read: if request.auth != null;
+      // Write doar dacă request.resource != null (create/update, NU delete)
+      allow write: if request.auth != null && request.resource != null
+                    && request.resource.size < 10 * 1024 * 1024;  // Max 10MB
+    }
+    
+    // ===== DEFAULT - AUTHENTICATED ONLY =====
+    // NEVER DELETE - politică globală
+    match /{allPaths=**} {
+      allow read: if request.auth != null;
+      allow create, update: if request.auth != null
+                              && request.resource.size < 10 * 1024 * 1024;  // Max 10MB
+      allow delete: if false; // NEVER DELETE
+    }
+  }
+}

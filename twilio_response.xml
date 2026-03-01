@@ -1,0 +1,1 @@
+<?xml version="1.0" encoding="UTF-8"?><Response><Dial callerId="+40373810882" record="record-from-answer" recordingStatusCallback="http://46.225.182.127:3001/api/voice/recording-status" recordingStatusCallbackMethod="POST" timeout="30"><Number> 1234567890</Number></Dial></Response>

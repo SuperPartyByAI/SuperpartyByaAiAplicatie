@@ -1,0 +1,18 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Check if user has 'approved' claim (set by Backend via Admin SDK)
+    function isApproved() {
+      return request.auth != null && request.auth.token.approved == true;
+    }
+
+    // Default Rule:
+    // - READ: Allowed ONLY for approved employees.
+    // - WRITE: BLOCKED for everyone (Must use Backend API).
+    match /{document=**} {
+      allow read: if isApproved();
+      allow write: if false;
+    }
+  }
+}
