@@ -124,10 +124,13 @@ export class SessionManager {
 
   // ─── Global Heartbeat ───────────────────────────────────────────
   startHeartbeat() {
+    console.log('[Heartbeat] Loop started at interval 30s');
     setInterval(async () => {
       const nowMs = Date.now();
+      console.log(`[Heartbeat] Tick: ${this.sessions.size} sessions in memory.`);
       for (const [docId, s] of this.sessions.entries()) {
         if (s.state === 'connected') {
+          console.log(`[Heartbeat] Pinging Supabase for ${docId}`);
           try {
             const { error: hbErr } = await supabase.from('wa_accounts').update({ 
                 last_ping_at: new Date(nowMs).toISOString()
@@ -139,6 +142,8 @@ export class SessionManager {
           } catch(e) {
             console.error(`[Heartbeat] Failed for ${docId}:`, e.message);
           }
+        } else {
+          console.log(`[Heartbeat] Skipped ${docId} because state is ${s.state}`);
         }
       }
     }, 30000); // 30 sec delay
