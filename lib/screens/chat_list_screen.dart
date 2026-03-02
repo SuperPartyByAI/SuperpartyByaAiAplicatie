@@ -102,7 +102,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
       final data = await _repo.fetchPage(_page, pageSize: 50);
 
       final filtered = data.where((row) {
-        final name = row['name']?.toString() ?? '';
+        final name = row['client_display_name']?.toString() ?? '';
         final jid = row['jid']?.toString() ?? '';
         if (name == 'System') return false;
         if (_isInternalJid(jid)) return false;
@@ -182,7 +182,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
       }
     }
 
-    final waName = (row['name'] ?? row['client_display_name'] ?? '').toString();
+    final waName = (row['client_display_name'] ?? '').toString();
     final showRealNumber = (userEmail != null && userEmail == allowedEmail);
 
     debugPrint('[AvatarTap] userEmail=$userEmail showRealNumber=$showRealNumber');

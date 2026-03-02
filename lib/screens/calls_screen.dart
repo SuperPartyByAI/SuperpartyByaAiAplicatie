@@ -254,12 +254,14 @@ class _CallsScreenState extends State<CallsScreen> {
     String? foundDocId;
     String? foundName;
     try {
-      final List<dynamic> q = await Supabase.instance.client.from('conversations').select().eq('phone', '+$digits');
+      // Din view-ul de public_conversations telefonul este ascuns (Null pointer on phone column default for agent list view). 
+      // Trebuie extras folosind cautare locala REST/RPC. Pt simplitate, folosim numele si JID-ul in lista
+      final List<dynamic> q = await Supabase.instance.client.from('conversations_public').select().like('jid', '%$digits%');
       debugPrint('[WA] Database query: ${q.length} docs');
       if (q.isNotEmpty) {
         final data = q.first as Map<String, dynamic>;
         foundDocId = data['id']?.toString();
-        foundName = (data['name'] ?? data['pushName'] ?? digits) as String?;
+        foundName = (data['client_display_name'] ?? data['pushName'] ?? digits) as String?;
       }
     } catch (e) {
       debugPrint('[WA] Query error: $e');
