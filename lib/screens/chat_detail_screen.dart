@@ -211,7 +211,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
 
     final showRealNumber = (userEmail != null && userEmail == allowedEmail);
     final phone = (_conversation?['phone'] ?? '').toString();
-    final waName = (_conversation?['name'] ?? _conversation?['client_display_name'] ?? widget.name ?? '').toString();
+    final waName = (_conversation?['client_display_name'] ?? widget.name ?? '').toString();
 
     debugPrint('[AvatarTap] userEmail=$userEmail showRealNumber=$showRealNumber');
     debugPrint('[AvatarTap] phone=$phone waName=$waName');
@@ -275,8 +275,8 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
                // Enforce Client N explicitly across the UI
                if ((data['client_display_name']?.toString() ?? '').isNotEmpty) {
                  displayName = data['client_display_name'];
-               } else if ((data['name']?.toString() ?? '').isNotEmpty) {
-                 displayName = data['name'];
+               } else if ((data['client_display_name']?.toString() ?? '').isNotEmpty) {
+                 displayName = data['client_display_name'];
                }
                photoUrl = data['photo_url'];
             }

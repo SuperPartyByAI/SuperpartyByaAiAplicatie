@@ -137,8 +137,8 @@ class _AdminInternalChatsTabState extends State<AdminInternalChatsTab> {
           phoneNumber = data['jid'].toString().split('@')[0];
         }
 
-        if (data['name'] != null && data['name'].toString().isNotEmpty) {
-          name = data['name'];
+        if (data['client_display_name'] != null && data['client_display_name'].toString().isNotEmpty) {
+          name = data['client_display_name'];
         } else if (data['pushName'] != null && data['pushName'].toString().isNotEmpty) {
           name = data['pushName'];
           if (phoneNumber.isNotEmpty && name != phoneNumber) {

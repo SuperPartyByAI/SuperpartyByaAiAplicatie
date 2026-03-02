@@ -261,7 +261,7 @@ class _CallsScreenState extends State<CallsScreen> {
       if (q.isNotEmpty) {
         final data = q.first as Map<String, dynamic>;
         foundDocId = data['id']?.toString();
-        foundName = (data['name'] ?? data['pushName'] ?? digits) as String?;
+        foundName = (data['client_display_name'] ?? data['pushName'] ?? digits) as String?;
       }
     } catch (e) {
       debugPrint('[WA] Query error: $e');
