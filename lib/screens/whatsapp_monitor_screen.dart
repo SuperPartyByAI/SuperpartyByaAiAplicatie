@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 class WhatsAppMonitorScreen extends StatelessWidget {
   const WhatsAppMonitorScreen({Key? key}) : super(key: key);
@@ -143,6 +144,19 @@ class WhatsAppMonitorScreen extends StatelessWidget {
                       ),
                       
                       const SizedBox(height: 16),
+                      if (state == 'needs_qr' && doc['qr_code'] != null && doc['qr_code'].toString().isNotEmpty) ...[
+                        const Divider(color: Colors.white24, height: 24),
+                        const Text('⚠️ Scan required for recovery:', style: TextStyle(color: Colors.orangeAccent, fontWeight: FontWeight.bold, fontSize: 13)),
+                        const SizedBox(height: 8),
+                        Center(
+                          child: Container(
+                             color: Colors.white,
+                             padding: const EdgeInsets.all(8),
+                             child: QrImageView(data: doc['qr_code'].toString(), size: 200),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                      ],
                       
                       // Recent Logs Section
                       const Text('Jurnal Evenimente Tehnice:', style: TextStyle(color: Colors.white70, fontWeight: FontWeight.bold, fontSize: 12)),

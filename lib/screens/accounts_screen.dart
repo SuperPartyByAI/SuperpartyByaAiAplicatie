@@ -121,7 +121,23 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                padding: const EdgeInsets.all(16.0),
                                child: Column(
                                  children: [
-                                    _QrPollingWidget(accountId: docId),
+                                    if (data['qr_code'] != null && data['qr_code'].toString().isNotEmpty)
+                                      Column(
+                                        children: [
+                                          const Text('Scan with WhatsApp:', style: TextStyle(fontWeight: FontWeight.bold)),
+                                          const SizedBox(height: 10),
+                                          Container(
+                                            color: Colors.white,
+                                            padding: const EdgeInsets.all(8),
+                                            child: QrImageView(data: data['qr_code'].toString(), size: 240),
+                                          ),
+                                        ],
+                                      )
+                                    else
+                                      const Padding(
+                                        padding: EdgeInsets.all(16.0),
+                                        child: Text('Waiting for QR Code directly from Supabase DB...'),
+                                      ),
                                     const SizedBox(height: 10),
                                     ElevatedButton.icon(
                                       icon: const Icon(Icons.qr_code),
@@ -179,68 +195,5 @@ class _AccountsScreenState extends State<AccountsScreen> {
        case 'disconnected': return const Icon(Icons.error, color: Colors.red);
        default: return const Icon(Icons.help_outline, color: Colors.grey);
      }
-  }
-}
-
-class _QrPollingWidget extends StatefulWidget {
-  final String accountId;
-  const _QrPollingWidget({required this.accountId, Key? key}) : super(key: key);
-
-  @override
-  State<_QrPollingWidget> createState() => _QrPollingWidgetState();
-}
-
-class _QrPollingWidgetState extends State<_QrPollingWidget> {
-  String? _qrCode;
-  bool _isDisposed = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _pollQr();
-  }
-
-  @override
-  void dispose() {
-    _isDisposed = true;
-    super.dispose();
-  }
-
-  Future<void> _pollQr() async {
-    while (!_isDisposed) {
-      if (!mounted) break;
-      try {
-        final service = Provider.of<BackendService>(context, listen: false);
-        final data = await service.checkQrStatus(widget.accountId);
-        if (data.containsKey('qr') && data['qr'] != null) {
-           if (mounted) setState(() => _qrCode = data['qr']);
-        }
-      } catch (e) {
-        debugPrint('Polling error: $e');
-      }
-      if (_isDisposed) break;
-      await Future.delayed(const Duration(seconds: 3));
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (_qrCode == null) {
-      return const Padding(
-        padding: EdgeInsets.all(16.0),
-        child: Text('Requesting latest QR Code from server...'),
-      );
-    }
-    return Column(
-      children: [
-        const Text('Scan with WhatsApp:', style: TextStyle(fontWeight: FontWeight.bold)),
-        const SizedBox(height: 10),
-        Container(
-          color: Colors.white,
-          padding: const EdgeInsets.all(8),
-          child: QrImageView(data: _qrCode!, size: 240),
-        ),
-      ],
-    );
   }
 }
