@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../services/backend_service.dart';
 import '../services/auth_service.dart';
-import 'whatsapp_monitor_screen.dart'; // Noul Dashboard
+import 'whatsapp_monitor_screen.dart';
 
 class AccountsScreen extends StatefulWidget {
   const AccountsScreen({super.key});
@@ -35,7 +36,6 @@ class _AccountsScreenState extends State<AccountsScreen> {
                   setState(() => _isCreating = true);
                   final service = Provider.of<BackendService>(context, listen: false);
                   await service.createAccount(labelController.text);
-                  // No need to fetch, stream will update
                 } catch (e) {
                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
                 } finally {
@@ -68,7 +68,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
             icon: const Icon(Icons.logout),
             onPressed: () async {
               await Provider.of<AuthService>(context, listen: false).signOut();
-              Navigator.of(context).popUntil((route) => route.isFirst); // Ensure we go back to root
+              Navigator.of(context).popUntil((route) => route.isFirst);
             },
           ),
         ],
@@ -77,17 +77,17 @@ class _AccountsScreenState extends State<AccountsScreen> {
         children: [
           if (_isCreating) const LinearProgressIndicator(),
           Expanded(
-            child: StreamBuilder<dynamic>(
-              stream: Stream.empty(),
+            child: StreamBuilder<List<Map<String, dynamic>>>(
+              stream: Supabase.instance.client.from('wa_accounts').stream(primaryKey: ['id']),
               builder: (context, snapshot) {
                 if (snapshot.hasError) {
                   return Center(child: Text('Error: ${snapshot.error}'));
                 }
-                if (snapshot.connectionState == ConnectionState.waiting) {
+                if (snapshot.connectionState == ConnectionState.waiting && !snapshot.hasData) {
                   return const Center(child: CircularProgressIndicator());
                 }
 
-                final docs = snapshot.data?.docs ?? [];
+                final docs = snapshot.data ?? [];
                 
                 if (docs.isEmpty) {
                    return const Center(child: Text('No accounts found. Create one!'));
@@ -96,12 +96,14 @@ class _AccountsScreenState extends State<AccountsScreen> {
                 return ListView.builder(
                   itemCount: docs.length,
                   itemBuilder: (ctx, i) {
-                    final data = docs[i].data() as Map<String, dynamic>;
-                    final docId = docs[i].id;
+                    final data = docs[i];
+                    final docId = data['id']?.toString() ?? '';
                     final label = data['label'] ?? 'Account';
-                    final status = data['status'] ?? 'unknown';
-                    final qrCode = data['qrCode'];
+                    final status = data['state'] ?? data['status'] ?? 'unknown'; // Prefer state, fallback to status
+                    final phone = data['phone_number'] ?? 'Unknown';
                     
+                    final needsQr = status == 'needs_qr' || status == 'logged_out' || status == 'disconnected';
+
                     return Card(
                       margin: const EdgeInsets.all(8),
                       child: ExpansionTile(
@@ -114,27 +116,12 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                padding: EdgeInsets.all(16.0),
                                child: CircularProgressIndicator(),
                              ),
-                          if (qrCode != null && status != 'connected')
+                          if (needsQr)
                              Padding(
                                padding: const EdgeInsets.all(16.0),
                                child: Column(
                                  children: [
-                                    const Text('Scan with WhatsApp App:', style: TextStyle(fontWeight: FontWeight.bold)),
-                                    const SizedBox(height: 10),
-                                    Container(
-                                      color: Colors.white,
-                                      padding: const EdgeInsets.all(8),
-                                      child: QrImageView(data: qrCode, size: 240),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                          if ((status == 'needs_qr' || status == 'logged_out' || status == 'disconnected') && qrCode == null)
-                             Padding(
-                               padding: const EdgeInsets.all(16.0),
-                               child: Column(
-                                 children: [
-                                    const Text('Session expired. Tap below to get a new QR code.'),
+                                    _QrPollingWidget(accountId: docId),
                                     const SizedBox(height: 10),
                                     ElevatedButton.icon(
                                       icon: const Icon(Icons.qr_code),
@@ -161,7 +148,7 @@ class _AccountsScreenState extends State<AccountsScreen> {
                                 padding: const EdgeInsets.all(16.0),
                                 child: Column(
                                    children: [
-                                      Text('Connected as: ${data['phoneNumber'] ?? data['jid'] ?? 'Unknown'}'),
+                                      Text('Connected as: $phone'),
                                       const SizedBox(height: 5),
                                       const Text('Ready to use.', style: TextStyle(color: Colors.green)),
                                    ],
@@ -192,5 +179,68 @@ class _AccountsScreenState extends State<AccountsScreen> {
        case 'disconnected': return const Icon(Icons.error, color: Colors.red);
        default: return const Icon(Icons.help_outline, color: Colors.grey);
      }
+  }
+}
+
+class _QrPollingWidget extends StatefulWidget {
+  final String accountId;
+  const _QrPollingWidget({required this.accountId, Key? key}) : super(key: key);
+
+  @override
+  State<_QrPollingWidget> createState() => _QrPollingWidgetState();
+}
+
+class _QrPollingWidgetState extends State<_QrPollingWidget> {
+  String? _qrCode;
+  bool _isDisposed = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _pollQr();
+  }
+
+  @override
+  void dispose() {
+    _isDisposed = true;
+    super.dispose();
+  }
+
+  Future<void> _pollQr() async {
+    while (!_isDisposed) {
+      if (!mounted) break;
+      try {
+        final service = Provider.of<BackendService>(context, listen: false);
+        final data = await service.checkQrStatus(widget.accountId);
+        if (data.containsKey('qr') && data['qr'] != null) {
+           if (mounted) setState(() => _qrCode = data['qr']);
+        }
+      } catch (e) {
+        debugPrint('Polling error: $e');
+      }
+      if (_isDisposed) break;
+      await Future.delayed(const Duration(seconds: 3));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_qrCode == null) {
+      return const Padding(
+        padding: EdgeInsets.all(16.0),
+        child: Text('Requesting latest QR Code from server...'),
+      );
+    }
+    return Column(
+      children: [
+        const Text('Scan with WhatsApp:', style: TextStyle(fontWeight: FontWeight.bold)),
+        const SizedBox(height: 10),
+        Container(
+          color: Colors.white,
+          padding: const EdgeInsets.all(8),
+          child: QrImageView(data: _qrCode!, size: 240),
+        ),
+      ],
+    );
   }
 }
