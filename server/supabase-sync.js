@@ -67,8 +67,33 @@ async function syncConversationActivity(convId, previewText, timestamp) {
     }
 }
 
+/**
+ * Sincronizeaza starea conexiunii contului WhatsApp
+ */
+async function syncAccountState(accountId, stateData) {
+    try {
+        let tsMs = Date.now();
+        const updatePayload = {
+            id: accountId,
+            updated_at: tsMs,
+            ...stateData
+        };
+
+        const { error } = await supabase
+            .from('wa_accounts')
+            .upsert(updatePayload, { onConflict: 'id', ignoreDuplicates: false });
+
+        if (error) {
+            console.error(`[Supabase Sync] Eroare la upsert state cont ${accountId}:`, error);
+        }
+    } catch (err) {
+        console.error(`[Supabase Sync] Catch cont state sync ${accountId}:`, err);
+    }
+}
+
 module.exports = {
     supabase,
     syncMessageToSupabase,
-    syncConversationActivity
+    syncConversationActivity,
+    syncAccountState
 };

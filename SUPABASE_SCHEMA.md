@@ -1,12 +1,13 @@
 # 🗄️ Supabase REST Schema (OpenAPI)
 
-> Documentație generată automat via OpenAPI REST din Supabase. Conține structura tabelelor publice și vizibile din perspectiva API-ului client.
+> Documentație generată automat via OpenAPI REST din Supabase. Conține structura tabelelor publice (văzute din perspectiva API-ului client).
 
 ## Tabel: `calls`
 
 | Coloană | Tip Date | Format | Descriere |
 | ------- | -------- | ------ | --------- |
-| `id` | `string` | text | Note: This is a Primary Key.<pk/> |
+| `id` | `string` | text | Note:
+This is a Primary Key.<pk/> |
 | `from_number` | `string` | text |  |
 | `to_number` | `string` | text |  |
 | `direction` | `string` | text |  |
@@ -20,7 +21,8 @@
 
 | Coloană | Tip Date | Format | Descriere |
 | ------- | -------- | ------ | --------- |
-| `id` | `string` | text | Note: This is a Primary Key.<pk/> |
+| `id` | `string` | text | Note:
+This is a Primary Key.<pk/> |
 | `email` | `string` | text |  |
 | `name` | `string` | text |  |
 | `role` | `string` | text |  |
@@ -33,7 +35,8 @@
 
 | Coloană | Tip Date | Format | Descriere |
 | ------- | -------- | ------ | --------- |
-| `id` | `string` | uuid | Note: This is a Primary Key.<pk/> |
+| `id` | `string` | uuid | Note:
+This is a Primary Key.<pk/> |
 | `title` | `string` | text |  |
 | `body` | `string` | text |  |
 | `type` | `string` | text |  |
@@ -45,7 +48,8 @@
 
 | Coloană | Tip Date | Format | Descriere |
 | ------- | -------- | ------ | --------- |
-| `id` | `string` | text | Note: This is a Primary Key.<pk/> |
+| `id` | `string` | text | Note:
+This is a Primary Key.<pk/> |
 | `label` | `string` | text |  |
 | `phone_number` | `string` | text |  |
 | `state` | `string` | text |  |
@@ -64,7 +68,8 @@
 
 | Coloană | Tip Date | Format | Descriere |
 | ------- | -------- | ------ | --------- |
-| `id` | `string` | uuid | Note: This is a Primary Key.<pk/> |
+| `id` | `string` | uuid | Note:
+This is a Primary Key.<pk/> |
 | `wa_account_id` | `string` | text |  |
 | `level` | `string` | text |  |
 | `message` | `string` | text |  |
@@ -74,8 +79,10 @@
 
 | Coloană | Tip Date | Format | Descriere |
 | ------- | -------- | ------ | --------- |
-| `id` | `string` | text | Note: This is a Primary Key.<pk/> |
-| `conversation_id` | `string` | text | Note: This is a Foreign Key to `conversations.id`.<fk table='conversations' column='id'/> |
+| `id` | `string` | text | Note:
+This is a Primary Key.<pk/> |
+| `conversation_id` | `string` | text | Note:
+This is a Foreign Key to `conversations.id`.<fk table='conversations' column='id'/> |
 | `text` | `string` | text |  |
 | `type` | `string` | text |  |
 | `from_me` | `boolean` | boolean |  |
@@ -89,7 +96,8 @@
 
 | Coloană | Tip Date | Format | Descriere |
 | ------- | -------- | ------ | --------- |
-| `id` | `string` | text | Note: This is a Primary Key.<pk/> |
+| `id` | `string` | text | Note:
+This is a Primary Key.<pk/> |
 | `jid` | `string` | text |  |
 | `name` | `string` | text |  |
 | `phone` | `string` | text |  |

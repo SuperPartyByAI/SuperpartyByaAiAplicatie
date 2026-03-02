@@ -4,16 +4,18 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 class WhatsAppMonitorScreen extends StatelessWidget {
   const WhatsAppMonitorScreen({Key? key}) : super(key: key);
 
-  Color _getStateColor(String state) {
-    if (state == 'connected') return Colors.greenAccent;
-    if (state == 'connecting') return Colors.orangeAccent;
+  Color _getStateColor(String state, {bool isStale = false}) {
+    if (state == 'connected') return isStale ? Colors.orangeAccent : Colors.greenAccent;
+    if (state == 'connecting') return Colors.blueAccent;
+    if (state == 'needs_qr') return Colors.yellowAccent;
     return Colors.redAccent;
   }
 
-  IconData _getStateIcon(String state) {
-    if (state == 'connected') return Icons.check_circle;
+  IconData _getStateIcon(String state, {bool isStale = false}) {
+    if (state == 'connected') return isStale ? Icons.wifi_off : Icons.wifi;
     if (state == 'connecting') return Icons.autorenew;
-    return Icons.error;
+    if (state == 'needs_qr') return Icons.qr_code_scanner;
+    return Icons.error_outline;
   }
 
   @override
@@ -48,12 +50,41 @@ class WhatsAppMonitorScreen extends StatelessWidget {
               final docId = doc['id']?.toString() ?? 'unknown';
               
               final label = doc['label'] ?? docId;
-              final state = doc['state'] ?? 'disconnected';
+              final state = doc['status'] ?? doc['state'] ?? 'disconnected';
               final pingMs = doc['ping_ms'] ?? 0;
               final msgsIn = doc['messages_in'] ?? 0;
               final msgsOut = doc['messages_out'] ?? 0;
               final phone = doc['phone_number'] ?? 'Așteaptă Validarea';
               final List recentLogs = (doc['recent_logs'] is List) ? doc['recent_logs'] as List : [];
+              
+              final lastPingAt = doc['last_ping_at'];
+              int lastPingMs = 0;
+              if (lastPingAt != null) {
+                 if (lastPingAt is int) lastPingMs = lastPingAt;
+                 else if (lastPingAt is String) {
+                    lastPingMs = int.tryParse(lastPingAt) ?? DateTime.tryParse(lastPingAt)?.millisecondsSinceEpoch ?? 0;
+                 }
+              }
+
+              bool isStale = false;
+              bool isOnlineReal = false;
+              String displayState = state.toString().toUpperCase();
+
+              if (state == 'connected' && lastPingMs > 0) {
+                  final nowMs = DateTime.now().millisecondsSinceEpoch;
+                  final diffMs = nowMs - lastPingMs;
+                  if (diffMs <= 90000) {
+                      isOnlineReal = true;
+                      displayState = 'ONLINE (Live)';
+                  } else {
+                      isStale = true;
+                      final sec = (diffMs / 1000).toStringAsFixed(0);
+                      displayState = 'STALE (-${sec}s)';
+                  }
+              }
+
+              final Color stateColor = _getStateColor(state, isStale: isStale);
+              final IconData stateIcon = _getStateIcon(state, isStale: isStale);
 
               return Card(
                 color: Colors.grey[850],
@@ -79,17 +110,17 @@ class WhatsAppMonitorScreen extends StatelessWidget {
                           Container(
                             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                             decoration: BoxDecoration(
-                              color: _getStateColor(state).withOpacity(0.2),
+                              color: stateColor.withOpacity(0.2),
                               borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: _getStateColor(state)),
+                              border: Border.all(color: stateColor),
                             ),
                             child: Row(
                               children: [
-                                Icon(_getStateIcon(state), color: _getStateColor(state), size: 16),
+                                Icon(stateIcon, color: stateColor, size: 16),
                                 const SizedBox(width: 4),
                                 Text(
-                                  state.toUpperCase(),
-                                  style: TextStyle(color: _getStateColor(state), fontWeight: FontWeight.bold, fontSize: 12),
+                                  displayState,
+                                  style: TextStyle(color: stateColor, fontWeight: FontWeight.bold, fontSize: 12),
                                 ),
                               ],
                             ),
