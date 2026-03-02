@@ -256,7 +256,7 @@ export class SessionManager {
         if (rstate) rstate.phase = 'qr_ready';
         // Write QR data to Supabase so Flutter app can display it via QrImageView
         await supabase.from('wa_accounts').update({ 
-            status: 'needs_qr', 
+            state: 'needs_qr', 
             qr_code: qr, 
             qr_available: true, 
             qr_seq: sessionData.qrSeq, 
@@ -286,7 +286,7 @@ export class SessionManager {
 
         const userJid = sock.user?.id?.split(':')[0] || "unknown";
         await supabase.from('wa_accounts').update({ 
-            status: 'connected', 
+            state: 'connected', 
             qr_code: null, 
             requires_qr: false,
             needs_qr_since: null,
@@ -391,7 +391,7 @@ export class SessionManager {
 
       // 4. Update Supabase
       await supabase.from('wa_accounts').update({ 
-        status: 'needs_qr', 
+        state: 'needs_qr', 
         requires_qr: true,
         qr_code: null, 
         last_close_reason: reason,
@@ -421,7 +421,7 @@ export class SessionManager {
 
       // Update Supabase — mark as needs_qr so the app shows "Regenerate QR" button
       await supabase.from('wa_accounts').update({ 
-        status: 'needs_qr', 
+        state: 'needs_qr', 
         requires_qr: true,
         qr_code: null, 
         last_close_reason: reason,
@@ -456,7 +456,7 @@ export class SessionManager {
       }
       
       await supabase.from('wa_accounts').update({ 
-        status: 'disconnected', 
+        state: 'disconnected', 
         qr_code: null, 
         reconnect_attempts: nextAttempt,
         last_close_reason: reason,
@@ -478,7 +478,7 @@ export class SessionManager {
     this.sessions.delete(docId);
     
     await supabase.from('wa_accounts').update({ 
-      status: 'reconnecting', 
+      state: 'reconnecting', 
       qr_code: null, 
       reconnect_attempts: nextAttempt,
       last_close_reason: reason,
@@ -583,7 +583,7 @@ export class SessionManager {
 
       // 3. Reset Supabase state
       await supabase.from('wa_accounts').update({ 
-        status: 'connecting', 
+        state: 'connecting', 
         requires_qr: false,
         qr_code: null,
         qr_available: false,
