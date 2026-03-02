@@ -182,12 +182,15 @@ class _ChatListScreenState extends State<ChatListScreen> {
       }
     }
 
-    final waName = (row['name'] ?? phone).toString();
+    final waName = (row['name'] ?? row['client_display_name'] ?? '').toString();
     final showRealNumber = (userEmail != null && userEmail == allowedEmail);
 
-    final content = showRealNumber
-        ? (phone.isNotEmpty ? phone : 'Număr indisponibil')
-        : (waName.isNotEmpty ? waName : 'Nume WhatsApp indisponibil');
+    debugPrint('[AvatarTap] userEmail=$userEmail showRealNumber=$showRealNumber');
+    debugPrint('[AvatarTap] phone=$phone jid=$jid waName=$waName');
+
+    final content = showRealNumber && phone.isNotEmpty
+        ? phone
+        : (waName.isNotEmpty ? waName : 'Număr ascuns (Agent)');
 
     await showDialog(
       context: context,
@@ -263,18 +266,11 @@ class _ChatListScreenState extends State<ChatListScreen> {
 
           final row = _conversations[index];
 
-          // Name resolution
-          String name = '';
-          final jid = row['jid']?.toString() ?? '';
-          final phone = row['phone']?.toString() ?? (jid.isNotEmpty ? jid.split('@')[0] : '');
-          if ((row['name']?.toString() ?? '').isNotEmpty) {
-            name = row['name'];
-          } else if (phone.isNotEmpty) {
-            name = phone;
-          } else {
-            name = row['id'] ?? '';
+          // NEVER show phone in the list. Use name or fallback client display name / last message preview
+          final displayName = row['name'] ?? row['client_display_name'] ?? row['last_message_preview'] ?? 'Client';
+          if (displayName.contains('@') && !displayName.contains(' ')) {
+            // just to be safe if a JID leaked
           }
-          if (name.contains('@') && !name.contains(' ')) name = name.split('@')[0];
 
           // dynamic
           final ts = row['last_message_at'];
@@ -303,7 +299,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
             ),
             title: Row(
               children: [
-                Expanded(child: Text(name, overflow: TextOverflow.ellipsis)),
+                Expanded(child: Text(displayName.toString(), overflow: TextOverflow.ellipsis)),
                 if (accountLabel.isNotEmpty)
                   Container(
                     margin: const EdgeInsets.only(left: 8),
@@ -336,7 +332,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                 MaterialPageRoute(
                   builder: (_) => ChatDetailScreen(
                     conversationId: row['id'] ?? '',
-                    name: name,
+                    name: displayName.toString(),
                   ),
                 ),
               );

@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:io';
 import 'dart:typed_data';
 import 'dart:math';

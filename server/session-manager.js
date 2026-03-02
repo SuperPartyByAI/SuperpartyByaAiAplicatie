@@ -11,6 +11,7 @@ import pino from "pino";
 import fs from "fs";
 import path from "path";
 import { supabase, syncMessageToFirestore, uploadMediaToStorage } from "./supabase-sync.mjs";
+import { reconcileAccount } from "./reconciler.mjs";
 import googleSync from "./google-sync.js";
 import { classifyClose, getBackoffDelay, Classification } from "./session-classifier.js";
 
@@ -298,6 +299,9 @@ export class SessionManager {
           console.log(`[SessionManager] ${docId} regeneration COMPLETE — releasing lock`);
           this._regeneratingState.delete(docId);
         }
+
+        // Start reconcile to fetch missed messages from backlog
+        reconcileAccount(docId, sock).catch(err => console.error(`[SessionManager] reconcileAccount err`, err));
 
         // Hardening: robust JID extraction from multiple possible credential locations
         const rawJid = sock.user?.id || state?.creds?.me?.id || sock.auth?.creds?.me?.id || "unknown";

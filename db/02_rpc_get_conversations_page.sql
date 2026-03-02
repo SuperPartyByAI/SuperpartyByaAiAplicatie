@@ -3,6 +3,8 @@
 create index if not exists idx_conversations_last_message_at on public.conversations (last_message_at desc);
 
 -- RPC to fetch paginated conversations with enforced max page_size
+drop function if exists public.get_conversations_page(integer, integer);
+
 create or replace function public.get_conversations_page(p_page integer, p_page_size integer)
 returns table(
   id text,
@@ -13,7 +15,8 @@ returns table(
   photo_url text,
   last_message_at bigint,
   last_message_preview text,
-  assigned_employee_id text
+  assigned_employee_id text,
+  client_display_name text
 )
 language plpgsql
 security definer
@@ -25,8 +28,8 @@ begin
   return query
   select
     c.id::text, c.name::text, c.jid::text as jid, c.client_id::uuid, c.account_label::text, c.photo_url::text,
-    c.last_message_at::bigint, c.last_message_preview::text, c.assigned_employee_id::text
-  from public.conversations c
+    c.last_message_at::bigint, c.last_message_preview::text, c.assigned_employee_id::text, c.client_display_name::text
+  from public.conversations_public c
   order by c.last_message_at desc nulls last
   limit page_size offset v_offset;
 end;

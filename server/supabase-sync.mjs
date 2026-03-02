@@ -1,6 +1,7 @@
 import { createClient } from '@supabase/supabase-js';
 import fs from 'fs';
 import { URL } from 'url';
+import { parsePhoneNumberFromString } from 'libphonenumber-js';
 
 const SUPABASE_URL = process.env.SUPABASE_URL || 'https://ilkphpidhuytucxlglqi.supabase.co';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY;
@@ -79,6 +80,73 @@ export async function getSignedMediaUrl(path, ttlMs = 3600000) {
   }
 }
 
+function normalizePhone(raw, defaultCountry = 'RO') {
+  if (!raw) return null;
+  let candidate = raw.toString().trim();
+  if (candidate.includes('@')) candidate = candidate.split('@')[0];
+
+  try {
+    const p = parsePhoneNumberFromString(candidate, defaultCountry);
+    if (p && p.isValid()) return p.number; // E.164
+  } catch (e) {}
+
+  const digits = candidate.replace(/\D/g, '');
+  if (!digits) return null;
+  if (digits.startsWith('0')) return '+40' + digits.replace(/^0+/, '');
+  if (digits.length >= 9) return '+' + digits; 
+  return null;
+}
+
+export async function upsertClientServer(phone, displayName) {
+  const { data: existingClients } = await supabase
+    .from('clients')
+    .select('id, display_name')
+    .eq('display_name', displayName)
+    .limit(1);
+
+  let clientId = null;
+  const { data: cp } = await supabase
+    .from('clients_private')
+    .select('client_id')
+    .eq('phone', phone)
+    .limit(1);
+
+  if (cp && cp.length > 0) {
+    return cp[0].client_id;
+  }
+
+  if (existingClients && existingClients.length > 0) {
+    clientId = existingClients[0].id;
+  } else {
+    const { data: newClient, error } = await supabase
+      .from('clients')
+      .insert({ display_name: displayName || null, source: 'whatsapp_inbound' })
+      .select('id')
+      .single();
+    if (error) throw error;
+    clientId = newClient.id;
+  }
+
+  const { data: cp2 } = await supabase
+    .from('clients_private')
+    .select('client_id')
+    .eq('client_id', clientId)
+    .limit(1);
+
+  if (!cp2 || cp2.length === 0) {
+    const { error: insErr } = await supabase
+      .from('clients_private')
+      .insert({ client_id: clientId, phone })
+      .select();
+    if (insErr) {
+      const { data: tryAgain } = await supabase.from('clients_private').select('client_id').eq('phone', phone).limit(1);
+      if (tryAgain && tryAgain.length > 0) return tryAgain[0].client_id;
+      else throw insErr;
+    }
+  }
+  return clientId;
+}
+
 export async function syncMessageToFirestore(msg, canonicalJid, preview = '', chatName = '', accountId = null, accountLabel = '', options = {}) {
   try {
     const messageId = msg?.key?.id || msg?.id || options?.messageId || `local-${Date.now()}`;
@@ -155,6 +223,18 @@ export async function syncMessageToFirestore(msg, canonicalJid, preview = '', ch
         updated_at: tsDate.toISOString()
     };
     if (chatName) convoUpdate.name = chatName;
+
+    const phone = normalizePhone(rawJid);
+    if (phone) {
+        try {
+            const clientId = await upsertClientServer(phone, chatName || `Client ${convoId}`);
+            if (clientId) {
+                convoUpdate.client_id = clientId;
+            }
+        } catch (clientErr) {
+            console.error('[SupabaseSync] client upsert error', clientErr);
+        }
+    }
 
     const { error: convErr } = await supabase.from('conversations').upsert(convoUpdate, { onConflict: 'id' });
     if (convErr) console.error('[SupabaseSync] conv upsert error', convErr);

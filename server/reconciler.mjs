@@ -199,7 +199,7 @@ export async function upsertMessageToSupabase(msg) {
       timestamp: insertObj.timestamp ? new Date(insertObj.timestamp).getTime() : Date.now(),
       from_me: msg.direction === 'outbound' ? true : false,
       media_url: null,
-      push_name: '',
+      push_name: msg.push_name || '',
       created_at: new Date().toISOString()
     };
     
@@ -243,8 +243,16 @@ export async function processBaileysMessagesBatch(messages, mapJidToConvId) {
       else if (m.message && m.message.timestamp) ts = Number(m.message.timestamp) * 1000;
       else ts = Date.now();
 
-      const text = (m.message && (m.message.conversation || m.message.extendedTextMessage?.text)) || null;
+      let text = null;
+      if (m.message?.conversation) text = m.message.conversation;
+      else if (m.message?.extendedTextMessage?.text) text = m.message.extendedTextMessage.text;
+      else if (m.message?.imageMessage?.caption) text = m.message.imageMessage.caption;
+      else if (m.message?.videoMessage?.caption) text = m.message.videoMessage.caption;
+      else if (m.message?.buttonsResponseMessage?.selectedButtonId) text = m.message.buttonsResponseMessage.selectedButtonId;
+      else text = null;
+
       const waId = m.key?.id || null;
+      const pushName = m.pushName || m.push_name || (m.message?.pushName) || null;
 
       const dbMsg = {
         conversation_id: convId,
@@ -253,6 +261,7 @@ export async function processBaileysMessagesBatch(messages, mapJidToConvId) {
         from_jid: remote,
         to_jid: null,
         text: text,
+        push_name: pushName,
         metadata: JSON.stringify(m),
         created_at: new Date(ts).toISOString()
       };
