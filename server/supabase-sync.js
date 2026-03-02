@@ -12,15 +12,27 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
  */
 async function syncMessageToSupabase(msgData) {
     try {
+        // Obținem mereu milisecunde (dacă Baileys ne dă secunde < 1e12, înmulțim cu 1000)
+        let tsMs = Date.now();
+        if (typeof msgData.timestamp === 'number') {
+            tsMs = msgData.timestamp < 1e12 ? msgData.timestamp * 1000 : msgData.timestamp;
+        }
+
+        // Construct safe object with enforced schema rules (timestamp Ca BigInt Msec)
+        const safeMsgData = {
+            ...msgData,
+            timestamp: tsMs
+        };
+
         const { error } = await supabase
             .from('messages')
-            .upsert(msgData, { onConflict: 'id', ignoreDuplicates: false });
+            .upsert(safeMsgData, { onConflict: 'id', ignoreDuplicates: false });
 
         if (error) {
             console.error('[Supabase Sync] Eroare la upsert mesaj:', error);
             return false;
         }
-        console.log(`[Supabase Sync] Mesaj ${msgData.id} salvat in conversatia ${msgData.conversation_id}`);
+        console.log(`[Supabase Sync] Mesaj ${safeMsgData.id} salvat in conversatia ${safeMsgData.conversation_id}`);
         return true;
     } catch (err) {
         console.error('[Supabase Sync] Catch:', err);
@@ -33,13 +45,18 @@ async function syncMessageToSupabase(msgData) {
  */
 async function syncConversationActivity(convId, previewText, timestamp) {
     try {
+        let tsMs = Date.now();
+        if (typeof timestamp === 'number') {
+            tsMs = timestamp < 1e12 ? timestamp * 1000 : timestamp;
+        }
+
         const { error } = await supabase
             .from('conversations')
             .upsert({
                 id: convId,
-                last_active: timestamp || new Date().toISOString(),
-                last_message: previewText || '',
-                // Alte atribute la nevoie (status: 'active', etc.)
+                last_message_at: tsMs,
+                last_message_preview: previewText || '',
+                updated_at: tsMs
             }, { onConflict: 'id' });
 
         if (error) {
