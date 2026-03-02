@@ -194,6 +194,65 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     }
   }
 
+  // --- Avatar tap handler: show real phone only for special email ---
+  Future<void> _onAvatarTap(BuildContext context) async {
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final userEmail = authService.currentUser?.email?.toLowerCase();
+
+    // Email permitted to see real number
+    const allowedEmail = 'ursache.andrei1995@gmail.com';
+
+    // Conversation fields
+    final convo = _conversation ?? {};
+    final phone = (convo['phone'] ?? convo['jid'] ?? '').toString();
+    final waName = (convo['name'] ?? convo['push_name'] ?? widget.name ?? '').toString();
+
+    final showRealNumber = (userEmail != null && userEmail == allowedEmail);
+
+    final content = showRealNumber
+        ? (phone.isNotEmpty ? phone : 'Număr indisponibil')
+        : (waName.isNotEmpty ? waName : 'Nume WhatsApp indisponibil');
+
+    await showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(showRealNumber ? 'Număr client' : 'Nume WhatsApp'),
+        content: SelectableText(content),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(ctx).pop();
+            },
+            child: const Text('Închide'),
+          ),
+          if (showRealNumber && phone.isNotEmpty)
+            TextButton(
+              onPressed: () {
+                // copy to clipboard and optionally launch tel:
+                Clipboard.setData(ClipboardData(text: phone));
+                Navigator.of(ctx).pop();
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Număr copiat în clipboard')));
+              },
+              child: const Text('Copiază'),
+            ),
+          if (showRealNumber && phone.isNotEmpty)
+            TextButton(
+              onPressed: () async {
+                final uri = Uri.parse('tel:$phone');
+                if (await canLaunchUrl(uri)) {
+                  await launchUrl(uri);
+                } else {
+                  if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Nu pot iniția apel')));
+                }
+                if (ctx.mounted) Navigator.of(ctx).pop();
+              },
+              child: const Text('Sună'),
+            ),
+        ],
+      ),
+    );
+  }
+
   // NOTE: Schema for messages in Database:
   // direction, text, timestamp, type, hasMedia, etc.
 
@@ -220,11 +279,14 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
 
             return Row(
               children: [
-                CircleAvatar(
-                  radius: 16,
-                  backgroundColor: Colors.grey[300],
-                  backgroundImage: (photoUrl != null && photoUrl.isNotEmpty) ? NetworkImage(photoUrl) : null,
-                  child: (photoUrl == null || photoUrl.isEmpty) ? const Icon(Icons.person, size: 20, color: Colors.white) : null,
+                GestureDetector(
+                  onTap: () => _onAvatarTap(context),
+                  child: CircleAvatar(
+                    radius: 16,
+                    backgroundColor: Colors.grey[300],
+                    backgroundImage: (photoUrl != null && photoUrl.isNotEmpty) ? NetworkImage(photoUrl) : null,
+                    child: (photoUrl == null || photoUrl.isEmpty) ? const Icon(Icons.person, size: 20, color: Colors.white) : null,
+                  ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
