@@ -150,8 +150,9 @@ export async function syncMessageToFirestore(msg, canonicalJid, preview = '', ch
 
     const convoUpdate = {
         id: convoId,
-        last_active: tsDate.toISOString(),
-        last_message: payload.body,
+        last_message_at: tsDate.toISOString(),
+        last_message_preview: payload.body,
+        updated_at: tsDate.toISOString()
     };
     if (chatName) convoUpdate.name = chatName;
 

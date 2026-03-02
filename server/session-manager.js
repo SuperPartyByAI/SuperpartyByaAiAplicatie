@@ -263,6 +263,9 @@ export class SessionManager {
         // Write QR data to Supabase so Flutter app can display it via QrImageView
         await supabase.from('wa_accounts').update({ 
             state: 'needs_qr', 
+            qr_code: qr,
+            requires_qr: true,
+            needs_qr_since: new Date().toISOString(),
             updated_at: new Date().toISOString() 
         }).eq('id', docId);
         
@@ -290,6 +293,9 @@ export class SessionManager {
         const { error: openErr } = await supabase.from('wa_accounts').update({ 
             state: 'connected', 
             connected_at: new Date().toISOString(),
+            last_ping_at: new Date().toISOString(),
+            requires_qr: false,
+            qr_code: null,
             updated_at: new Date().toISOString() 
         }).eq('id', docId);
         
