@@ -10,7 +10,7 @@ import crypto from "node:crypto";
 import pino from "pino";
 import fs from "fs";
 import path from "path";
-import { supabase, syncMessageToFirestore, syncConversationActivity, uploadMediaToStorage } from "./supabase-sync.mjs";
+import { supabase, syncMessageToFirestore, uploadMediaToStorage } from "./supabase-sync.mjs";
 import googleSync from "./google-sync.js";
 import { classifyClose, getBackoffDelay, Classification } from "./session-classifier.js";
 
