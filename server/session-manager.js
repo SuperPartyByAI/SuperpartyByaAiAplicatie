@@ -169,10 +169,10 @@ export class SessionManager {
 
     // ── Boot Guard: Check if session requires QR scan ──
     try {
-      const { data, error } = await supabase.from('wa_accounts').select('status, requires_qr').eq('id', docId).single();
+      const { data, error } = await supabase.from('wa_accounts').select('state').eq('id', docId).single();
       if (!error && data) {
-        if (data.requires_qr === true || data.status === "needs_qr" || data.status === "logged_out") {
-          console.log(`[SessionManager] BOOT_GUARD ${docId} requires QR scan (status=${data.status}, requires_qr=${data.requires_qr}) — skipping auto-reconnect`);
+        if (data.state === "needs_qr" || data.state === "logged_out") {
+          console.log(`[SessionManager] BOOT_GUARD ${docId} requires QR scan (state=${data.state}) — skipping auto-reconnect`);
           // Track it in sessions map so /status shows it
           this.sessions.set(docId, { 
             sock: null, qr: null, state: 'needs_qr', 
@@ -263,10 +263,6 @@ export class SessionManager {
         // Write QR data to Supabase so Flutter app can display it via QrImageView
         await supabase.from('wa_accounts').update({ 
             state: 'needs_qr', 
-            qr_code: qr, 
-            qr_available: true, 
-            qr_seq: sessionData.qrSeq, 
-            needs_qr_since: new Date().toISOString(),
             updated_at: new Date().toISOString() 
         }).eq('id', docId);
         
@@ -291,16 +287,15 @@ export class SessionManager {
         }
 
         const userJid = sock.user?.id?.split(':')[0] || "unknown";
-        await supabase.from('wa_accounts').update({ 
+        const { error: openErr } = await supabase.from('wa_accounts').update({ 
             state: 'connected', 
-            qr_code: null, 
-            requires_qr: false,
-            needs_qr_since: null,
             connected_at: new Date().toISOString(),
-            last_seen_at: new Date().toISOString(),
-            phone_number: userJid, 
             updated_at: new Date().toISOString() 
         }).eq('id', docId);
+        
+        if (openErr) {
+            console.error(`[SessionManager] Database update failed on connection OPEN for ${docId}:`, openErr.message);
+        }
         
         this._pushTelemetry(docId, { state: 'connected', logString: `✅ Connected successfully (${userJid})` });
       }
@@ -398,13 +393,7 @@ export class SessionManager {
       // 4. Update Supabase
       await supabase.from('wa_accounts').update({ 
         state: 'needs_qr', 
-        requires_qr: true,
-        qr_code: null, 
-        last_close_reason: reason,
-        last_close_code: code?.toString() || '',
-        reconnect_attempts: 0,
         connected_at: null,
-        needs_qr_since: new Date().toISOString(),
         updated_at: new Date().toISOString() 
       }).eq('id', docId);
 
@@ -428,13 +417,7 @@ export class SessionManager {
       // Update Supabase — mark as needs_qr so the app shows "Regenerate QR" button
       await supabase.from('wa_accounts').update({ 
         state: 'needs_qr', 
-        requires_qr: true,
-        qr_code: null, 
-        last_close_reason: reason,
-        last_close_code: code?.toString() || '',
-        reconnect_attempts: 0,
         connected_at: null,
-        needs_qr_since: new Date().toISOString(),
         updated_at: new Date().toISOString() 
       }).eq('id', docId);
 
@@ -463,10 +446,6 @@ export class SessionManager {
       
       await supabase.from('wa_accounts').update({ 
         state: 'disconnected', 
-        qr_code: null, 
-        reconnect_attempts: nextAttempt,
-        last_close_reason: reason,
-        last_close_code: code?.toString() || '',
         connected_at: null,
         updated_at: new Date().toISOString() 
       }).eq('id', docId);
@@ -485,10 +464,6 @@ export class SessionManager {
     
     await supabase.from('wa_accounts').update({ 
       state: 'reconnecting', 
-      qr_code: null, 
-      reconnect_attempts: nextAttempt,
-      last_close_reason: reason,
-      last_close_code: code?.toString() || '',
       connected_at: null,
       updated_at: new Date().toISOString() 
     }).eq('id', docId);
@@ -590,10 +565,6 @@ export class SessionManager {
       // 3. Reset Supabase state
       await supabase.from('wa_accounts').update({ 
         state: 'connecting', 
-        requires_qr: false,
-        qr_code: null,
-        qr_available: false,
-        reconnect_attempts: 0,
         updated_at: new Date().toISOString() 
       }).eq('id', docId);
 
