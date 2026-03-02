@@ -131,9 +131,9 @@ export class SessionManager {
           try {
             const pingMs = s.sock?.ws?.ping || 0;
             await supabase.from('wa_accounts').update({ 
-                last_ping_at: nowMs, 
+                last_ping_at: new Date(nowMs).toISOString(), 
                 ping_ms: pingMs,
-                last_seen_at: nowMs 
+                last_seen_at: new Date(nowMs).toISOString() 
             }).eq('id', docId);
           } catch(e) {
             console.error(`[Heartbeat] Failed for ${docId}:`, e.message);
@@ -260,8 +260,8 @@ export class SessionManager {
             qr_code: qr, 
             qr_available: true, 
             qr_seq: sessionData.qrSeq, 
-            needs_qr_since: Date.now(),
-            updated_at: Date.now() 
+            needs_qr_since: new Date().toISOString(),
+            updated_at: new Date().toISOString() 
         }).eq('id', docId);
         
         this._pushTelemetry(docId, { state: 'disconnected', logString: '⚠️ QR Code required for authentication.' });
@@ -290,10 +290,10 @@ export class SessionManager {
             qr_code: null, 
             requires_qr: false,
             needs_qr_since: null,
-            connected_at: Date.now(),
-            last_seen_at: Date.now(),
+            connected_at: new Date().toISOString(),
+            last_seen_at: new Date().toISOString(),
             phone_number: userJid, 
-            updated_at: Date.now() 
+            updated_at: new Date().toISOString() 
         }).eq('id', docId);
         
         this._pushTelemetry(docId, { state: 'connected', logString: `✅ Connected successfully (${userJid})` });
@@ -398,8 +398,8 @@ export class SessionManager {
         last_close_code: code?.toString() || '',
         reconnect_attempts: 0,
         connected_at: null,
-        needs_qr_since: Date.now(),
-        updated_at: Date.now() 
+        needs_qr_since: new Date().toISOString(),
+        updated_at: new Date().toISOString() 
       }).eq('id', docId);
 
       // 5. Keep a placeholder in sessions map so /status shows this account
@@ -428,8 +428,8 @@ export class SessionManager {
         last_close_code: code?.toString() || '',
         reconnect_attempts: 0,
         connected_at: null,
-        needs_qr_since: Date.now(),
-        updated_at: Date.now() 
+        needs_qr_since: new Date().toISOString(),
+        updated_at: new Date().toISOString() 
       }).eq('id', docId);
 
       // Keep placeholder in sessions map
@@ -462,7 +462,7 @@ export class SessionManager {
         last_close_reason: reason,
         last_close_code: code?.toString() || '',
         connected_at: null,
-        updated_at: Date.now() 
+        updated_at: new Date().toISOString() 
       }).eq('id', docId);
 
       this.metrics.reconnect_exhausted_total++;
@@ -484,7 +484,7 @@ export class SessionManager {
       last_close_reason: reason,
       last_close_code: code?.toString() || '',
       connected_at: null,
-      updated_at: Date.now() 
+      updated_at: new Date().toISOString() 
     }).eq('id', docId);
 
     this.metrics.reconnect_attempt_total++;
@@ -588,7 +588,7 @@ export class SessionManager {
         qr_code: null,
         qr_available: false,
         reconnect_attempts: 0,
-        updated_at: Date.now() 
+        updated_at: new Date().toISOString() 
       }).eq('id', docId);
 
       // 4. Fetch label from Supabase
