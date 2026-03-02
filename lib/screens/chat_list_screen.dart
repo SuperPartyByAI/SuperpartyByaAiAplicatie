@@ -1,7 +1,11 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import 'package:provider/provider.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../services/supabase_service.dart';
+import '../services/auth_service.dart';
 import 'chat_detail_screen.dart';
 
 class ChatListScreen extends StatefulWidget {
@@ -69,6 +73,82 @@ class _ChatListScreenState extends State<ChatListScreen> {
     }
   }
 
+  // --- Avatar tap handler: show real phone only for admin ---
+  Future<void> _onAvatarTap(BuildContext context, Map<String, dynamic> row) async {
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final userEmail = authService.currentUser?.email?.toLowerCase();
+    const allowedEmail = 'ursache.andrei1995@gmail.com';
+
+    final jid = (row['jid'] ?? row['id'] ?? '').toString();
+    String phone = (row['phone'] ?? '').toString();
+
+    // Fallback extraction from JID just like Detail screen
+    if (phone.isEmpty) {
+      String candidate = '';
+      if (jid.contains('_')) {
+        candidate = jid.split('_').last.split('@').first;
+      } else if (jid.contains('@')) {
+        candidate = jid.split('@').first;
+      }
+      if (candidate.isNotEmpty) {
+        final digitsOnly = candidate.replaceAll(RegExp(r'\D'), '');
+        if (digitsOnly.isNotEmpty) {
+          if (candidate.startsWith('+')) {
+            phone = candidate;
+          } else {
+            if (digitsOnly.startsWith('0')) {
+              phone = '+40${digitsOnly.replaceFirst(RegExp(r'^0+'), '')}';
+            } else if (digitsOnly.length >= 9) {
+              phone = '+$digitsOnly';
+            } else {
+              phone = digitsOnly;
+            }
+          }
+        }
+      }
+    }
+
+    final waName = (row['name'] ?? phone).toString();
+    final showRealNumber = (userEmail != null && userEmail == allowedEmail);
+
+    final content = showRealNumber
+        ? (phone.isNotEmpty ? phone : 'Număr indisponibil')
+        : (waName.isNotEmpty ? waName : 'Nume WhatsApp indisponibil');
+
+    await showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(showRealNumber ? 'Număr client' : 'Nume WhatsApp'),
+        content: SelectableText(content),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Închide')),
+          if (showRealNumber && phone.isNotEmpty)
+            TextButton(
+              onPressed: () {
+                Clipboard.setData(ClipboardData(text: phone));
+                Navigator.of(ctx).pop();
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Număr copiat în clipboard')));
+              },
+              child: const Text('Copiază'),
+            ),
+          if (showRealNumber && phone.isNotEmpty)
+            TextButton(
+              onPressed: () async {
+                final uri = Uri.parse('tel:$phone');
+                if (await canLaunchUrl(uri)) {
+                  await launchUrl(uri);
+                } else {
+                  if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Nu pot iniția apel')));
+                }
+                if (ctx.mounted) Navigator.of(ctx).pop();
+              },
+              child: const Text('Sună'),
+            ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -123,12 +203,15 @@ class _ChatListScreenState extends State<ChatListScreen> {
         final assignedTo = row['assigned_employee_id'];
 
         return ListTile(
-          leading: CircleAvatar(
-            backgroundColor: Colors.grey,
-            backgroundImage: photoUrl.isNotEmpty 
-                ? ResizeImage(NetworkImage(photoUrl), width: 100, height: 100) 
-                : null,
-            child: photoUrl.isEmpty ? const Icon(Icons.person, color: Colors.white) : null,
+          leading: GestureDetector(
+            onTap: () => _onAvatarTap(context, row),
+            child: CircleAvatar(
+              backgroundColor: Colors.grey,
+              backgroundImage: photoUrl.isNotEmpty 
+                  ? ResizeImage(NetworkImage(photoUrl), width: 100, height: 100) 
+                  : null,
+              child: photoUrl.isEmpty ? const Icon(Icons.person, color: Colors.white) : null,
+            ),
           ),
           title: Row(
             children: [
