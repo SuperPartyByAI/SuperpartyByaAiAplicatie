@@ -52,7 +52,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
     try {
       final data = await SupabaseService.select(
         'conversations',
-        select: 'id,jid,name,phone,account_label,photo_url,last_message_at,last_message_preview,assigned_employee_id',
+        select: 'id,jid,name,account_label,photo_url,last_message_at,last_message_preview,assigned_employee_id',
         order: 'last_message_at.desc.nullslast',
         limit: 500,
       );

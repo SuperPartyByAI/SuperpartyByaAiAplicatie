@@ -156,12 +156,20 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
 
   Future<void> _loadConversation() async {
     try {
-      final conv = await SupabaseService.getById(
-        'conversations',
-        id: widget.conversationId,
-        select: 'id,name,jid,phone,photo_url,assigned_employee_id,assigned_employee_name,account_label',
-      );
-      if (mounted) setState(() => _conversation = conv);
+      try {
+        // Attempt secure RPC first (Security Definer on backend)
+        final res = await Supabase.instance.client.rpc('get_conversation', params: {'conv_id': widget.conversationId}).single();
+        if (mounted) setState(() => _conversation = res);
+      } catch (rpcError) {
+        // Fallback to direct table read if RPC is not yet created
+        debugPrint('RPC fallback triggered: $rpcError');
+        final conv = await SupabaseService.getById(
+          'conversations',
+          id: widget.conversationId,
+          select: 'id,name,jid,phone,photo_url,assigned_employee_id,assigned_employee_name,account_label',
+        );
+        if (mounted) setState(() => _conversation = conv);
+      }
     } catch (e) {
       debugPrint('Supabase conv error: $e');
     }
