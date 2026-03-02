@@ -20,7 +20,7 @@ security definer
 as $$
 declare
   page_size int := least(coalesce(p_page_size,50), 100); -- max 100 enforced
-  offset int := greatest((coalesce(p_page,0) * page_size), 0);
+  v_offset int := greatest((coalesce(p_page,0) * page_size), 0);
 begin
   return query
   select
@@ -28,6 +28,6 @@ begin
     c.last_message_at::timestamptz, c.last_message_preview::text, c.assigned_employee_id::text
   from public.conversations c
   order by c.last_message_at desc nulls last
-  limit page_size offset offset;
+  limit page_size offset v_offset;
 end;
 $$;
