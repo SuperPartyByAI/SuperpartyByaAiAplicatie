@@ -150,7 +150,7 @@ export class SessionManager {
   }
 
   // ─── Start Session (with boot guard) ────────────────────────────
-  async startSession(docId, label = '') {
+  async startSession(docId, label = '', forceNew = false) {
     const existing = this.sessions.get(docId);
     if (existing && existing.sock) {
       console.log(`[SessionManager] Session ${docId} already active with live socket.`);
@@ -168,22 +168,24 @@ export class SessionManager {
     this._closeSuppressed.delete(docId);
 
     // ── Boot Guard: Check if session requires QR scan ──
-    try {
-      const { data, error } = await supabase.from('wa_accounts').select('state').eq('id', docId).single();
-      if (!error && data) {
-        if (data.state === "needs_qr" || data.state === "logged_out") {
-          console.log(`[SessionManager] BOOT_GUARD ${docId} requires QR scan (state=${data.state}) — skipping auto-reconnect`);
-          // Track it in sessions map so /status shows it
-          this.sessions.set(docId, { 
-            sock: null, qr: null, state: 'needs_qr', 
-            reconnectAttempts: 0, reconnectTimer: null, label 
-          });
-          return;
+    if (!forceNew) {
+      try {
+        const { data, error } = await supabase.from('wa_accounts').select('state').eq('id', docId).single();
+        if (!error && data) {
+          if (data.state === "needs_qr" || data.state === "logged_out") {
+            console.log(`[SessionManager] BOOT_GUARD ${docId} requires QR scan (state=${data.state}) — skipping auto-reconnect`);
+            // Track it in sessions map so /status shows it
+            this.sessions.set(docId, { 
+              sock: null, qr: null, state: 'needs_qr', 
+              reconnectAttempts: 0, reconnectTimer: null, label 
+            });
+            return;
+          }
         }
+      } catch (e) {
+        console.error(`[SessionManager] Boot guard check failed for ${docId}:`, e.message);
+        // Continue connecting if we can't check — fail open for transient issues
       }
-    } catch (e) {
-      console.error(`[SessionManager] Boot guard check failed for ${docId}:`, e.message);
-      // Continue connecting if we can't check — fail open for transient issues
     }
 
     const safe = safeDocId(docId);
@@ -261,13 +263,21 @@ export class SessionManager {
         const rstate = this._regeneratingState.get(docId);
         if (rstate) rstate.phase = 'qr_ready';
         // Write QR data to Supabase so Flutter app can display it via QrImageView
-        await supabase.from('wa_accounts').update({ 
-            state: 'needs_qr', 
-            qr_code: qr,
-            requires_qr: true,
-            needs_qr_since: new Date().toISOString(),
-            updated_at: new Date().toISOString() 
-        }).eq('id', docId);
+        // Write QR data to Supabase so Flutter app can display it via QrImageView
+        try {
+            console.log(`[SessionManager] Initiating Supabase update for ${docId} with QR length = ${qr.length}`);
+            const { error: qrErr } = await supabase.from('wa_accounts').update({ 
+                state: 'needs_qr', 
+                qr_code: qr,
+                requires_qr: true,
+                needs_qr_since: new Date().toISOString(),
+                updated_at: new Date().toISOString() 
+            }).eq('id', docId);
+            if (qrErr) console.error(`[SessionManager] QR DB write failed for ${docId}:`, qrErr.message || JSON.stringify(qrErr));
+            else console.log(`[SessionManager] QR Successfully written to DB for ${docId}`);
+        } catch (ex) {
+            console.error(`[SessionManager] CRITICAL EXCEPTION writing QR for ${docId}:`, ex.message || ex);
+        }
         
         this._pushTelemetry(docId, { state: 'disconnected', logString: '⚠️ QR Code required for authentication.' });
       }
@@ -579,7 +589,7 @@ export class SessionManager {
       const label = doc ? (doc.label || '') : '';
 
       // 5. Start fresh session (will generate new QR)
-      await this.startSession(docId, label);
+      await this.startSession(docId, label, true);
 
       // Tag session with reqId
       const sess = this.sessions.get(docId);
@@ -680,8 +690,8 @@ export class SessionManager {
             timestamp: new Date(ts * 1000).toISOString(),
             status: fromMe ? 'sent' : 'delivered',
             external_data: { pushName: msg.pushName },
-            media_url: syncOptions.media?.path || syncOptions.mediaUrl || null,
-            media_type: syncOptions.media?.mimetype || syncOptions.mimetype || null
+            media_url: mediaInfo?.path || null,
+            media_type: mediaInfo?.mimetype || null
         };
         
         await syncMessageToFirestore(msgData);

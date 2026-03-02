@@ -102,6 +102,11 @@ class _AccountsScreenState extends State<AccountsScreen> {
                     final status = data['state'] ?? data['status'] ?? 'unknown'; // Prefer state, fallback to status
                     final phone = data['phone_number'] ?? 'Unknown';
                     
+                    if (docId.startsWith('XAN')) {
+                        print('DEBUG FLUTTER UI FOR XAN: data map is: $data');
+                        print('DEBUG FLUTTER UI FOR XAN: resolved status is: $status');
+                    }
+
                     final needsQr = status == 'needs_qr' || status == 'logged_out' || status == 'disconnected';
 
                     return Card(
