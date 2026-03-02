@@ -4,9 +4,40 @@ import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import '../services/supabase_service.dart';
 import '../services/auth_service.dart';
 import 'chat_detail_screen.dart';
+
+Future<http.Response> getWithRetry(Uri uri, {int retries = 3, Duration timeout = const Duration(seconds:15)}) async {
+  int attempt = 0;
+  while (true) {
+    try {
+      final resp = await http.get(uri).timeout(timeout);
+      return resp;
+    } catch (e) {
+      attempt++;
+      if (attempt >= retries) rethrow;
+      await Future.delayed(Duration(seconds: 1 << attempt)); 
+    }
+  }
+}
+
+class ConversationsRepo {
+  final SupabaseClient supabase;
+  ConversationsRepo(this.supabase);
+
+  Future<List<Map<String, dynamic>>> fetchPage(int pageIndex, {int pageSize = 50}) async {
+    // Calling the newly created RPC for conversations to enforce server limits and indexing
+    final res = await supabase.rpc('get_conversations_page', params: {
+      'p_page': pageIndex,
+      'p_page_size': pageSize,
+    });
+    return List<Map<String, dynamic>>.from(res as List);
+  }
+}
 
 class ChatListScreen extends StatefulWidget {
   const ChatListScreen({super.key});
@@ -23,22 +54,32 @@ class _ChatListScreenState extends State<ChatListScreen> {
     '737571397',
   };
 
+  final ConversationsRepo _repo = ConversationsRepo(Supabase.instance.client);
+  final ScrollController _scrollController = ScrollController();
+  
   List<Map<String, dynamic>> _conversations = [];
-  bool _loading = true;
+  bool _loading = false;
+  bool _isLoadingMore = false;
+  bool _hasMore = true;
+  int _page = 0;
   String? _error;
-  Timer? _pollTimer;
 
   @override
   void initState() {
     super.initState();
-    _loadConversations();
-    // Poll every 15 seconds for live updates
-    _pollTimer = Timer.periodic(const Duration(seconds: 15), (_) => _loadConversations());
+    _loadNextPage();
+    _scrollController.addListener(() {
+      if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
+        if (!_loading && !_isLoadingMore && _hasMore) {
+          _loadNextPage();
+        }
+      }
+    });
   }
 
   @override
   void dispose() {
-    _pollTimer?.cancel();
+    _scrollController.dispose();
     super.dispose();
   }
 
@@ -48,14 +89,17 @@ class _ChatListScreenState extends State<ChatListScreen> {
     return _internalNumbers.contains(phone);
   }
 
-  Future<void> _loadConversations() async {
+  Future<void> _loadNextPage() async {
+    if (_loading || _isLoadingMore || !_hasMore) return;
+    
+    if (_page == 0) {
+      setState(() { _loading = true; _error = null; });
+    } else {
+      setState(() { _isLoadingMore = true; });
+    }
+
     try {
-      final data = await SupabaseService.select(
-        'conversations',
-        select: 'id,jid,name,account_label,photo_url,last_message_at,last_message_preview,assigned_employee_id',
-        order: 'last_message_at.desc.nullslast',
-        limit: 500,
-      );
+      final data = await _repo.fetchPage(_page, pageSize: 50);
 
       final filtered = data.where((row) {
         final name = row['name']?.toString() ?? '';
@@ -65,12 +109,42 @@ class _ChatListScreenState extends State<ChatListScreen> {
         return true;
       }).toList();
 
-      if (mounted) setState(() { _conversations = filtered; _loading = false; });
+      if (!mounted) return;
+      
+      setState(() {
+        if (filtered.isEmpty && data.isEmpty) {
+          _hasMore = false;
+        } else {
+          _conversations.addAll(filtered);
+          if (data.length < 50) _hasMore = false;
+          _page++;
+        }
+        _loading = false;
+        _isLoadingMore = false;
+      });
     } catch (e, stack) {
-      debugPrint('Supabase Error loading conversations: $e');
-      debugPrint('Stacktrace: $stack');
-      if (mounted) setState(() { _error = e.toString(); _loading = false; });
+      debugPrint('Error loading conversations page $_page: $e');
+      if (mounted) {
+        setState(() { 
+          if (_page == 0) _error = e.toString();
+          _loading = false; 
+          _isLoadingMore = false; 
+        });
+        if (_page > 0) {
+          ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Eroare la încărcare. Trage spre refresh.')));
+        }
+      }
     }
+  }
+
+  Future<void> _refreshList() async {
+    setState(() {
+      _page = 0;
+      _conversations.clear();
+      _hasMore = true;
+      _error = null;
+    });
+    await _loadNextPage();
   }
 
   // --- Avatar tap handler: show real phone only for admin ---
@@ -158,7 +232,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh, color: Colors.white),
-            onPressed: () { setState(() => _loading = true); _loadConversations(); },
+            onPressed: () { _refreshList(); },
           ),
         ],
       ),
@@ -174,87 +248,102 @@ class _ChatListScreenState extends State<ChatListScreen> {
   }
 
   Widget _buildList() {
-    return ListView.builder(
-      itemCount: _conversations.length,
-      itemBuilder: (context, index) {
-        final row = _conversations[index];
-
-        // Name resolution
-        String name = '';
-        final jid = row['jid']?.toString() ?? '';
-        final phone = row['phone']?.toString() ?? (jid.isNotEmpty ? jid.split('@')[0] : '');
-        if ((row['name']?.toString() ?? '').isNotEmpty) {
-          name = row['name'];
-        } else if (phone.isNotEmpty) {
-          name = phone;
-        } else {
-          name = row['id'] ?? '';
-        }
-        if (name.contains('@') && !name.contains(' ')) name = name.split('@')[0];
-
-        // dynamic
-        final ts = row['last_message_at'];
-        DateTime? lastDt;
-        if (ts != null) lastDt = DateTime.fromMillisecondsSinceEpoch((ts as int) * 1000);
-
-        final preview = row['last_message_preview'] ?? '';
-        final accountLabel = row['account_label']?.toString() ?? '';
-        final photoUrl = row['photo_url']?.toString() ?? '';
-        final assignedTo = row['assigned_employee_id'];
-
-        return ListTile(
-          leading: GestureDetector(
-            onTap: () => _onAvatarTap(context, row),
-            child: CircleAvatar(
-              backgroundColor: Colors.grey,
-              backgroundImage: photoUrl.isNotEmpty 
-                  ? ResizeImage(NetworkImage(photoUrl), width: 100, height: 100) 
-                  : null,
-              child: photoUrl.isEmpty ? const Icon(Icons.person, color: Colors.white) : null,
-            ),
-          ),
-          title: Row(
-            children: [
-              Expanded(child: Text(name, overflow: TextOverflow.ellipsis)),
-              if (accountLabel.isNotEmpty)
-                Container(
-                  margin: const EdgeInsets.only(left: 8),
-                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                  decoration: BoxDecoration(
-                    color: Colors.blue.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(4),
-                    border: Border.all(color: Colors.blue.withOpacity(0.3)),
-                  ),
-                  child: Text(accountLabel, style: const TextStyle(fontSize: 10, color: Colors.blue)),
-                ),
-            ],
-          ),
-          subtitle: Text(preview, maxLines: 1, overflow: TextOverflow.ellipsis,
-              style: const TextStyle(fontSize: 12, color: Colors.grey)),
-          trailing: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              if (lastDt != null)
-                Text(DateFormat('HH:mm').format(lastDt),
-                    style: const TextStyle(fontSize: 12, color: Colors.grey)),
-              if (assignedTo != null)
-                const Icon(Icons.assignment_ind, size: 16, color: Colors.blue),
-            ],
-          ),
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => ChatDetailScreen(
-                  conversationId: row['id'] ?? '',
-                  name: name,
-                ),
-              ),
+    return RefreshIndicator(
+      onRefresh: _refreshList,
+      child: ListView.builder(
+        controller: _scrollController,
+        itemCount: _conversations.length + (_hasMore ? 1 : 0),
+        itemBuilder: (context, index) {
+          if (index >= _conversations.length) {
+            return const Padding(
+              padding: EdgeInsets.all(16),
+              child: Center(child: CircularProgressIndicator()),
             );
-          },
-        );
-      },
+          }
+
+          final row = _conversations[index];
+
+          // Name resolution
+          String name = '';
+          final jid = row['jid']?.toString() ?? '';
+          final phone = row['phone']?.toString() ?? (jid.isNotEmpty ? jid.split('@')[0] : '');
+          if ((row['name']?.toString() ?? '').isNotEmpty) {
+            name = row['name'];
+          } else if (phone.isNotEmpty) {
+            name = phone;
+          } else {
+            name = row['id'] ?? '';
+          }
+          if (name.contains('@') && !name.contains(' ')) name = name.split('@')[0];
+
+          // dynamic
+          final ts = row['last_message_at'];
+          DateTime? lastDt;
+          if (ts != null && ts is String) {
+            lastDt = DateTime.tryParse(ts);
+          } else if (ts != null && ts is int) {
+            lastDt = DateTime.fromMillisecondsSinceEpoch(ts * 1000);
+          }
+
+          final preview = row['last_message_preview'] ?? '';
+          final accountLabel = row['account_label']?.toString() ?? '';
+          final photoUrl = row['photo_url']?.toString() ?? '';
+          final assignedTo = row['assigned_employee_id'];
+
+          return ListTile(
+            leading: GestureDetector(
+              onTap: () => _onAvatarTap(context, row),
+              child: CircleAvatar(
+                backgroundColor: Colors.grey,
+                backgroundImage: photoUrl.isNotEmpty 
+                    ? ResizeImage(NetworkImage(photoUrl), width: 100, height: 100) 
+                    : null,
+                child: photoUrl.isEmpty ? const Icon(Icons.person, color: Colors.white) : null,
+              ),
+            ),
+            title: Row(
+              children: [
+                Expanded(child: Text(name, overflow: TextOverflow.ellipsis)),
+                if (accountLabel.isNotEmpty)
+                  Container(
+                    margin: const EdgeInsets.only(left: 8),
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                    decoration: BoxDecoration(
+                      color: Colors.blue.withOpacity(0.1),
+                      borderRadius: BorderRadius.circular(4),
+                      border: Border.all(color: Colors.blue.withOpacity(0.3)),
+                    ),
+                    child: Text(accountLabel, style: const TextStyle(fontSize: 10, color: Colors.blue)),
+                  ),
+              ],
+            ),
+            subtitle: Text(preview, maxLines: 1, overflow: TextOverflow.ellipsis,
+                style: const TextStyle(fontSize: 12, color: Colors.grey)),
+            trailing: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                if (lastDt != null)
+                  Text(DateFormat('HH:mm').format(lastDt),
+                      style: const TextStyle(fontSize: 12, color: Colors.grey)),
+                if (assignedTo != null)
+                  const Icon(Icons.assignment_ind, size: 16, color: Colors.blue),
+              ],
+            ),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ChatDetailScreen(
+                    conversationId: row['id'] ?? '',
+                    name: name,
+                  ),
+                ),
+              );
+            },
+          );
+        },
+      ),
     );
   }
 }
