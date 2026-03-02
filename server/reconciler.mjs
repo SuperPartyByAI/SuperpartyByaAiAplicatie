@@ -261,7 +261,7 @@ export async function processBaileysMessagesBatch(messages, mapJidToConvId) {
         from_jid: remote,
         to_jid: null,
         text: text,
-        push_name: pushName,
+        push_name: null, // do not expose phone/jid via push_name fallback
         metadata: JSON.stringify(m),
         created_at: new Date(ts).toISOString()
       };

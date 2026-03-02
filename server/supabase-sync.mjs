@@ -208,7 +208,7 @@ export async function syncMessageToFirestore(msg, canonicalJid, preview = '', ch
       type: type,
       timestamp: tsDate.toISOString(),
       direction: msg?.key?.fromMe ? 'outbound' : 'inbound',
-      pushName: msg?.pushName || '',
+      pushName: '', // Redacted logic pushName: msg?.pushName || ''
       from: msg?.key?.remoteJid || null,
       mediaPath: mediaObj?.path || mediaUrl || null
     };
@@ -222,7 +222,9 @@ export async function syncMessageToFirestore(msg, canonicalJid, preview = '', ch
         last_message_preview: payload.body,
         updated_at: tsDate.toISOString()
     };
-    if (chatName) convoUpdate.name = chatName;
+    // Never write the phone/jid to conversation 'name' 
+    // Wait for proper client numbering (Client N) or read from display_name safely
+    // if (chatName && !chatName.match(/^\+?[\d]+$/)) convoUpdate.name = chatName;
 
     const phone = normalizePhone(rawJid);
     if (phone) {

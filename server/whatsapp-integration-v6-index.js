@@ -853,12 +853,21 @@ app.get('/api/voice/calls', async (req, res) => {
       .get();
     const calls = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     // Convert Firestore Timestamps to ISO strings for JSON
-    const serialized = calls.map(c => ({
-      ...c,
-      startTime: c.startTime?.toDate?.()?.toISOString?.() ?? c.startTime,
-      endTime: c.endTime?.toDate?.()?.toISOString?.() ?? c.endTime,
-      timestamp: c.timestamp?.toDate?.()?.toISOString?.() ?? c.timestamp,
-    }));
+    // Block exposure of explicit Twilio numbers unless auth reveals admin access
+    const adminEmail = req.headers['x-user-email'] || '';
+    const isAdmin = adminEmail.toLowerCase() === 'ursache.andrei1995@gmail.com';
+
+    const serialized = calls.map(c => {
+      const isOutboundAgent = c.direction === 'outbound-api' || c.outboundAgent;
+      return {
+        ...c,
+        from: isAdmin ? c.from : (isOutboundAgent ? c.from : null), // hide real number
+        to: isAdmin ? c.to : (isOutboundAgent ? null : c.to), // hide external number 
+        startTime: c.startTime?.toDate?.()?.toISOString?.() ?? c.startTime,
+        endTime: c.endTime?.toDate?.()?.toISOString?.() ?? c.endTime,
+        timestamp: c.timestamp?.toDate?.()?.toISOString?.() ?? c.timestamp,
+      };
+    });
     res.json({ calls: serialized });
   } catch (e) {
     console.error('[GetCalls] Error fetching calls:', e.message);

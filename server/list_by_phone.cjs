@@ -6,20 +6,22 @@ const serviceAccount = require(path.resolve(__dirname, '../../keys/gpt-supabase-
 });
 const db = { collection: () => ({ doc: () => ({ set: async () => {}, get: async () => ({ exists: false, data: () => ({}) }) }) }) };
 
-async function checkPhone() {
-  const nums = await db.collection('users').get();
-  console.log('searching all users for phone containing 0737571397...');
-  nums.forEach(doc => {
-     if(doc.data().phone && doc.data().phone.includes('0737571397') || doc.data().phone && doc.data().phone.includes('737571397')) {
-         console.log('USER', doc.id, doc.data().email, doc.data().phone, doc.data().role, doc.data().status, doc.data().approved);
-     }
-  });
+async function checkPhone(digits) {
+  // Secure: use conversations_public view and never return phone
+  try {
+    const { data, error } = await supabase
+      .from('conversations_public')
+      .select('id, client_display_name as name, jid, client_id, photo_url, last_message_preview')
+      .like('jid', `%${digits || ''}%`) // search via jid or other safe key
+      .limit(10);
 
-  const emps = await db.collection('employees').get();
-  emps.forEach(doc => {
-     if(doc.data().phone && doc.data().phone.includes('0737571397') || doc.data().phone && doc.data().phone.includes('737571397')) {
-         console.log('EMPLOYEE', doc.id, doc.data().email, doc.data().phone, doc.data().approved);
-     }
-  });
+    if (error) {
+      console.error('list_by_phone error', error);
+    } else {
+      console.log('found public', data);
+    }
+  } catch (err) {
+    console.error('unexpected', err);
+  }
 }
-checkPhone().then(() => process.exit(0)).catch(console.error);
+checkPhone('07').then(() => process.exit(0)).catch(console.error);
