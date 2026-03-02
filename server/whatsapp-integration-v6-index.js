@@ -112,7 +112,7 @@ const LID_MAPPING_FILE = "lid_mappings.json";
 const STORE_FILE = "baileys_store_multi.json";
 
 /* ========== Firebase Admin Init ========== */
-import { initFirebase, syncMessageToFirestore, uploadMediaToStorage, getSignedMediaUrl, setCanonicalMismatchCallback } from "./firebase-sync.js";
+import { initFirebase, syncMessageToFirestore, uploadMediaToStorage, getSignedMediaUrl, setCanonicalMismatchCallback } from "./supabase-sync.mjs";
 import multer from "multer";
 const upload = multer({ limits: { fileSize: 25 * 1024 * 1024 }, storage: multer.memoryStorage() });
 

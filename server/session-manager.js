@@ -299,21 +299,29 @@ export class SessionManager {
           this._regeneratingState.delete(docId);
         }
 
-        const userJid = sock.user?.id?.split(':')[0] || "unknown";
-        const { error: openErr } = await supabase.from('wa_accounts').update({ 
+        // Hardening: robust JID extraction from multiple possible credential locations
+        const rawJid = sock.user?.id || state?.creds?.me?.id || sock.auth?.creds?.me?.id || "unknown";
+        const userPhone = rawJid !== "unknown" ? rawJid.split(':')[0].split('@')[0] : "unknown";
+        
+        console.log(`[SessionManager] ${docId} extracting JID: ${rawJid} -> phone: ${userPhone}`);
+
+        const updatePayload = { 
             state: 'connected', 
             connected_at: new Date().toISOString(),
             last_ping_at: new Date().toISOString(),
             requires_qr: false,
             qr_code: null,
             updated_at: new Date().toISOString() 
-        }).eq('id', docId);
+        };
+        if (userPhone !== "unknown") updatePayload.phone_number = userPhone;
+
+        const { error: openErr } = await supabase.from('wa_accounts').update(updatePayload).eq('id', docId);
         
         if (openErr) {
             console.error(`[SessionManager] Database update failed on connection OPEN for ${docId}:`, openErr.message);
         }
         
-        this._pushTelemetry(docId, { state: 'connected', logString: `✅ Connected successfully (${userJid})` });
+        this._pushTelemetry(docId, { state: 'connected', logString: `✅ Connected successfully (${userPhone})` });
       }
     });
 
@@ -615,6 +623,12 @@ export class SessionManager {
 
   // --- Message Handling (Ported from index.js) ---
   async handleMessage(docId, msg, resolveCanonicalJid = null) {
+      if (!docId) {
+          console.error(`ERROR [Inbound] Missing accountId (docId) for message ${msg.key?.id} from ${msg.key?.remoteJid} — skipping write. Ensure session mapping is intact.`);
+          this.metrics.ghost_messages_skipped = (this.metrics.ghost_messages_skipped || 0) + 1;
+          return; // HARD BLOCK: Nu crea conversație/mesaj dacă nu știi din ce cont vine!
+      }
+
       // 1. Sync to Firestore
       const originJid = msg.key.remoteJid;
       const isGroup = originJid.endsWith('@g.us');
@@ -681,20 +695,7 @@ export class SessionManager {
         const fromMe = msg.key.fromMe;
         const canonicalJid = resolveCanonicalJid ? (resolveCanonicalJid(originJid) || originJid) : originJid;
         
-        const msgData = {
-            id: msg.key.id,
-            conversation_id: `${docId}_${canonicalJid}`,
-            wa_account_id: docId,
-            direction: fromMe ? 'outbound' : 'inbound',
-            content: preview,
-            timestamp: new Date(ts * 1000).toISOString(),
-            status: fromMe ? 'sent' : 'delivered',
-            external_data: { pushName: msg.pushName },
-            media_url: mediaInfo?.path || null,
-            media_type: mediaInfo?.mimetype || null
-        };
-        
-        await syncMessageToFirestore(msgData);
+        await syncMessageToFirestore(msg, canonicalJid, preview, chatName, docId, label, { media: mediaInfo, resolveCanonicalJid: this._resolveCanonicalJid });
       } catch (e) { console.error("Supabase sync error", e); }
 
       // 2. Google Sync
