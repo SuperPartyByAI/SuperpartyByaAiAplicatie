@@ -129,12 +129,13 @@ export class SessionManager {
       for (const [docId, s] of this.sessions.entries()) {
         if (s.status === 'connected') {
           try {
-            const pingMs = s.sock?.ws?.ping || 0;
-            await supabase.from('wa_accounts').update({ 
-                last_ping_at: new Date(nowMs).toISOString(), 
-                ping_ms: pingMs,
-                last_seen_at: new Date(nowMs).toISOString() 
+            const { error: hbErr } = await supabase.from('wa_accounts').update({ 
+                last_ping_at: new Date(nowMs).toISOString()
             }).eq('id', docId);
+            
+            if (hbErr) {
+                console.error(`[Heartbeat] SQL Error for ${docId}:`, hbErr);
+            }
           } catch(e) {
             console.error(`[Heartbeat] Failed for ${docId}:`, e.message);
           }
