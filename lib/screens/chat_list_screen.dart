@@ -266,9 +266,9 @@ class _ChatListScreenState extends State<ChatListScreen> {
 
           final row = _conversations[index];
 
-          // NEVER show phone in the list. Use name or fallback client display name / last message preview
-          final displayName = row['name'] ?? row['client_display_name'] ?? row['last_message_preview'] ?? 'Client';
-          if (displayName.contains('@') && !displayName.contains(' ')) {
+          // NEVER show phone in the list. Use client_display_name exclusively
+          final displayName = row['client_display_name'] ?? 'Client N/A';
+          if (displayName.toString().contains('@') && !displayName.toString().contains(' ')) {
             // just to be safe if a JID leaked
           }
 

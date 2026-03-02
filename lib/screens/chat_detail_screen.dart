@@ -159,7 +159,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     try {
       try {
         // Attempt secure RPC first (Security Definer on backend)
-        final res = await Supabase.instance.client.rpc('get_conversation', params: {'conv_id': widget.conversationId}).single();
+        final res = await Supabase.instance.client.rpc('get_conversation', params: {'p_conv_id': widget.conversationId}).single();
         if (mounted) setState(() => _conversation = res);
       } catch (rpcError) {
         // Fallback to direct table read if RPC is not yet created
@@ -209,61 +209,14 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     final userEmail = authService.currentUser?.email?.toLowerCase();
     const allowedEmail = 'ursache.andrei1995@gmail.com';
 
-    final convo = _conversation ?? {};
-    String phone = (convo['phone'] ?? '').toString();
-    final jid = (convo['jid'] ?? widget.conversationId).toString();
-
-    // If no explicit phone, try to parse from jid or conversationId
-    if (phone.isEmpty) {
-      String candidate = '';
-      // If jid contains an underscore (accountId_phone@...), extract part after first "_"
-      if (jid.contains('_')) {
-        final afterUnderscore = jid.split('_').last;
-        candidate = afterUnderscore.split('@').first;
-      } else {
-        // fallback: if widget.conversationId contains phone-like part
-        final idPart = widget.conversationId;
-        if (idPart.contains('_')) {
-          candidate = idPart.split('_').last.split('@').first;
-        } else if (jid.contains('@')) {
-          // maybe jid itself is phone@..., take part before @
-          candidate = jid.split('@').first;
-        }
-      }
-      // Minimal normalize: if candidate looks numeric and doesn't start with +, add + if appropriate
-      if (candidate.isNotEmpty) {
-        final digitsOnly = candidate.replaceAll(RegExp(r'\D'), '');
-        if (digitsOnly.isNotEmpty) {
-          if (candidate.startsWith('+')) {
-            phone = candidate;
-          } else {
-            // if it already has country prefix (e.g., starts with 40...), we add +
-            // if starts with 0, convert to +40 (adjust if needed)
-            if (digitsOnly.startsWith('0')) {
-              phone = '+40${digitsOnly.replaceFirst(RegExp(r'^0+'), '')}';
-            } else if (digitsOnly.length >= 9) {
-              // assume it includes country code
-              phone = '+$digitsOnly';
-            } else {
-              phone = digitsOnly; // best-effort
-            }
-          }
-        }
-      }
-    }
-
-    // Name fallback
-    final waName = (convo['name'] ?? convo['push_name'] ?? widget.name ?? '').toString();
-
     final showRealNumber = (userEmail != null && userEmail == allowedEmail);
+    final phone = (_conversation?['phone'] ?? '').toString();
+    final waName = (_conversation?['name'] ?? _conversation?['client_display_name'] ?? widget.name ?? '').toString();
 
-    // Debug print
-    debugPrint('[AvatarTap] userEmail=$userEmail allowed=$allowedEmail showRealNumber=$showRealNumber');
-    debugPrint('[AvatarTap] phone=$phone jid=$jid waName=$waName');
+    debugPrint('[AvatarTap] userEmail=$userEmail showRealNumber=$showRealNumber');
+    debugPrint('[AvatarTap] phone=$phone waName=$waName');
 
-    final content = showRealNumber
-        ? (phone.isNotEmpty ? phone : 'Număr indisponibil')
-        : (waName.isNotEmpty ? waName : 'Nume WhatsApp indisponibil');
+    final content = showRealNumber ? (phone.isNotEmpty ? phone : 'Număr indisponibil') : (waName.isNotEmpty ? waName : 'Nume WhatsApp indisponibil');
 
     await showDialog(
       context: context,
@@ -319,7 +272,12 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
             
             if (_conversation != null) {
                final data = _conversation!;
-               if ((data['name']?.toString() ?? '').isNotEmpty) displayName = data['name'];
+               // Enforce Client N explicitly across the UI
+               if ((data['client_display_name']?.toString() ?? '').isNotEmpty) {
+                 displayName = data['client_display_name'];
+               } else if ((data['name']?.toString() ?? '').isNotEmpty) {
+                 displayName = data['name'];
+               }
                photoUrl = data['photo_url'];
             }
 
