@@ -116,7 +116,7 @@ const LID_MAPPING_FILE = "lid_mappings.json";
 const STORE_FILE = "baileys_store_multi.json";
 
 /* ========== Firebase Admin Init ========== */
-import { initFirebase, syncMessageToFirestore, uploadMediaToStorage, getSignedMediaUrl, setCanonicalMismatchCallback } from "./supabase-sync.mjs";
+import { initFirebase, supabase, syncMessageToFirestore, uploadMediaToStorage, getSignedMediaUrl, setCanonicalMismatchCallback } from "./supabase-sync.mjs";
 import multer from "multer";
 const upload = multer({ limits: { fileSize: 25 * 1024 * 1024 }, storage: multer.memoryStorage() });
 
@@ -436,19 +436,17 @@ app.post('/api/voice/incoming', async (req, res) => {
   console.log(`[Twilio] Incoming Voice Request. From: ${From}, To: ${To}, SID: ${CallSid}`);
 
   
-  // 1. Log to Firestore
-  // 1. Log to Firestore
+  // 1. Log to Supabase
   try {
     if (From && To && CallSid) {
-      await db.collection('calls').doc(CallSid).set({
-        callSid: CallSid,
-        from: From,
-        to: To,
+      await supabase.from('voice_calls').upsert({
+        id: CallSid,
+        from_phone: From,
+        to_phone: To,
         direction: (From.startsWith('client:') || !From.startsWith('+')) ? 'outgoing' : 'incoming',
         status: 'ringing',
-        timestamp: admin.firestore.FieldValue.serverTimestamp(),
-        noticePlayed: true
-      }, { merge: true });
+        notice_played: true
+      });
     }
   } catch(e) { console.error('Error logging call:', e); }
 
@@ -478,12 +476,14 @@ app.post('/api/voice/incoming', async (req, res) => {
             endConferenceOnExit: true
           }, targetCallSid);
           
-          // Also mark the firestore document as answered
+          // Also mark the active incoming call as answered
           try {
-             db.collection('active_incoming_calls').doc(targetCallSid).update({
+             supabase.from('active_incoming_calls').update({
                status: 'answered',
-               answeredBy: From
-             }).catch(e => console.error('Firestore bridge update error:', e));
+               answered_by: From
+             }).eq('call_sid', targetCallSid).then(({error}) => {
+               if (error) console.error('Supabase bridge update error:', error);
+             });
           } catch(e) {}
       } else {
           let target = To;
@@ -544,15 +544,12 @@ app.post('/api/voice/incoming', async (req, res) => {
         recordingStatusCallbackMethod: 'POST',
         action: `${BASE_URL}/api/voice/park-fallback?callSid=\${CallSid}`
       });
-      // Query ONLY the absolute most recent active device from Firestore
+      // Query ONLY the absolute most recent active device from Supabase
       let identities = [];
       try {
-        const devSnap = await db.collectionGroup('devices')
-          .orderBy('lastSeen', 'desc')
-          .limit(1)
-          .get();
-        if (!devSnap.empty) {
-          const identity = devSnap.docs[0].data().identity;
+        const { data: devSnap, error: devErr } = await supabase.from('devices').select('identity').order('last_seen', { ascending: false }).limit(1);
+        if (devSnap && devSnap.length > 0) {
+          const identity = devSnap[0].identity;
           if (identity) identities.push(identity);
         }
         console.log('[Twilio] Dialing absolute most recent identity:', identities);
@@ -668,8 +665,8 @@ app.post('/api/voice/callback', async (req, res) => {
     let identity = agentIdentity;
     let fallbackIdentities = [];
     if (!identity) {
-      const snap = await db.collectionGroup('devices').limit(3).get();
-      fallbackIdentities = snap.docs.map(d => d.data()?.identity).filter(Boolean);
+      const { data: snap } = await supabase.from('devices').select('identity').limit(3);
+      fallbackIdentities = (snap || []).map(d => d.identity).filter(Boolean);
       identity = fallbackIdentities[0] || 'superparty_admin';
     }
 
@@ -715,12 +712,12 @@ app.post('/api/voice/callback', async (req, res) => {
       status: 'ringing',
       clientCallSid: clientCall.sid,
       agentCallSid: agentCall.sid,
-      timestamp: admin.firestore.FieldValue.serverTimestamp()
+      timestamp: new Date().toISOString()
     };
 
     // Logging to Firestore
-    await db.collection('calls').doc(confName).set(metadata);
-    await db.collection('voiceConfs').doc(confName).set(metadata);
+    await supabase.from('voice_calls').upsert({ id: confName, ...metadata });
+    await supabase.from('voice_confs').upsert({ id: confName, ...metadata });
 
     res.json({ success: true, confName, clientCallSid: clientCall.sid, agentCallSid: agentCall.sid });
   } catch (e) {
@@ -766,9 +763,8 @@ app.delete('/api/voice/callback/:sid', async (req, res) => {
        } catch(e) {}
     } else if (sid.startsWith('conf_')) {
        try {
-          const doc = await db.collection('voiceConfs').doc(sid).get();
-          if (doc.exists) {
-             const data = doc.data();
+          const { data, error } = await supabase.from('voice_confs').select('*').eq('id', sid).single();
+          if (data && !error) {
              if (data.clientCallSid) await twilioClient.calls(data.clientCallSid).update({ status: 'completed' }).catch(console.error);
              if (data.agentCallSid) await twilioClient.calls(data.agentCallSid).update({ status: 'completed' }).catch(console.error);
           }
@@ -790,25 +786,25 @@ app.post('/api/voice/status', async (req, res) => {
   console.log(`[Twilio] Call Status: ${CallStatus} SID:${CallSid} From:${From} Duration:${CallDuration}s`);
   try {
     const cleanFrom = (From || '').replace('client:', '').replace('+', '');
-    await db.collection('calls').doc(CallSid).set({
-      callSid: CallSid,
-      from: From || '',
-      fromClean: cleanFrom,
-      to: To || '',
+    // Migrated to Supabase in call status logging
+    await supabase.from('voice_calls').upsert({
+      id: CallSid,
+      from_phone: From || '',
+      from_clean: cleanFrom,
+      to_phone: To || '',
       status: CallStatus || '',
       duration: parseInt(CallDuration || '0', 10),
-      startTime: StartTime ? new Date(StartTime) : admin.firestore.FieldValue.serverTimestamp(),
-      endTime: EndTime ? new Date(EndTime) : null,
-      timestamp: admin.firestore.FieldValue.serverTimestamp(),
-    }, { merge: true });
+      start_time: StartTime ? new Date(StartTime).toISOString() : new Date().toISOString(),
+      end_time: EndTime ? new Date(EndTime).toISOString() : null,
+      updated_at: new Date().toISOString(),
+    });
     console.log(`[CallLog] Saved call ${CallSid} to Firestore`);
 
     // --- NEW: Mutual Conference Teardown Logic ---
     if (conf && role && ['completed', 'failed', 'canceled', 'no-answer', 'busy'].includes(CallStatus)) {
       console.log(`[Conference-Teardown] Terminal state (${CallStatus}) reached for ${role} on ${conf}. Tearing down other leg...`);
-      const confDoc = await db.collection('voiceConfs').doc(conf).get();
-      if (confDoc.exists) {
-        const data = confDoc.data();
+      const { data, error } = await supabase.from('voice_confs').select('*').eq('id', conf).single();
+      if (data && !error) {
         const otherLegSid = (role === 'agent') ? data.clientCallSid : data.agentCallSid;
         if (otherLegSid) {
           try {
@@ -835,11 +831,11 @@ app.post('/api/voice/recording-status', async (req, res) => {
   if (RecordingStatus === 'completed' && CallSid && RecordingUrl) {
     try {
       const url = `${RecordingUrl}.mp3`; // Force MP3 format
-      await db.collection('calls').doc(CallSid).set({
-        recordingUrl: url,
-        recordingSid: RecordingSid,
-        recordingDuration: parseInt(RecordingDuration || '0', 10),
-      }, { merge: true });
+      await supabase.from('voice_calls').update({
+        recording_url: url,
+        recording_sid: RecordingSid,
+        recording_duration: parseInt(RecordingDuration || '0', 10),
+      }).eq('id', CallSid);
       console.log(`[Recording] Saved recording URL for call ${CallSid}`);
     } catch (e) {
       console.error('[Recording] Failed to save recording URL:', e.message);
@@ -852,11 +848,8 @@ app.post('/api/voice/recording-status', async (req, res) => {
 app.get('/api/voice/calls', async (req, res) => {
   try {
     const limit = parseInt(req.query.limit || '50', 10);
-    const snap = await db.collection('calls')
-      .orderBy('timestamp', 'desc')
-      .limit(limit)
-      .get();
-    const calls = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    const { data: calls, error } = await supabase.from('voice_calls').select('*').order('start_time', { ascending: false }).limit(limit);
+    if (error) throw error;
     // Convert Firestore Timestamps to ISO strings for JSON
     // Block exposure of explicit Twilio numbers unless auth reveals admin access
     const adminEmail = req.headers['x-user-email'] || '';
@@ -884,18 +877,11 @@ app.get('/api/voice/calls', async (req, res) => {
 app.get('/api/voice/calls/:sid', async (req, res) => {
   try {
     const sid = req.params.sid;
-    const doc = await db.collection('calls').doc(sid).get();
-    if (!doc.exists) {
+    const { data: docData, error } = await supabase.from('voice_calls').select('*').eq('id', sid).single();
+    if (!docData) {
       return res.status(404).json({ error: 'Call not found' });
     }
-    const data = doc.data();
-    res.json({
-      id: doc.id,
-      ...data,
-      startTime: data.startTime ? data.startTime.toDate().toISOString() : null,
-      endTime: data.endTime ? data.endTime.toDate().toISOString() : null,
-      timestamp: data.timestamp ? data.timestamp.toDate().toISOString() : null,
-    });
+    res.json(docData);
   } catch (e) {
     console.error(`[GetCall] Error fetching call ${req.params.sid}:`, e.message);
     res.status(500).json({ error: e.message });
@@ -935,13 +921,13 @@ app.post('/api/voice/registerDevice', async (req, res) => {
 
   const identity = `user_${userId}_dev_${deviceId}`;
   try {
-    await db.collection('users').doc(userId)
-      .collection('devices').doc(deviceId)
-      .set({ 
-        identity, 
-        fcmToken, 
-        lastSeen: admin.firestore.FieldValue.serverTimestamp() 
-      }, { merge: true });
+    await supabase.from('devices').upsert({
+      id: deviceId,
+      user_id: userId,
+      identity,
+      fcm_token: fcmToken,
+      last_seen: new Date().toISOString()
+    });
     
     console.log(`[Twilio VoIP] Registered device ${deviceId} for user ${userId} with identity: ${identity}`);
     res.json({ identity });
@@ -959,14 +945,13 @@ app.get('/api/voice/getVoipToken', async (req, res) => {
   }
   
   try {
-    const deviceDoc = await db.collection('users').doc(userId)
-      .collection('devices').doc(deviceId).get();
+    const { data: deviceDoc, error } = await supabase.from('devices').select('identity').eq('id', deviceId).eq('user_id', userId).single();
 
-    if (!deviceDoc.exists) {
+    if (!deviceDoc) {
       return res.status(404).send('device-not-registered');
     }
 
-    const identity = deviceDoc.data().identity;
+    const identity = deviceDoc.identity;
     const AccessToken = twilio.jwt.AccessToken;
     const VoiceGrant = AccessToken.VoiceGrant;
 
@@ -1033,8 +1018,8 @@ app.post('/api/voice/client-status', async (req, res) => {
             }
           };
           
-          await admin.messaging().send(message);
-          console.log(`[Twilio VoIP] CANCEL signal fired to FCM successfully.`);
+          // await admin.messaging().send(message);
+          // console.log(`[Twilio VoIP] CANCEL signal fired to FCM successfully.`);
           */
         }
       } catch (err) {
@@ -1183,8 +1168,9 @@ app.post('/api/voice/simulate_push', async (req, res) => {
         message: '[DiagTest] Simulated incoming call',
       },
     };
-    const result = await admin.messaging().send(message);
-    console.log('[SimulatePush] Sent FCM message:', result);
+    // Simulated FCM message sending replaced/disabled as Firebase is decommissioned.
+    const result = { success: true, fake_bypass: true };
+    console.log('[SimulatePush] Bypassed Firebase Admin FCM sending.');
     res.json({ ok: true, result });
   } catch (e) {
     console.error('[SimulatePush] Error:', e);
@@ -2699,7 +2685,7 @@ app.post(/^\/api\/conversations\/(.+)\/reserve$/, verifyFirebaseToken, async (re
       if (existingReservedBy && existingReservedBy === uid) {
         t.update(convoRef, {
           reservedBy: uid,
-          reservedAt: admin.firestore.FieldValue.serverTimestamp(),
+          reservedAt: new Date().toISOString(),
           reservedUntil: reservedUntilTs
         });
         return;
@@ -2721,7 +2707,7 @@ app.post(/^\/api\/conversations\/(.+)\/reserve$/, verifyFirebaseToken, async (re
       // not reserved or expired -> set reservation
       t.update(convoRef, {
         reservedBy: uid,
-        reservedAt: admin.firestore.FieldValue.serverTimestamp(),
+        reservedAt: new Date().toISOString(),
         reservedUntil: reservedUntilTs
       });
     });
@@ -2774,14 +2760,14 @@ app.post('/api/user/consent', verifyFirebaseToken, async (req, res) => {
       consentVersion: consentVersion || 'v1',
       userAgent: userAgent || req.headers['user-agent'] || 'unknown',
       ip: req.ip,
-      timestamp: admin.firestore.FieldValue.serverTimestamp(),
+      timestamp: new Date().toISOString(),
       type: 'employee_recording_agreement'
     });
 
     // Also update main user profile with latest consent
     await db.collection('users').doc(uid).set({
       latestConsentVersion: consentVersion || 'v1',
-      consentGivenAt: admin.firestore.FieldValue.serverTimestamp()
+      consentGivenAt: new Date().toISOString()
     }, { merge: true });
 
     res.json({ status: 'ok' });
@@ -2805,7 +2791,7 @@ app.post('/api/user/deletion-request', verifyFirebaseToken, async (req, res) => 
       email: req.user.email || 'unknown',
       reason: reason || 'user_request',
       status: 'pending',
-      requestedAt: admin.firestore.FieldValue.serverTimestamp()
+      requestedAt: new Date().toISOString()
     });
 
     res.json({ status: 'received', ticketId: ticketRef.id });
@@ -2832,7 +2818,7 @@ app.post('/api/user/privacy-settings', verifyFirebaseToken, async (req, res) => 
     await db.collection('users').doc(uid).set({
       privacySettings: {
         aiAnalysisEnabled: !!aiAnalysisEnabled,
-        updatedAt: admin.firestore.FieldValue.serverTimestamp()
+        updatedAt: new Date().toISOString()
       }
     }, { merge: true });
 
