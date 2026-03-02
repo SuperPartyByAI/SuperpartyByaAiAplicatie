@@ -11,7 +11,7 @@ returns table(
   client_id uuid,
   account_label text,
   photo_url text,
-  last_message_at timestamptz,
+  last_message_at bigint,
   last_message_preview text,
   assigned_employee_id text
 )
@@ -25,7 +25,7 @@ begin
   return query
   select
     c.id::text, c.name::text, c.jid::text as jid, c.client_id::uuid, c.account_label::text, c.photo_url::text,
-    c.last_message_at::timestamptz, c.last_message_preview::text, c.assigned_employee_id::text
+    c.last_message_at::bigint, c.last_message_preview::text, c.assigned_employee_id::text
   from public.conversations c
   order by c.last_message_at desc nulls last
   limit page_size offset v_offset;
