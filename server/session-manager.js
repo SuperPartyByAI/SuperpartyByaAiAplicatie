@@ -127,7 +127,7 @@ export class SessionManager {
     setInterval(async () => {
       const nowMs = Date.now();
       for (const [docId, s] of this.sessions.entries()) {
-        if (s.status === 'connected') {
+        if (s.state === 'connected') {
           try {
             const { error: hbErr } = await supabase.from('wa_accounts').update({ 
                 last_ping_at: new Date(nowMs).toISOString()
@@ -170,7 +170,7 @@ export class SessionManager {
           console.log(`[SessionManager] BOOT_GUARD ${docId} requires QR scan (status=${data.status}, requires_qr=${data.requires_qr}) — skipping auto-reconnect`);
           // Track it in sessions map so /status shows it
           this.sessions.set(docId, { 
-            sock: null, qr: null, status: 'needs_qr', 
+            sock: null, qr: null, state: 'needs_qr', 
             reconnectAttempts: 0, reconnectTimer: null, label 
           });
           return;
@@ -201,7 +201,7 @@ export class SessionManager {
 
     // Track session
     const sessionData = { 
-      sock, qr: null, status: 'connecting', 
+      sock, qr: null, state: 'connecting', 
       reconnectAttempts: 0, reconnectTimer: null, 
       restartCount: 0, label,
       qrSeq: 0, qrUpdatedAt: null,    // QR rotation tracking
@@ -251,7 +251,7 @@ export class SessionManager {
         const qrHash = qr.substring(0, 8);
         console.log(`[SessionManager] ${docId} QR_UPDATE seq=${sessionData.qrSeq} hash=${qrHash}`);
         sessionData.qr = qr;
-        sessionData.status = 'needs_qr';
+        sessionData.state = 'needs_qr';
         // Update pairing phase
         const rstate = this._regeneratingState.get(docId);
         if (rstate) rstate.phase = 'qr_ready';
@@ -272,7 +272,7 @@ export class SessionManager {
         await this._handleClose(docId, lastDisconnect, label);
       } else if (connection === "open") {
         console.log(`[SessionManager] ${docId} CONNECTED`);
-        sessionData.status = 'connected';
+        sessionData.state = 'connected';
         sessionData.qr = null;
         sessionData.reconnectAttempts = 0;
         this.metrics.successful_reconnect_total++;
@@ -405,7 +405,7 @@ export class SessionManager {
 
       // 5. Keep a placeholder in sessions map so /status shows this account
       this.sessions.set(docId, { 
-        sock: null, qr: null, status: 'needs_qr', 
+        sock: null, qr: null, state: 'needs_qr', 
         reconnectAttempts: 0, reconnectTimer: null, label 
       });
 
@@ -435,7 +435,7 @@ export class SessionManager {
 
       // Keep placeholder in sessions map
       this.sessions.set(docId, { 
-        sock: null, qr: null, status: 'needs_qr', 
+        sock: null, qr: null, state: 'needs_qr', 
         reconnectAttempts: 0, reconnectTimer: null, label 
       });
 
@@ -452,7 +452,7 @@ export class SessionManager {
       console.log(`[SessionManager] ${docId} reconnect EXHAUSTED after ${attempts} attempts`);
       
       if (sessionData) {
-        sessionData.status = 'disconnected';
+        sessionData.state = 'disconnected';
         sessionData.reconnectAttempts = nextAttempt;
       }
       
