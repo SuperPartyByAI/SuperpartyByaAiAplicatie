@@ -198,16 +198,59 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
   Future<void> _onAvatarTap(BuildContext context) async {
     final authService = Provider.of<AuthService>(context, listen: false);
     final userEmail = authService.currentUser?.email?.toLowerCase();
-
-    // Email permitted to see real number
     const allowedEmail = 'ursache.andrei1995@gmail.com';
 
-    // Conversation fields
     final convo = _conversation ?? {};
-    final phone = (convo['phone'] ?? convo['jid'] ?? '').toString();
+    String phone = (convo['phone'] ?? '').toString();
+    final jid = (convo['jid'] ?? widget.conversationId).toString();
+
+    // If no explicit phone, try to parse from jid or conversationId
+    if (phone.isEmpty) {
+      String candidate = '';
+      // If jid contains an underscore (accountId_phone@...), extract part after first "_"
+      if (jid.contains('_')) {
+        final afterUnderscore = jid.split('_').last;
+        candidate = afterUnderscore.split('@').first;
+      } else {
+        // fallback: if widget.conversationId contains phone-like part
+        final idPart = widget.conversationId;
+        if (idPart.contains('_')) {
+          candidate = idPart.split('_').last.split('@').first;
+        } else if (jid.contains('@')) {
+          // maybe jid itself is phone@..., take part before @
+          candidate = jid.split('@').first;
+        }
+      }
+      // Minimal normalize: if candidate looks numeric and doesn't start with +, add + if appropriate
+      if (candidate.isNotEmpty) {
+        final digitsOnly = candidate.replaceAll(RegExp(r'\D'), '');
+        if (digitsOnly.isNotEmpty) {
+          if (candidate.startsWith('+')) {
+            phone = candidate;
+          } else {
+            // if it already has country prefix (e.g., starts with 40...), we add +
+            // if starts with 0, convert to +40 (adjust if needed)
+            if (digitsOnly.startsWith('0')) {
+              phone = '+40${digitsOnly.replaceFirst(RegExp(r'^0+'), '')}';
+            } else if (digitsOnly.length >= 9) {
+              // assume it includes country code
+              phone = '+$digitsOnly';
+            } else {
+              phone = digitsOnly; // best-effort
+            }
+          }
+        }
+      }
+    }
+
+    // Name fallback
     final waName = (convo['name'] ?? convo['push_name'] ?? widget.name ?? '').toString();
 
     final showRealNumber = (userEmail != null && userEmail == allowedEmail);
+
+    // Debug print
+    debugPrint('[AvatarTap] userEmail=$userEmail allowed=$allowedEmail showRealNumber=$showRealNumber');
+    debugPrint('[AvatarTap] phone=$phone jid=$jid waName=$waName');
 
     final content = showRealNumber
         ? (phone.isNotEmpty ? phone : 'Număr indisponibil')
@@ -219,16 +262,10 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         title: Text(showRealNumber ? 'Număr client' : 'Nume WhatsApp'),
         content: SelectableText(content),
         actions: [
-          TextButton(
-            onPressed: () {
-              Navigator.of(ctx).pop();
-            },
-            child: const Text('Închide'),
-          ),
+          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Închide')),
           if (showRealNumber && phone.isNotEmpty)
             TextButton(
               onPressed: () {
-                // copy to clipboard and optionally launch tel:
                 Clipboard.setData(ClipboardData(text: phone));
                 Navigator.of(ctx).pop();
                 ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Număr copiat în clipboard')));
