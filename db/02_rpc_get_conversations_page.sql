@@ -24,7 +24,7 @@ declare
 begin
   return query
   select
-    c.id::text, c.name::text, c.canonical_jid::text as jid, c.client_id::uuid, c.account_label::text, c.photo_url::text,
+    c.id::text, c.name::text, c.jid::text as jid, c.client_id::uuid, c.account_label::text, c.photo_url::text,
     c.last_message_at::timestamptz, c.last_message_preview::text, c.assigned_employee_id::text
   from public.conversations c
   order by c.last_message_at desc nulls last
