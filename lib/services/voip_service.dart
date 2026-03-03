@@ -1,3 +1,5 @@
+// Push notifications handled by Twilio SDK via FCM
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -106,16 +108,22 @@ class VoipService {
       }
       debugPrint('[VoIP] Unique Device ID: $deviceId');
 
-      final fcmToken = await Future.value('dummy_token');
-      debugPrint('[VoIP] FCM Token: ${fcmToken != null && fcmToken.length > 20 ? fcmToken.substring(0, 20) : fcmToken}...');
-
-      if (fcmToken == null) {
-        debugPrint('[VoIP] ❌ FCM token is null — cannot register');
-        return;
+      // Get real FCM token for Twilio incoming call push notifications
+      String deviceToken = '';
+      try {
+        final fcmToken = await FirebaseMessaging.instance.getToken();
+        if (fcmToken != null && fcmToken.isNotEmpty) {
+          deviceToken = fcmToken;
+          debugPrint('[VoIP] FCM Token: ${fcmToken.substring(0, 20)}...');
+        } else {
+          debugPrint('[VoIP] ⚠️ FCM token null — WebSocket-only mode (foreground calls only)');
+        }
+      } catch (e) {
+        debugPrint('[VoIP] ⚠️ FCM error ($e) — WebSocket-only mode (foreground calls only)');
       }
 
       // 4b. Register device and FCM token with backend
-      await backendService.registerDevice(deviceId, fcmToken);
+      await backendService.registerDevice(deviceId, deviceToken);
 
       // 4c. Fetch Voip token for this specific device identity
       final data = await backendService.getVoipTokenForDevice(deviceId);
@@ -127,7 +135,7 @@ class VoipService {
       // 5. Register with Twilio SDK (links FCM token → Twilio identity)
       final result = await TwilioVoice.instance.setTokens(
         accessToken: accessToken,
-        deviceToken: fcmToken,
+        deviceToken: deviceToken,
       );
 
       if (result == true) {

@@ -10,7 +10,7 @@ import crypto from "node:crypto";
 import pino from "pino";
 import fs from "fs";
 import path from "path";
-import { supabase, syncMessageToFirestore, syncConversationActivity, uploadMediaToStorage } from "./supabase-sync.mjs";
+import { supabase, syncMessage, syncConversationActivity, uploadMediaToStorage } from "./supabase-sync.mjs";
 import googleSync from "./google-sync.js";
 import { classifyClose, getBackoffDelay, Classification } from "./session-classifier.js";
 
@@ -76,7 +76,7 @@ export class SessionManager {
     }
   }
 
-  // ─── Initialize: Scan Firestore for existing accounts ───────────
+  // ─── Initialize: Scan Supabase for existing accounts ───────────
   async init() {
     console.log("[SessionManager] Initializing...");
     if (!supabase) {
@@ -328,7 +328,7 @@ export class SessionManager {
         }
 
         // We removed `if (type !== 'notify') return;` here because we MUST process 'append' 
-        // messages so they get written to Firestore and show up in the Flutter App.
+        // messages so they get written to Supabase and show up in the Flutter App.
         
         for (const msg of messages) {
             try {
@@ -622,7 +622,7 @@ export class SessionManager {
 
   // --- Message Handling (Ported from index.js) ---
   async handleMessage(docId, msg, resolveCanonicalJid = null) {
-      // 1. Sync to Firestore
+      // 1. Sync to Supabase
       const originJid = msg.key.remoteJid;
       const isGroup = originJid.endsWith('@g.us');
       
@@ -701,7 +701,7 @@ export class SessionManager {
             media_type: syncOptions.media?.mimetype || syncOptions.mimetype || null
         };
         
-        await syncMessageToFirestore(msgData);
+        await syncMessage(msgData);
       } catch (e) { console.error("Supabase sync error", e); }
 
       // 2. Google Sync
@@ -776,7 +776,7 @@ export class SessionManager {
         
         if (!buffer) return null;
 
-        // 1. Try Firebase Storage upload
+        // 1. Try Supabase Storage upload
         if (accountId) {
           const originJid = msg.key.remoteJid;
           const canonicalJid = resolveCanonicalJid ? (resolveCanonicalJid(originJid) || originJid) : originJid;

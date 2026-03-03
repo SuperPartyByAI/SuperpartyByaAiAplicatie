@@ -6,7 +6,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../services/voip_service.dart';
 import 'dart:async';
-import 'package:firebase_messaging/firebase_messaging.dart';
+
 
 
 const _kAudioChannel = 'com.superpartybyai.app/audio';
@@ -27,7 +27,7 @@ class _ActiveCallScreenState extends State<ActiveCallScreen> {
   bool _isMuted = false;
   bool _isSpeaker = false;
   StreamSubscription<CallEvent>? _sub;
-  StreamSubscription<RemoteMessage>? _fcmSub;
+  // FCM removed — database polling + Twilio SDK events handle call status
   Timer? _inactivityTimer;
   Timer? _databasePollTimer;
   bool _isClosing = false;
@@ -66,26 +66,7 @@ class _ActiveCallScreenState extends State<ActiveCallScreen> {
       });
     });
 
-    // Fallback 1: FCM call_ended push from server (most reliable on Huawei — bypasses Doze)
-    _fcmSub = FirebaseMessaging.onMessage.listen((msg) {
-      final type = msg.data['type'];
-      final incomingSid = msg.data['callSid'] as String?;
-      debugPrint('[ActiveCall] FCM message received: type=$type sid=$incomingSid activeSid=$_activeCallSid');
-      if (type == 'call_ended' && mounted) {
-        final secSinceOpen = DateTime.now().difference(_screenOpenedAt).inSeconds;
-        // Accept if: screen has been open >3s (avoid instant-close from stale events)
-        // AND screen is not too old (>10min = stale timer will handle)
-        if (secSinceOpen >= 3) {
-          debugPrint('[ActiveCall] FCM call_ended accepted (${secSinceOpen}s after open) — closing screen');
-          _closeCall('Apelul s-a terminat');
-        } else {
-          debugPrint('[ActiveCall] FCM call_ended IGNORED (too early: ${secSinceOpen}s)');
-        }
-      } else if (type == 'call_incoming' && incomingSid != null && _activeCallSid == null) {
-        _activeCallSid = incomingSid;
-        debugPrint('[ActiveCall] Captured callSid from FCM: $_activeCallSid');
-      }
-    });
+    // FCM fallback removed — database polling (below) handles call_ended detection
 
     // Fallback 2: 90-second inactivity timer
     _inactivityTimer = Timer(const Duration(seconds: 90), () {
@@ -166,7 +147,7 @@ class _ActiveCallScreenState extends State<ActiveCallScreen> {
   @override
   void dispose() {
     _sub?.cancel();
-    _fcmSub?.cancel();
+    // FCM subscription removed
     _inactivityTimer?.cancel();
     _databasePollTimer?.cancel();
     super.dispose();

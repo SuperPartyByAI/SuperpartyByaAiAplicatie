@@ -28,7 +28,7 @@ class _AdminInternalChatsTabState extends State<AdminInternalChatsTab> {
 
   Future<void> _loadConnectedAccounts() async {
     try {
-      // Query Postgres schema instead of Firestore
+      // Query Postgres schema
       final response = await Supabase.instance.client
           .from('wa_accounts')
           .select('phone_number');

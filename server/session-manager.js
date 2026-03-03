@@ -10,7 +10,7 @@ import crypto from "node:crypto";
 import pino from "pino";
 import fs from "fs";
 import path from "path";
-import { supabase, syncMessageToFirestore, uploadMediaToStorage } from "./supabase-sync.mjs";
+import { supabase, syncMessage, uploadMediaToStorage } from "./supabase-sync.mjs";
 import { reconcileAccount } from "./reconciler.mjs";
 import googleSync from "./google-sync.js";
 import { classifyClose, getBackoffDelay, Classification } from "./session-classifier.js";
@@ -77,7 +77,7 @@ export class SessionManager {
     }
   }
 
-  // ─── Initialize: Scan Firestore for existing accounts ───────────
+  // ─── Initialize: Scan Supabase for existing accounts ───────────
   async init() {
     console.log("[SessionManager] Initializing...");
     if (!supabase) {
@@ -357,7 +357,7 @@ export class SessionManager {
         }
 
         // We removed `if (type !== 'notify') return;` here because we MUST process 'append' 
-        // messages so they get written to Firestore and show up in the Flutter App.
+        // messages so they get written to Supabase and show up in the Flutter App.
         
         for (const msg of messages) {
             try {
@@ -633,7 +633,7 @@ export class SessionManager {
           return; // HARD BLOCK: Nu crea conversație/mesaj dacă nu știi din ce cont vine!
       }
 
-      // 1. Sync to Firestore
+      // 1. Sync to Supabase
       const originJid = msg.key.remoteJid;
       const isGroup = originJid.endsWith('@g.us');
       
@@ -699,7 +699,7 @@ export class SessionManager {
         const fromMe = msg.key.fromMe;
         const canonicalJid = resolveCanonicalJid ? (resolveCanonicalJid(originJid) || originJid) : originJid;
         
-        await syncMessageToFirestore(msg, canonicalJid, preview, chatName, docId, label, { media: mediaInfo, resolveCanonicalJid: this._resolveCanonicalJid });
+        await syncMessage(msg, canonicalJid, preview, chatName, docId, label, { media: mediaInfo, resolveCanonicalJid: this._resolveCanonicalJid });
       } catch (e) { console.error("Supabase sync error", e); }
 
       // 2. Google Sync
@@ -774,7 +774,7 @@ export class SessionManager {
         
         if (!buffer) return null;
 
-        // 1. Try Firebase Storage upload
+        // 1. Try Supabase Storage upload
         if (accountId) {
           const originJid = msg.key.remoteJid;
           const canonicalJid = resolveCanonicalJid ? (resolveCanonicalJid(originJid) || originJid) : originJid;

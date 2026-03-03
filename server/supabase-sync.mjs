@@ -22,9 +22,9 @@ export function getAuth() {
 let _onCanonicalMismatch = null;
 export function setCanonicalMismatchCallback(fn) { _onCanonicalMismatch = fn; }
 
-export function initFirebase() {
+export function initDB() {
   console.log("🔥 Supabase Sync Adapter initialized successfully.");
-  // Chainable no-op stubs for legacy VoIP code that uses Firestore-style db.collection()
+  // Chainable no-op stubs for legacy VoIP code that uses db.collection() API
   const noopDoc = { get: async () => ({ exists: false, data: () => null, empty: true, docs: [], forEach: () => {} }), set: async () => {}, update: async () => {}, delete: async () => {} };
   const noopCol = { doc: () => noopDoc, where: () => noopCol, orderBy: () => noopCol, limit: () => noopCol, get: async () => ({ empty: true, docs: [], forEach: () => {} }) };
   const db = Object.create(supabase);
@@ -153,7 +153,7 @@ export async function upsertClientServer(phone, displayName) {
   return clientId;
 }
 
-export async function syncMessageToFirestore(msg, canonicalJid, preview = '', chatName = '', accountId = null, accountLabel = '', options = {}) {
+export async function syncMessage(msg, canonicalJid, preview = '', chatName = '', accountId = null, accountLabel = '', options = {}) {
   try {
     const messageId = msg?.key?.id || msg?.id || options?.messageId || `local-${Date.now()}`;
     let rawJid = canonicalJid || (msg && msg.key && msg.key.remoteJid) || 'unknown';
@@ -179,7 +179,7 @@ export async function syncMessageToFirestore(msg, canonicalJid, preview = '', ch
     if (_onCanonicalMismatch && accountId) {
       const expected = `${accountId}_${rawJid}`;
       if (convoId !== expected) {
-        _onCanonicalMismatch('syncMessageToFirestore', { inputJid, canonicalJid: rawJid, accountId, convoId, expected, msgId: messageId });
+        _onCanonicalMismatch('syncMessage', { inputJid, canonicalJid: rawJid, accountId, convoId, expected, msgId: messageId });
       }
     }
 
@@ -252,7 +252,7 @@ export async function syncMessageToFirestore(msg, canonicalJid, preview = '', ch
   }
 }
 
-// --- FIRESTORE MOCK ---
+// --- DB MOCK (Supabase-native) ---
 class SupabaseDocMock {
   constructor(client, colName, docId) {
     this.client = client;
@@ -332,13 +332,14 @@ class SupabaseCollectionMock {
   }
 }
 
-class SupabaseFirestoreMock {
+class SupabaseDBMock {
   constructor(client) { this.client = client; }
   collection(colName) { return new SupabaseCollectionMock(this.client, colName); }
   collectionGroup(colName) { return new SupabaseCollectionMock(this.client, colName); }
 }
 
-export function initFirebaseMock() {
+export function initDBMock() {
   console.log("🔥 Supabase Sync Adapter (MOCK) initialized successfully.");
-  return new SupabaseFirestoreMock(supabase);
+  return new SupabaseDBMock(supabase);
 }
+

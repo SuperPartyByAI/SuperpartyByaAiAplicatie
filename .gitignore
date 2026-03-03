@@ -62,3 +62,4 @@ server/store_debug.json
 employees_personcodes.csv
 .hosting-access.env
 .env
+android/app/google-services.json

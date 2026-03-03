@@ -272,9 +272,12 @@ class BackendService {
   Future<Map<String, dynamic>> getMyStatus() async {
     try {
       final email = _authService.currentUser?.email;
+      debugPrint('[getMyStatus] email=$email');
       if (email == null) return {};
       
-      final rows = await SupabaseService.select('employees', filters: {'email': 'eq.$email'}, limit: 1);
+      final rows = await SupabaseService.select('employees', filters: {'email': 'eq.$email'}, limit: 1)
+          .timeout(const Duration(seconds: 4));
+      debugPrint('[getMyStatus] got ${rows.length} rows');
       if (rows.isNotEmpty) {
         final row = rows.first;
         return {
@@ -285,7 +288,7 @@ class BackendService {
       }
       return {'status': 'not_found'};
     } catch (e) {
-      debugPrint('Error getting status: $e');
+      debugPrint('[getMyStatus] Error: $e');
       return {};
     }
   }
