@@ -61,3 +61,4 @@ server/store.json
 server/store_debug.json
 employees_personcodes.csv
 .hosting-access.env
+.env

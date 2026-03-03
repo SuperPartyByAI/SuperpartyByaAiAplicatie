@@ -24,7 +24,13 @@ export function setCanonicalMismatchCallback(fn) { _onCanonicalMismatch = fn; }
 
 export function initFirebase() {
   console.log("🔥 Supabase Sync Adapter initialized successfully.");
-  return supabase;
+  // Chainable no-op stubs for legacy VoIP code that uses Firestore-style db.collection()
+  const noopDoc = { get: async () => ({ exists: false, data: () => null, empty: true, docs: [], forEach: () => {} }), set: async () => {}, update: async () => {}, delete: async () => {} };
+  const noopCol = { doc: () => noopDoc, where: () => noopCol, orderBy: () => noopCol, limit: () => noopCol, get: async () => ({ empty: true, docs: [], forEach: () => {} }) };
+  const db = Object.create(supabase);
+  db.collection = (name) => { console.log(`[DB-Stub] collection('${name}') — no-op (Supabase)`); return noopCol; };
+  db.collectionGroup = (name) => { console.log(`[DB-Stub] collectionGroup('${name}') — no-op (Supabase)`); return noopCol; };
+  return db;
 }
 
 function extractTs(msg) {
