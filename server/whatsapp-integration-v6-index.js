@@ -5,6 +5,8 @@ import fs from "fs";
 import path from 'path';
 import crypto from 'crypto';
 import twilio from 'twilio'; // Twilio Import
+import { WebSocketServer } from 'ws';
+import jwt from 'jsonwebtoken';
 
 // ... existing imports ...
 
@@ -185,6 +187,73 @@ async function loadDeviceTokensFromDB() {
 }
 // Run on startup (non-blocking)
 loadDeviceTokensFromDB();
+
+// ── WebSocket Server Init ──
+const wss = new WebSocketServer({ noServer: true });
+
+// Heartbeat
+setInterval(() => {
+  wss.clients.forEach(ws => {
+    if (!ws.isAlive) return ws.terminate();
+    ws.isAlive = false;
+    ws.ping();
+  });
+}, 30000);
+
+// WS Connection Handler
+wss.on('connection', (ws, req, clientInfo) => {
+  ws.isAlive = true;
+  ws.on('pong', () => ws.isAlive = true);
+
+  ws.on('message', async (raw) => {
+    try {
+      const msg = JSON.parse(raw);
+      if (msg.type === 'register') {
+        const { identity, deviceNumber, fcmToken } = msg; // Flutter app passes identity (e.g., admin)
+        if (!identity) {
+          return ws.send(JSON.stringify({ type: 'error', message: 'Missing identity' }));
+        }
+
+        // Store active WS in memory
+        registeredVoipClients.set(identity, {
+          ws,
+          lastPing: Date.now(),
+          deviceNumber: deviceNumber || null,
+          fcmToken: fcmToken || 'WS_ONLY', // We keep FCM if the device sent it, fallback to WS_ONLY
+          userId: clientInfo?.userId,
+          registeredAt: new Date().toISOString()
+        });
+
+        console.log(`[VoIP WS] Registered active connection for identity: ${identity}`);
+        ws.send(JSON.stringify({ type: 'registered', identity }));
+      }
+    } catch(e) {
+      console.error('[VoIP WS] Message parse error:', e);
+    }
+  });
+
+  ws.on('close', () => {
+    for (const [id, entry] of registeredVoipClients.entries()) {
+      if (entry.ws === ws) {
+        // Only removing the WS reference from memory, keeping FCM tokens around
+        console.log(`[VoIP WS] Connection closed for identity: ${id}`);
+        // We do not delete the memory block entirely so Push works. Just nullify WS.
+        entry.ws = null;
+      }
+    }
+  });
+});
+
+// Helper for HTTP to WS Push Delivery
+function sendIncomingToIdentity(identity, payload) {
+  const entry = registeredVoipClients.get(identity);
+  if (entry && entry.ws && entry.ws.readyState === 1 /* OPEN */) { // ws module uses numeric states
+    console.log(`[VoIP WS] Delivering incoming call via WebSocket to: ${identity}`);
+    entry.ws.send(JSON.stringify({ type: 'incoming_call', ...payload }));
+    return true;
+  }
+  return false;
+}
 
 /* ========== Supabase DB Init ========== */
 import { supabase, initDB, syncMessage, uploadMediaToStorage, getSignedMediaUrl, setCanonicalMismatchCallback } from "./supabase-sync.mjs";
@@ -381,7 +450,6 @@ function findPartnerJids(target) {
   return Array.from(partners);
 }
 
-
 // import googleSync from "./google-sync.js";
 
 /* ========== Express app ========== */
@@ -389,6 +457,25 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use('/media', express.static(path.join(process.cwd(), 'public', 'media')));
+
+// ── WS Token Auth Endpoint ──
+app.get('/api/auth/get-ws-token', async (req, res) => {
+  try {
+    // Basic validation. Assuming client sends its identity (phone/device).
+    // It's safer to use Firebase auth middleware if you have it applied here.
+    // If not, we just issue a token for the requested identity from headers or body.
+    const identity = req.query.identity || req.headers['x-identity'] || 'unknown_device';
+    // Generate short-lived token for WebSocket authentication
+    const token = jwt.sign(
+      { identity, userId: identity },
+      process.env.WS_JWT_SECRET || 'superparty_ws_secret_123',
+      { expiresIn: '15m' }
+    );
+    res.json({ success: true, token });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 // ─── Boot Safety ─────────────────────────────────────────
 try { fs.mkdirSync(path.join(process.cwd(), 'public', 'media'), { recursive: true }); } catch {}
@@ -658,8 +745,6 @@ app.post('/api/voice/incoming', async (req, res) => {
         const expires = Date.now() + 60000; // 60 seconds validity
         
         for (const client of identities) {
-          if (!client.fcmToken) continue;
-          
           // Generate signature: HMAC(secret, confName|CallSid|expires)
           const sigData = `${confName}|${CallSid}|${expires}`;
           const sig = crypto.createHmac('sha256', secret).update(sigData).digest('hex');
@@ -672,6 +757,20 @@ app.post('/api/voice/incoming', async (req, res) => {
             expires: expires.toString(),
             sig: sig
           };
+
+          // 1. Try WebSocket Delivery First
+          const deliveredViaWs = sendIncomingToIdentity(client.id, payload);
+          
+          if (deliveredViaWs) {
+            console.log(`[Twilio] Ringing client ${client.id} instantly via WebSocket (Foreground mode)`);
+            continue; // Skip FCM if WS was successfully delivered
+          }
+
+          // 2. Fallback to FCM Push Delivery if offline or WS unavailable
+          if (!client.fcmToken || client.fcmToken === 'WS_ONLY') {
+            console.warn(`[Twilio] Client ${client.id} has no FCM token and WS is disconnected. User will not ring.`);
+            continue;
+          }
           
           console.log(`[Twilio] Sending FCM Push to client: ${client.id}`);
           // Send push implicitly (not awaited)
@@ -3077,9 +3176,39 @@ app.get('/metrics', async (req, res) => {
 
 /* Start server & WhatsApp connect (minimal) */
 const BIND_HOST = process.env.BIND_HOST || '0.0.0.0';
-app.listen(PORT, BIND_HOST, () => {
-  logger.info({ port: PORT, host: BIND_HOST }, `API Server running on ${BIND_HOST}:${PORT}`);
-  console.log(`API Server running on ${BIND_HOST}:${PORT}`);
+const server = app.listen(PORT, BIND_HOST, () => {
+  logger.info(`SERVER STARTUP complete on ${BIND_HOST}:${PORT}`);
+  console.log(`[Express] Server bound to ${BIND_HOST}:${PORT}`);
+});
+
+// ── Attach WebSocket upgrade listener ──
+server.on('upgrade', (request, socket, head) => {
+  // Use a dummy host to parse the local path robustly
+  const { pathname, searchParams } = new URL(request.url, `http://localhost`);
+  
+  if (pathname === '/voip-ws') {
+    const token = searchParams.get('token');
+    if (!token) {
+      socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
+      return socket.destroy();
+    }
+    
+    try {
+      const decoded = jwt.verify(token, process.env.WS_JWT_SECRET || 'superparty_ws_secret_123');
+      wss.handleUpgrade(request, socket, head, (ws) => {
+        wss.emit('connection', ws, request, decoded);
+      });
+    } catch (err) {
+      console.error('[WS Upgrade] JWT validation failed:', err.message);
+      socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
+      socket.destroy();
+    }
+  } else {
+    // Only destroying if it's explicitly for us, or maybe allow other upgrade paths if we use socket.io?
+    // Since we also use socket.io, it attaches its own upgrade handler.
+    // If we destroy everything else, we might break standard Socket.IO.
+    // So if it's NOT /voip-ws, do NOTHING here (let Socket.IO or others handle it, though they usually hook on their own paths).
+  }
 });
 
 /* Signal handling for safe shutdown */

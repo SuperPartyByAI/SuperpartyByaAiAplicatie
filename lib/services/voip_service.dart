@@ -14,9 +14,10 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import 'backend_service.dart';
 import 'call_kit_service.dart';
+import 'call_kit_service.dart';
 import 'voip_logger.dart';
-
-import 'voip_logger.dart';
+import 'package:web_socket_channel/io.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
 
 class VoipService {
   static final VoipService _instance = VoipService._internal();
@@ -29,6 +30,85 @@ class VoipService {
   static Future<void> handleBackgroundMessage(Map<String, dynamic> data) async {
     if (data['type'] == 'incoming_call') {
       await _showIncomingNotification(data);
+    }
+  }
+
+  // WebSocket Connection instance
+  IOWebSocketChannel? _wsChannel;
+  bool _wsConnecting = false;
+
+  Future<void> _connectWebSocket(String identity, String? deviceNumber, String apiBaseUrl) async {
+    if (_wsConnecting) return;
+    _wsConnecting = true;
+
+    try {
+      // 1. Get short-lived JWT for WS Auth
+      final tokenUrl = Uri.parse('$apiBaseUrl/api/auth/get-ws-token?identity=$identity');
+      final resp = await http.get(tokenUrl);
+      if (resp.statusCode != 200) {
+        debugPrint('[VoIP WS] Failed to get WS token: ${resp.body}');
+        _wsConnecting = false;
+        return;
+      }
+      
+      final jwtToken = jsonDecode(resp.body)['token'];
+      if (jwtToken == null) {
+        _wsConnecting = false;
+        return;
+      }
+
+      // Convert http/https to ws/wss
+      final wsBaseUrl = apiBaseUrl.startsWith('https') 
+          ? apiBaseUrl.replaceFirst('https', 'wss') 
+          : apiBaseUrl.replaceFirst('http', 'ws');
+
+      final wsUri = Uri.parse('$wsBaseUrl/voip-ws?token=$jwtToken');
+      debugPrint('[VoIP WS] Connecting to: $wsUri');
+
+      _wsChannel = IOWebSocketChannel.connect(wsUri, pingInterval: const Duration(seconds: 20));
+      
+      // 2. Register identity over WS
+      _wsChannel!.sink.add(jsonEncode({
+        'type': 'register',
+        'identity': identity,
+        'deviceNumber': deviceNumber ?? 'unknown',
+      }));
+
+      // 3. Listen for Incoming WS Calls
+      _wsChannel!.stream.listen((message) async {
+        try {
+          final data = jsonDecode(message);
+          if (data['type'] == 'incoming_call') {
+            debugPrint('[VoIP WS] Foreground message received via WS: $data');
+            // Show the exact same incoming UI as FCM Push 
+            // (Note: we cast values to String to match expected map format from native FCM)
+            final Map<String, dynamic> pushPayload = {
+               'type': data['type']?.toString(),
+               'conf': data['conf']?.toString(),
+               'callSid': data['callSid']?.toString(),
+               'callerNumber': data['callerNumber']?.toString(),
+               'sig': data['sig']?.toString(),
+               'expires': data['expires']?.toString(),
+            };
+            await handleIncomingData(pushPayload);
+          } else if (data['type'] == 'registered') {
+            debugPrint('[VoIP WS] Successfully registered on WebSocket Server');
+          }
+        } catch (e) {
+          debugPrint('[VoIP WS] Message parse error: $e');
+        }
+      }, onDone: () {
+        debugPrint('[VoIP WS] Connection closed. Attempting reconnect in 10s...');
+        _wsConnecting = false;
+        _wsChannel = null;
+        Future.delayed(const Duration(seconds: 10), () => _connectWebSocket(identity, deviceNumber, apiBaseUrl));
+      }, onError: (err) {
+        debugPrint('[VoIP WS] Connection error: $err');
+      });
+
+    } catch (e) {
+      debugPrint('[VoIP WS] Setup exception: $e');
+      _wsConnecting = false;
     }
   }
 
@@ -206,6 +286,11 @@ class VoipService {
         accessToken: accessToken,
         deviceToken: deviceToken,
       );
+
+      // 6. Connect WebSocket Fallback (Huawei foreground support)
+      final apiBaseUrl = backendService.baseUrl;
+      final prefsDeviceNum = prefs.getString('user_phone'); // Or passed down if known
+      _connectWebSocket(identity, prefsDeviceNum, apiBaseUrl);
 
       if (result == true) {
         _isRegistered = true;
