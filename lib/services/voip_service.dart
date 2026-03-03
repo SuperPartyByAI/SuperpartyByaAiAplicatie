@@ -1,3 +1,4 @@
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -106,7 +107,7 @@ class VoipService {
       }
       debugPrint('[VoIP] Unique Device ID: $deviceId');
 
-      final fcmToken = await Future.value('dummy_token');
+      final fcmToken = await FirebaseMessaging.instance.getToken();
       debugPrint('[VoIP] FCM Token: ${fcmToken != null && fcmToken.length > 20 ? fcmToken.substring(0, 20) : fcmToken}...');
 
       if (fcmToken == null) {

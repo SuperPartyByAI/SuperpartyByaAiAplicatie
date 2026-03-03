@@ -119,6 +119,9 @@ const PORT = process.env.PORT || 3001;
 const LID_MAPPING_FILE = "lid_mappings.json";
 const STORE_FILE = "baileys_store_multi.json";
 
+// ── In-memory registry of VoIP client identities (populated by registerDevice) ──
+const registeredVoipClients = new Map(); // Map<identity, { userId, deviceId, registeredAt }>
+
 /* ========== Firebase Admin Init ========== */
 import { supabase, initFirebase, syncMessageToFirestore, uploadMediaToStorage, getSignedMediaUrl, setCanonicalMismatchCallback } from "./supabase-sync.mjs";
 import multer from "multer";
@@ -521,13 +524,12 @@ app.post('/api/voice/incoming', async (req, res) => {
       }
   } else {
       // INCOMING CALL (From World -> To Mobile App)
-      console.log(`[Twilio] Handling Incoming Call to App`);
-      
-      twiml.say({ language: 'ro-RO' }, 'Ați sunat la Super Party animatori petreceri copii. În câteva momente apelul dumneavoastră va fi preluat de un operator.');
+      console.log(`[Twilio] Handling Incoming Call to App from: ${From}`);
 
-      // Bridge directly to Flutter app via Twilio Client SDK
-      // Push Credentials are configured on Twilio Dashboard, so SDK receives the call
-      
+      // Short greeting — answerOnBridge prevents audio until client accepts
+      twiml.say({ language: 'ro-RO' }, 'Bun venit la Super Party. Vă conectăm acum.');
+
+      // Log incoming call (non-blocking, stub-safe)
       try {
          await db.collection('active_incoming_calls').doc(CallSid).set({
            callSid: CallSid,
@@ -536,49 +538,43 @@ app.post('/api/voice/incoming', async (req, res) => {
            status: 'ringing',
            timestamp: admin.firestore.FieldValue.serverTimestamp()
          });
-         console.log(`[VoIP] Logged incoming call to Firestore. SID: ${CallSid}`);
-      } catch(e) { console.error('[VoIP] Error logging to Firestore:', e); }
+      } catch(e) { /* stub no-op */ }
 
-      // Dial the Flutter app client directly — SDK will ring the app
+      // Dial the Flutter app client — answerOnBridge prevents media bridge until answer
       const dial = twiml.dial({
+        answerOnBridge: true,
         callerId: From,
-        timeout: 45,
+        timeout: 30,
         record: 'record-from-answer',
         recordingStatusCallback: `${BASE_URL}/api/voice/recording-status`,
         recordingStatusCallbackMethod: 'POST',
-        action: `${BASE_URL}/api/voice/park-fallback?callSid=\${CallSid}`
+        action: `${BASE_URL}/api/voice/dial-result`
       });
-      // Query ONLY the absolute most recent active device from Firestore
+
+      // Query registered VoIP clients from in-memory registry
       let identities = [];
-      try {
-        const devSnap = await db.collectionGroup('devices')
-          .orderBy('lastSeen', 'desc')
-          .limit(1)
-          .get();
-        if (!devSnap.empty) {
-          const identity = devSnap.docs[0].data().identity;
-          if (identity) identities.push(identity);
-        }
-        console.log('[Twilio] Dialing absolute most recent identity:', identities);
-      } catch(e) { console.error('[Twilio] Identity lookup error:', e.message); }
+      for (const [identity, info] of registeredVoipClients) {
+        identities.push(identity);
+      }
+      console.log(`[Twilio] VoIP clients in registry: ${identities.length}`, identities);
       
       if (identities.length === 0) {
-        // Fallback: dial superparty_admin if no devices registered
+        console.warn('[Twilio] No VoIP clients registered! Falling back to superparty_admin');
         dial.client('superparty_admin');
       } else {
         for (const id of identities) {
+          console.log(`[Twilio] Dialing VoIP client: ${id}`);
           dial.client({
             statusCallback: `${BASE_URL}/api/voice/client-status`,
             statusCallbackEvent: 'initiated ringing answered completed',
           }, id);
         }
       }
-      
-      // If the client rejects the call (Bypass), the TwiML continues here
-      // We redirect the caller to a holding conference so the Outbound bridge can connect!
-      twiml.redirect(`${BASE_URL}/api/voice/park-fallback?callSid=\${CallSid}`);
+      // NOTE: No redirect after Dial — the action URL (dial-result) handles fallback
   }
 
+  // Log TwiML for debugging
+  console.log('[Twiml OUT]', twiml.toString());
   res.type('text/xml');
   res.send(twiml.toString());
 });
@@ -597,6 +593,30 @@ app.post('/api/voice/park-fallback', (req, res) => {
 
   res.type('text/xml');
   res.send(twiml.toString());
+});
+
+// Dial result handler — called by Twilio after <Dial> in incoming call finishes
+app.post('/api/voice/dial-result', (req, res) => {
+  const dialStatus = req.body.DialCallStatus;
+  const callSid = req.body.CallSid;
+  console.log(`[dial-result] DialCallStatus=${dialStatus} CallSid=${callSid}`);
+
+  const twiml = new twilio.twiml.VoiceResponse();
+
+  if (dialStatus === 'completed' || dialStatus === 'answered') {
+    // Call was successful — return empty TwiML (no further audio)
+    console.log('[dial-result] Call completed successfully');
+    return res.type('text/xml').send(twiml.toString());
+  }
+
+  // Dial failed (no-answer, busy, failed, canceled)
+  // Transfer to operator phone or play message
+  const operatorNumber = process.env.TWILIO_CALLER_ID || '+40373805828';
+  console.log(`[dial-result] Dial failed (${dialStatus}), transferring to operator: ${operatorNumber}`);
+  twiml.say({ language: 'ro-RO' }, 'Ne pare rău, operatorul nu este disponibil momentan. Vă rugăm să încercați mai târziu.');
+
+  console.log('[Twiml OUT] dial-result ->', twiml.toString());
+  res.type('text/xml').send(twiml.toString());
 });
 
 // ─── AGENT BRIDGE: Flutter app calls this when the user presses Answer ─────────
@@ -927,10 +947,13 @@ app.post('/api/voice/registerDevice', async (req, res) => {
     return res.status(400).send('Missing required fields: userId, deviceId, fcmToken');
   }
 
-  const identity = `user_${userId}_dev_${deviceId}`;
+  // Identity must match what getVoipToken uses for the Access Token
+  const identity = `${userId}_${deviceId}`;
   try {
-    // No Firestore write needed — identity is computed, token endpoint generates tokens on-the-fly
+    // Store in in-memory registry so incoming calls can find this client
+    registeredVoipClients.set(identity, { userId, deviceId, fcmToken, registeredAt: new Date().toISOString() });
     console.log(`[Twilio VoIP] Registered device ${deviceId} for user ${userId} with identity: ${identity}`);
+    console.log(`[Twilio VoIP] Total registered clients: ${registeredVoipClients.size}`);
     res.json({ identity });
   } catch (error) {
     console.error("[Twilio VoIP] Error registering device:", error);
@@ -948,7 +971,9 @@ app.get('/api/voice/getVoipToken', async (req, res) => {
   try {
     // Build identity from userId+deviceId (no Firestore lookup needed — Supabase-only)
     const identity = `${userId}_${deviceId}`;
-    console.log(`[Twilio VoIP] Generating token for identity: ${identity}`);
+    // Also register in VoIP client map (so incoming calls can find this device)
+    registeredVoipClients.set(identity, { userId, deviceId, registeredAt: new Date().toISOString() });
+    console.log(`[Twilio VoIP] Generating token for identity: ${identity} (total clients: ${registeredVoipClients.size})`);
 
     const AccessToken = twilio.jwt.AccessToken;
     const VoiceGrant = AccessToken.VoiceGrant;
