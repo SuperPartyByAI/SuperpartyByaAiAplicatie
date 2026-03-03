@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:twilio_voice/twilio_voice.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 
 import 'services/auth_service.dart';
@@ -28,9 +29,24 @@ const _kAudioChannel       = 'com.superpartybyai.app/audio';
 const _kDiagChannel        = 'com.superpartybyai.app/diag';
 
 
+// ── Top-level background FCM handler (required by Firebase Messaging) ──
+// Must be a top-level function, NOT inside a class.
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  debugPrint('[FCM Background] Received: ${message.data}');
+  // Twilio sends data messages with twi_message_type for incoming calls
+  if (message.data.containsKey('twi_message_type')) {
+    debugPrint('[FCM Background] Twilio push: type=${message.data['twi_message_type']}');
+    // The Twilio Voice SDK native layer handles the actual call UI
+    // This handler ensures the app wakes up to process the push
+  }
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  // Register background FCM handler BEFORE any Firebase init
+  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
   
   try {
 
