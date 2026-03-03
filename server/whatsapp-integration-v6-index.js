@@ -109,6 +109,37 @@ const STORE_FILE = "baileys_store_multi.json";
 // ── In-memory registry of VoIP client identities (populated by registerDevice) ──
 const registeredVoipClients = new Map(); // Map<identity, { userId, deviceId, registeredAt }>
 
+// ── Load device tokens from Supabase on startup (survives PM2 restarts) ──
+async function loadDeviceTokensFromDB() {
+  try {
+    const { data, error } = await supabase
+      .from('device_tokens')
+      .select('device_identity, user_id, device_id, fcm_token, last_seen_at')
+      .order('last_seen_at', { ascending: false });
+    if (error) {
+      console.error('[VoIP DB] Failed to load device_tokens:', error.message);
+      return;
+    }
+    if (data && data.length > 0) {
+      for (const row of data) {
+        registeredVoipClients.set(row.device_identity, {
+          userId: row.user_id,
+          deviceId: row.device_id,
+          fcmToken: row.fcm_token,
+          registeredAt: row.last_seen_at
+        });
+      }
+      console.log(`[VoIP DB] Loaded ${data.length} device(s) from Supabase into registry`);
+    } else {
+      console.log('[VoIP DB] No device_tokens found in Supabase');
+    }
+  } catch (e) {
+    console.error('[VoIP DB] Exception loading device_tokens:', e.message);
+  }
+}
+// Run on startup (non-blocking)
+loadDeviceTokensFromDB();
+
 /* ========== Supabase DB Init ========== */
 import { supabase, initDB, syncMessage, uploadMediaToStorage, getSignedMediaUrl, setCanonicalMismatchCallback } from "./supabase-sync.mjs";
 import multer from "multer";
@@ -543,6 +574,31 @@ app.post('/api/voice/incoming', async (req, res) => {
       for (const [identity, info] of registeredVoipClients) {
         identities.push(identity);
       }
+
+      // If in-memory is empty, try loading from Supabase (PM2 restart recovery)
+      if (identities.length === 0) {
+        console.warn('[Twilio] In-memory registry empty, loading from Supabase...');
+        try {
+          const { data } = await supabase
+            .from('device_tokens')
+            .select('device_identity, user_id, device_id, fcm_token')
+            .order('last_seen_at', { ascending: false })
+            .limit(10);
+          if (data && data.length > 0) {
+            for (const row of data) {
+              registeredVoipClients.set(row.device_identity, {
+                userId: row.user_id, deviceId: row.device_id,
+                fcmToken: row.fcm_token, registeredAt: new Date().toISOString()
+              });
+              identities.push(row.device_identity);
+            }
+            console.log(`[Twilio] Recovered ${data.length} client(s) from Supabase`);
+          }
+        } catch (e) {
+          console.error('[Twilio] DB fallback failed:', e.message);
+        }
+      }
+
       console.log(`[Twilio] VoIP clients in registry: ${identities.length}`, identities);
       
       if (identities.length === 0) {
@@ -937,8 +993,30 @@ app.post('/api/voice/registerDevice', async (req, res) => {
   // Identity must match what getVoipToken uses for the Access Token
   const identity = `${userId}_${deviceId}`;
   try {
-    // Store in in-memory registry so incoming calls can find this client
-    registeredVoipClients.set(identity, { userId, deviceId, fcmToken, registeredAt: new Date().toISOString() });
+    const now = new Date().toISOString();
+    // 1) Store in in-memory registry
+    registeredVoipClients.set(identity, { userId, deviceId, fcmToken, registeredAt: now });
+
+    // 2) Persist to Supabase (upsert on device_identity)
+    const { error: dbError } = await supabase
+      .from('device_tokens')
+      .upsert({
+        device_identity: identity,
+        user_id: userId,
+        device_id: deviceId,
+        fcm_token: fcmToken || null,
+        device_token: fcmToken || null,
+        platform: 'android',
+        last_seen_at: now,
+      }, { onConflict: 'device_identity' });
+
+    if (dbError) {
+      console.error('[VoIP DB] Supabase upsert error:', dbError.message);
+      // Still return OK — in-memory registration worked
+    } else {
+      console.log(`[VoIP DB] ✅ Persisted device ${identity} to Supabase`);
+    }
+
     console.log(`[Twilio VoIP] Registered device ${deviceId} for user ${userId} with identity: ${identity}`);
     console.log(`[Twilio VoIP] Total registered clients: ${registeredVoipClients.size}`);
     res.json({ identity });
@@ -946,6 +1024,15 @@ app.post('/api/voice/registerDevice', async (req, res) => {
     console.error("[Twilio VoIP] Error registering device:", error);
     res.status(500).send('Internal Server Error');
   }
+});
+
+// ── Debug endpoint: list registered VoIP clients ──
+app.get('/debug/voip/clients', (req, res) => {
+  const clients = [];
+  for (const [identity, info] of registeredVoipClients) {
+    clients.push({ identity, ...info });
+  }
+  res.json({ count: clients.length, clients });
 });
 
 // MULTI-DEVICE: Fetch token scoped to a specific device identity
