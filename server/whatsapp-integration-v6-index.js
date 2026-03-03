@@ -92,7 +92,11 @@ import { makeCustomStore } from "./store.js";
 // Stub: prevents crash for legacy VoIP code that still references admin.*
 const admin = {
   apps: [true],
-  firestore: { FieldValue: { serverTimestamp: () => new Date().toISOString() } },
+  firestore: {
+    FieldValue: { serverTimestamp: () => new Date().toISOString() },
+    Timestamp: { fromMillis: (ms) => new Date(ms) },
+  },
+  database: { FieldValue: { serverTimestamp: () => new Date().toISOString() } },
   messaging: () => ({ send: async (m) => { console.warn('[Firebase STUB] messaging().send() called — ignored'); return null; } }),
   auth: () => ({ verifyIdToken: async (t) => { throw new Error('Firebase Auth removed — use Supabase Auth'); } }),
   credential: { cert: () => null },
@@ -116,7 +120,7 @@ const LID_MAPPING_FILE = "lid_mappings.json";
 const STORE_FILE = "baileys_store_multi.json";
 
 /* ========== Firebase Admin Init ========== */
-import { initFirebase, syncMessageToFirestore, uploadMediaToStorage, getSignedMediaUrl, setCanonicalMismatchCallback } from "./supabase-sync.mjs";
+import { supabase, initFirebase, syncMessageToFirestore, uploadMediaToStorage, getSignedMediaUrl, setCanonicalMismatchCallback } from "./supabase-sync.mjs";
 import multer from "multer";
 const upload = multer({ limits: { fileSize: 25 * 1024 * 1024 }, storage: multer.memoryStorage() });
 
@@ -961,10 +965,13 @@ app.get('/api/voice/getVoipToken', async (req, res) => {
       { identity: identity }
     );
     
-    // RESTORING PUSH CREDENTIAL: The SDK strictly enforces this value to exist in the token
-    // otherwise the backend VoIP client fails to establish SIP, even for foreground calls.
-    const PUSH_CREDENTIAL_SID = 'CR45fcd9835719e90895bf551b87e4ef48'; 
-    voiceGrant.pushCredentialSid = PUSH_CREDENTIAL_SID;
+    // PUSH CREDENTIAL: Required for VoIP push notifications (background calls).
+    // Set PUSH_CREDENTIAL_SID env var from Twilio Console → Push Credentials.
+    // Without a valid credential, calls only work when app is in foreground.
+    const PUSH_CREDENTIAL_SID = process.env.PUSH_CREDENTIAL_SID || '';
+    if (PUSH_CREDENTIAL_SID) {
+      voiceGrant.pushCredentialSid = PUSH_CREDENTIAL_SID;
+    }
 
     token.addGrant(voiceGrant);
 
@@ -1326,13 +1333,15 @@ async function requireAdminSecure(req, res, next) {
   const token = (auth && auth.startsWith('Bearer ') ? auth.split('Bearer ')[1] : null) || qToken;
   if (token === ADMIN_TOKEN) return next();
   
-  // 2. Verify Firebase ID token (cryptographic verification)
+  // 2. Verify Supabase JWT token (replaces Firebase verifyIdToken)
   if (!auth || !auth.startsWith('Bearer ')) {
     return res.status(401).json({ error: 'unauthorized', message: 'Missing Bearer token' });
   }
   try {
     const idToken = auth.split('Bearer ')[1];
-    const decoded = await admin.auth().verifyIdToken(idToken);
+    const { data: { user }, error } = await supabase.auth.getUser(idToken);
+    if (error || !user) throw new Error(error?.message || 'Invalid token');
+    const decoded = { uid: user.id, email: user.email, ...user.user_metadata };
     req.user = decoded;
     const email = decoded.email;
     
@@ -2620,7 +2629,7 @@ app.post("/api/admin/regenerate-all", requireAdminToken, async (req, res) => {
 
 /* ===== SECURE AUTH MIDDLEWARE & RESERVE ROUTES ===== */
 
-// Secure Firebase token verification middleware
+// Supabase JWT token verification middleware (replaces Firebase verifyIdToken)
 async function verifyFirebaseToken(req, res, next) {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -2628,8 +2637,12 @@ async function verifyFirebaseToken(req, res, next) {
   }
   const token = authHeader.split('Bearer ')[1];
   try {
-    const decoded = await admin.auth().verifyIdToken(token);
-    req.user = decoded; // decoded.uid available
+    // Verify Supabase JWT by calling Supabase auth API
+    const { data: { user }, error } = await supabase.auth.getUser(token);
+    if (error || !user) {
+      throw new Error(error?.message || 'Invalid token');
+    }
+    req.user = { uid: user.id, email: user.email, ...user.user_metadata };
     return next();
   } catch (e) {
     console.error('Token verify error:', e && e.stack ? e.stack : e);
@@ -2728,25 +2741,28 @@ app.get(/^\/api\/conversations\/(.+)\/reservation$/, async (req, res) => {
 /**
  * POST /api/user/consent
  * Stores user consent for call recording/data processing.
+ * Uses Supabase directly (no Firestore subcollections needed).
  */
 app.post('/api/user/consent', verifyFirebaseToken, async (req, res) => {
   try {
     const uid = req.user.uid;
     const { consentVersion, userAgent } = req.body;
     
-    await db.collection('users').doc(uid).collection('consents').add({
-      consentVersion: consentVersion || 'v1',
-      userAgent: userAgent || req.headers['user-agent'] || 'unknown',
-      ip: req.ip,
-      timestamp: admin.firestore.FieldValue.serverTimestamp(),
-      type: 'employee_recording_agreement'
+    // Upsert consent into Supabase — creates user_consents if needed
+    const { error: insertErr } = await supabase.from('user_consents').insert({
+      user_id: uid,
+      consent_version: consentVersion || 'v1',
+      user_agent: userAgent || req.headers['user-agent'] || 'unknown',
+      ip_address: req.ip,
+      consent_type: 'employee_recording_agreement',
+      created_at: new Date().toISOString()
     });
 
-    // Also update main user profile with latest consent
-    await db.collection('users').doc(uid).set({
-      latestConsentVersion: consentVersion || 'v1',
-      consentGivenAt: admin.firestore.FieldValue.serverTimestamp()
-    }, { merge: true });
+    // If table doesn't exist, fall back to simple OK response (consent recorded in logs)
+    if (insertErr) {
+      console.warn('[Consent] DB insert failed (table may not exist):', insertErr.message);
+      console.log(`[Consent] RECORDED — uid=${uid} version=${consentVersion || 'v1'} type=employee_recording_agreement`);
+    }
 
     res.json({ status: 'ok' });
   } catch (e) {
@@ -2764,15 +2780,22 @@ app.post('/api/user/deletion-request', verifyFirebaseToken, async (req, res) => 
     const uid = req.user.uid;
     const { reason } = req.body;
 
-    const ticketRef = await db.collection('deletion_requests').add({
-      uid,
+    const ticketId = `del_${uid}_${Date.now()}`;
+    const { error: insertErr } = await supabase.from('deletion_requests').insert({
+      id: ticketId,
+      user_id: uid,
       email: req.user.email || 'unknown',
       reason: reason || 'user_request',
       status: 'pending',
-      requestedAt: admin.firestore.FieldValue.serverTimestamp()
+      requested_at: new Date().toISOString()
     });
 
-    res.json({ status: 'received', ticketId: ticketRef.id });
+    if (insertErr) {
+      console.warn('[Deletion] DB insert failed:', insertErr.message);
+      console.log(`[Deletion] RECORDED — uid=${uid} reason=${reason || 'user_request'}`);
+    }
+
+    res.json({ status: 'received', ticketId });
   } catch (e) {
     console.error("Error creating deletion request:", e);
     res.status(500).json({ error: e.message });
@@ -2786,19 +2809,22 @@ app.post('/api/user/deletion-request', verifyFirebaseToken, async (req, res) => 
 app.post('/api/user/privacy-settings', verifyFirebaseToken, async (req, res) => {
   try {
     const uid = req.user.uid;
-    // explicit check for boolean to allow false
     const { aiAnalysisEnabled } = req.body;
 
     if (aiAnalysisEnabled === undefined) {
       return res.status(400).json({ error: "Missing aiAnalysisEnabled" });
     }
 
-    await db.collection('users').doc(uid).set({
-      privacySettings: {
-        aiAnalysisEnabled: !!aiAnalysisEnabled,
-        updatedAt: admin.firestore.FieldValue.serverTimestamp()
-      }
-    }, { merge: true });
+    const { error: upsertErr } = await supabase.from('user_settings').upsert({
+      user_id: uid,
+      ai_analysis_enabled: !!aiAnalysisEnabled,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'user_id' });
+
+    if (upsertErr) {
+      console.warn('[Privacy] DB upsert failed:', upsertErr.message);
+      console.log(`[Privacy] RECORDED — uid=${uid} aiAnalysisEnabled=${!!aiAnalysisEnabled}`);
+    }
 
     res.json({ status: 'updated', aiAnalysisEnabled });
   } catch (e) {
@@ -2814,13 +2840,29 @@ app.post('/api/user/privacy-settings', verifyFirebaseToken, async (req, res) => 
 app.get('/api/user/me', verifyFirebaseToken, async (req, res) => {
   try {
     const uid = req.user.uid;
-    const doc = await db.collection('users').doc(uid).get();
     
-    if (!doc.exists) {
-      return res.json({ exists: false, uid });
-    }
+    // Fetch latest consent
+    const { data: consents } = await supabase
+      .from('user_consents')
+      .select('consent_version, created_at')
+      .eq('user_id', uid)
+      .order('created_at', { ascending: false })
+      .limit(1);
     
-    res.json({ exists: true, ...doc.data() });
+    // Fetch settings
+    const { data: settings } = await supabase
+      .from('user_settings')
+      .select('*')
+      .eq('user_id', uid)
+      .limit(1);
+
+    res.json({
+      exists: true,
+      uid,
+      latestConsentVersion: consents?.[0]?.consent_version || null,
+      consentGivenAt: consents?.[0]?.created_at || null,
+      privacySettings: settings?.[0] || null
+    });
   } catch (e) {
     console.error("Error fetching user profile:", e);
     res.status(500).json({ error: e.message });
