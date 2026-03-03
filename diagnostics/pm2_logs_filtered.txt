@@ -1,0 +1,60 @@
+0|whatsapp | Warning: SPREADSHEET_ID not set. Google Sync will not work until you set it.
+0|whatsapp | ⚠️ The printQRInTerminal option has been deprecated. You will no longer receive QR codes in the terminal automatically. Please listen to the connection.update event yourself and handle the QR your way. You can remove this message by removing this opttion. This message will be removed in a future version.
+0|whatsapp |   message: 'column conversations.last_synced_at does not exist'
+0|whatsapp | Error logging call: TypeError: db.collection is not a function
+0|whatsapp |     at AsyncResource.runInAsyncScope (node:async_hooks:206:9)
+0|whatsapp | Error logging call: TypeError: db.collection is not a function
+0|whatsapp |     at AsyncResource.runInAsyncScope (node:async_hooks:206:9)
+0|whatsapp | Error logging call: TypeError: db.collection is not a function
+0|whatsapp |     at AsyncResource.runInAsyncScope (node:async_hooks:206:9)
+0|whatsapp | [VoIP] Error logging to Firestore: TypeError: db.collection is not a function
+0|whatsapp |     at AsyncResource.runInAsyncScope (node:async_hooks:206:9)
+0|whatsapp | [Twilio] Identity lookup error: db.collectionGroup is not a function
+0|whatsapp | Error logging call: TypeError: db.collection is not a function
+0|whatsapp |     at AsyncResource.runInAsyncScope (node:async_hooks:206:9)
+0|whatsapp | [VoIP] Error logging to Firestore: TypeError: db.collection is not a function
+0|whatsapp |     at AsyncResource.runInAsyncScope (node:async_hooks:206:9)
+0|whatsapp | [Twilio] Identity lookup error: db.collectionGroup is not a function
+0|whatsapp | [CallLog] Failed to save call log: db.collection is not a function
+0|whatsapp | Warning: SPREADSHEET_ID not set. Google Sync will not work until you set it.
+0|whatsapp | ⚠️ The printQRInTerminal option has been deprecated. You will no longer receive QR codes in the terminal automatically. Please listen to the connection.update event yourself and handle the QR your way. You can remove this message by removing this opttion. This message will be removed in a future version.
+0|whatsapp |   message: 'column conversations.last_synced_at does not exist'
+0|whatsapp | Token verify error: Error: Firebase Auth removed — use Supabase Auth
+0|whatsapp |     at Object.verifyIdToken (file:///root/whatsapp-integration-v6/whatsapp-integration-v6-index.js:97:54)
+0|whatsapp |     at verifyFirebaseToken (file:///root/whatsapp-integration-v6/whatsapp-integration-v6-index.js:2642:40)
+0|whatsapp | Token verify error: Error: Firebase Auth removed — use Supabase Auth
+0|whatsapp |     at Object.verifyIdToken (file:///root/whatsapp-integration-v6/whatsapp-integration-v6-index.js:97:54)
+0|whatsapp |     at verifyFirebaseToken (file:///root/whatsapp-integration-v6/whatsapp-integration-v6-index.js:2642:40)
+0|whatsapp | Warning: SPREADSHEET_ID not set. Google Sync will not work until you set it.
+0|whatsapp | ⚠️ The printQRInTerminal option has been deprecated. You will no longer receive QR codes in the terminal automatically. Please listen to the connection.update event yourself and handle the QR your way. You can remove this message by removing this opttion. This message will be removed in a future version.
+0|whatsapp |   message: 'column conversations.last_synced_at does not exist'
+0|whatsapp | Token verify error: Error: Firebase Auth removed — use Supabase Auth
+0|whatsapp |     at Object.verifyIdToken (file:///root/whatsapp-integration-v6/whatsapp-integration-v6-index.js:97:54)
+0|whatsapp |     at verifyFirebaseToken (file:///root/whatsapp-integration-v6/whatsapp-integration-v6-index.js:2638:40)
+0|whatsapp | Token verify error: Error: Firebase Auth removed — use Supabase Auth
+0|whatsapp |     at Object.verifyIdToken (file:///root/whatsapp-integration-v6/whatsapp-integration-v6-index.js:97:54)
+0|whatsapp |     at verifyFirebaseToken (file:///root/whatsapp-integration-v6/whatsapp-integration-v6-index.js:2638:40)
+0|whatsapp | [Twilio VoIP] Error registering device: TypeError: db.collection(...).doc(...).collection is not a function
+0|whatsapp | Warning: SPREADSHEET_ID not set. Google Sync will not work until you set it.
+0|whatsapp | ⚠️ The printQRInTerminal option has been deprecated. You will no longer receive QR codes in the terminal automatically. Please listen to the connection.update event yourself and handle the QR your way. You can remove this message by removing this opttion. This message will be removed in a future version.
+0|whatsapp |   message: 'column conversations.last_synced_at does not exist'
+0|whatsapp | Token verify error: Error: Firebase Auth removed — use Supabase Auth
+0|whatsapp |     at Object.verifyIdToken (file:///root/whatsapp-integration-v6/whatsapp-integration-v6-index.js:97:54)
+0|whatsapp |     at verifyFirebaseToken (file:///root/whatsapp-integration-v6/whatsapp-integration-v6-index.js:2631:40)
+0|whatsapp | Token verify error: Error: Firebase Auth removed — use Supabase Auth
+0|whatsapp |     at Object.verifyIdToken (file:///root/whatsapp-integration-v6/whatsapp-integration-v6-index.js:97:54)
+0|whatsapp |     at verifyFirebaseToken (file:///root/whatsapp-integration-v6/whatsapp-integration-v6-index.js:2631:40)
+0|whatsapp | Warning: SPREADSHEET_ID not set. Google Sync will not work until you set it.
+0|whatsapp | ⚠️ The printQRInTerminal option has been deprecated. You will no longer receive QR codes in the terminal automatically. Please listen to the connection.update event yourself and handle the QR your way. You can remove this message by removing this opttion. This message will be removed in a future version.
+0|whatsapp |   message: 'column conversations.last_synced_at does not exist'
+0|whatsapp | Token verify error: Error: Firebase Auth removed — use Supabase Auth
+0|whatsapp |     at Object.verifyIdToken (file:///root/whatsapp-integration-v6/whatsapp-integration-v6-index.js:97:54)
+0|whatsapp |     at verifyFirebaseToken (file:///root/whatsapp-integration-v6/whatsapp-integration-v6-index.js:2631:40)
+0|whatsapp | 🔥 Supabase Sync Adapter initialized successfully.
+0|whatsapp | [05:22:31.633] [33mWARN[39m: [36m⚠️ ADMIN_TOKEN not set — admin endpoints will reject all requests[39m
+0|whatsapp | [Twilio VoIP] Registered device 91d5a93b-bcfc-4e52-875f-e75afdc01768 for user f4433058-176e-4720-aa23-ed31a571a2be with identity: user_f4433058-176e-4720-aa23-ed31a571a2be_dev_91d5a93b-bcfc-4e52-875f-e75afdc01768
+0|whatsapp | [05:23:04.625] [32mINFO[39m: [36mPOST /api/voice/registerDevice 200 2ms[39m
+0|whatsapp |     [35murl[39m: "/api/voice/registerDevice"
+0|whatsapp | [Twilio VoIP] Generating token for identity: f4433058-176e-4720-aa23-ed31a571a2be_91d5a93b-bcfc-4e52-875f-e75afdc01768
+0|whatsapp | [05:23:04.861] [32mINFO[39m: [36mGET /api/voice/getVoipToken?userId=f4433058-176e-4720-aa23-ed31a571a2be&deviceId=91d5a93b-bcfc-4e52-875f-e75afdc01768 200 6ms[39m
+0|whatsapp |     [35murl[39m: "/api/voice/getVoipToken?userId=f4433058-176e-4720-aa23-ed31a571a2be&deviceId=91d5a93b-bcfc-4e52-875f-e75afdc01768"

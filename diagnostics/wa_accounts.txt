@@ -1,0 +1,6 @@
+{
+    "code": "42703",
+    "details": null,
+    "hint": null,
+    "message": "column wa_accounts.phone does not exist"
+}

@@ -1,0 +1,59 @@
+ Describing process with id 0 - name whatsapp-integration-v6 
+┌───────────────────┬────────────────────────────────────────────────────────────────┐
+│ status            │ online                                                         │
+│ name              │ whatsapp-integration-v6                                        │
+│ namespace         │ default                                                        │
+│ version           │ 4.0.0                                                          │
+│ restarts          │ 0                                                              │
+│ uptime            │ 2m                                                             │
+│ script path       │ /root/whatsapp-integration-v6/whatsapp-integration-v6-index.js │
+│ script args       │ N/A                                                            │
+│ error log path    │ /root/.pm2/logs/whatsapp-integration-v6-error.log              │
+│ out log path      │ /root/.pm2/logs/whatsapp-integration-v6-out.log                │
+│ pid path          │ /root/.pm2/pids/whatsapp-integration-v6-0.pid                  │
+│ interpreter       │ node                                                           │
+│ interpreter args  │ N/A                                                            │
+│ script id         │ 0                                                              │
+│ exec cwd          │ /root/whatsapp-integration-v6                                  │
+│ exec mode         │ fork_mode                                                      │
+│ node.js version   │ 20.20.0                                                        │
+│ node env          │ N/A                                                            │
+│ watch & reload    │ ✘                                                              │
+│ unstable restarts │ 0                                                              │
+│ created at        │ 2026-03-03T05:22:29.920Z                                       │
+└───────────────────┴────────────────────────────────────────────────────────────────┘
+ Actions available 
+┌────────────────────────┐
+│ km:heapdump            │
+│ km:cpu:profiling:start │
+│ km:cpu:profiling:stop  │
+│ km:heap:sampling:start │
+│ km:heap:sampling:stop  │
+└────────────────────────┘
+ Trigger via: pm2 trigger whatsapp-integration-v6 <action_name>
+
+ Code metrics value 
+┌────────────────────────┬──────────────┐
+│ Used Heap Size         │ 167.44 MiB   │
+│ Heap Usage             │ 79.62 %      │
+│ Heap Size              │ 210.30 MiB   │
+│ Event Loop Latency p95 │ 0.95 ms      │
+│ Event Loop Latency     │ 0.22 ms      │
+│ Active handles         │ 5            │
+│ Active requests        │ 0            │
+│ HTTP                   │ 0.01 req/min │
+│ HTTP P95 Latency       │ 13 ms        │
+│ HTTP Mean Latency      │ 8 ms         │
+└────────────────────────┴──────────────┘
+ Divergent env variables from local env 
+┌────────────────┬───────────────────────────────────────┐
+│ PWD            │ /root/whatsapp-integration-v6         │
+│ SSH_CONNECTION │ 82.79.132.204 61579 89.167.115.150 22 │
+│ XDG_SESSION_ID │ 49                                    │
+│ SSH_CLIENT     │ 82.79.132.204 61579 22                │
+└────────────────┴───────────────────────────────────────┘
+
+ Add your own code metrics: http://bit.ly/code-metrics
+ Use `pm2 logs whatsapp-integration-v6 [--lines 1000]` to display logs
+ Use `pm2 env 0` to display environment variables
+ Use `pm2 monit` to monitor CPU and Memory usage whatsapp-integration-v6
