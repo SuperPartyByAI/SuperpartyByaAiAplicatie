@@ -649,7 +649,7 @@ export class SessionManager {
           if (contact && (contact.name || contact.notify)) {
               chatName = contact.name || contact.notify; 
           } else {
-              chatName = msg.pushName || originJid.split('@')[0];
+              chatName = null; // Strictly forbid storing pushName or phone in 'name' column for GDPR
           }
       }
       

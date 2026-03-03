@@ -67,7 +67,7 @@ class _AdminInternalChatsTabState extends State<AdminInternalChatsTab> {
     // We use stream instead of snapshots() for Supabase Realtime
     return StreamBuilder<List<Map<String, dynamic>>>(
       stream: Supabase.instance.client
-          .from('conversations')
+          .from('conversations_public')
           .stream(primaryKey: ['id'])
           .order('last_message_at', ascending: false)
           .limit(100),

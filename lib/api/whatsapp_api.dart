@@ -3,7 +3,7 @@ import 'package:http/http.dart' as http;
 
 class WhatsAppApi {
   // Use 10.0.2.2 for Android Emulator, 127.0.0.1 for iOS Simulator
-  static const String BASE_URL = 'http://46.225.182.127'; // Public Remote Server 
+  static const String BASE_URL = 'http://89.167.115.150:3000'; // Public Remote Server 
 
   Future<Map<String, dynamic>> checkStatus() async {
     try {

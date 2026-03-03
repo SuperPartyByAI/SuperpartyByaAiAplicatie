@@ -15,7 +15,7 @@ import 'recordings_screen.dart';
 import 'calling_dialog.dart';
 import 'active_call_screen.dart';
 
-const String _BASE = 'http://46.225.182.127/api';
+const String _BASE = 'http://89.167.115.150:3000/api';
 
 class CallsScreen extends StatefulWidget {
   const CallsScreen({super.key});
@@ -254,7 +254,7 @@ class _CallsScreenState extends State<CallsScreen> {
     String? foundDocId;
     String? foundName;
     try {
-      final List<dynamic> q = await Supabase.instance.client.from('conversations').select().eq('phone', '+$digits');
+      final List<dynamic> q = await Supabase.instance.client.from('conversations_public').select().eq('jid', '$digits@s.whatsapp.net');
       debugPrint('[WA] Database query: ${q.length} docs');
       if (q.isNotEmpty) {
         final data = q.first as Map<String, dynamic>;

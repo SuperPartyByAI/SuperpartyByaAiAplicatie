@@ -18,7 +18,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
     try {
       final token = await Future.value(Supabase.instance.client.auth.currentSession?.accessToken);
       final resp = await http.post(
-        Uri.parse('http://46.225.182.127/api/admin/toggle-permission'),
+        Uri.parse('http://89.167.115.150:3000/api/admin/toggle-permission'),
         headers: {
           'Content-Type': 'application/json',
           if (token != null) 'Authorization': 'Bearer $token',
@@ -103,7 +103,7 @@ class _TeamManagementScreenState extends State<TeamManagementScreen> {
                 debugPrint('[CODE] Token obtained, calling API...');
                 
                 final resp = await http.post(
-                  Uri.parse('http://46.225.182.127/api/admin/set-code'),
+                  Uri.parse('http://89.167.115.150:3000/api/admin/set-code'),
                   headers: {
                     'Content-Type': 'application/json',
                     if (token != null) 'Authorization': 'Bearer $token',
