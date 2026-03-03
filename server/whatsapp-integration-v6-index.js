@@ -433,7 +433,7 @@ app.post('/api/voice/incoming', async (req, res) => {
     return res.send(twiml.toString());
   }
 
-  console.log(`[Twilio] Incoming Voice Request. From: ${From}, To: ${To}, SID: ${CallSid}`);
+  console.log(`[Twilio] Incoming Voice Request. SID: ${CallSid}`);
 
   
   // 1. Log to Supabase
@@ -459,7 +459,7 @@ app.post('/api/voice/incoming', async (req, res) => {
   if (isOutbound) {
       // OUTGOING CALL (From Mobile App -> To external number)
       // NOTE: NO compliance message here — it causes the SDK session to timeout before connecting
-      console.log(`[Twilio] Handling Outgoing Call from App (${From}) to: ${To}`);
+      console.log(`[Twilio] Handling Outgoing Call from App to verified target`);
 
       const CALLER_ID = '+40373805828'; // Your Twilio Number
 
@@ -501,7 +501,7 @@ app.post('/api/voice/incoming', async (req, res) => {
           }
 
           if (target.length > 9) {
-             console.log(`[Twilio] Dialing external number: ${target} executed by ${From}`);
+             console.log(`[Twilio] Dialing external number. Executed by App`);
              const dial = twiml.dial({
                callerId: CALLER_ID,
                record: 'record-from-answer',
@@ -1221,7 +1221,7 @@ app.use((req, res, next) => {
 // Returns: { conversationId, jid }
 app.post("/api/conversations", async (req, res) => {
   const { phone, accountId, label } = req.body;
-  console.log(`[OpenConvo] Request: phone=${phone} accountId=${accountId} label=${label}`);
+  console.log(`[OpenConvo] Request: parsed securely`);
 
   if (!phone || !accountId) {
     return res.status(400).json({ error: "phone and accountId are required" });
@@ -1293,7 +1293,7 @@ app.post("/api/conversations", async (req, res) => {
 });
 app.get("/api/conversations/:jid/messages", (req, res) => {
   const { jid } = req.params;
-  console.log(`[API Alias] GET /api/conversations/${jid}/messages -> Rewriting to /messages/${jid}`);
+  console.log(`[API Alias] Proxy routed successfully`);
   req.url = `/messages/${encodeURIComponent(jid)}`;
   req.originalUrl = req.url;
   app.handle(req, res);
@@ -1301,7 +1301,7 @@ app.get("/api/conversations/:jid/messages", (req, res) => {
 
 app.post("/api/conversations/:jid/messages", (req, res) => {
   const { jid } = req.params;
-  console.log(`[API Alias] POST /api/conversations/${jid}/messages -> Rewriting to /messages/${jid}`);
+  console.log(`[API Alias] Proxy routed successfully`);
   req.url = `/messages/${encodeURIComponent(jid)}`;
   req.originalUrl = req.url;
   app.handle(req, res);
