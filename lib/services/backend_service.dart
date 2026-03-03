@@ -10,6 +10,9 @@ class BackendService {
   // Update to your actual backend URL. 
   // CHANGE BACK TO IP because api.superparty.ro DNS is still pointing to Hosterion for the user's phone!
   static const String BASE_URL = 'http://89.167.115.150:3001/api';  // TEMP FIX 
+
+  String get baseUrl => BASE_URL;
+
   static const String SUPABASE_API_URL = 'https://europe-west1-superparty-frontend.cloudfunctions.net/api';
   // static const String BASE_URL = 'http://127.0.0.1:3000/api'; // Debugging Local Fixes 
   
