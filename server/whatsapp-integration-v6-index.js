@@ -88,12 +88,16 @@ import {
 } from "@whiskeysockets/baileys";
 import { makeCustomStore } from "./store.js";
 // import { logMessage } from "./sheets.js"; 
-import admin from "firebase-admin";
-// ── Firebase Admin default app init (required for admin.auth().verifyIdToken) ──
-if (!admin.apps.length) {
-  const _fbKey = require('./firebase-service-account.json');
-  admin.initializeApp({ credential: admin.credential.cert(_fbKey) });
-}
+// ── Firebase Admin REMOVED — migrated to Supabase ──
+// Stub: prevents crash for legacy VoIP code that still references admin.*
+const admin = {
+  apps: [true],
+  firestore: { FieldValue: { serverTimestamp: () => new Date().toISOString() } },
+  messaging: () => ({ send: async (m) => { console.warn('[Firebase STUB] messaging().send() called — ignored'); return null; } }),
+  auth: () => ({ verifyIdToken: async (t) => { throw new Error('Firebase Auth removed — use Supabase Auth'); } }),
+  credential: { cert: () => null },
+  initializeApp: () => null,
+};
 
 import { SessionManager } from "./session-manager.js"; // Import SessionManager
 
@@ -1532,7 +1536,8 @@ app.post('/api/employees/request', async (req, res) => {
   }
 });
 
-import { getAuth } from "firebase-admin/auth";
+// import { getAuth } from "firebase-admin/auth"; // REMOVED — Supabase Auth
+const getAuth = () => admin.auth();
 
 
 // --- Admin Employee Management ---
