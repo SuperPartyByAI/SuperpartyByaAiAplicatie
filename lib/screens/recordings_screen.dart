@@ -5,7 +5,7 @@ import 'package:audioplayers/audioplayers.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
-const String _REC_BASE = 'http://89.167.115.150:3000/api';
+const String _REC_BASE = 'http://89.167.115.150:3001/api';
 
 class RecordingsScreen extends StatefulWidget {
   const RecordingsScreen({super.key});

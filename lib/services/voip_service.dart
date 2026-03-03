@@ -107,7 +107,7 @@ class VoipService {
       debugPrint('[VoIP] Unique Device ID: $deviceId');
 
       final fcmToken = await Future.value('dummy_token');
-      debugPrint('[VoIP] FCM Token: ${fcmToken?.substring(0, 20)}...');
+      debugPrint('[VoIP] FCM Token: ${fcmToken != null && fcmToken.length > 20 ? fcmToken.substring(0, 20) : fcmToken}...');
 
       if (fcmToken == null) {
         debugPrint('[VoIP] ❌ FCM token is null — cannot register');

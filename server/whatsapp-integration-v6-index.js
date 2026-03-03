@@ -925,14 +925,7 @@ app.post('/api/voice/registerDevice', async (req, res) => {
 
   const identity = `user_${userId}_dev_${deviceId}`;
   try {
-    await db.collection('users').doc(userId)
-      .collection('devices').doc(deviceId)
-      .set({ 
-        identity, 
-        fcmToken, 
-        lastSeen: admin.firestore.FieldValue.serverTimestamp() 
-      }, { merge: true });
-    
+    // No Firestore write needed — identity is computed, token endpoint generates tokens on-the-fly
     console.log(`[Twilio VoIP] Registered device ${deviceId} for user ${userId} with identity: ${identity}`);
     res.json({ identity });
   } catch (error) {
@@ -949,14 +942,10 @@ app.get('/api/voice/getVoipToken', async (req, res) => {
   }
   
   try {
-    const deviceDoc = await db.collection('users').doc(userId)
-      .collection('devices').doc(deviceId).get();
+    // Build identity from userId+deviceId (no Firestore lookup needed — Supabase-only)
+    const identity = `${userId}_${deviceId}`;
+    console.log(`[Twilio VoIP] Generating token for identity: ${identity}`);
 
-    if (!deviceDoc.exists) {
-      return res.status(404).send('device-not-registered');
-    }
-
-    const identity = deviceDoc.data().identity;
     const AccessToken = twilio.jwt.AccessToken;
     const VoiceGrant = AccessToken.VoiceGrant;
 
