@@ -3186,7 +3186,7 @@ server.on('upgrade', (request, socket, head) => {
   // Use a dummy host to parse the local path robustly
   const { pathname, searchParams } = new URL(request.url, `http://localhost`);
   
-  if (pathname === '/voip-ws') {
+  if (pathname === '/voip-ws' || pathname === '/api/voip-ws') {
     const token = searchParams.get('token');
     if (!token) {
       socket.write('HTTP/1.1 401 Unauthorized\r\n\r\n');
