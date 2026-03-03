@@ -193,7 +193,7 @@ class _ActiveCallScreenState extends State<ActiveCallScreen> {
     try {
       final token = await Future.value(Supabase.instance.client.auth.currentSession?.accessToken);
       await http.post(
-        Uri.parse('http://89.167.115.150:3000/api/voice/forceHangup'),
+        Uri.parse('http://89.167.115.150:3001/api/voice/forceHangup'),
         headers: {
           'Content-Type': 'application/json',
           if (token != null) 'Authorization': 'Bearer $token',
