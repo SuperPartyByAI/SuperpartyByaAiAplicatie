@@ -4,6 +4,8 @@ import '../services/voip_service.dart';
 import '../services/backend_service.dart';
 import '../services/auth_service.dart';
 import '../services/supabase_service.dart';
+import '../screens/active_call_screen.dart';
+import 'package:twilio_voice/twilio_voice.dart';
 
 class IncomingCallScreen extends StatefulWidget {
   final String conf;
@@ -34,54 +36,33 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
     });
 
     try {
-      final backend = Provider.of<BackendService>(context, listen: false);
-      final auth = Provider.of<AuthService>(context, listen: false);
-      final email = auth.currentUser?.email;
-
-      String deviceNumber = '';
-      if (email != null && email.isNotEmpty) {
-        final rows = await SupabaseService.select('employees', filters: {'email': 'eq.$email'}, limit: 1);
-        if (rows.isNotEmpty) {
-          deviceNumber = rows.first['phone'] ?? '';
-        }
-      }
-
-      if (deviceNumber.isEmpty) {
-        debugPrint('[IncomingCallScreen] Cannot accept: No device number (phone) found for employee.');
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Eroare: Numărul de telefon nu a fost găsit în profil.')),
-          );
-          Navigator.pop(context);
-        }
-        return;
-      }
-
-      // Add Romanian prefix if missing
-      if (deviceNumber.startsWith('07')) {
-        deviceNumber = '+40\${deviceNumber.substring(1)}';
-      }
-
-      bool ok = await VoipService.acceptCall(
-        widget.conf,
-        widget.callSid,
-        deviceNumber,
-        BackendService.BASE_URL.replaceFirst('/api', ''),
-        widget.sig,
-        widget.expires
-      );
-
-      if (ok) {
-        debugPrint('[IncomingCallScreen] Call accepted successfully. Wait for GSM bridge.');
-        // Don't close immediately so the user sees something is happening, or close letting them see the GSM call.
-      } else {
-        debugPrint('[IncomingCallScreen] Accept failed.');
+      debugPrint('[IncomingCallScreen] Accepting native WebRTC call via Twilio SDK...');
+      // Answer the WebRTC call directly
+      await TwilioVoice.instance.call.answer();
+      
+      // Navigate immediately to ActiveCallScreen so they see the Native UI
+      if (mounted) {
+        Navigator.pop(context); // Close incoming custom screen
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (_) => ActiveCallScreen(
+              remoteId: widget.caller,
+              isOutgoing: false,
+              callSid: widget.callSid,
+            ),
+          ),
+        );
       }
     } catch (e) {
       debugPrint('[IncomingCallScreen] Error in accept: $e');
-    } finally {
       if (mounted) {
-        Navigator.pop(context);
+        setState(() {
+          _isAccepting = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Eroare WebRTC: $e')),
+        );
       }
     }
   }

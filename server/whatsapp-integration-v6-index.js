@@ -681,25 +681,16 @@ app.post('/api/voice/incoming', async (req, res) => {
       // Generate a conference name based on the incoming CallSid
       const confName = `conf_${CallSid}`;
       
-      // Short greeting — place caller in conference to wait
+      // Short greeting
       twiml.say({ language: 'ro-RO' }, 'Vă conectăm acum. Vă rugăm să aşteptaţi.');
       
-      const dial = twiml.dial();
-      dial.conference({
-        startConferenceOnEnter: true,
-        endConferenceOnExit: true,
-        beep: false,
-        waitUrl: 'http://twimlets.com/holdmusic?Bucket=com.twilio.music.classical'
-      }, confName);
-
       // Log incoming call to Supabase
       try {
          await db.collection('active_incoming_calls').doc(CallSid).set({
            callSid: CallSid,
            from: From,
            to: To,
-           status: 'waiting_in_conf',
-           confName: confName,
+           status: 'ringing_clients',
            timestamp: new Date().toISOString()
          });
       } catch(e) { /* stub no-op */ }
@@ -738,44 +729,35 @@ app.post('/api/voice/incoming', async (req, res) => {
       console.log(`[Twilio] VoIP clients in registry: ${identities.length}`);
       
       if (identities.length === 0) {
-        console.warn('[Twilio] No VoIP clients registered! Fallback needed.');
-        // Could forward to operator here if desired
+        console.warn('[Twilio] No VoIP clients registered! Hanging up.');
+        twiml.say({ language: 'ro-RO' }, 'Ne cerem scuze, niciun agent nu este disponibil in acest moment.');
       } else {
-        // Send FCM Push to all registered clients to wake them up and show Incoming UI
-        const secret = process.env.VOIP_PUSH_SECRET || 'superparty_voip_secret_123';
-        const expires = Date.now() + 60000; // 60 seconds validity
-        
-        for (const client of identities) {
-          // Generate signature: HMAC(secret, confName|CallSid|expires)
-          const sigData = `${confName}|${CallSid}|${expires}`;
-          const sig = crypto.createHmac('sha256', secret).update(sigData).digest('hex');
-          
-          const payload = {
-            type: 'incoming_call',
-            callerNumber: From,
-            conf: confName,
-            callSid: CallSid,
-            expires: expires.toString(),
-            sig: sig
-          };
+        // Build the <Dial> verb to ring all registered clients concurrently
+        const dial = twiml.dial({ timeout: 60 });
 
-          // 1. Try WebSocket Delivery First
+        const payload = {
+          type: 'incoming_call',
+          callerNumber: From,
+          callSid: CallSid
+        };
+
+        for (const client of identities) {
+          // Add this client to the Dial list
+          dial.client(client.id);
+
+          // 1. Try WebSocket Delivery First (for Huawei/custom UI)
           const deliveredViaWs = sendIncomingToIdentity(client.id, payload);
           
           if (deliveredViaWs) {
-            console.log(`[Twilio] Ringing client ${client.id} instantly via WebSocket (Foreground mode)`);
-            continue; // Skip FCM if WS was successfully delivered
+            console.log(`[Twilio] Woke client ${client.id} instantly via WebSocket`);
+            continue; 
           }
 
           // 2. Fallback to FCM Push Delivery if offline or WS unavailable
-          if (!client.fcmToken || client.fcmToken === 'WS_ONLY') {
-            console.warn(`[Twilio] Client ${client.id} has no FCM token and WS is disconnected. User will not ring.`);
-            continue;
+          if (client.fcmToken && client.fcmToken !== 'WS_ONLY') {
+            console.log(`[Twilio] Sending FCM Push to wake client: ${client.id}`);
+            sendFcmPush(client.fcmToken, payload);
           }
-          
-          console.log(`[Twilio] Sending FCM Push to client: ${client.id}`);
-          // Send push implicitly (not awaited)
-          sendFcmPush(client.fcmToken, payload);
         }
       }
   }
@@ -786,107 +768,9 @@ app.post('/api/voice/incoming', async (req, res) => {
   res.send(twiml.toString());
 });
 
-// ─── FCM FALLBACK: /api/voice/accept ──────────────────────────────
-app.post('/api/voice/accept', express.json(), async (req, res) => {
-  try {
-    const { conf, callSid, deviceNumber, sig, expires } = req.body;
-    
-    // Verify signature
-    const secret = process.env.VOIP_PUSH_SECRET || 'superparty_voip_secret_123';
-    const sigData = `${conf}|${callSid}|${expires}`;
-    const expectedSig = crypto.createHmac('sha256', secret).update(sigData).digest('hex');
-    
-    if (sig !== expectedSig) {
-      return res.status(403).json({ error: 'Invalid signature' });
-    }
-    if (Date.now() > parseInt(expires, 10)) {
-      return res.status(403).json({ error: 'Push token expired' });
-    }
-    
-    console.log(`[FCM Accept] User accepted call. Conf: ${conf}, Bridging device: ${deviceNumber}`);
-    
-    // Create outbound Twilio call to the device's actual phone number
-    const BASE_URL = process.env.PUBLIC_URL || 'http://89.167.115.150:3001';
-    
-    const call = await twilioClient.calls.create({
-      to: deviceNumber, // Flutter must provide the actual phone number to dial, e.g. +407...
-      from: process.env.TWILIO_CALLER_ID || '+40373805828',
-      url: `${BASE_URL}/api/voice/join-conference?conf=${encodeURIComponent(conf)}`
-    });
-    
-    res.json({ success: true, callSid: call.sid });
-  } catch (err) {
-    console.error('[FCM Accept] Error bridging call:', err);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// ─── FCM FALLBACK: /api/voice/join-conference ───────────────────────
-app.post('/api/voice/join-conference', (req, res) => {
-  const conf = req.query.conf;
-  const twiml = new twilio.twiml.VoiceResponse();
-  console.log(`[FCM Join] Device answered, joining conference: ${conf}`);
-  
-  twiml.dial().conference({
-    beep: false,
-    startConferenceOnEnter: true,
-    endConferenceOnExit: true
-  }, conf);
-  
-  res.type('text/xml').send(twiml.toString());
-});
-
-// Dial result handler — called by Twilio after <Dial> in OUTBOUND calls finishes (legacy)
-app.post('/api/voice/dial-result', (req, res) => {
-  const dialStatus = req.body.DialCallStatus;
-  const callSid = req.body.CallSid;
-  console.log(`[dial-result] DialCallStatus=${dialStatus} CallSid=${callSid}`);
-
-  const twiml = new twilio.twiml.VoiceResponse();
-
-  if (dialStatus === 'completed' || dialStatus === 'answered') {
-    console.log('[dial-result] Call completed successfully');
-    return res.type('text/xml').send(twiml.toString());
-  }
-
-  const operatorNumber = process.env.TWILIO_CALLER_ID || '+40373805828';
-  console.log(`[dial-result] Dial failed (${dialStatus}), transferring to operator: ${operatorNumber}`);
-  twiml.say({ language: 'ro-RO' }, 'Ne pare rău, operatorul nu este disponibil momentan. Vă rugăm să încercați mai târziu.');
-
-  console.log('[Twiml OUT] dial-result ->', twiml.toString());
-  res.type('text/xml').send(twiml.toString());
-});
-
-// ─── AGENT BRIDGE: Flutter app calls this when the user presses Answer ─────────
-app.post('/api/voice/bridge-agent', async (req, res) => {
-  try {
-    const { callSid, agentIdentity, fcmToken } = req.body;
-    if (!callSid || !agentIdentity) return res.status(400).json({ error: 'Missing callSid or agentIdentity' });
-
-    console.log(`[VoIP Bridge] Agent ${agentIdentity} answering CallSid: ${callSid}`);
-    
-    // Create an OUTBOUND call from Twilio to the Agent's Twilio Client Identity
-    // When the agent answers implicitly, Twilio drops them into the SAME conference as the caller
-    const BASE_URL = process.env.PUBLIC_URL || 'http://46.225.182.127:3001';
-    
-    const call = await twilioClient.calls.create({
-      to: `client:${agentIdentity}`,
-      from: '+40373810882', // The company number
-      twiml: `<Response><Dial><Conference beep="false" startConferenceOnEnter="true" endConferenceOnExit="true">${callSid}</Conference></Dial></Response>`,
-    });
-
-    // Mark Supabase record as answered
-    await db.collection('active_incoming_calls').doc(callSid).update({
-       status: 'answered',
-       answeredBy: agentIdentity
-    });
-
-    res.json({ success: true, agentCallSid: call.sid });
-  } catch (error) {
-    console.error(`[VoIP Bridge] Error bridging agent:`, error.message);
-    res.status(500).json({ error: error.message });
-  }
-});
+// ─── FCM FALLBACK: LEGACY ENDPOINTS REMOVED ──────────────────────────────
+// The routes `/api/voice/accept` and `/api/voice/join-conference` have been removed.
+// All inbound calls are now answered securely via Twilio Voice Native SDK WebRTC.
 
 app.post('/api/voice/dial-status', (req, res) => {
   console.log("[Twilio] Dial Status:", req.body.DialCallStatus, "CallSid:", req.body.CallSid);

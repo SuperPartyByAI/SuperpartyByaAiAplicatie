@@ -152,23 +152,7 @@ class VoipService {
         payload: payload);
   }
 
-  static Future<bool> acceptCall(String conf, String callSid, String deviceNumber, String apiBaseUrl, String sig, String expires) async {
-    final url = Uri.parse('$apiBaseUrl/api/voice/accept');
-    final body = {
-      'conf': conf,
-      'callSid': callSid,
-      'deviceNumber': deviceNumber,
-      'sig': sig,
-      'expires': expires,
-    };
-    try {
-      final resp = await http.post(url, body: jsonEncode(body), headers: {'Content-Type':'application/json'});
-      return resp.statusCode == 200;
-    } catch (e) {
-      debugPrint('[VoIP] acceptCall error: $e');
-      return false;
-    }
-  }
+
 
   bool _isRegistered = false;
   bool get isRegistered => _isRegistered;
