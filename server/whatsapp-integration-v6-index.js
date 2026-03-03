@@ -2374,16 +2374,12 @@ app.post("/messages/:jid", async (req, res) => {
   console.log(`[Send-Debug] Body:`, JSON.stringify(req.body));
 
   // PARSE COMPOSITE ID (AccountId_ClientJid) for multi-tenancy
-  // If jid starts with a known Account ID, extract it.
+  // Unconditionally extract if it matches the known structural separator.
   if (!accountId && jid.includes('_')) {
       const parts = jid.split('_');
-      const potentialAccId = parts[0];
-      // Check if this prefix is a valid, active session
-      if (sessionManager.getSession(potentialAccId)) {
-          accountId = potentialAccId;
-          jid = parts.slice(1).join('_'); // The rest is the real JID
-          console.log(`[Send-Debug] Extracted AccountId: ${accountId}, Real JID: ${jid}`);
-      }
+      accountId = parts[0];
+      jid = parts.slice(1).join('_'); // The rest is the real JID
+      console.log(`[Send-Debug] Extracted AccountId: ${accountId}, Real JID: ${jid}`);
   }
 
   if (!text) {
@@ -2395,19 +2391,21 @@ app.post("/messages/:jid", async (req, res) => {
   let sock = null;
 
   if (accountId) {
-      // Explicit selection
+      // Explicit selection: MUST NOT FALLBACK to another session if this one is offline
       sock = sessionManager.getSession(accountId);
-      if (!sock) console.log(`[Send-Debug] Explicit account ${accountId} not active.`);
-      else console.log(`[Send-Debug] Using explicit account session: ${accountId}`);
+      
+      if (!sock) {
+         console.log(`[Send-Debug] Explicit account ${accountId} is offline or requires QR. Blocking cross-account fallback.`);
+         return res.status(503).json({ error: "No active WhatsApp session found", accountId: accountId });
+      } else {
+         console.log(`[Send-Debug] Using explicit account session: ${accountId}`);
+      }
   } else {
-      // Auto-selection (fallback to first connected)
-      // Iterate sessions
+      // Auto-selection (fallback to first connected) - Only used for legacy endpoints
       for (const [docId, s] of sessionManager.sessions) {
-          if (s.status === 'connected' && s.sock) {
+          if (s.state === 'connected' && s.sock) {
               sock = s.sock;
               console.log(`[Send-Debug] Auto-selected session: ${docId}`);
-              // Ideally check if this sock has relationship with JID?
-              // For now, first available.
               break;
           }
       }

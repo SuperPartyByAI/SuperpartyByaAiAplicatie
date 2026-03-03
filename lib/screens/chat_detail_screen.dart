@@ -541,16 +541,43 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         } catch (_) {
           message = errorStr;
         }
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(message),
-            backgroundColor: Colors.red,
-          ),
-        );
+
+        if (message.contains('No active') || message.contains('503')) {
+          showDialog(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: const Text('Cont Deconectat'),
+              content: const Text('Acest cont WhatsApp nu are o sesiune activă. Trebuie să scanezi codul QR pentru a trimite mesaje.'),
+              actions: [
+                TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Închide')),
+                ElevatedButton(
+                  onPressed: () async {
+                    Navigator.of(ctx).pop();
+                    try {
+                      final accId = widget.conversationId.split('_')[0];
+                      await Provider.of<BackendService>(context, listen: false).regenerateQR(accId);
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Codul QR a fost generat! Navighează la Conturi pentru a-l scana.')));
+                    } catch (err) {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Eroare: $err'), backgroundColor: Colors.red));
+                    }
+                  },
+                  child: const Text('Generează QR', style: TextStyle(color: Colors.white)),
+                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF008069)),
+                )
+              ],
+            )
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(message),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     }
   }
-
 
   String _formatMessageTime(DateTime ts) {
     final now = DateTime.now();
