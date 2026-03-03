@@ -8,7 +8,7 @@
         "phone_id": "C7xKBICjBaeibmkmfYN8"
       },
       "destination": {
-        "url": "firestore://wa_accounts/C7xKBICjBaeibmkmfYN8"
+        "url": "database://wa_accounts/C7xKBICjBaeibmkmfYN8"
       },
       "binding_id": "bind-C7xKBICjBaeibmkmfYN8"
     },
@@ -20,7 +20,7 @@
         "phone_id": "C9mLWO3s3nx5ckQBlmUE"
       },
       "destination": {
-        "url": "firestore://wa_accounts/C9mLWO3s3nx5ckQBlmUE"
+        "url": "database://wa_accounts/C9mLWO3s3nx5ckQBlmUE"
       },
       "binding_id": "bind-C9mLWO3s3nx5ckQBlmUE"
     },
@@ -32,7 +32,7 @@
         "phone_id": "7ei5E0SiunhP686M0EVX"
       },
       "destination": {
-        "url": "firestore://wa_accounts/7ei5E0SiunhP686M0EVX"
+        "url": "database://wa_accounts/7ei5E0SiunhP686M0EVX"
       },
       "binding_id": "bind-7ei5E0SiunhP686M0EVX"
     },
@@ -44,7 +44,7 @@
         "phone_id": "ZHRI9O3O3Lx6yRWzqOWg"
       },
       "destination": {
-        "url": "firestore://wa_accounts/ZHRI9O3O3Lx6yRWzqOWg"
+        "url": "database://wa_accounts/ZHRI9O3O3Lx6yRWzqOWg"
       },
       "binding_id": "bind-ZHRI9O3O3Lx6yRWzqOWg"
     },
@@ -56,7 +56,7 @@
         "phone_id": "vWPV8yMvNyCab1kl5S0U"
       },
       "destination": {
-        "url": "firestore://wa_accounts/vWPV8yMvNyCab1kl5S0U"
+        "url": "database://wa_accounts/vWPV8yMvNyCab1kl5S0U"
       },
       "binding_id": "bind-vWPV8yMvNyCab1kl5S0U"
     },
@@ -68,7 +68,7 @@
         "phone_id": "7MXiCIPXm1ZGeXxk5X58"
       },
       "destination": {
-        "url": "firestore://wa_accounts/7MXiCIPXm1ZGeXxk5X58"
+        "url": "database://wa_accounts/7MXiCIPXm1ZGeXxk5X58"
       },
       "binding_id": "bind-7MXiCIPXm1ZGeXxk5X58"
     }
@@ -96,7 +96,7 @@
       ],
       "is_wildcard": false,
       "destination": {
-        "url": "firestore://wa_accounts/XANaSkgQzW5Z1VfmIvCs",
+        "url": "database://wa_accounts/XANaSkgQzW5Z1VfmIvCs",
         "method": "POST",
         "headers": {
           "X-Route-Id": "route-XANaSkgQzW5Z1VfmIvCs"
@@ -121,7 +121,7 @@
           "from": "unknown",
           "to": "system",
           "route_id": "route-XANaSkgQzW5Z1VfmIvCs",
-          "destination_url": "firestore://wa_accounts/XANaSkgQzW5Z1VfmIvCs",
+          "destination_url": "database://wa_accounts/XANaSkgQzW5Z1VfmIvCs",
           "response_status": 503,
           "error_message": "QR Not Scanned",
           "latency_ms": 15
@@ -150,7 +150,7 @@
       ],
       "is_wildcard": false,
       "destination": {
-        "url": "firestore://wa_accounts/Ztj2SRhRWAflLQh7iVi5",
+        "url": "database://wa_accounts/Ztj2SRhRWAflLQh7iVi5",
         "method": "POST",
         "headers": {
           "X-Route-Id": "route-Ztj2SRhRWAflLQh7iVi5"
@@ -175,7 +175,7 @@
           "from": "+40763795919",
           "to": "system",
           "route_id": "route-Ztj2SRhRWAflLQh7iVi5",
-          "destination_url": "firestore://wa_accounts/Ztj2SRhRWAflLQh7iVi5",
+          "destination_url": "database://wa_accounts/Ztj2SRhRWAflLQh7iVi5",
           "response_status": 200,
           "error_message": null,
           "latency_ms": 15
@@ -204,7 +204,7 @@
       ],
       "is_wildcard": false,
       "destination": {
-        "url": "firestore://wa_accounts/hQtWagPAA490T7FD3vdb",
+        "url": "database://wa_accounts/hQtWagPAA490T7FD3vdb",
         "method": "POST",
         "headers": {
           "X-Route-Id": "route-hQtWagPAA490T7FD3vdb"
@@ -229,7 +229,7 @@
           "from": "+40773879706",
           "to": "system",
           "route_id": "route-hQtWagPAA490T7FD3vdb",
-          "destination_url": "firestore://wa_accounts/hQtWagPAA490T7FD3vdb",
+          "destination_url": "database://wa_accounts/hQtWagPAA490T7FD3vdb",
           "response_status": 200,
           "error_message": null,
           "latency_ms": 15
@@ -259,7 +259,7 @@
       ],
       "is_wildcard": false,
       "destination": {
-        "url": "firestore://wa_accounts/LKvZfsJMz7IO8dBLuotj",
+        "url": "database://wa_accounts/LKvZfsJMz7IO8dBLuotj",
         "method": "POST",
         "headers": {
           "X-Route-Id": "route-LKvZfsJMz7IO8dBLuotj"
@@ -284,7 +284,7 @@
           "from": "unknown",
           "to": "system",
           "route_id": "route-LKvZfsJMz7IO8dBLuotj",
-          "destination_url": "firestore://wa_accounts/LKvZfsJMz7IO8dBLuotj",
+          "destination_url": "database://wa_accounts/LKvZfsJMz7IO8dBLuotj",
           "response_status": 503,
           "error_message": "QR Not Scanned",
           "latency_ms": 15

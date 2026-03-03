@@ -9,7 +9,7 @@
  */
 
 const { DisconnectReason } = require('@whiskeysockets/baileys');
-const { FieldValue } = require('firebase-admin/firestore');
+const { FieldValue } = {};
 
 class WAReconnectManager {
   constructor(db, instanceId) {
@@ -154,7 +154,7 @@ class WAReconnectManager {
   }
 
   /**
-   * Save state to Firestore
+   * Save state to Database
    */
   async saveState() {
     try {
@@ -167,7 +167,7 @@ class WAReconnectManager {
           lastDisconnectReason: this.lastDisconnectReason,
           retryCount: this.retryCount,
           nextRetryAt: this.nextRetryAt,
-          updatedAt: FieldValue.serverTimestamp(),
+          updatedAt: new Date(),
         },
         { merge: true }
       );
@@ -185,7 +185,7 @@ class WAReconnectManager {
 
       await this.db.doc(`wa_metrics/longrun/incidents/${incidentId}`).set({
         type: 'wa_logged_out_requires_pairing',
-        detectedAt: FieldValue.serverTimestamp(),
+        detectedAt: new Date(),
         instanceId: this.instanceId,
         lastDisconnectReason: this.lastDisconnectReason,
         retryCount: this.retryCount,

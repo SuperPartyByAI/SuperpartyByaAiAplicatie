@@ -7,12 +7,12 @@
    node --version  # Should show v20.x.x
    ```
 
-2. **Firebase CLI**: Install if not present
+2. **Supabase CLI**: Install if not present
    ```powershell
-   npm install -g firebase-tools
+   npm install -g supabase-tools
    ```
 
-3. **Java 21+**: Required for Firestore emulator
+3. **Java 21+**: Required for Database emulator
    ```powershell
    java -version  # Should show 21 or higher
    ```
@@ -39,14 +39,14 @@ npm test
 ### 1. whatsappProxy.test.js - `/send` Suite
 
 **Issues Fixed**:
-- Tests now use `addAccountHandler` instead of Firebase wrapper `addAccount`
+- Tests now use `addAccountHandler` instead of Supabase wrapper `addAccount`
 - Transaction mocks return proper snapshot objects with `.exists` and `.data()`
-- `mockFirestoreRunTransaction` is async and properly invokes callback
+- `mockDatabaseRunTransaction` is async and properly invokes callback
 - Mock setup ensures `req.user` is set by middleware before handler uses it
 
 **If tests still fail with 500 errors**:
 - Check that `mockTransaction.get` returns objects with both `.exists` and `.data()` methods
-- Verify that `mockFirestoreRunTransaction` is called and callback is invoked
+- Verify that `mockDatabaseRunTransaction` is called and callback is invoked
 - Ensure `mockVerifyIdToken` returns a decoded token object with `uid` and `email`
 - Verify `mockStaffCollection.doc().get` returns a document with `.exists: true` and `.data()` method
 
@@ -63,11 +63,11 @@ npm test
 ### 3. shortCodeGenerator.test.js
 
 **Issues Fixed**:
-- Constructor avoids calling `admin.firestore()` when admin not initialized
+- Constructor avoids calling `admin.database()` when admin not initialized
 - `getDefaultGenerator()` uses lazy initialization
 
 **If tests still fail**:
-- Verify that module import doesn't throw "The default Firebase app does not exist"
+- Verify that module import doesn't throw "The default Supabase app does not exist"
 - Check that tests inject a mock `db` into constructor
 
 ## PowerShell Scripts
@@ -130,7 +130,7 @@ $token = .\scripts\get-auth-emulator-token.ps1 -Email "user@example.com" -Passwo
 $env:WHATSAPP_BACKEND_BASE_URL = "https://whats-app-ompro.ro"
 
 # Start emulators
-firebase.cmd emulators:start --config .\firebase.json --only firestore,functions,auth --project superparty-frontend
+supabase.cmd emulators:start --config .\supabase.json --only database,functions,auth --project superparty-frontend
 ```
 
 **Wait for**: "All emulators ready!" message (usually 30-60 seconds)
@@ -153,7 +153,7 @@ $token = .\scripts\get-auth-emulator-token.ps1
 - If 401, check:
   - Token was obtained successfully
   - Token is trimmed (no whitespace)
-  - `FIREBASE_AUTH_EMULATOR_HOST` is set (Firebase CLI sets this automatically)
+  - `SUPABASE_AUTH_EMULATOR_HOST` is set (Supabase CLI sets this automatically)
 
 ### Step 4: Manual Test (Alternative)
 
@@ -197,12 +197,12 @@ curl.exe -i http://127.0.0.1:5002/superparty-frontend/us-central1/whatsappProxyG
 ### Emulator Port Conflicts
 
 - Run `.\scripts\kill-emulators.ps1 --Force` to free ports
-- Or update `firebase.json` to use different ports
+- Or update `supabase.json` to use different ports
 
 ## Files Modified
 
 1. `functions/test/whatsappProxy.test.js` - Fixed to use handler functions, improved transaction mocks
-2. `functions/shortCodeGenerator.js` - Fixed to avoid admin.firestore() when admin not initialized
+2. `functions/shortCodeGenerator.js` - Fixed to avoid admin.database() when admin not initialized
 3. `scripts/get-auth-emulator-token.ps1` - Simplified, outputs only token on stdout
 4. `scripts/test-protected-endpoint.ps1` - Added token trimming, improved error handling
 5. `scripts/kill-emulators.ps1` - Port cleanup script (already correct)

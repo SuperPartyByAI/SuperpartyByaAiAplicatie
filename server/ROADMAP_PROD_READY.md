@@ -27,7 +27,7 @@
 
 ### Ops Notes
 - Single instance legacy hosting (don't scale >1 until account-lease implemented)
-- Firestore indexes deploy required: `firebase deploy --only firestore:indexes`
+- Database indexes deploy required: `supabase deploy --only database:indexes`
 - UI may see "duplicates" from old threads (backward incompatible threadId)
 
 ### Testing
@@ -40,24 +40,24 @@
 
 ---
 
-## ✅ **2. Firestore Indexes (OBLIGATORIU)**
+## ✅ **2. Database Indexes (OBLIGATORIU)**
 
-**Status:** ✅ `firestore.indexes.json` exists, needs deploy
+**Status:** ✅ `database.indexes.json` exists, needs deploy
 
 **Confirmat:**
-- `firebase.json` linia 4 referă `firestore.indexes.json` (root) ✅
+- `supabase.json` linia 4 referă `database.indexes.json` (root) ✅
 - Indexuri existente: `threads` (accountId + lastMessageAt), `outbox` (status + nextAttemptAt) ✅
 
 **Actions:**
 ```bash
 cd /Users/universparty/Aplicatie-SuperpartyByAi
-firebase projects:list
-firebase use <PROJECT_ID>
-firebase deploy --only firestore:indexes
+supabase projects:list
+supabase use <PROJECT_ID>
+supabase deploy --only database:indexes
 ```
 
 **Verificare:**
-- Firebase Console → Firestore → Indexes → Status = "Ready" (not "Building")
+- Supabase Console → Database → Indexes → Status = "Ready" (not "Building")
 
 **Gata când:** Indexurile sunt "Ready" și nu mai primești "missing index" errors ✅
 
@@ -71,8 +71,8 @@ firebase deploy --only firestore:indexes
 - ✅ Volume mount: `/app/sessions` (from `legacy hosting.toml`)
 - ✅ Env: `SESSIONS_PATH=/app/sessions`
 
-### 3.2 Firestore
-- ✅ Env: `FIREBASE_SERVICE_ACCOUNT_JSON=<json complet>`
+### 3.2 Database
+- ✅ Env: `SUPABASE_SERVICE_ACCOUNT_JSON=<json complet>`
 
 ### 3.3 Admin/Auth
 - ✅ Env: `ADMIN_TOKEN=<token>`
@@ -89,19 +89,19 @@ firebase deploy --only firestore:indexes
 **Verificare Logs:**
 ```
 sessions dir writable: true
-Firestore: Connected
+Database: Connected
 History sync: enabled (WHATSAPP_SYNC_FULL_HISTORY=true)
 ```
 
 **Verificare Health:**
 ```bash
 curl https://your-service.legacy hosting.app/health
-# Expected: {"status":"healthy","sessions_dir_writable":true,"firestore":"connected"}
+# Expected: {"status":"healthy","sessions_dir_writable":true,"database":"connected"}
 ```
 
 **Gata când:**
 - `/health` = 200 ✅
-- Logs: "sessions dir writable: true" + "Firestore: Connected" ✅
+- Logs: "sessions dir writable: true" + "Database: Connected" ✅
 - Conturi existente rămân connected după redeploy ✅
 
 ---
@@ -180,7 +180,7 @@ static final String whatsappBackendUrl = _normalizeBaseUrl(
   - `GET /api/status/dashboard` (linia 5044) - NO auth ✅
 
 - ✅ **Flutter nu trimite auth headers** (corect, backend nu cere) ✅
-- ✅ **Functions proxy folosește Firebase Auth token** (linia 87 în `whatsapp_api_service.dart`) - OK pentru send-message ✅
+- ✅ **Functions proxy folosește Supabase Auth token** (linia 87 în `whatsapp_api_service.dart`) - OK pentru send-message ✅
 
 ### 5.2 Ecrane/Flow (✅ VERIFIED)
 
@@ -224,11 +224,11 @@ static final String whatsappBackendUrl = _normalizeBaseUrl(
 1. Adaugi 30 conturi (WA-01..WA-30, telefoane distincte)
 2. Scanezi QR pentru fiecare până sunt "connected"
 3. Redeploy/restart backend 2-3 ori
-4. Confirmi că rămân connected și mesajele apar în Firestore
+4. Confirmi că rămân connected și mesajele apar în Database
 
-**Verificare Firestore:**
+**Verificare Database:**
 ```bash
-# Firebase Console → Firestore → Collections:
+# Supabase Console → Database → Collections:
 - accounts/{accountId} → status = "connected"
 - threads/{accountId}__{clientJid} → lastMessageAt exists
 - threads/{accountId}__{clientJid}/messages/{messageId} → messages exist
@@ -237,7 +237,7 @@ static final String whatsappBackendUrl = _normalizeBaseUrl(
 **Gata când:**
 - 30 connected accounts ✅
 - Restart-safe (rămân connected după restart) ✅
-- Firestore populated (threads/messages exist) ✅
+- Database populated (threads/messages exist) ✅
 
 ---
 
@@ -245,8 +245,8 @@ static final String whatsappBackendUrl = _normalizeBaseUrl(
 
 ### Backend (legacy hosting)
 - [ ] PR merged în `main`
-- [ ] Firestore indexes deployed ("Ready")
-- [ ] legacy hosting env vars setate (SESSIONS_PATH, FIREBASE_SERVICE_ACCOUNT_JSON, ADMIN_TOKEN)
+- [ ] Database indexes deployed ("Ready")
+- [ ] legacy hosting env vars setate (SESSIONS_PATH, SUPABASE_SERVICE_ACCOUNT_JSON, ADMIN_TOKEN)
 - [ ] legacy hosting redeploy successful
 - [ ] `/health` = 200, logs: "sessions dir writable: true"
 - [ ] API endpoints testate cu curl (add-account, accounts, qr, dashboard)
@@ -263,7 +263,7 @@ static final String whatsappBackendUrl = _normalizeBaseUrl(
 ### Operational
 - [ ] 30 conturi onboarded (WA-01..WA-30)
 - [ ] Toate connected după restart
-- [ ] Firestore populated (threads/messages)
+- [ ] Database populated (threads/messages)
 - [ ] Single instance legacy hosting (nu scale >1)
 
 ---
@@ -275,7 +275,7 @@ static final String whatsappBackendUrl = _normalizeBaseUrl(
 
 **Next Steps:**
 1. PR merge în `main`
-2. Firestore indexes deploy
+2. Database indexes deploy
 3. legacy hosting deploy cu env vars
 4. Verifică Flutter integration (auth + endpoints)
 5. Teste manuale (30 conturi)

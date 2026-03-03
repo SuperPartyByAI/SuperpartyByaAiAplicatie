@@ -1,7 +1,7 @@
 # WhatsApp Multi-Account Safety Patch
 
 ## Overview
-This patch ensures stable send/receive from the app, messages saved in Firestore, no duplicates, and scalability across restarts and multiple backend instances.
+This patch ensures stable send/receive from the app, messages saved in Database, no duplicates, and scalability across restarts and multiple backend instances.
 
 ## Changes Made
 
@@ -25,7 +25,7 @@ This patch ensures stable send/receive from the app, messages saved in Firestore
 - **Location**: `whatsapp-backend/server.js:3937-4045`
 - **Mechanism**:
   - Query queued messages where `nextAttemptAt <= now`
-  - Use Firestore transaction to atomically claim message:
+  - Use Database transaction to atomically claim message:
     - Check `status == 'queued'` and `leaseUntil` not valid
     - Set `status='sending'`, `claimedBy=WORKER_ID`, `leaseUntil=now+60s`
   - After send: release lease (`leaseUntil=null`)
@@ -49,11 +49,11 @@ This patch ensures stable send/receive from the app, messages saved in Firestore
   - `message-receipt.update`: Maps receipt timestamps to `'delivered'` or `'read'`
 - **Updates**: Both handlers update `threads/{threadId}/messages/{messageId}` with new status
 
-### 6. Firestore Indexes
+### 6. Database Indexes
 - **Status**: ✅ Verified
-- **Location**: `firestore.indexes.json:49-66`
+- **Location**: `database.indexes.json:49-66`
 - **Index**: `outbox` collection with `accountId + status + nextAttemptAt` (ASC)
-- **Deployment**: Run `firebase deploy --only firestore:indexes`
+- **Deployment**: Run `supabase deploy --only database:indexes`
 
 ## Acceptance Tests
 
@@ -69,8 +69,8 @@ This patch ensures stable send/receive from the app, messages saved in Firestore
 
 **Verify**:
 ```bash
-# Query Firestore
-firebase firestore:get threads --limit 10
+# Query Database
+supabase database:get threads --limit 10
 # Check threadId format: should be `${accountId}__${clientJid}`
 ```
 
@@ -78,7 +78,7 @@ firebase firestore:get threads --limit 10
 **Steps**:
 1. Open chat in UI
 2. Send a message
-3. Immediately check Firestore
+3. Immediately check Database
 
 **Expected**:
 - Message doc appears in `threads/{threadId}/messages/{requestId}` with `status='queued'`
@@ -89,16 +89,16 @@ firebase firestore:get threads --limit 10
 **Verify**:
 ```bash
 # Check message doc
-firebase firestore:get "threads/{threadId}/messages/{requestId}"
+supabase database:get "threads/{threadId}/messages/{requestId}"
 
 # Check outbox doc
-firebase firestore:get "outbox/{requestId}"
+supabase database:get "outbox/{requestId}"
 ```
 
 ### C) Receive Inbound Message
 **Steps**:
 1. Send message from external WhatsApp to connected account
-2. Check Firestore
+2. Check Database
 
 **Expected**:
 - Message doc appears in `threads/{threadId}/messages/{messageId}` with `status='delivered'`
@@ -108,10 +108,10 @@ firebase firestore:get "outbox/{requestId}"
 **Verify**:
 ```bash
 # Check message doc
-firebase firestore:get "threads/{threadId}/messages/{messageId}"
+supabase database:get "threads/{threadId}/messages/{messageId}"
 
 # Check thread
-firebase firestore:get "threads/{threadId}"
+supabase database:get "threads/{threadId}"
 ```
 
 ### D) Status Updates (Delivery/Read)
@@ -127,13 +127,13 @@ firebase firestore:get "threads/{threadId}"
 **Verify**:
 ```bash
 # Monitor message doc status changes
-firebase firestore:get "threads/{threadId}/messages/{requestId}" --watch
+supabase database:get "threads/{threadId}/messages/{requestId}" --watch
 ```
 
 ### E) Duplicate Prevention (Double-Click Send)
 **Steps**:
 1. Rapidly click send button twice (or double-click)
-2. Check Firestore
+2. Check Database
 
 **Expected**:
 - Only one outbox doc created (idempotent `requestId`)
@@ -143,7 +143,7 @@ firebase firestore:get "threads/{threadId}/messages/{requestId}" --watch
 **Verify**:
 ```bash
 # Check outbox for duplicates
-firebase firestore:get outbox --where "threadId" "==" "{threadId}" --order-by "createdAt" desc --limit 5
+supabase database:get outbox --where "threadId" "==" "{threadId}" --order-by "createdAt" desc --limit 5
 ```
 
 ### F) Restart Safety (No Duplicates on Restart)
@@ -160,7 +160,7 @@ firebase firestore:get outbox --where "threadId" "==" "{threadId}" --order-by "c
 **Verify**:
 ```bash
 # Check outbox during restart
-firebase firestore:get outbox --where "status" "==" "sending" --limit 10
+supabase database:get outbox --where "status" "==" "sending" --limit 10
 
 # Check leaseUntil timestamps
 # Should see claimedBy and leaseUntil fields
@@ -180,15 +180,15 @@ firebase firestore:get outbox --where "status" "==" "sending" --limit 10
 **Verify**:
 ```bash
 # Check claimedBy field in outbox docs
-firebase firestore:get outbox --where "status" "==" "sending" --limit 10
+supabase database:get outbox --where "status" "==" "sending" --limit 10
 # Should see different claimedBy values for different messages
 ```
 
 ## Deployment
 
-### 1. Deploy Firestore Indexes
+### 1. Deploy Database Indexes
 ```bash
-firebase deploy --only firestore:indexes
+supabase deploy --only database:indexes
 ```
 
 ### 2. Deploy Backend
@@ -200,19 +200,19 @@ legacy hosting up
 
 ### 3. Verify Indexes
 ```bash
-# Check index status in Firebase Console
+# Check index status in Supabase Console
 # Or via CLI:
-firebase firestore:indexes
+supabase database:indexes
 ```
 
 ## Key Files Changed
 
 1. `whatsapp-backend/server.js`
    - Outbox worker: Added claim/lease transaction logic (lines 3937-4045)
-   - Status handlers: Implemented Firestore updates in `messages.update` and `message-receipt.update` (lines 947-1020, 3379-3450)
+   - Status handlers: Implemented Database updates in `messages.update` and `message-receipt.update` (lines 947-1020, 3379-3450)
    - Flush handlers: Already removed (lines 837, 3271)
 
-2. `firestore.indexes.json`
+2. `database.indexes.json`
    - Already has required composite index (lines 49-66)
 
 3. `kyc-app/kyc-app/src/components/ChatClientiRealtime.jsx`
@@ -239,5 +239,5 @@ firebase firestore:indexes
 
 ### Status not updating
 - Check `messages.update` and `message-receipt.update` handlers are async
-- Verify Firestore writes in handler logs
-- Check `waMessageId` matches between WhatsApp and Firestore
+- Verify Database writes in handler logs
+- Check `waMessageId` matches between WhatsApp and Database

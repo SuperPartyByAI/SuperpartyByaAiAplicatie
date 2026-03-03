@@ -1,12 +1,12 @@
 @echo off
 echo ========================================
-echo Deploy Firestore Rules
+echo Deploy Database Rules
 echo ========================================
 echo.
 
-REM Deschide Firebase Console in browser
-echo Deschid Firebase Console in browser...
-start https://console.firebase.google.com/project/superparty-frontend/firestore/rules
+REM Deschide Supabase Console in browser
+echo Deschid Supabase Console in browser...
+start https://console.supabase.google.com/project/superparty-frontend/database/rules
 
 echo.
 echo ========================================
@@ -15,16 +15,16 @@ echo ========================================
 echo 1. Autentifica-te cu superpartybyai@gmail.com
 echo 2. Click pe tab "Rules"
 echo 3. Sterge regulile existente
-echo 4. Copiaza si lipeste regulile din firestore.rules
+echo 4. Copiaza si lipeste regulile din database.rules
 echo 5. Click "Publish"
 echo.
-echo Fisierul cu reguli: firestore.rules
+echo Fisierul cu reguli: database.rules
 echo.
-echo Apasa orice tasta pentru a deschide fisierul firestore.rules...
+echo Apasa orice tasta pentru a deschide fisierul database.rules...
 pause >nul
 
-REM Deschide fisierul firestore.rules
-notepad firestore.rules
+REM Deschide fisierul database.rules
+notepad database.rules
 
 echo.
 echo ========================================

@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
  * Set admin and/or employee (staffProfiles) for a user.
- * Uses firebase-admin; credentials: GOOGLE_APPLICATION_CREDENTIALS, FIREBASE_*,
+ * Uses supabase-admin; credentials: GOOGLE_APPLICATION_CREDENTIALS, SUPABASE_*,
  * or functions/serviceAccountKey.json / whatsapp-backend/serviceAccountKey.json.
  *
  * Admin: only ADMIN_EMAIL (see _config.mjs) unless --force. Otherwise exit 1 with clear message.
@@ -26,7 +26,7 @@ import { ADMIN_EMAIL } from './_config.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
-const admin = require('firebase-admin');
+const admin = require('supabase-admin');
 
 function loadServiceAccount() {
   const cwd = path.resolve(__dirname, '..');
@@ -48,9 +48,9 @@ function loadServiceAccount() {
   };
   const gac = process.env.GOOGLE_APPLICATION_CREDENTIALS;
   if (gac) { const v = tryPath(gac); if (v) return { serviceAccount: v }; }
-  const fpath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH;
+  const fpath = process.env.SUPABASE_SERVICE_ACCOUNT_PATH;
   if (fpath) { const v = tryPath(fpath); if (v) return { serviceAccount: v }; }
-  const fjson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+  const fjson = process.env.SUPABASE_SERVICE_ACCOUNT_JSON;
   if (fjson) {
     const s = fjson.trim();
     const v = (s.startsWith('{') || s.startsWith('[')) ? tryJson(s) : tryPath(s);
@@ -75,7 +75,7 @@ function parseArgs() {
     console.log(`
 Usage: node scripts/set_admin_claims.mjs --project <ID> (--uid <UID> | --email <EMAIL>) [--admin] [--employee] [--force]
 
-  --project   Firebase project ID (required)
+  --project   Supabase project ID (required)
   --uid       User UID
   --email     User email (resolved to UID)
   --admin     Set users/{uid}.role=admin + custom claim admin=true
@@ -122,13 +122,13 @@ async function main() {
       admin.initializeApp({ credential: admin.credential.applicationDefault(), projectId: project });
     }
   } catch (e) {
-    console.error('Firebase Admin init failed:', e.message);
+    console.error('Supabase Admin init failed:', e.message);
     console.error('Use GOOGLE_APPLICATION_CREDENTIALS or gcloud auth application-default login.');
     process.exit(1);
   }
 
   const auth = admin.auth();
-  const db = admin.firestore();
+  const db = admin.database();
 
   let targetUid = uid;
   let targetEmail = email;
@@ -161,7 +161,7 @@ async function main() {
 
   if (doAdminActual) {
     await db.collection('users').doc(targetUid).set(
-      { role: 'admin', email: targetEmail ?? null, updatedAt: admin.firestore.FieldValue.serverTimestamp() },
+      { role: 'admin', email: targetEmail ?? null, updatedAt: admin.database.FieldValue.serverTimestamp() },
       { merge: true }
     );
     console.log('users/%s.role = "admin"', targetUid);
@@ -181,10 +181,10 @@ async function main() {
       uid: targetUid,
       email: targetEmail ?? null,
       role,
-      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.database.FieldValue.serverTimestamp(),
     };
     if (!snap.exists) {
-      data.createdAt = admin.firestore.FieldValue.serverTimestamp();
+      data.createdAt = admin.database.FieldValue.serverTimestamp();
       await ref.set(data);
       console.log(`staffProfiles/%s created with role=${role}`, targetUid);
     } else {

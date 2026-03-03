@@ -47,7 +47,7 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
     try {
-      // Direct Firebase call or via AuthService
+      // Direct Supabase call or via AuthService
       await Provider.of<AuthService>(context, listen: false).sendPasswordReset(_emailController.text.trim());
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(

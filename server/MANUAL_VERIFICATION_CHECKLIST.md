@@ -24,12 +24,12 @@ npm run emu
 ```
 **Așteaptă:** `✔  All emulators ready!`  
 **URL-uri:**
-- Firestore: http://127.0.0.1:8082
+- Database: http://127.0.0.1:8082
 - Functions: http://127.0.0.1:5002
 - Auth: http://127.0.0.1:9098
 - UI: http://127.0.0.1:4001
 
-### Terminal 2: Seed Firestore (după ce emulators pornesc)
+### Terminal 2: Seed Database (după ce emulators pornesc)
 ```powershell
 npm run seed:emu
 ```
@@ -88,7 +88,7 @@ flutter run --dart-define=USE_EMULATORS=true
 
 **Setup Admin (dacă nu ai admin):**
 ```powershell
-# În Firestore emulator UI: users/{uid} -> {role: "admin"}
+# În Database emulator UI: users/{uid} -> {role: "admin"}
 # SAU rulează:
 node tools/set_admin_claim.js --email admin@local.dev --project demo-test
 ```
@@ -152,15 +152,15 @@ node tools/set_admin_claim.js --email admin@local.dev --project demo-test
 
 ---
 
-### ✅ 8. Firestore Rules - Client Write Denied
+### ✅ 8. Database Rules - Client Write Denied
 **Pași:**
 1. În Flutter app, deschide DevTools console
-2. Încearcă să scrii direct în Firestore:
+2. Încearcă să scrii direct în Database:
 ```dart
 // În Dart console (dacă e disponibil) sau prin UI
-FirebaseFirestore.instance.collection('teamAssignments').doc('test').set({'test': true});
-FirebaseFirestore.instance.collection('adminActions').doc('test').set({'test': true});
-FirebaseFirestore.instance.collection('threads').doc('test').set({'test': true});
+SupabaseDatabase.instance.collection('teamAssignments').doc('test').set({'test': true});
+SupabaseDatabase.instance.collection('adminActions').doc('test').set({'test': true});
+SupabaseDatabase.instance.collection('threads').doc('test').set({'test': true});
 ```
 
 **Verificări:**
@@ -172,18 +172,18 @@ FirebaseFirestore.instance.collection('threads').doc('test').set({'test': true})
 ### ✅ 9. WhatsAppApiService - ProjectId Derived
 **Pași:**
 1. Deschide `superparty_flutter/lib/services/whatsapp_api_service.dart`
-2. Verifică că `_getFunctionsUrl()` folosește `Firebase.app().options.projectId`
+2. Verifică că `_getFunctionsUrl()` folosește `Supabase.app().options.projectId`
 
 **Verificări:**
 - [ ] Nu există hardcoded `'superparty-by-ai'` sau alte valori fixe
-- [ ] Codul derivează projectId din Firebase options
+- [ ] Codul derivează projectId din Supabase options
 
 ---
 
 ### ✅ 10. WhatsAppApiService - Emulator Support
 **Pași:**
 1. Rulează Flutter cu `--dart-define=USE_EMULATORS=true`
-2. Check logs pentru `[FirebaseService] 🔧 Using Firebase emulators`
+2. Check logs pentru `[SupabaseService] 🔧 Using Supabase emulators`
 
 **Verificări:**
 - [ ] Logs afișează că emulators sunt folosiți
@@ -234,7 +234,7 @@ npm run build
 | Error mapping 401 | ⬜ | Redirect la / |
 | Error mapping 403 | ⬜ | Redirect la /home |
 | Retry nu retriază 401/403 | ⬜ | Network monitoring necesar |
-| Firestore rules - client write denied | ⬜ | Permission denied pentru server-only |
+| Database rules - client write denied | ⬜ | Permission denied pentru server-only |
 | WhatsAppApiService projectId derived | ⬜ | Nu hardcoded |
 | WhatsAppApiService emulator support | ⬜ | USE_EMULATORS=true funcționează |
 | Husky Windows resilient | ⬜ | Non-blocking pe Windows |
@@ -247,6 +247,6 @@ npm run build
 **Dacă găsești probleme:**
 1. Notează pașii exacti pentru reproducere
 2. Verifică logs (Flutter console, Functions logs, Emulator UI)
-3. Verifică Firestore rules în Emulator UI (compilează fără erori?)
+3. Verifică Database rules în Emulator UI (compilează fără erori?)
 
 **Checklist complet = toate testele ✅ = PR ready pentru merge**

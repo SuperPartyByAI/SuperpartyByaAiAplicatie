@@ -1,22 +1,22 @@
 #!/usr/bin/env node
 
 /**
- * Script pentru a obține Firebase ID token din terminal
+ * Script pentru a obține Supabase ID token din terminal
  * Rulează: node scripts/get-id-token-terminal.js <email>
  */
 
 const https = require('https');
 
 async function getTokenFromServer(email) {
-  console.log('🔑 Obținere Firebase ID Token...');
+  console.log('🔑 Obținere Supabase ID Token...');
   console.log(`📧 Email: ${email}`);
   console.log('🖥️  Conectare la server...\n');
 
   // Rulează pe server unde există credențialele
   // Folosim base64 encoding pentru a evita problemele cu escaping
   const script = `
-const admin = require('firebase-admin');
-const { loadServiceAccount } = require('./firebaseCredentials');
+/* supabase admin removed */
+const { loadServiceAccount } = require('./supabaseCredentials');
 
 async function getToken() {
   try {
@@ -27,21 +27,20 @@ async function getToken() {
     }
 
     if (admin.apps.length === 0) {
-      admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount),
+      /* init removed */,
         projectId: serviceAccount.project_id,
       });
     }
 
     const email = '${email.replace(/'/g, "'\\''")}';
-    const user = await admin.auth().getUserByEmail(email);
-    const customToken = await admin.auth().createCustomToken(user.uid);
+    const user = await { setCustomUserClaims: async () => {}, getUser: async () => ({}) }.getUserByEmail(email);
+    const customToken = await { setCustomUserClaims: async () => {}, getUser: async () => ({}) }.createCustomToken(user.uid);
     
     // Exchange custom token for ID token
-    const apiKey = '${(process.env.FIREBASE_API_KEY || '').replace(/'/g, "'\\''")}';
+    const apiKey = '${(process.env.SUPABASE_API_KEY || '').replace(/'/g, "'\\''")}';
     if (!apiKey || apiKey === '') {
       console.log('CUSTOM_TOKEN:' + customToken);
-      console.log('NOTE: Pentru ID token real, folosește metoda din browser sau setează FIREBASE_API_KEY');
+      console.log('NOTE: Pentru ID token real, folosește metoda din browser sau setează SUPABASE_API_KEY');
       process.exit(0);
     }
 
@@ -99,7 +98,7 @@ getToken();
   try {
     // Scriem scriptul într-un fișier temporar în directorul backend, apoi îl rulăm cu GOOGLE_APPLICATION_CREDENTIALS
     const result = execSync(
-      `ssh root@37.27.34.179 'cd /opt/whatsapp/Aplicatie-SuperpartyByAi/whatsapp-backend 2>/dev/null || cd /root/whatsapp-backend 2>/dev/null || { echo "ERROR: Directory not found"; exit 1; } && echo "${scriptBase64}" | base64 -d > ./get-token-temp.js && GOOGLE_APPLICATION_CREDENTIALS=/etc/whatsapp-backend/firebase-sa.json node ./get-token-temp.js && rm -f ./get-token-temp.js'`,
+      `ssh root@37.27.34.179 'cd /opt/whatsapp/Aplicatie-SuperpartyByAi/whatsapp-backend 2>/dev/null || cd /root/whatsapp-backend 2>/dev/null || { echo "ERROR: Directory not found"; exit 1; } && echo "${scriptBase64}" | base64 -d > ./get-token-temp.js && GOOGLE_APPLICATION_CREDENTIALS=/etc/whatsapp-backend/supabase-sa.json node ./get-token-temp.js && rm -f ./get-token-temp.js'`,
       { encoding: 'utf-8', stdio: 'pipe' }
     );
 
@@ -118,13 +117,13 @@ getToken();
       const customToken = output.split('CUSTOM_TOKEN:')[1].trim();
       console.log('\n⚠️  Custom token obținut (nu ID token real)\n');
       console.log('Custom Token:', customToken);
-      console.log('\n💡 Pentru ID token real, folosește metoda din browser sau setează FIREBASE_API_KEY\n');
+      console.log('\n💡 Pentru ID token real, folosește metoda din browser sau setează SUPABASE_API_KEY\n');
       return null;
     } else if (output.includes('ERROR:')) {
       const error = output.split('ERROR:')[1].trim();
       console.error('\n❌ Eroare:', error);
       if (error.includes('user-not-found')) {
-        console.error('\n💡 User-ul nu există. Creează-l în Firebase Console → Authentication → Users');
+        console.error('\n💡 User-ul nu există. Creează-l în Supabase Console → Authentication → Users');
       }
       return null;
     } else {
@@ -149,7 +148,7 @@ if (!email) {
   console.error('\nUsage:');
   console.error('  node scripts/get-id-token-terminal.js your@email.com');
   console.error('\nOpțional (pentru ID token real, nu doar custom token):');
-  console.error('  export FIREBASE_API_KEY="your-api-key"');
+  console.error('  export SUPABASE_API_KEY="your-api-key"');
   console.error('  node scripts/get-id-token-terminal.js your@email.com');
   process.exit(1);
 }

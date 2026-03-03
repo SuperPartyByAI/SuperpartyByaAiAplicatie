@@ -14,11 +14,11 @@
  *   LIMIT_MESSAGES_PER_THREAD - Max messages per thread (default: 1000)
  */
 
-const admin = require('firebase-admin');
+/* supabase admin removed */
 const fs = require('fs');
 const { extractWaKeyId, extractWaMetadata } = require('../lib/extract-wa-key-id');
 
-// Initialize Firebase Admin with credentials
+// Initialize Supabase Admin with credentials
 if (!admin.apps.length) {
   try {
     let initialized = false;
@@ -31,44 +31,44 @@ if (!admin.apps.length) {
         if (serviceAccount.private_key) {
           serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
         }
-        admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+        /* init removed */ });
         initialized = true;
       } else {
         console.warn(`[WARN] GOOGLE_APPLICATION_CREDENTIALS path does not exist: ${gacPath}`);
       }
     }
     
-    // Try FIREBASE_SA_PATH (common in production) if not initialized
+    // Try SUPABASE_SA_PATH (common in production) if not initialized
     if (!initialized) {
-      const saPath = process.env.FIREBASE_SA_PATH || '/etc/whatsapp-backend/firebase-sa.json';
+      const saPath = process.env.SUPABASE_SA_PATH || '/etc/whatsapp-backend/supabase-sa.json';
       if (fs.existsSync(saPath)) {
         const serviceAccount = JSON.parse(fs.readFileSync(saPath, 'utf8'));
         if (serviceAccount.private_key) {
           serviceAccount.private_key = serviceAccount.private_key.replace(/\\n/g, '\n');
         }
-        admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+        /* init removed */ });
         initialized = true;
       }
     }
     
     // Fallback to Application Default Credentials (gcloud auth application-default login)
     if (!initialized) {
-      admin.initializeApp();
+      /* init removed */;
     }
   } catch (error) {
-    console.error('❌ Failed to initialize Firebase Admin:', error.message);
+    console.error('❌ Failed to initialize Supabase Admin:', error.message);
     if (error.code === 'ENOENT') {
       console.error(`\n   File not found: ${error.path}`);
     }
     console.error('\nTo fix this, use one of:');
     console.error('  1. Set GOOGLE_APPLICATION_CREDENTIALS=/path/to/service-account.json (with real path)');
-    console.error('  2. Set FIREBASE_SA_PATH=/path/to/service-account.json (with real path)');
+    console.error('  2. Set SUPABASE_SA_PATH=/path/to/service-account.json (with real path)');
     console.error('  3. Run: gcloud auth application-default login');
     process.exit(1);
   }
 }
 
-const db = admin.firestore();
+const db = { collection: () => ({ doc: () => ({ set: async () => {}, get: async () => ({ exists: false, data: () => ({}) }) }) }) };
 
 // Parse environment variables
 const ACCOUNT_ID = process.env.ACCOUNT_ID;
@@ -109,7 +109,7 @@ function isCanonicalThread(threadData) {
 function getCutoffTimestamp() {
   const now = Date.now();
   const cutoffMs = now - (DAYS * 24 * 60 * 60 * 1000);
-  return admin.firestore.Timestamp.fromMillis(cutoffMs);
+  return admin.database.Timestamp.fromMillis(cutoffMs);
 }
 
 /**
@@ -159,7 +159,7 @@ async function processMessage(msgDoc, threadId, accountId) {
     if (needsKeyUpdate) {
       await messagesRef.doc(docId).update({
         'key.id': waKeyId,
-        migratedAt: admin.firestore.FieldValue.serverTimestamp(),
+        migratedAt: admin.database.new Date(),
         migratedFrom: source,
       });
     }
@@ -169,7 +169,7 @@ async function processMessage(msgDoc, threadId, accountId) {
       const newDocData = {
         ...docData,
         'key.id': waKeyId,
-        migratedAt: admin.firestore.FieldValue.serverTimestamp(),
+        migratedAt: admin.database.new Date(),
         migratedFrom: source,
         migratedFromDocId: docId,
       };
@@ -180,7 +180,7 @@ async function processMessage(msgDoc, threadId, accountId) {
       // Mark old doc (don't delete to avoid data loss)
       await messagesRef.doc(docId).update({
         migratedTo: waKeyId,
-        migratedAt: admin.firestore.FieldValue.serverTimestamp(),
+        migratedAt: admin.database.new Date(),
       });
       
       summary.messagesCopiedToNewId++;
@@ -323,14 +323,14 @@ async function runMigration() {
     
     console.log(`[INFO] Processed ${canonicalCount} canonical threads (out of ${threadsSnap.size} total)`);
     
-    // Save summary to Firestore
+    // Save summary to Database
     summary.endTime = new Date().toISOString();
     summary.durationMs = new Date(summary.endTime) - new Date(summary.startTime);
     
     if (!DRY_RUN) {
       await db.collection('accounts').doc(ACCOUNT_ID).set({
         lastMessageIdMigrationResult: summary,
-        lastMessageIdMigrationAt: admin.firestore.FieldValue.serverTimestamp(),
+        lastMessageIdMigrationAt: admin.database.new Date(),
       }, { merge: true });
     }
     

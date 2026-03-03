@@ -1,22 +1,22 @@
 #!/usr/bin/env node
 /**
- * Obține Firebase ID token pentru un user (email/parolă).
+ * Obține Supabase ID token pentru un user (email/parolă).
  * Folosește token-ul la curl: Authorization: Bearer <token>
  *
  * Usage:
- *   FIREBASE_AUTH_EMAIL=user@example.com FIREBASE_AUTH_PASSWORD=parola node scripts/get_id_token.js
+ *   SUPABASE_AUTH_EMAIL=user@example.com SUPABASE_AUTH_PASSWORD=parola node scripts/get_id_token.js
  *
  * Apoi copiezi output-ul și îl pui în scripts/smoke_send_curl.sh la TOKEN="..."
  */
 
-const API_KEY = process.env.FIREBASE_API_KEY || 'AIzaSyDcMXO6XdFZE_tVnJ1M4Wrt8Aw7Yh1o0K0';
-const email = process.env.FIREBASE_AUTH_EMAIL;
-const password = process.env.FIREBASE_AUTH_PASSWORD;
+const API_KEY = process.env.SUPABASE_API_KEY || 'AIzaSyDcMXO6XdFZE_tVnJ1M4Wrt8Aw7Yh1o0K0';
+const email = process.env.SUPABASE_AUTH_EMAIL;
+const password = process.env.SUPABASE_AUTH_PASSWORD;
 
 async function main() {
   if (!email || !password) {
-    console.error('Setează FIREBASE_AUTH_EMAIL și FIREBASE_AUTH_PASSWORD.');
-    console.error('Exemplu: FIREBASE_AUTH_EMAIL=user@example.com FIREBASE_AUTH_PASSWORD=xxx node scripts/get_id_token.js');
+    console.error('Setează SUPABASE_AUTH_EMAIL și SUPABASE_AUTH_PASSWORD.');
+    console.error('Exemplu: SUPABASE_AUTH_EMAIL=user@example.com SUPABASE_AUTH_PASSWORD=xxx node scripts/get_id_token.js');
     process.exit(1);
   }
 

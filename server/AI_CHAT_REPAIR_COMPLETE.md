@@ -33,12 +33,12 @@ if (user == null) {
 
 ### Cause 2: Poor Error Mapping
 
-**Problem**: All `FirebaseFunctionsException` errors showed generic "Conexiune eșuată"  
+**Problem**: All `SupabaseFunctionsException` errors showed generic "Conexiune eșuată"  
 **Impact**: Users couldn't understand what went wrong (auth? config? network?)  
-**Fix**: Implemented `_mapFirebaseError()` function with specific mappings
+**Fix**: Implemented `_mapSupabaseError()` function with specific mappings
 
 ```dart
-String _mapFirebaseError(FirebaseFunctionsException e) {
+String _mapSupabaseError(SupabaseFunctionsException e) {
   switch (e.code) {
     case 'unauthenticated':
       return 'Trebuie să fii logat ca să folosești AI...';
@@ -74,8 +74,8 @@ String _mapFirebaseError(FirebaseFunctionsException e) {
 print('[AIChatScreen] User auth state: uid=${user?.uid}, email=${user?.email}');
 print('[AIChatScreen] Calling chatWithAI function in region: us-central1');
 print('[AIChatScreen] Sending ${messagesToSend.length} messages to function');
-print('[AIChatScreen] FirebaseFunctionsException code: ${e.code}');
-print('[AIChatScreen] FirebaseFunctionsException message: ${e.message}');
+print('[AIChatScreen] SupabaseFunctionsException code: ${e.code}');
+print('[AIChatScreen] SupabaseFunctionsException message: ${e.message}');
 ```
 
 **Result**: ✅ Can diagnose issues in 30 seconds from logs
@@ -101,12 +101,12 @@ print('[AIChatScreen] FirebaseFunctionsException message: ${e.message}');
 
 ### A) Flutter - Auth Guard ✅
 
-**Requirement**: Check `FirebaseAuth.instance.currentUser` before calling function
+**Requirement**: Check `SupabaseAuth.instance.currentUser` before calling function
 
 **Implementation**:
 
 ```dart
-final user = FirebaseAuth.instance.currentUser;
+final user = SupabaseAuth.instance.currentUser;
 print('[AIChatScreen] User auth state: uid=${user?.uid}, email=${user?.email}');
 
 if (user == null) {
@@ -124,9 +124,9 @@ if (user == null) {
 
 ### B) Flutter - Error Mapping ✅
 
-**Requirement**: Map all `FirebaseFunctionsException` codes to user-friendly messages
+**Requirement**: Map all `SupabaseFunctionsException` codes to user-friendly messages
 
-**Implementation**: `_mapFirebaseError()` function with 7 error codes + default
+**Implementation**: `_mapSupabaseError()` function with 7 error codes + default
 
 **Test Coverage**: 9 test cases in `ai_chat_error_mapping_test.dart`
 
@@ -181,7 +181,7 @@ if (!groqKey) {
   console.error(`[${requestId}] GROQ_API_KEY not configured - neither in secrets nor env`);
   throw new functions.https.HttpsError(
     'failed-precondition',
-    'GROQ_API_KEY not configured. Please set the secret: firebase functions:secrets:set GROQ_API_KEY'
+    'GROQ_API_KEY not configured. Please set the secret: supabase functions:secrets:set GROQ_API_KEY'
   );
 }
 ```
@@ -206,7 +206,7 @@ if (!groqKey) {
 2. **test-ai-functions.md** (updated)
    - Changed all OPENAI_API_KEY → GROQ_API_KEY
    - Added Groq API key setup instructions
-   - Added Firebase Secrets commands
+   - Added Supabase Secrets commands
 
 **Verified**: ✅ Zero OPENAI references, all docs use GROQ_API_KEY
 
@@ -259,15 +259,15 @@ if (!groqKey) {
 **Steps**:
 
 1. Login to app
-2. Delete secret: `firebase functions:secrets:delete GROQ_API_KEY`
-3. Redeploy: `firebase deploy --only functions:chatWithAI`
+2. Delete secret: `supabase functions:secrets:delete GROQ_API_KEY`
+3. Redeploy: `supabase deploy --only functions:chatWithAI`
 4. Send message
 
 **Expected**:
 
 - ✅ UI shows "AI nu este configurat pe server (cheie API lipsă)..."
 - ✅ Function logs: `[req_xxx] GROQ_API_KEY not configured`
-- ✅ Flutter logs: `FirebaseFunctionsException code: failed-precondition`
+- ✅ Flutter logs: `SupabaseFunctionsException code: failed-precondition`
 
 **Status**: ✅ PASS (verified in logs)
 
@@ -278,8 +278,8 @@ if (!groqKey) {
 **Steps**:
 
 1. Login to app
-2. Set secret: `firebase functions:secrets:set GROQ_API_KEY`
-3. Redeploy: `firebase deploy --only functions:chatWithAI`
+2. Set secret: `supabase functions:secrets:set GROQ_API_KEY`
+3. Redeploy: `supabase deploy --only functions:chatWithAI`
 4. Send message
 
 **Expected**:
@@ -322,7 +322,7 @@ if (!groqKey) {
 
 1. **superparty_flutter/lib/screens/ai_chat/ai_chat_screen.dart** (+70 lines)
    - Added auth guard before function call
-   - Implemented `_mapFirebaseError()` with 7 error codes
+   - Implemented `_mapSupabaseError()` with 7 error codes
    - Added diagnostic logging (uid, function calls, errors)
 
 2. **functions/index.js** (+8 lines)
@@ -390,15 +390,15 @@ flutter logs | grep "AIChatScreen.*User auth state"
 # Expected: uid=xxx, email=xxx
 
 # 2. Check function deployment
-firebase functions:list | grep chatWithAI
+supabase functions:list | grep chatWithAI
 # Expected: chatWithAI (us-central1)
 
 # 3. Check GROQ_API_KEY secret
-firebase functions:secrets:access GROQ_API_KEY
+supabase functions:secrets:access GROQ_API_KEY
 # Expected: gsk_...
 
 # 4. Check function logs
-firebase functions:log --only chatWithAI --lines 5
+supabase functions:log --only chatWithAI --lines 5
 # Expected: "GROQ_API_KEY loaded from secrets"
 ```
 

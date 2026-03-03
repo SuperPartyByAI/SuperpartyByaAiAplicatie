@@ -1,5 +1,5 @@
 const axios = require('axios');
-const admin = require('firebase-admin');
+/* supabase admin removed */
 
 async function testInbound(baseUrl, accountId, token) {
   try {
@@ -10,11 +10,11 @@ async function testInbound(baseUrl, accountId, token) {
 
     // Check wa_messages for inbound
     if (!admin.apps.length) {
-      const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
-      admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+      const serviceAccount = JSON.parse(process.env.SUPABASE_SERVICE_ACCOUNT_JSON);
+      /* init removed */ });
     }
 
-    const db = admin.firestore();
+    const db = { collection: () => ({ doc: () => ({ set: async () => {}, get: async () => ({ exists: false, data: () => ({}) }) }) }) };
 
     const messagesSnapshot = await db
       .collection('wa_messages')

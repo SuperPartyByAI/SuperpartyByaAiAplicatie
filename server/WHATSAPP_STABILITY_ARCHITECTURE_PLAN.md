@@ -23,7 +23,7 @@ Aplicatie-SuperpartyByAi/
 │   ├── .baileys_auth/         # Local session storage (1495 files)
 │   └── lib/
 │       └── persistence/
-│           └── firestore-auth.js  # Firestore backup layer
+│           └── database-auth.js  # Database backup layer
 ├── legacy hosting.json               # legacy hosting deployment config
 └── whatsapp-server.js         # Alternative server (Socket.io version)
 ```
@@ -33,7 +33,7 @@ Aplicatie-SuperpartyByAi/
 - **Framework:** Express.js
 - **WhatsApp Library:** `@whiskeysockets/baileys` v7.0.0-rc.9
 - **Session Storage:** `useMultiFileAuthState` (multi-file auth state)
-- **Backup:** Firestore (`USE_FIRESTORE_BACKUP = true`)
+- **Backup:** Database (`USE_DATABASE_BACKUP = true`)
 - **Platform:** legacy hosting (Linux containers)
 
 ### 1.3 Current Session Storage Path Logic
@@ -82,7 +82,7 @@ const authDir =
 - **Single Process Model:** One Node.js process manages all 30 accounts
 - **Connection Map:** In-memory `Map<accountId, connection>` (lines 284-285)
 - **Health Monitoring:** `connectionHealth` Map tracking last events (lines 142-144)
-- **Recovery:** Firestore restore on cold start (lines 3072-3153)
+- **Recovery:** Database restore on cold start (lines 3072-3153)
 - **Graceful Shutdown:** SIGTERM/SIGINT handlers (NOT present in visible code)
 
 ### 1.6 Missing Pieces (Gaps)
@@ -119,7 +119,7 @@ const authDir =
 
 **Health Checks:**
 - Liveness: Service responds to HTTP requests
-- Readiness: All 30 accounts loaded, Firestore connected, volume mounted
+- Readiness: All 30 accounts loaded, Database connected, volume mounted
 - Per-account: Each account has status ("connected", "disconnected", "needs_qr", etc.)
 
 **Monitoring:**
@@ -136,8 +136,8 @@ const authDir =
 | Browser crash | Socket disconnects, no events | Auto-detect → restart browser context | 5-10s |
 | WhatsApp logout | QR code required, disconnected event | Mark as "needs_qr", surface via API | Immediate |
 | Network hiccup | Connection timeout | Exponential backoff retry | 1-5s |
-| Firestore outage | Firestore write fails | Continue with disk-only, log warning | N/A (graceful degradation) |
-| Volume unmount | `SESSIONS_PATH` not writable | Fallback to Firestore restore, alert | Immediate |
+| Database outage | Database write fails | Continue with disk-only, log warning | N/A (graceful degradation) |
+| Volume unmount | `SESSIONS_PATH` not writable | Fallback to Database restore, alert | Immediate |
 
 ---
 
@@ -265,8 +265,8 @@ NODE_ENV=production
 # Session Storage (CRITICAL)
 SESSIONS_PATH=/data/sessions
 
-# Firebase (for backup/restore)
-FIREBASE_SERVICE_ACCOUNT_JSON={...}  # JSON string
+# Supabase (for backup/restore)
+SUPABASE_SERVICE_ACCOUNT_JSON={...}  # JSON string
 
 # Admin/Health
 ADMIN_TOKEN=secure-random-token
@@ -337,7 +337,7 @@ const ACCOUNT_IDS = Array.from({ length: 30 }, (_, i) => `WA-${String(i + 1).pad
 **Alternative (if phone mapping needed):**
 - Keep deterministic `generateAccountId(phone)` for uniqueness
 - Add `displayName: WA-01` metadata field
-- Store mapping in Firestore: `account_metadata/{accountId} → { displayName: "WA-01", phone: "+407..." }`
+- Store mapping in Database: `account_metadata/{accountId} → { displayName: "WA-01", phone: "+407..." }`
 
 **Recommendation:** Keep deterministic hashing for uniqueness, add display names as metadata.
 
@@ -395,9 +395,9 @@ async function gracefulShutdown(signal) {
       }
     }
 
-    // 4. Backup to Firestore (if available)
-    if (USE_FIRESTORE_BACKUP && firestoreAvailable) {
-      console.log('💾 Backing up all sessions to Firestore...');
+    // 4. Backup to Database (if available)
+    if (USE_DATABASE_BACKUP && databaseAvailable) {
+      console.log('💾 Backing up all sessions to Database...');
       // Iterate through all session directories and backup
       // (implementation details in Step 4.4)
     }
@@ -428,7 +428,7 @@ process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 **Current:** Accounts loaded on-demand via `/api/whatsapp/add-account`  
 **Recommended:** Load all 30 sessions from disk on startup
 
-**File:** `server.js` (add after Firebase initialization, before Express routes)
+**File:** `server.js` (add after Supabase initialization, before Express routes)
 
 **Implementation:**
 ```javascript
@@ -455,7 +455,7 @@ async function bootSequence() {
 
   console.log(`📁 Found ${sessionDirs.length} session directories`);
 
-  // 3. Restore accounts from Firestore (if available) or disk
+  // 3. Restore accounts from Database (if available) or disk
   const restorePromises = [];
   for (const accountId of sessionDirs) {
     const sessionPath = path.join(authDir, accountId);
@@ -467,11 +467,11 @@ async function bootSequence() {
       restorePromises.push(restoreSingleAccount(accountId).catch(err => {
         console.error(`❌ [${accountId}] Restore failed:`, err.message);
       }));
-    } else if (USE_FIRESTORE_BACKUP && firestoreAvailable) {
-      // No disk session, try Firestore restore
-      console.log(`🔄 [${accountId}] No disk session, trying Firestore...`);
+    } else if (USE_DATABASE_BACKUP && databaseAvailable) {
+      // No disk session, try Database restore
+      console.log(`🔄 [${accountId}] No disk session, trying Database...`);
       restorePromises.push(restoreSingleAccount(accountId).catch(err => {
-        console.error(`❌ [${accountId}] Firestore restore failed:`, err.message);
+        console.error(`❌ [${accountId}] Database restore failed:`, err.message);
       }));
     }
   }
@@ -569,14 +569,14 @@ app.get('/health', (req, res) => {
       exists: fs.existsSync(authDir),
       writable: isWritable,
     },
-    firestore: firestoreAvailable && !!db,
+    database: databaseAvailable && !!db,
     accounts: {
       total: connections.size,
       connected: Array.from(connections.values()).filter(acc => acc.status === 'connected').length,
     },
   };
 
-  const isReady = checks.storage.exists && checks.storage.writable && checks.firestore;
+  const isReady = checks.storage.exists && checks.storage.writable && checks.database;
 
   res.status(isReady ? 200 : 503).json({
     status: isReady ? 'healthy' : 'unhealthy',
@@ -605,8 +605,8 @@ function redactLogMessage(message) {
   // Redact tokens (Bearer tokens, etc.)
   message = message.replace(/Bearer\s+[A-Za-z0-9_-]{20,}/g, 'Bearer [REDACTED]');
 
-  // Redact Firebase service account keys
-  message = message.replace(/"private_key":\s*"[^"]+"/g, '"private_key": "[REDACTED]"');
+  // Redact Supabase service account keys
+  message = message.replace(/"private_key":\s*"[^"]+"/g, '"private_key":"[REDACTED_GCP]"');
 
   return message;
 }
@@ -904,7 +904,7 @@ git push
 # 2. Check legacy hosting logs for any plaintext:
 #    - Phone numbers (should be +407****97 format)
 #    - Tokens (should be [REDACTED])
-#    - Firebase keys (should be [REDACTED])
+#    - Supabase keys (should be [REDACTED])
 ```
 
 **Command:**
@@ -926,7 +926,7 @@ legacy hosting logs | grep -E '\+\d{10,}|Bearer\s+\w{20,}|private_key' | head -2
 **Rollback:**
 1. Remove `SESSIONS_PATH` env var
 2. Service will fallback to `.baileys_auth` (ephemeral)
-3. Sessions will restore from Firestore backup (if enabled)
+3. Sessions will restore from Database backup (if enabled)
 4. Fix volume mount, then set `SESSIONS_PATH` again
 
 **Prevention:** Add health check that fails if volume not writable (Step 4.5)
@@ -961,13 +961,13 @@ async function bootSequence() {
 
 ---
 
-### 7.3 If Firestore Backup Fails
+### 7.3 If Database Backup Fails
 
-**Symptom:** Firestore writes fail, but disk sessions work
+**Symptom:** Database writes fail, but disk sessions work
 
 **Behavior:** Service continues with disk-only storage (graceful degradation)
 
-**No Rollback Needed:** Firestore is backup layer, not primary storage
+**No Rollback Needed:** Database is backup layer, not primary storage
 
 ---
 
@@ -1024,7 +1024,7 @@ async function bootSequence() {
 - `/whatsapp-backend/package.json` (dependencies checked)
 - `/whatsapp-backend/Dockerfile` (checked for Chromium deps)
 - `/legacy hosting.json` (deployment config checked)
-- `/whatsapp-backend/lib/persistence/firestore-auth.js` (exists, not read)
+- `/whatsapp-backend/lib/persistence/database-auth.js` (exists, not read)
 
 **Files Not Found (but expected):**
 - No `Procfile` (using legacy hosting Nixpacks instead)

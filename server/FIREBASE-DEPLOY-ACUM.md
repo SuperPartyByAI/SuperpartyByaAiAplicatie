@@ -1,14 +1,14 @@
-# 🔥 Deploy WhatsApp pe Firebase - ACUM!
+# 🔥 Deploy WhatsApp pe Supabase - ACUM!
 
 ## ✅ Ce Am Pregătit (100% Gata):
 
-- ✅ Structură Firebase Functions creată
+- ✅ Structură Supabase Functions creată
 - ✅ Cod WhatsApp copiat în `functions/`
 - ✅ `package.json` configurat
-- ✅ `firebase.json` creat
-- ✅ `.firebaserc` configurat (project: superparty-frontend)
+- ✅ `supabase.json` creat
+- ✅ `.supabaserc` configurat (project: superparty-frontend)
 - ✅ Dependencies instalate
-- ✅ Firebase CLI instalat (v15.1.0)
+- ✅ Supabase CLI instalat (v15.1.0)
 
 **Status:** 95% GATA - Lipsește doar autentificarea și deploy!
 
@@ -16,25 +16,25 @@
 
 ## 🚀 Pași Finali (5 minute):
 
-### Pas 1: Autentificare Firebase (2 min)
+### Pas 1: Autentificare Supabase (2 min)
 
 **În terminal, rulează:**
 
 ```bash
-firebase login
+supabase login
 ```
 
 **Ce se întâmplă:**
 
 1. Se deschide browser
-2. Selectează contul Google (cel cu care ai creat Firebase project)
+2. Selectează contul Google (cel cu care ai creat Supabase project)
 3. Acceptă permisiunile
 4. Revino în terminal
 
 **SAU** dacă nu merge browser:
 
 ```bash
-firebase login --no-localhost
+supabase login --no-localhost
 ```
 
 Apoi copiază link-ul în browser și paste token-ul înapoi.
@@ -44,7 +44,7 @@ Apoi copiază link-ul în browser și paste token-ul înapoi.
 ### Pas 2: Verificare Project (30s)
 
 ```bash
-firebase projects:list
+supabase projects:list
 ```
 
 **Ar trebui să vezi:**
@@ -62,7 +62,7 @@ firebase projects:list
 ### Pas 3: Deploy Functions (2 min)
 
 ```bash
-firebase deploy --only functions
+supabase deploy --only functions
 ```
 
 **Output așteptat:**
@@ -104,7 +104,7 @@ curl https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp
 ```json
 {
   "status": "online",
-  "service": "SuperParty WhatsApp on Firebase",
+  "service": "SuperParty WhatsApp on Supabase",
   "version": "5.0.0",
   "accounts": 0
 }
@@ -149,12 +149,12 @@ curl https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp/api/wha
 
 ## ⚠️ Troubleshooting
 
-### Problema: "firebase: command not found"
+### Problema: "supabase: command not found"
 
 **Soluție:**
 
 ```bash
-npm install -g firebase-tools
+npm install -g supabase-tools
 ```
 
 ### Problema: "Error: Failed to authenticate"
@@ -162,33 +162,33 @@ npm install -g firebase-tools
 **Soluție:**
 
 ```bash
-firebase logout
-firebase login
+supabase logout
+supabase login
 ```
 
 ### Problema: "Permission denied"
 
-**Soluție:** Verifică că ești owner pe project `superparty-frontend` în Firebase Console
+**Soluție:** Verifică că ești owner pe project `superparty-frontend` în Supabase Console
 
 ### Problema: "Billing account required"
 
 **Soluție:**
 
-1. Mergi la https://console.firebase.google.com
+1. Mergi la https://console.supabase.google.com
 2. Selectează project `superparty-frontend`
 3. Upgrade to Blaze plan (pay-as-you-go)
 4. **Cost:** $0-8/lună pentru 20 conturi WhatsApp
 
 ---
 
-## 💰 Cost Real Firebase
+## 💰 Cost Real Supabase
 
 | Item                      | Gratuit   | După Gratuit    |
 | ------------------------- | --------- | --------------- |
 | **Functions invocations** | 2M/lună   | $0.40/1M        |
 | **Functions compute**     | 400K GB-s | $0.0000025/GB-s |
-| **Firestore reads**       | 50K/zi    | $0.06/100K      |
-| **Firestore writes**      | 20K/zi    | $0.18/100K      |
+| **Database reads**       | 50K/zi    | $0.06/100K      |
+| **Database writes**      | 20K/zi    | $0.18/100K      |
 | **Bandwidth**             | 10GB/lună | $0.12/GB        |
 
 **Pentru 20 conturi WhatsApp:** $0-8/lună (probabil $2-5)
@@ -199,7 +199,7 @@ firebase login
 
 ### Keep-Alive (Important!)
 
-Firebase Functions au cold start după 15 min inactivitate. Pentru WhatsApp, trebuie keep-alive:
+Supabase Functions au cold start după 15 min inactivitate. Pentru WhatsApp, trebuie keep-alive:
 
 **Opțiunea 1: Cron Job (Recomandat)**
 
@@ -209,7 +209,7 @@ Folosește un serviciu gratuit gen [cron-job.org](https://cron-job.org):
 - Interval: La 5 minute
 - Cost: Gratuit
 
-**Opțiunea 2: Cloud Scheduler (Firebase)**
+**Opțiunea 2: Cloud Scheduler (Supabase)**
 
 ```bash
 # Creează job care rulează la 5 min
@@ -225,22 +225,22 @@ Cost: $0.10/lună
 
 ## 📊 Monitoring
 
-### Logs Firebase:
+### Logs Supabase:
 
 ```bash
-firebase functions:log
+supabase functions:log
 ```
 
 ### Logs în Console:
 
-https://console.firebase.google.com/project/superparty-frontend/functions/logs
+https://console.supabase.google.com/project/superparty-frontend/functions/logs
 
 ---
 
 ## ✅ Checklist Final
 
-- [ ] `firebase login` executat
-- [ ] `firebase deploy --only functions` executat
+- [ ] `supabase login` executat
+- [ ] `supabase deploy --only functions` executat
 - [ ] URL Functions primit
 - [ ] Test health check OK
 - [ ] Cont WhatsApp adăugat
@@ -269,8 +269,8 @@ https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp
 **Gata să deploy-ezi? Rulează:**
 
 ```bash
-firebase login
-firebase deploy --only functions
+supabase login
+supabase deploy --only functions
 ```
 
 🚀 **Let's go!**

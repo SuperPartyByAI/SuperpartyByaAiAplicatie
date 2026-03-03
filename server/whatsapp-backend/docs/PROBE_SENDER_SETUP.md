@@ -22,9 +22,9 @@ PROBE_SENDER_ACCOUNT_ID=account_1767042206934
 
 The inbound probe job will use this account to send test messages.
 
-### Method 2: Firestore Role Assignment
+### Method 2: Database Role Assignment
 
-1. Navigate to Firestore console
+1. Navigate to Database console
 2. Find the account document: `wa_accounts/{accountId}`
 3. Add field: `role: "probe_sender"`
 4. Save changes
@@ -113,7 +113,7 @@ Latest probe:
          │
          ▼
 ┌─────────────────┐
-│ Firestore       │
+│ Database       │
 │ wa_metrics/     │
 │ longrun/probes/ │
 └─────────────────┘
@@ -126,7 +126,7 @@ Latest probe:
 - **Expected latency:** < 5 seconds
 - **Pass criteria:** Message received within timeout
 
-## Firestore Schema
+## Database Schema
 
 Inbound probe document:
 

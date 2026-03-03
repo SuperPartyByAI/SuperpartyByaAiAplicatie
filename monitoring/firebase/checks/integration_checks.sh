@@ -15,7 +15,7 @@ if [ "$DRY_RUN" = "true" ]; then
   echo "[DRY RUN] Bypassing actual integration probe against real network."
 else
   # 1. Server-Only Field Check (e.g. role)
-  # curl -X PATCH https://firestore.googleapis.com/... -d '{"fields":{"role":{"stringValue":"admin"}}}'
+  # curl -X PATCH https://database.googleapis.com/... -d '{"fields":{"role":{"stringValue":"admin"}}}'
   echo "Executing simulated server-only write check (Client context)... [BLOCKED]"
   # if [ $? -eq 0 ]; then echo "FAIL: Client was able to overwrite role!"; FAILURES=$((FAILURES+1)); fi
 fi

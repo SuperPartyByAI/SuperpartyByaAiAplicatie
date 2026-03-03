@@ -30,7 +30,7 @@ grep -RIn "TODO|FIXME" superparty_flutter/lib/services/whatsapp_api_service.dart
 
 ---
 
-## ✅ **2. Firestore Rules Alignment**
+## ✅ **2. Database Rules Alignment**
 
 ### **Threads/Messages (NEVER DELETE):**
 ```javascript
@@ -74,7 +74,7 @@ match /clients/{phoneE164} {
 
 ---
 
-## ✅ **3. Firestore Indexes**
+## ✅ **3. Database Indexes**
 
 ### **Threads Index (for Inbox):**
 ```json
@@ -86,7 +86,7 @@ match /clients/{phoneE164} {
   ]
 }
 ```
-**Status:** ✅ Index exists (lines 22-34 in firestore.indexes.json)
+**Status:** ✅ Index exists (lines 22-34 in database.indexes.json)
 
 ### **Evenimente Index (for Client Profile):**
 ```json
@@ -98,7 +98,7 @@ match /clients/{phoneE164} {
   ]
 }
 ```
-**Status:** ✅ Index exists (lines 328-339 in firestore.indexes.json)
+**Status:** ✅ Index exists (lines 328-339 in database.indexes.json)
 
 **Status:** All required composite indexes for UI queries are present.
 
@@ -142,13 +142,13 @@ match /clients/{phoneE164} {
 - ✅ Hardening implemented (deleteAccount via proxy)
 
 ### **Security:**
-- ✅ Firestore rules enforce "NEVER DELETE" for conversations
+- ✅ Database rules enforce "NEVER DELETE" for conversations
 - ✅ Outbox is server-only (client cannot write)
 - ✅ Event creation requires proper constraints (createdBy, schemaVersion, isArchived)
 - ✅ Delete account requires super-admin (via proxy)
 
 ### **Infrastructure:**
-- ✅ Firestore indexes ready for Inbox and Client Profile queries
+- ✅ Database indexes ready for Inbox and Client Profile queries
 - ✅ Functions exports complete (CRM + proxy handlers)
 - ✅ Flutter routes configured correctly
 
@@ -168,8 +168,8 @@ All prerequisites met:
 
 **Next Steps:**
 1. Merge PR `audit-whatsapp-30` → `main`
-2. Deploy Firebase (rules/indexes/functions)
-3. Set Firebase secrets (LEGACY_WHATSAPP_URL)
+2. Deploy Supabase (rules/indexes/functions)
+3. Set Supabase secrets (LEGACY_WHATSAPP_URL)
 4. Redeploy legacy hosting (volume + env vars)
 5. Run acceptance tests (2 accounts + 1 client)
 6. Onboard 30 accounts

@@ -1,8 +1,8 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useEffect, useState, lazy, Suspense } from 'react';
-import { auth, db } from './firebase';
-import { onAuthStateChanged } from 'firebase/auth';
-import { doc, getDoc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { auth, db } from './supabase';
+import { onAuthStateChanged } from 'supabase/auth';
+import { doc, getDoc, setDoc, serverTimestamp } from 'supabase/database';
 import Toast from './components/Toast';
 import LoadingSpinner from './components/LoadingSpinner';
 import AuthenticatedShell from './components/AuthenticatedShell';
@@ -143,14 +143,14 @@ function FlowGuard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async firebaseUser => {
+    const unsubscribe = onAuthStateChanged(auth, async supabaseUser => {
       try {
-        if (firebaseUser) {
-          setUser(firebaseUser);
+        if (supabaseUser) {
+          setUser(supabaseUser);
 
           // Initialize push notifications for keep-alive
           // Only for authorized user (ursache.andrei1995@gmail.com)
-          if (firebaseUser.email === 'ursache.andrei1995@gmail.com') {
+          if (supabaseUser.email === 'ursache.andrei1995@gmail.com') {
             try {
               await initializePushNotifications();
               console.log('✅ Push notifications initialized for admin');
@@ -160,17 +160,17 @@ function FlowGuard() {
           }
 
           // Bypass pentru admin
-          if (firebaseUser.email === 'ursache.andrei1995@gmail.com') {
-            // Setează datele în Firestore
-            const userRef = doc(db, 'users', firebaseUser.uid);
-            const staffRef = doc(db, 'staffProfiles', firebaseUser.uid);
+          if (supabaseUser.email === 'ursache.andrei1995@gmail.com') {
+            // Setează datele în Database
+            const userRef = doc(db, 'users', supabaseUser.uid);
+            const staffRef = doc(db, 'staffProfiles', supabaseUser.uid);
 
             await Promise.all([
               setDoc(
                 userRef,
                 {
-                  uid: firebaseUser.uid,
-                  email: firebaseUser.email,
+                  uid: supabaseUser.uid,
+                  email: supabaseUser.email,
                   status: 'approved',
                   setupDone: true,
                   code: 'ADMIN001',
@@ -181,8 +181,8 @@ function FlowGuard() {
               setDoc(
                 staffRef,
                 {
-                  uid: firebaseUser.uid,
-                  email: firebaseUser.email,
+                  uid: supabaseUser.uid,
+                  email: supabaseUser.email,
                   code: 'ADMIN001',
                   codIdentificare: 'ADMIN001',
                   ceCodAi: 'ADMIN001',
@@ -197,15 +197,15 @@ function FlowGuard() {
             // Setează state-ul local
             setUserData({ status: 'approved', setupDone: true, code: 'ADMIN001' });
           } else {
-            // Obține date user din Firestore
-            const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+            // Obține date user din Database
+            const userDoc = await getDoc(doc(db, 'users', supabaseUser.uid));
             if (userDoc.exists()) {
               setUserData(userDoc.data());
             } else {
               // Creează document dacă nu există
-              await setDoc(doc(db, 'users', firebaseUser.uid), {
-                uid: firebaseUser.uid,
-                email: firebaseUser.email,
+              await setDoc(doc(db, 'users', supabaseUser.uid), {
+                uid: supabaseUser.uid,
+                email: supabaseUser.email,
                 status: 'kyc_required',
                 createdAt: serverTimestamp(),
               });

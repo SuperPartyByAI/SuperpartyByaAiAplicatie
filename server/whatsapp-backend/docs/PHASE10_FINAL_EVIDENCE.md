@@ -28,7 +28,7 @@ content-type: application/json
   "uptime": 120,
   "timestamp": "2025-12-30T01:16:30.000Z",
   "accounts": {"total": 4, "connected": 4},
-  "firestore": "connected"
+  "database": "connected"
 }
 ```
 
@@ -72,7 +72,7 @@ curl -H "Authorization: Bearer superparty2024" \
     "lastDisconnectReason": null,
     "retryCount": 0,
     "nextRetryAt": null,
-    "authStore": "firestore",
+    "authStore": "database",
     "authStateExists": true,
     "authKeyCount": 15,
     "lastAuthWriteAt": "2025-12-30T01:14:40.000Z",
@@ -82,8 +82,8 @@ curl -H "Authorization: Bearer superparty2024" \
     "outboxPendingCount": 0,
     "outboxOldestPendingAgeSec": null,
     "drainMode": false,
-    "inboundDedupeStore": "firestore",
-    "consecutiveFirestoreErrors": 0,
+    "inboundDedupeStore": "database",
+    "consecutiveDatabaseErrors": 0,
     "degradedSince": null,
     "reconnectMode": "normal",
     "connectInProgress": false,
@@ -98,16 +98,16 @@ curl -H "Authorization: Bearer superparty2024" \
 }
 ```
 
-✅ **DoD-D-2 PASS**: status-now returns 200 with Firestore paths  
+✅ **DoD-D-2 PASS**: status-now returns 200 with Database paths  
 ✅ **DoD-WA-1 PASS**: All required WA fields present (W1-W18)
 
 ---
 
-## 4. FIRESTORE-WRITE-TEST (DoD-D-4)
+## 4. DATABASE-WRITE-TEST (DoD-D-4)
 
 ```bash
 curl -H "Authorization: Bearer superparty2024" \
-  https://whats-app-ompro.ro/api/longrun/firestore-write-test
+  https://whats-app-ompro.ro/api/longrun/database-write-test
 ```
 
 **Expected Output**:
@@ -268,14 +268,14 @@ wa_metrics/longrun/incidents/deploy_stuck_active
 
 ✅ **W1 IMPLEMENTED**: Atomic lock with fencing token (leaseEpoch)
 
-### W2: Firestore Auth State
+### W2: Database Auth State
 
 **Paths**:
 
 - `wa_metrics/longrun/baileys_auth/creds`
 - `wa_metrics/longrun/baileys_auth/keys/{type}_{id}`
 
-✅ **W2 IMPLEMENTED**: Auth persisted in Firestore with retry backoff
+✅ **W2 IMPLEMENTED**: Auth persisted in Database with retry backoff
 
 ### W3: Reconnect State Machine
 
@@ -399,17 +399,17 @@ wa_metrics/longrun/incidents/deploy_stuck_active
 
 ### W12: Dependency Health Gating
 
-**Incident**: `wa_metrics/longrun/incidents/wa_firestore_degraded_active`
+**Incident**: `wa_metrics/longrun/incidents/wa_database_degraded_active`
 
 ```json
 {
-  "type": "wa_firestore_degraded",
+  "type": "wa_database_degraded",
   "consecutiveErrors": 5,
   "active": true
 }
 ```
 
-✅ **W12 IMPLEMENTED**: Fail closed on Firestore errors
+✅ **W12 IMPLEMENTED**: Fail closed on Database errors
 
 ### W13: Circuit Breaker
 
@@ -538,7 +538,7 @@ Socket closed, auth flushed, lock released
 
 Takeover test: old handler aborts on epoch mismatch
 
-### DoD-WA-10: Firestore outage ✅
+### DoD-WA-10: Database outage ✅
 
 Degraded mode, no spam, incident created
 
@@ -557,7 +557,7 @@ Event-loop stall triggers restart
 ### Core Components (13 files)
 
 1. `lib/wa-connection-lock.js` - W1
-2. `lib/wa-firestore-auth.js` - W2
+2. `lib/wa-database-auth.js` - W2
 3. `lib/wa-reconnect-manager.js` - W3
 4. `lib/wa-keepalive-monitor.js` - W4
 5. `lib/wa-auto-heal.js` - W5
@@ -593,7 +593,7 @@ Event-loop stall triggers restart
 **Latest Commit**: `d6d605ee`  
 **legacy hosting Status**: Deployed and running  
 **Health Check**: ✅ Passing  
-**Firestore**: ✅ Connected  
+**Database**: ✅ Connected  
 **WA Mode**: Active (lock acquired)  
 **WA Status**: CONNECTED
 
@@ -603,7 +603,7 @@ Event-loop stall triggers restart
 
 ✅ `/health` commitHash == latestSha (not "unknown")  
 ✅ Anti-cache headers present  
-✅ status-now + firestore-write-test + bootstrap functional  
+✅ status-now + database-write-test + bootstrap functional  
 ✅ Bootstrap creates all required documents  
 ✅ Verify endpoints return exitCode=0  
 ✅ WA stability W1-W18 implemented  
@@ -630,7 +630,7 @@ System is collecting data. Full validation requires time-series accumulation.
 **Rubric (0-10 each)**:
 
 - Lock atomic + fencing: 10/10 ✅
-- Session persistence + Firestore reliability: 9.5/10 ✅
+- Session persistence + Database reliability: 9.5/10 ✅
 - Reconnect determinist: 9.5/10 ✅
 - Outbox persistent + rate limiting: 9/10 ✅
 - Inbound idempotency: 9.5/10 ✅
@@ -647,6 +647,6 @@ All Phase 10 requirements (W1-W18) and DoD requirements (DoD-WA-1 through DoD-WA
 
 System is **READY+COLLECTING** with **INSUFFICIENT_DATA** for long windows (expected until dataset accumulates).
 
-**NO BULLSHIT** - Every statement backed by code, Firestore paths, curl outputs, or log evidence.
+**NO BULLSHIT** - Every statement backed by code, Database paths, curl outputs, or log evidence.
 
 END.

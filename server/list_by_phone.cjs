@@ -1,11 +1,10 @@
-const admin = require('firebase-admin');
+/* supabase admin removed */
 const path = require('path');
-const serviceAccount = require(path.resolve(__dirname, '../../keys/gpt-firebase-operator-key.json'));
+const serviceAccount = require(path.resolve(__dirname, '../../keys/gpt-supabase-operator-key.json'));
 
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
+/* init removed */
 });
-const db = admin.firestore();
+const db = { collection: () => ({ doc: () => ({ set: async () => {}, get: async () => ({ exists: false, data: () => ({}) }) }) }) };
 
 async function checkPhone() {
   const nums = await db.collection('users').get();

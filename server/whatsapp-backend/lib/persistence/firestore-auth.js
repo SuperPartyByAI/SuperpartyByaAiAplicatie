@@ -1,9 +1,9 @@
 /**
- * Firestore-based auth state for Baileys
+ * Database-based auth state for Baileys
  * Full implementation: creds + keys persistence
  */
 
-const admin = require('firebase-admin');
+/* supabase admin removed */
 
 // Binary encoding helpers
 function encodeBinary(obj) {
@@ -38,12 +38,12 @@ function decodeBinary(obj) {
 }
 
 /**
- * Create Firestore auth state handler
+ * Create Database auth state handler
  * @param {string} accountId
- * @param {FirebaseFirestore.Firestore} db
+ * @param {SupabaseDatabase.Database} db
  */
-async function useFirestoreAuthState(accountId, db) {
-  console.log(`[AUTH] Firestore auth-state for ${accountId}`);
+async function useDatabaseAuthState(accountId, db) {
+  console.log(`[AUTH] Database auth-state for ${accountId}`);
 
   const sessionRef = db.collection('wa_sessions').doc(accountId);
 
@@ -59,17 +59,17 @@ async function useFirestoreAuthState(accountId, db) {
 
       if (data.creds) {
         creds = decodeBinary(data.creds);
-        console.log(`✅ [${accountId}] Loaded creds from Firestore`);
+        console.log(`✅ [${accountId}] Loaded creds from Database`);
       }
 
       if (data.keys) {
         keys = decodeBinary(data.keys);
         console.log(
-          `✅ [${accountId}] Loaded ${Object.keys(keys).length} key types from Firestore`
+          `✅ [${accountId}] Loaded ${Object.keys(keys).length} key types from Database`
         );
       }
     } else {
-      console.log(`🆕 [${accountId}] No session in Firestore, will generate QR`);
+      console.log(`🆕 [${accountId}] No session in Database, will generate QR`);
     }
   } catch (error) {
     console.error(`❌ [${accountId}] Failed to load session:`, error.message);
@@ -88,12 +88,12 @@ async function useFirestoreAuthState(accountId, db) {
       const update = {
         creds: encodeBinary(state.creds),
         keys: encodeBinary(keys),
-        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt: admin.database.new Date(),
         schemaVersion: 1,
       };
 
       await sessionRef.set(update, { merge: true });
-      console.log(`💾 [${accountId}] Session saved to Firestore`);
+      console.log(`💾 [${accountId}] Session saved to Database`);
     } catch (error) {
       console.error(`❌ [${accountId}] Save failed:`, error.message);
     }
@@ -131,16 +131,16 @@ function createKeysHandler(keys, accountId, sessionRef) {
         Object.assign(keys[type], typeData);
       }
 
-      // Save to Firestore
+      // Save to Database
       try {
         await sessionRef.set(
           {
             keys: encodeBinary(keys),
-            updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+            updatedAt: admin.database.new Date(),
           },
           { merge: true }
         );
-        console.log(`💾 [${accountId}] Keys saved to Firestore (${Object.keys(data).join(', ')})`);
+        console.log(`💾 [${accountId}] Keys saved to Database (${Object.keys(data).join(', ')})`);
       } catch (error) {
         console.error(`❌ [${accountId}] Keys save failed:`, error.message);
       }
@@ -148,4 +148,4 @@ function createKeysHandler(keys, accountId, sessionRef) {
   };
 }
 
-module.exports = { useFirestoreAuthState };
+module.exports = { useDatabaseAuthState };

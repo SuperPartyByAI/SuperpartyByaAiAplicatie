@@ -30,7 +30,7 @@ All requirements from "logica aplicatie.txt" have been implemented, including:
    - Detect roles with confidence scoring
    - Extract role-specific details (Animator, Ursitoare)
    - Parse duration from various formats
-   - Support AI overrides from Firestore
+   - Support AI overrides from Database
 
 3. **`functions/dateTimeParser.js`** - Parses dates, times, and durations
    - Enforce DD-MM-YYYY date format
@@ -496,7 +496,7 @@ Am nevoie de:
 ### Call chatEventOpsV2
 
 ```javascript
-const functions = firebase.functions();
+const functions = supabase.functions();
 
 // Start noting
 const result = await functions.httpsCallable('chatEventOpsV2')({
@@ -529,7 +529,7 @@ console.log(result3.data);
 ### Query Events by Short Code
 
 ```javascript
-const db = firebase.firestore();
+const db = supabase.database();
 
 // Find event by short code
 const eventsSnap = await db.collection('evenimente')
@@ -570,7 +570,7 @@ npm run deploy
 ### Deploy Specific Function
 
 ```bash
-firebase deploy --only functions:chatEventOpsV2
+supabase deploy --only functions:chatEventOpsV2
 ```
 
 ### Test Locally
@@ -654,10 +654,10 @@ const result3 = await functions.httpsCallable('chatEventOpsV2')({
 
 **Solution**: 
 ```javascript
-const db = firebase.firestore();
+const db = supabase.database();
 await db.collection('counters').doc('eventShortCode').set({
   value: 0,
-  createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+  createdAt: supabase.database.FieldValue.serverTimestamp(),
 });
 ```
 
@@ -674,14 +674,14 @@ await db.collection('counters').doc('eventShortCode').set({
 
 ### Caching
 
-- Conversation states are stored in Firestore (not cached)
+- Conversation states are stored in Database (not cached)
 - AI responses can be cached for common questions
 - Event queries should use indexes
 
 ### Indexes Required
 
 ```javascript
-// Firestore indexes
+// Database indexes
 {
   collection: 'evenimente',
   fields: [
@@ -730,7 +730,7 @@ await db.collection('counters').doc('eventShortCode').set({
 ### Logs
 
 ```bash
-firebase functions:log --only chatEventOpsV2
+supabase functions:log --only chatEventOpsV2
 ```
 
 ### Metrics

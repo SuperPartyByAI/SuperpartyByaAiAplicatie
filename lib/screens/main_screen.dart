@@ -1,3 +1,4 @@
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'chat_list_screen.dart';
@@ -6,8 +7,6 @@ import 'admin_requests_screen.dart';
 import 'calls_screen.dart';
 import 'settings_screen.dart';
 import 'accounts_screen.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'team_management_screen.dart';
 import 'evenimente_screen.dart';
 import 'whatsapp_monitor_screen.dart';
@@ -32,7 +31,7 @@ class _MainScreenState extends State<MainScreen> {
   ];
 
   void _onAdminTap() {
-    final user = FirebaseAuth.instance.currentUser;
+    final user = (Supabase.instance.client.auth.currentUser);
     if (user != null && user.email == 'ursache.andrei1995@gmail.com') {
       Navigator.of(context).push(MaterialPageRoute(builder: (_) => const _AdminDashboardScreen()));
     } else {
@@ -311,13 +310,9 @@ class _AdminDashboardScreen extends StatelessWidget {
               );
 
               try {
-                await FirebaseFirestore.instance.collection('app_inbox').add({
-                  'title': titleController.text.trim(),
-                  'body': bodyController.text.trim(),
-                  'type': 'announcement',
-                  'source': 'admin',
-                  'timestamp': FieldValue.serverTimestamp(),
-                  'readBy': [], // Everyone gets it as unread
+                await Supabase.instance.client.functions.invoke('sendGlobalAnnouncement', body: {
+                  'title': titleController.text,
+                  'body': bodyController.text
                 });
                 
                 if (context.mounted) {

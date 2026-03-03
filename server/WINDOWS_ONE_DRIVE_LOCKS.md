@@ -4,8 +4,8 @@
 
 **Eroare tipică:**
 ```
-Execution failed for task ':cloud_firestore:compileDebugJavaWithJavac'.
-> java.io.IOException: Unable to delete directory '...\build\cloud_firestore\...'
+Execution failed for task ':cloud_database:compileDebugJavaWithJavac'.
+> java.io.IOException: Unable to delete directory '...\build\cloud_database\...'
   Failed to delete some children. This might happen because a process has files open
   or has its working directory set in the target directory.
 ```

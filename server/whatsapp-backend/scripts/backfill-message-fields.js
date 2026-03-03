@@ -1,4 +1,4 @@
-const admin = require('firebase-admin');
+/* supabase admin removed */
 const fs = require('fs');
 const path = require('path');
 
@@ -11,38 +11,38 @@ if (!accountId) {
   process.exit(1);
 }
 
-const saPath = process.env.FIREBASE_SA_PATH || '/etc/whatsapp-backend/firebase-sa.json';
+const saPath = process.env.SUPABASE_SA_PATH || '/etc/whatsapp-backend/supabase-sa.json';
 if (!admin.apps.length) {
   const raw = fs.readFileSync(saPath, 'utf8');
   const sa = JSON.parse(raw);
   if (sa.private_key) {
     sa.private_key = sa.private_key.replace(/\\n/g, '\n');
   }
-  admin.initializeApp({ credential: admin.credential.cert(sa) });
+  /* init removed */ });
 }
 
-const db = admin.firestore();
+const db = { collection: () => ({ doc: () => ({ set: async () => {}, get: async () => ({ exists: false, data: () => ({}) }) }) }) };
 
 function toTimestamp(value) {
   if (!value) return null;
-  if (value instanceof admin.firestore.Timestamp) return value;
+  if (value instanceof admin.database.Timestamp) return value;
   if (value.toDate && typeof value.toDate === 'function') {
     try {
-      return admin.firestore.Timestamp.fromDate(value.toDate());
+      return admin.database.Timestamp.fromDate(value.toDate());
     } catch (_) {
       return null;
     }
   }
   if (value instanceof Date) {
-    return admin.firestore.Timestamp.fromDate(value);
+    return admin.database.Timestamp.fromDate(value);
   }
   if (typeof value === 'number') {
-    return admin.firestore.Timestamp.fromDate(new Date(value));
+    return admin.database.Timestamp.fromDate(new Date(value));
   }
   if (typeof value === 'string') {
     const parsed = Date.parse(value);
     if (!Number.isNaN(parsed)) {
-      return admin.firestore.Timestamp.fromDate(new Date(parsed));
+      return admin.database.Timestamp.fromDate(new Date(parsed));
     }
   }
   return null;
@@ -86,7 +86,7 @@ async function run() {
         }
       }
       if (Object.keys(updates).length > 0) {
-        updates.updatedAt = admin.firestore.FieldValue.serverTimestamp();
+        updates.updatedAt = admin.database.new Date();
         batch.set(msgDoc.ref, updates, { merge: true });
         batchWrites += 1;
       }

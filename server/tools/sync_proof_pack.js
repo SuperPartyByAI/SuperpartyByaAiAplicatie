@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /* eslint-disable no-console */
-const admin = require('firebase-admin');
+/* supabase admin removed */
 const { execSync } = require('child_process');
 const fs = require('fs');
 const path = require('path');
@@ -14,7 +14,7 @@ if (!ACTIVE_ACCOUNT_ID) {
 function safeLoadServiceAccount() {
   const candidates = [
     process.env.GOOGLE_APPLICATION_CREDENTIALS,
-    process.env.FIREBASE_SERVICE_ACCOUNT_PATH,
+    process.env.SUPABASE_SERVICE_ACCOUNT_PATH,
     process.env.SERVICE_ACCOUNT_PATH,
   ].filter(Boolean);
 
@@ -34,7 +34,7 @@ function initAdmin() {
   if (admin.apps.length) return { ok: true };
 
   try {
-    admin.initializeApp({ credential: admin.credential.applicationDefault() });
+    /* init removed */ });
     return { ok: true };
   } catch (_) {
     // fallback to service account path if provided
@@ -45,7 +45,7 @@ function initAdmin() {
     if (typeof json.private_key === 'string') {
       json.private_key = json.private_key.replace(/\\n/g, '\n');
     }
-    admin.initializeApp({ credential: admin.credential.cert(json) });
+    /* init removed */ });
     return { ok: true };
   }
 
@@ -125,7 +125,7 @@ function decodeDoc(doc) {
 
 function getIdToken() {
   try {
-    const token = execSync('firebase auth:print-identity-token', {
+    const token = execSync('supabase auth:print-identity-token', {
       stdio: ['ignore', 'pipe', 'ignore'],
     })
       .toString()
@@ -148,7 +148,7 @@ async function fetchJson(url, token) {
 }
 
 async function runQuery(projectId, parentPath, structuredQuery, token) {
-  const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents:runQuery`;
+  const url = `https://database.googleapis.com/v1/projects/${projectId}/databases/(default)/documents:runQuery`;
   const body = {
     parent: `projects/${projectId}/databases/(default)/documents/${parentPath}`,
     structuredQuery,
@@ -174,7 +174,7 @@ async function main() {
     ? admin.app().options.projectId || null
     : null;
   const projectId =
-    resolvedProjectId || process.env.FIREBASE_PROJECT_ID || 'superparty-frontend';
+    resolvedProjectId || process.env.SUPABASE_PROJECT_ID || 'superparty-frontend';
 
   const result = {
     projectId,
@@ -196,7 +196,7 @@ async function main() {
   let useAdmin = adminInit.ok;
   if (useAdmin) {
     try {
-      const db = admin.firestore();
+      const db = { collection: () => ({ doc: () => ({ set: async () => {}, get: async () => ({ exists: false, data: () => ({}) }) }) }) };
       // A) conturi/<accountId>
       const accountRef = db.collection('conturi').doc(ACTIVE_ACCOUNT_ID);
       const accountSnap = await accountRef.get();
@@ -309,14 +309,14 @@ async function main() {
   } else {
     const token = getIdToken();
     if (!token) {
-      console.error('Unable to initialize Firebase Admin or get Firebase ID token.');
+      console.error('Unable to initialize Supabase Admin or get Supabase ID token.');
       process.exit(1);
     }
 
     // A) conturi/<accountId>
     try {
       const doc = await fetchJson(
-        `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/conturi/${ACTIVE_ACCOUNT_ID}`,
+        `https://database.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/conturi/${ACTIVE_ACCOUNT_ID}`,
         token
       );
       const data = decodeDoc(doc);

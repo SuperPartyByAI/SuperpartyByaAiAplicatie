@@ -1,4 +1,4 @@
-# 🎉 DEPLOY SUCCESS - Firebase Functions
+# 🎉 DEPLOY SUCCESS - Supabase Functions
 
 ## ✅ Status Deploy
 
@@ -32,11 +32,11 @@
 - Nu afectează funcționalitatea aplicației
 
 **Acțiune recomandată:**
-- Șterge manual din Firebase Console (opțional)
+- Șterge manual din Supabase Console (opțional)
 - Sau lasă-o acolo (nu consumă resurse dacă nu e folosită)
 
 **Cum să ștergi manual (opțional):**
-1. Accesează: https://console.firebase.google.com/project/superparty-frontend/functions
+1. Accesează: https://console.supabase.google.com/project/superparty-frontend/functions
 2. Găsește funcția `whatsapp` (1st Gen)
 3. Click pe cele 3 puncte → Delete
 4. Confirmă
@@ -45,9 +45,9 @@
 
 ## 🔍 Verificare Deploy
 
-### 1. Firebase Console
+### 1. Supabase Console
 
-**Accesează:** https://console.firebase.google.com/project/superparty-frontend/functions
+**Accesează:** https://console.supabase.google.com/project/superparty-frontend/functions
 
 **Verifică că vezi:**
 - ✅ createEventFromAI (us-central1) - Active
@@ -63,17 +63,17 @@
 
 ```powershell
 # Listează toate funcțiile
-npx firebase-tools functions:list
+npx supabase-tools functions:list
 
 # Verifică logs
-npx firebase-tools functions:log --only createEventFromAI
+npx supabase-tools functions:log --only createEventFromAI
 ```
 
 ---
 
 ## 🎯 Next Steps
 
-### PASUL 1: Verifică în Firebase Console ✅
+### PASUL 1: Verifică în Supabase Console ✅
 
 **Deja făcut!** Funcțiile sunt deployed.
 
@@ -124,13 +124,13 @@ build\app\outputs\bundle\release\app-release.aab
 **Verifică dacă GROQ_API_KEY este setat:**
 
 ```powershell
-npx firebase-tools functions:secrets:access GROQ_API_KEY
+npx supabase-tools functions:secrets:access GROQ_API_KEY
 ```
 
 **Dacă lipsește, setează-l:**
 
 ```powershell
-npx firebase-tools functions:secrets:set GROQ_API_KEY
+npx supabase-tools functions:secrets:set GROQ_API_KEY
 # Introdu API key-ul când ești întrebat
 ```
 
@@ -142,30 +142,30 @@ npx firebase-tools functions:secrets:set GROQ_API_KEY
 
 ```powershell
 # Toate funcțiile
-npx firebase-tools functions:log
+npx supabase-tools functions:log
 
 # Funcție specifică
-npx firebase-tools functions:log --only createEventFromAI
+npx supabase-tools functions:log --only createEventFromAI
 
 # Ultimele 50 linii
-npx firebase-tools functions:log --lines 50
+npx supabase-tools functions:log --lines 50
 ```
 
-### Firebase Console
+### Supabase Console
 
-**Logs:** https://console.firebase.google.com/project/superparty-frontend/logs
+**Logs:** https://console.supabase.google.com/project/superparty-frontend/logs
 
-**Usage:** https://console.firebase.google.com/project/superparty-frontend/usage
+**Usage:** https://console.supabase.google.com/project/superparty-frontend/usage
 
 ---
 
 ## ✅ Checklist Post-Deploy
 
-### Firebase Functions
+### Supabase Functions
 - [x] Deploy executat cu succes
 - [x] 8 funcții AI create
 - [x] 2 funcții existente actualizate
-- [ ] Verificat în Firebase Console
+- [ ] Verificat în Supabase Console
 - [ ] Testat o funcție (opțional)
 
 ### Next: Build AAB
@@ -183,7 +183,7 @@ npx firebase-tools functions:log --lines 50
 
 ## 🎉 Congratulations!
 
-**Firebase Functions sunt deployed și funcționale!**
+**Supabase Functions sunt deployed și funcționale!**
 
 **Următorul pas:**
 ```powershell
@@ -199,11 +199,11 @@ flutter build appbundle --release
 
 **Funcțiile nu apar în Console:**
 - Așteaptă 1-2 minute pentru propagare
-- Refresh pagina Firebase Console
+- Refresh pagina Supabase Console
 
 **Erori în logs:**
-- Verifică GROQ_API_KEY: `npx firebase-tools functions:secrets:access GROQ_API_KEY`
-- Verifică logs: `npx firebase-tools functions:log`
+- Verifică GROQ_API_KEY: `npx supabase-tools functions:secrets:access GROQ_API_KEY`
+- Verifică logs: `npx supabase-tools functions:log`
 
 **Funcția `whatsapp` veche:**
 - Nu e o problemă critică
@@ -213,5 +213,5 @@ flutter build appbundle --release
 
 **Versiune:** 1.2.0+14  
 **Data Deploy:** 2026-01-08  
-**Status:** ✅ Firebase Functions Deployed Successfully  
+**Status:** ✅ Supabase Functions Deployed Successfully  
 **Next:** Build AAB pentru Play Store

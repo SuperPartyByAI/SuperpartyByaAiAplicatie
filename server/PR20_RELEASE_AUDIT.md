@@ -1,7 +1,7 @@
 # PR #20 Release Engineering Audit
 
 **Date:** 2026-01-06
-**Auditor:** Ona (Release Engineer + Flutter/Firebase Auditor)
+**Auditor:** Ona (Release Engineer + Flutter/Supabase Auditor)
 **PR:** [#20](https://github.com/SuperPartyByAI/Aplicatie-SuperpartyByAi/pull/20)
 **Branch:** `fix/ai-chat-region-and-key-handling`
 
@@ -122,10 +122,10 @@ flutter build apk --release -v
 
 **Code Location:** `superparty_flutter/lib/models/evidence_model.dart`
 
-**Write (toFirestore):**
+**Write (toDatabase):**
 
 ```dart
-Map<String, dynamic> toFirestore() {
+Map<String, dynamic> toDatabase() {
   return {
     'category': category.value,
     'categorie': category.value, // Backward compatibility during migration
@@ -140,10 +140,10 @@ Map<String, dynamic> toFirestore() {
 
 **Code Location:** `superparty_flutter/lib/models/evidence_model.dart`
 
-**Read (fromFirestore):**
+**Read (fromDatabase):**
 
 ```dart
-factory EvidenceModel.fromFirestore(DocumentSnapshot doc, String eventId) {
+factory EvidenceModel.fromDatabase(DocumentSnapshot doc, String eventId) {
   final data = doc.data() as Map<String, dynamic>;
 
   // Backward compatibility: read from 'category' or fallback to 'categorie'
@@ -161,7 +161,7 @@ factory EvidenceModel.fromFirestore(DocumentSnapshot doc, String eventId) {
 
 ### C. Query Compatibility
 
-**Issue:** Firestore queries filter on single field - cannot do OR queries natively
+**Issue:** Database queries filter on single field - cannot do OR queries natively
 
 **Current Implementation:**
 
@@ -200,9 +200,9 @@ final query2 = collection.where('categorie', isEqualTo: value);
 3. Verify all documents have `category` field
 4. Then queries will work correctly
 
-### D. Firestore Rules and Indexes
+### D. Database Rules and Indexes
 
-**Rules:** `firestore.rules`
+**Rules:** `database.rules`
 
 **Verification:**
 
@@ -232,7 +232,7 @@ match /dovezi_meta/{categorie} {
 
 **Status:** ✅ SUPPORTS BOTH SCHEMAS
 
-**Indexes:** `firestore.indexes.json`
+**Indexes:** `database.indexes.json`
 
 **Verification:**
 
@@ -297,13 +297,13 @@ Run without --dry-run to apply changes
 
 ```bash
 # Set service account
-export FIREBASE_SERVICE_ACCOUNT_PATH=/path/to/service-account.json
+export SUPABASE_SERVICE_ACCOUNT_PATH=/path/to/service-account.json
 
 # Run migration
 node scripts/migrate-evidence-schema.js
 
 # Verify
-firebase firestore:query 'evenimente/*/dovezi' --where 'category==null'
+supabase database:query 'evenimente/*/dovezi' --where 'category==null'
 # Should return 0 documents
 ```
 
@@ -318,11 +318,11 @@ git pull origin fix/ai-chat-region-and-key-handling
 # Deploy Flutter app
 cd superparty_flutter
 flutter build apk --release
-# Upload to Firebase App Distribution or Play Store
+# Upload to Supabase App Distribution or Play Store
 
 # Deploy Functions (if changed)
 cd ../functions
-firebase deploy --only functions:chatWithAI
+supabase deploy --only functions:chatWithAI
 ```
 
 **Phase 2: Run Migration** (⏳ AFTER Phase 1)
@@ -335,25 +335,25 @@ node scripts/migrate-evidence-schema.js --dry-run
 node scripts/migrate-evidence-schema.js
 
 # Verify completion
-firebase firestore:query 'evenimente' --limit 5
+supabase database:query 'evenimente' --limit 5
 # Check that dovezi subcollection docs have 'category' field
 ```
 
 **Phase 3: Deploy Rules/Indexes** (⏳ AFTER Phase 2)
 
 ```bash
-firebase deploy --only firestore:rules
-firebase deploy --only firestore:indexes
+supabase deploy --only database:rules
+supabase deploy --only database:indexes
 ```
 
 **Phase 4: Monitor** (⏳ AFTER Phase 3)
 
 ```bash
 # Check logs for errors
-firebase functions:log --only chatWithAI --lines 100
+supabase functions:log --only chatWithAI --lines 100
 
-# Monitor Firestore usage
-firebase firestore:usage
+# Monitor Database usage
+supabase database:usage
 ```
 
 ### Status Summary
@@ -381,7 +381,7 @@ firebase firestore:usage
 **Flutter:** `superparty_flutter/lib/screens/ai_chat/ai_chat_screen.dart:158`
 
 ```dart
-final callable = FirebaseFunctions.instanceFor(region: 'us-central1').httpsCallable(
+final callable = SupabaseFunctions.instanceFor(region: 'us-central1').httpsCallable(
   'chatWithAI',
   options: HttpsCallableOptions(timeout: const Duration(seconds: 30)),
 );
@@ -467,7 +467,7 @@ if (!groqKey) {
   console.error(`[${requestId}] GROQ_API_KEY not configured`);
   throw new functions.https.HttpsError(
     "failed-precondition",
-    "GROQ_API_KEY not configured. Please set the secret: firebase functions:secrets:set GROQ_API_KEY",
+    "GROQ_API_KEY not configured. Please set the secret: supabase functions:secrets:set GROQ_API_KEY",
   );
 }
 ```
@@ -479,11 +479,11 @@ if (!groqKey) {
 **Prerequisites:**
 
 ```bash
-# Ensure Firebase CLI is installed and authenticated
-firebase login
+# Ensure Supabase CLI is installed and authenticated
+supabase login
 
 # Set project
-firebase use superparty-frontend
+supabase use superparty-frontend
 ```
 
 #### Test 1: Unauthenticated User
@@ -507,7 +507,7 @@ adb logcat | grep "AIChatScreen"
 # Should see: [AIChatScreen] ERROR: User not authenticated
 
 # Check Functions logs (should be empty - no call made)
-firebase functions:log --only chatWithAI --lines 10
+supabase functions:log --only chatWithAI --lines 10
 ```
 
 #### Test 2: Missing GROQ_API_KEY
@@ -516,10 +516,10 @@ firebase functions:log --only chatWithAI --lines 10
 
 ```bash
 # Temporarily remove key
-firebase functions:secrets:destroy GROQ_API_KEY --force
+supabase functions:secrets:destroy GROQ_API_KEY --force
 
 # Redeploy function
-firebase deploy --only functions:chatWithAI
+supabase deploy --only functions:chatWithAI
 ```
 
 **Steps:**
@@ -537,7 +537,7 @@ firebase deploy --only functions:chatWithAI
 
 ```bash
 # Check Functions logs
-firebase functions:log --only chatWithAI --lines 10
+supabase functions:log --only chatWithAI --lines 10
 # Should see:
 # [req_xxx] GROQ_API_KEY not configured
 # failed-precondition: GROQ_API_KEY not configured. Please set the secret...
@@ -547,10 +547,10 @@ firebase functions:log --only chatWithAI --lines 10
 
 ```bash
 # Restore key
-echo "YOUR_GROQ_API_KEY" | firebase functions:secrets:set GROQ_API_KEY
+echo "YOUR_GROQ_API_KEY" | supabase functions:secrets:set GROQ_API_KEY
 
 # Redeploy
-firebase deploy --only functions:chatWithAI
+supabase deploy --only functions:chatWithAI
 ```
 
 #### Test 3: Normal Operation
@@ -559,11 +559,11 @@ firebase deploy --only functions:chatWithAI
 
 ```bash
 # Ensure key is set
-firebase functions:secrets:get GROQ_API_KEY
+supabase functions:secrets:get GROQ_API_KEY
 # Should show: GROQ_API_KEY exists
 
 # Verify function is deployed
-firebase functions:list | grep chatWithAI
+supabase functions:list | grep chatWithAI
 # Should show: chatWithAI (us-central1)
 ```
 
@@ -584,7 +584,7 @@ firebase functions:list | grep chatWithAI
 
 ```bash
 # Check Functions logs
-firebase functions:log --only chatWithAI --lines 10
+supabase functions:log --only chatWithAI --lines 10
 # Should see:
 # [req_xxx] chatWithAI called { userId: 'xxx', messageCount: 1 }
 # [req_xxx] GROQ_API_KEY loaded from secrets
@@ -608,7 +608,7 @@ firebase functions:log --only chatWithAI --lines 10
 **Verification:**
 
 ```bash
-firebase functions:log --only chatWithAI --lines 10
+supabase functions:log --only chatWithAI --lines 10
 # Look for timeout or deadline-exceeded errors
 ```
 
@@ -618,46 +618,46 @@ firebase functions:log --only chatWithAI --lines 10
 
 ```bash
 cd functions
-firebase deploy --only functions:chatWithAI --project superparty-frontend
+supabase deploy --only functions:chatWithAI --project superparty-frontend
 ```
 
 **Set Secret:**
 
 ```bash
 # Interactive
-firebase functions:secrets:set GROQ_API_KEY
+supabase functions:secrets:set GROQ_API_KEY
 
 # Or from file
-cat groq-api-key.txt | firebase functions:secrets:set GROQ_API_KEY
+cat groq-api-key.txt | supabase functions:secrets:set GROQ_API_KEY
 
 # Or inline (not recommended for production)
-echo "<GROQ_KEY_REDACTED>" | firebase functions:secrets:set GROQ_API_KEY
+echo "<GROQ_KEY_REDACTED>" | supabase functions:secrets:set GROQ_API_KEY
 ```
 
 **View Logs:**
 
 ```bash
 # Recent logs
-firebase functions:log --only chatWithAI --lines 50
+supabase functions:log --only chatWithAI --lines 50
 
 # Follow logs (real-time)
-firebase functions:log --only chatWithAI --follow
+supabase functions:log --only chatWithAI --follow
 
 # Filter by time
-firebase functions:log --only chatWithAI --since 1h
+supabase functions:log --only chatWithAI --since 1h
 ```
 
 **Check Secret:**
 
 ```bash
 # List secrets
-firebase functions:secrets:list
+supabase functions:secrets:list
 
 # Get secret metadata (not value)
-firebase functions:secrets:get GROQ_API_KEY
+supabase functions:secrets:get GROQ_API_KEY
 
 # Access secret value (requires permissions)
-firebase functions:secrets:access GROQ_API_KEY --data-file=-
+supabase functions:secrets:access GROQ_API_KEY --data-file=-
 ```
 
 ### Status Summary
@@ -737,7 +737,7 @@ grep -r "gsk_\|sk-\|AIza\|AKIA" *.md --exclude-dir={node_modules,.git}
 
 1. ⏳ Deploy Flutter app (Phase 1)
 2. ⏳ Run migration script (Phase 2)
-3. ⏳ Deploy Firestore rules/indexes (Phase 3)
+3. ⏳ Deploy Database rules/indexes (Phase 3)
 4. ⏳ Execute manual AI Chat tests
 5. ⏳ Monitor for 24-48 hours
 

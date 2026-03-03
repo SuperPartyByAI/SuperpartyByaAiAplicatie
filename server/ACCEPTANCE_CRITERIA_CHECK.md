@@ -28,7 +28,7 @@
 - ✅ `EventService.updateRoleAssignment(eventId, role, userId)`
 - ✅ Secțiune șofer condițional pe `requiresSofer`
 - ✅ `EventService.updateDriverAssignment(eventId, userId)`
-- ✅ Write în Firestore: `alocari.{role}` și `sofer`
+- ✅ Write în Database: `alocari.{role}` și `sofer`
 
 ### 4. Vezi Dovezi → DoveziScreen funcțional
 
@@ -58,7 +58,7 @@
 | Filtre avansate (sortBy, requiresSofer, assignedToMe)  | ✅     | Bottom sheet cu toate opțiunile                   |
 | Badge filtre active + Reset                            | ✅     | `activeFilterCount` + buton Reset                 |
 | Tap eveniment → EventDetailsSheet                      | ✅     | showModalBottomSheet cu DraggableScrollableSheet  |
-| Asignări roluri funcționale                            | ✅     | 6 roluri + assign/unassign + write Firestore      |
+| Asignări roluri funcționale                            | ✅     | 6 roluri + assign/unassign + write Database      |
 | Logică șofer condițional                               | ✅     | Apare doar dacă `requiresSofer = true`            |
 | Vezi Dovezi → DoveziScreen                             | ✅     | Navigare corectă + flow complet                   |
 | Offline-first dovezi                                   | ✅     | SQLite cache + sync automat + manual retry        |
@@ -74,7 +74,7 @@
 ### Scenariul 1: Listare + Filtrare
 
 1. User deschide EvenimenteScreen
-2. Vede listă evenimente din Firestore (stream)
+2. Vede listă evenimente din Database (stream)
 3. Apasă chip "Astăzi" → filtrare pe data curentă
 4. Caută "Nunta" în search bar → filtrare client-side
 5. Apasă icon filtre → deschide bottom sheet
@@ -91,10 +91,10 @@
 4. Vede 6 roluri cu status (alocat/nealocat)
 5. Apasă buton "+" pe rol "Barman"
 6. Rolul devine "Alocat: {userId}"
-7. Write în Firestore: `alocari.barman.userId = currentUser.uid`
+7. Write în Database: `alocari.barman.userId = currentUser.uid`
 8. Dacă `requiresSofer = true`: vede secțiune Șofer
 9. Apasă buton "+" pe Șofer
-10. Write în Firestore: `sofer.userId = currentUser.uid`
+10. Write în Database: `sofer.userId = currentUser.uid`
 
 ### Scenariul 3: Dovezi Offline-First
 
@@ -104,7 +104,7 @@
 4. Apasă "Adaugă Poză" → ImagePicker
 5. Selectează imagine → salvare instant în SQLite + fișier local
 6. Thumbnail apare imediat cu status 🟠 (pending)
-7. Upload automat în background → Storage + Firestore
+7. Upload automat în background → Storage + Database
 8. Status devine 🟢 (synced)
 9. Apasă "Marchează OK" → categoria se blochează
 10. Butonul "Adaugă" devine disabled (gri)

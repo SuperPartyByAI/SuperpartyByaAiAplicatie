@@ -1,12 +1,12 @@
-# Ghid de utilizare pentru Firebase ID Token
+# Ghid de utilizare pentru Supabase ID Token
 
 ## Script-uri disponibile
 
 ### 1. `get-id-token-terminal.js` - Obține token-ul
-Obține un Firebase ID token pentru un email dat.
+Obține un Supabase ID token pentru un email dat.
 
 ```bash
-export FIREBASE_API_KEY="AIzaSyDcMXO6XdFZE_tVnJ1M4Wrt8Aw7Yh1o0K0"
+export SUPABASE_API_KEY="AIzaSyDcMXO6XdFZE_tVnJ1M4Wrt8Aw7Yh1o0K0"
 cd /Users/universparty/Aplicatie-SuperpartyByAi/whatsapp-backend
 node scripts/get-id-token-terminal.js superpartybyai@gmail.com
 ```
@@ -73,9 +73,9 @@ curl -X POST -H "Authorization: Bearer $TOKEN" \
 
 ## Configurare
 
-Firebase API Key este deja configurat în script-uri:
+Supabase API Key este deja configurat în script-uri:
 - `AIzaSyDcMXO6XdFZE_tVnJ1M4Wrt8Aw7Yh1o0K0` (iOS)
 - `AIzaSyB5zJqeDVenc9ygUx2zyW2WLkczY6FLavI` (macOS)
 
-Credențialele Firebase sunt pe server la:
-- `/etc/whatsapp-backend/firebase-sa.json`
+Credențialele Supabase sunt pe server la:
+- `/etc/whatsapp-backend/supabase-sa.json`

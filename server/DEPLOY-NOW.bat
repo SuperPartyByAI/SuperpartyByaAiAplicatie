@@ -17,15 +17,15 @@ if %errorlevel% neq 0 (
 )
 
 echo.
-echo 2. Deploying to Firebase...
-call firebase deploy --only hosting
+echo 2. Deploying to Supabase...
+call supabase deploy --only hosting
 
 if %errorlevel% neq 0 (
   echo.
   echo ERROR: Deploy failed!
   echo.
   echo Posibile cauze:
-  echo   - Nu esti autentificat: ruleaza 'firebase login'
+  echo   - Nu esti autentificat: ruleaza 'supabase login'
   echo   - Nu ai permisiuni pe project 'superparty-frontend'
   echo.
   pause

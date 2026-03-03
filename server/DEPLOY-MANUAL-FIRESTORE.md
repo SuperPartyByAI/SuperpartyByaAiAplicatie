@@ -1,17 +1,17 @@
-# Deploy Manual Firestore Rules - Prin Console Firebase
+# Deploy Manual Database Rules - Prin Console Supabase
 
 ## Pași pentru Deploy Manual (fără CLI)
 
-### 1. Deschide Firebase Console
+### 1. Deschide Supabase Console
 
-Accesează: https://console.firebase.google.com/project/superparty-frontend/firestore/rules
+Accesează: https://console.supabase.google.com/project/superparty-frontend/database/rules
 
 ### 2. Copiază regulile de mai jos
 
 ```
 rules_version = '2';
 
-service cloud.firestore {
+service cloud.database {
   match /databases/{database}/documents {
 
     // Helper function: check if user is authenticated
@@ -116,7 +116,7 @@ service cloud.firestore {
 
 ### 3. Lipește în editor
 
-- Click pe tab-ul "Rules" în Firebase Console
+- Click pe tab-ul "Rules" în Supabase Console
 - Șterge regulile existente
 - Lipește regulile de mai sus
 
@@ -134,4 +134,4 @@ Eroarea "permission-denied" ar trebui să dispară.
 
 ## Link Direct
 
-https://console.firebase.google.com/project/superparty-frontend/firestore/rules
+https://console.supabase.google.com/project/superparty-frontend/database/rules

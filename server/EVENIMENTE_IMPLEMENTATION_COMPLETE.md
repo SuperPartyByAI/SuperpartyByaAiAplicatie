@@ -65,9 +65,9 @@ Bazat pe spec HTML de 3401 linii din `kyc-app/kyc-app/public/evenimente.html`.
 - ✅ Buton "Reverifica" (update status)
 - ✅ **Lock behavior**: după OK, categorie locked (upload/remove disabled)
 
-### 3. Firebase Integration
+### 3. Supabase Integration
 
-#### Firestore
+#### Database
 
 - ✅ Stream real-time pentru evenimente (isArchived=false)
 - ✅ Stream real-time pentru dovezi + states
@@ -84,7 +84,7 @@ Bazat pe spec HTML de 3401 linii din `kyc-app/kyc-app/public/evenimente.html`.
 
 #### Rules
 
-- ✅ Firestore: `allow delete: if false` pe evenimente + subcolecții
+- ✅ Database: `allow delete: if false` pe evenimente + subcolecții
 - ✅ Storage: `allow delete: if false` pe toate folderele
 
 #### Indexes
@@ -111,7 +111,7 @@ Bazat pe spec HTML de 3401 linii din `kyc-app/kyc-app/public/evenimente.html`.
 - ✅ `getEvidenceStream()` - stream dovezi active
 - ✅ `getArchivedEvidenceStream()` - stream arhivate
 - ✅ `getCategoryStatesStream()` - stream status categorii
-- ✅ `uploadEvidence()` - upload Storage + Firestore
+- ✅ `uploadEvidence()` - upload Storage + Database
 - ✅ `archiveEvidence()` - arhivare (NU delete)
 - ✅ `updateCategoryStatus()` - update status + lock
 
@@ -196,22 +196,22 @@ Bazat pe spec HTML de 3401 linii din `kyc-app/kyc-app/public/evenimente.html`.
 
 ## 🚀 Deploy Instructions
 
-### 1. Deploy Firestore Indexes
+### 1. Deploy Database Indexes
 
 ```bash
-firebase deploy --only firestore:indexes
+supabase deploy --only database:indexes
 ```
 
-### 2. Deploy Firestore Rules
+### 2. Deploy Database Rules
 
 ```bash
-firebase deploy --only firestore:rules
+supabase deploy --only database:rules
 ```
 
 ### 3. Deploy Storage Rules
 
 ```bash
-firebase deploy --only storage
+supabase deploy --only storage
 ```
 
 ### 4. Migrare Date v1 → v2 (opțional)
@@ -265,7 +265,7 @@ node scripts/migrate_events_v1_to_v2.js
 - **Custom date picker**: `showDateRangePicker` (Flutter SDK) în loc de calendar custom HTML
   - **Motiv**: Flutter standard, comportament identic
 - **Thumbnails**: `NetworkImage` cu downloadUrl în loc de base64
-  - **Motiv**: Firebase Storage best practice
+  - **Motiv**: Supabase Storage best practice
 - **Validare coduri**: CodeValidator class în loc de regex inline
   - **Motiv**: Reusability + testability
 
@@ -291,11 +291,11 @@ node scripts/migrate_events_v1_to_v2.js
 - [x] Upload poze cu ImagePicker + Storage
 - [x] Lock behavior după OK
 - [x] Arhivare (NEVER DELETE) pentru evenimente + dovezi
-- [x] Firestore Rules: `allow delete: if false`
+- [x] Database Rules: `allow delete: if false`
 - [x] Storage Rules: `allow delete: if false`
 - [x] Indexes compuse cu isArchived
 - [x] Dual-read v1 + v2 (backward compatibility)
-- [x] Real-time streams Firestore
+- [x] Real-time streams Database
 - [x] Validare coduri (A1-A50, ATRAINER, D1-D50, DTRAINER)
 
 ---

@@ -23,7 +23,7 @@
 
 | #   | Îmbunătățire              | Înainte | După  | Beneficiu             | Adevăr  |
 | --- | ------------------------- | ------- | ----- | --------------------- | ------- |
-| 5   | **Retry logic Firestore** | ❌      | ✅ 3x | Pierdere -92%         | **92%** |
+| 5   | **Retry logic Database** | ❌      | ✅ 3x | Pierdere -92%         | **92%** |
 | 6   | **Graceful shutdown**     | ❌      | ✅    | Pierdere restart -90% | **90%** |
 
 **Adevăr mediu TIER 2: 91%**
@@ -115,18 +115,18 @@ setTimeout(() => {
 
 ```javascript
 // NOU: Check dacă mesajul există
-const exists = await firestore.messageExists(accountId, chatId, messageId);
+const exists = await database.messageExists(accountId, chatId, messageId);
 if (exists) {
   console.log('Message already exists, skipping');
   return;
 }
 
-await firestore.saveMessage(...);
+await database.saveMessage(...);
 ```
 
 **Impact:** Duplicate messages 1% → 0%
 
-### 5. Retry Logic Firestore
+### 5. Retry Logic Database
 
 **Cod:**
 
@@ -135,7 +135,7 @@ await firestore.saveMessage(...);
 async saveMessageWithRetry(accountId, chatId, messageData, maxRetries = 3) {
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
-      await firestore.saveMessage(...);
+      await database.saveMessage(...);
       return; // Success
     } catch (error) {
       if (attempt === maxRetries - 1) throw error;
@@ -183,8 +183,8 @@ src/
 ├── whatsapp/
 │   ├── manager.js              ✅ 661 linii (cu îmbunătățiri)
 │   └── session-store.js        ✅ 134 linii
-├── firebase/
-│   └── firestore.js            ✅ 145 linii (cu messageExists)
+├── supabase/
+│   └── database.js            ✅ 145 linii (cu messageExists)
 whatsapp-server.js              ✅ 200 linii (cu graceful shutdown)
 WHATSAPP-SETUP-COMPLETE.md      ✅ Ghid detaliat
 WHATSAPP-QUICK-START.md         ✅ Quick start
@@ -210,9 +210,9 @@ WHATSAPP-QUICK-START.md         ✅ Quick start
    git push origin main
    ```
 
-2. **Configure Firebase** (5 min)
+2. **Configure Supabase** (5 min)
    - Generate Service Account key
-   - Add to legacy hosting: `FIREBASE_SERVICE_ACCOUNT`
+   - Add to legacy hosting: `SUPABASE_SERVICE_ACCOUNT`
 
 3. **Deploy to legacy hosting** (automatic)
    - legacy hosting detects changes
@@ -257,7 +257,7 @@ WHATSAPP-QUICK-START.md         ✅ Quick start
 - ✅ Multi-account (20 conturi)
 - ✅ QR Code login
 - ✅ Pairing Code login
-- ✅ Session persistence (Firestore)
+- ✅ Session persistence (Database)
 - ✅ Auto-restore după restart
 - ✅ Message queue (1000 mesaje)
 - ✅ Real-time Socket.io events
@@ -286,11 +286,11 @@ WHATSAPP-QUICK-START.md         ✅ Quick start
 **Realitate:** 89% succes rate
 **Adevăr:** **89%** ✅
 
-### Salvare Mesaje Firestore
+### Salvare Mesaje Database
 
 **Promisiune:** Salvează tot ce vorbesc
-**Realitate:** 99.5% salvat (cu Firebase configurat)
-**Adevăr:** **94%** ✅ (cu Firebase), **0%** ❌ (fără Firebase)
+**Realitate:** 99.5% salvat (cu Supabase configurat)
+**Adevăr:** **94%** ✅ (cu Supabase), **0%** ❌ (fără Supabase)
 
 ### Deconectare Scurtă
 
@@ -371,6 +371,6 @@ legacy hosting Dashboard → Logs
 
 **Adevăr total:** 82%
 
-**Next step:** Push to GitHub + Configure Firebase + Deploy
+**Next step:** Push to GitHub + Configure Supabase + Deploy
 
 **Gata de producție!** 🚀

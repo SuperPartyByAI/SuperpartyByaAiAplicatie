@@ -3,15 +3,15 @@
  * Integration-style tests for SessionManager state transitions
  * Run: node --test session-manager.test.js
  * 
- * NOTE: These tests mock Firestore and Baileys, testing only the state machine logic.
+ * NOTE: These tests mock Database and Baileys, testing only the state machine logic.
  */
 
 import { describe, it, beforeEach } from "node:test";
 import assert from "node:assert/strict";
 import { Classification } from "./session-classifier.js";
 
-// ─── Mock Firestore ───────────────────────────────────────────────
-class MockFirestoreDoc {
+// ─── Mock Database ───────────────────────────────────────────────
+class MockDatabaseDoc {
   constructor(data = {}) { this._data = data; this.exists = Object.keys(data).length > 0; }
   data() { return this._data; }
 }
@@ -19,7 +19,7 @@ class MockFirestoreDoc {
 class MockDocRef {
   constructor() { this._data = {}; }
   async set(data, _opts) { Object.assign(this._data, data); }
-  async get() { return new MockFirestoreDoc(this._data); }
+  async get() { return new MockDatabaseDoc(this._data); }
 }
 
 class MockCollection {
@@ -39,20 +39,20 @@ describe("SessionManager State Machine", () => {
     it("should set requiresQR=true and not schedule reconnect", () => {
       // Simulate what _handleClose does for TERMINAL_LOGOUT
       const classification = Classification.TERMINAL_LOGOUT;
-      const firestoreData = {};
+      const databaseData = {};
 
-      // Simulate the Firestore set call from _handleClose
+      // Simulate the Database set call from _handleClose
       if (classification === Classification.TERMINAL_LOGOUT) {
-        firestoreData.status = 'needs_qr';
-        firestoreData.requiresQR = true;
-        firestoreData.qrCode = null;
-        firestoreData.reconnectAttempts = 0;
+        databaseData.status = 'needs_qr';
+        databaseData.requiresQR = true;
+        databaseData.qrCode = null;
+        databaseData.reconnectAttempts = 0;
       }
 
-      assert.equal(firestoreData.status, 'needs_qr');
-      assert.equal(firestoreData.requiresQR, true);
-      assert.equal(firestoreData.reconnectAttempts, 0);
-      assert.equal(firestoreData.qrCode, null);
+      assert.equal(databaseData.status, 'needs_qr');
+      assert.equal(databaseData.requiresQR, true);
+      assert.equal(databaseData.reconnectAttempts, 0);
+      assert.equal(databaseData.qrCode, null);
     });
   });
 
@@ -127,22 +127,22 @@ describe("SessionManager State Machine", () => {
 
   describe("regenerateQR flow", () => {
     it("should clear requiresQR before calling startSession", () => {
-      // Simulate regenerateQR Firestore update
-      const firestoreData = { status: 'needs_qr', requiresQR: true };
+      // Simulate regenerateQR Database update
+      const databaseData = { status: 'needs_qr', requiresQR: true };
       
       // regenerateQR resets these
-      firestoreData.status = 'connecting';
-      firestoreData.requiresQR = false;
-      firestoreData.qrCode = null;
-      firestoreData.reconnectAttempts = 0;
+      databaseData.status = 'connecting';
+      databaseData.requiresQR = false;
+      databaseData.qrCode = null;
+      databaseData.reconnectAttempts = 0;
 
       // Boot guard should now allow connection
-      const shouldSkip = firestoreData.requiresQR === true || 
-                         firestoreData.status === 'needs_qr' || 
-                         firestoreData.status === 'logged_out';
+      const shouldSkip = databaseData.requiresQR === true || 
+                         databaseData.status === 'needs_qr' || 
+                         databaseData.status === 'logged_out';
       
       assert.equal(shouldSkip, false, "After regenerateQR, boot guard should allow connection");
-      assert.equal(firestoreData.status, 'connecting');
+      assert.equal(databaseData.status, 'connecting');
     });
 
     it("should be idempotent (mutex)", () => {

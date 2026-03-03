@@ -14,10 +14,10 @@ Failed to update function projects/superparty-frontend/locations/us-central1/fun
 
 ### **Opțiunea 1: Așteaptă și Retry** (RECOMANDAT)
 
-Uneori Firebase are probleme temporare. Așteaptă **1-2 minute** și încearcă din nou:
+Uneori Supabase are probleme temporare. Așteaptă **1-2 minute** și încearcă din nou:
 
 ```cmd
-firebase deploy --only functions
+supabase deploy --only functions
 ```
 
 ---
@@ -25,7 +25,7 @@ firebase deploy --only functions
 ### **Opțiunea 2: Force Deploy**
 
 ```cmd
-firebase deploy --only functions --force
+supabase deploy --only functions --force
 ```
 
 Flag-ul `--force` forțează deployment-ul chiar dacă există conflicte.
@@ -36,12 +36,12 @@ Flag-ul `--force` forțează deployment-ul chiar dacă există conflicte.
 
 ```cmd
 # 1. Șterge funcția existentă
-firebase functions:delete whatsapp --region us-central1
+supabase functions:delete whatsapp --region us-central1
 
 # 2. Confirmă cu "y"
 
 # 3. Deploy funcția nouă
-firebase deploy --only functions
+supabase deploy --only functions
 ```
 
 **⚠️ ATENȚIE:** Funcția va fi offline ~30-60 secunde în timpul recreării.
@@ -51,7 +51,7 @@ firebase deploy --only functions
 ## 🔍 Verifică Logs pentru Erori
 
 ```cmd
-firebase functions:log --only whatsapp --lines 20
+supabase functions:log --only whatsapp --lines 20
 ```
 
 Caută erori recente care ar putea explica de ce deploy-ul a eșuat.
@@ -62,7 +62,7 @@ Caută erori recente care ar putea explica de ce deploy-ul a eșuat.
 
 - ✅ **Codul este corect** - Nu am găsit erori de sintaxă
 - ✅ **Git push OK** - Codul este pe GitHub
-- ❌ **Deploy failed** - Firebase nu a putut actualiza funcția
+- ❌ **Deploy failed** - Supabase nu a putut actualiza funcția
 - ⏳ **Funcția veche rulează** - URL-ul funcționează cu codul vechi
 
 ---
@@ -72,7 +72,7 @@ Caută erori recente care ar putea explica de ce deploy-ul a eșuat.
 ### **Pas 1: Retry Simple** (30 sec)
 
 ```cmd
-firebase deploy --only functions
+supabase deploy --only functions
 ```
 
 Dacă funcționează → **GATA!**
@@ -82,7 +82,7 @@ Dacă funcționează → **GATA!**
 ### **Pas 2: Dacă Tot Eșuează - Force** (30 sec)
 
 ```cmd
-firebase deploy --only functions --force
+supabase deploy --only functions --force
 ```
 
 Dacă funcționează → **GATA!**
@@ -92,8 +92,8 @@ Dacă funcționează → **GATA!**
 ### **Pas 3: Dacă Tot Eșuează - Șterge și Recreează** (2 min)
 
 ```cmd
-firebase functions:delete whatsapp --region us-central1
-firebase deploy --only functions
+supabase functions:delete whatsapp --region us-central1
+supabase deploy --only functions
 ```
 
 Aceasta **GARANTAT** va funcționa.
@@ -105,7 +105,7 @@ Aceasta **GARANTAT** va funcționa.
 Trimite-mi output-ul de la:
 
 ```cmd
-firebase deploy --only functions --debug > deploy-debug.txt 2>&1
+supabase deploy --only functions --debug > deploy-debug.txt 2>&1
 type deploy-debug.txt
 ```
 
@@ -117,7 +117,7 @@ Voi analiza logs-urile și voi găsi problema exactă.
 
 Cauze posibile:
 
-1. **Firebase are probleme temporare** (cel mai probabil)
+1. **Supabase are probleme temporare** (cel mai probabil)
 2. **Funcția este locked** (primește requests în timpul deploy-ului)
 3. **Timeout la deployment** (funcția este prea mare)
 4. **Permisiuni IAM** (contul nu are drepturi să UPDATE funcția)
@@ -135,8 +135,8 @@ curl https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp
 # 2. Conectează WhatsApp
 curl https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp/api/whatsapp/accounts
 
-# 3. După conectare, verifică Firestore
-# Mergi la Firebase Console → Firestore → whatsapp_sessions
+# 3. După conectare, verifică Database
+# Mergi la Supabase Console → Database → whatsapp_sessions
 # Ar trebui să vezi sesiunea salvată!
 ```
 

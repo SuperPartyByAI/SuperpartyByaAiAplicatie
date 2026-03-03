@@ -153,7 +153,7 @@ grep "cors: true" functions/whatsappProxy.js
 ## 🚀 **Deploy**
 
 ```bash
-firebase deploy --only functions
+supabase deploy --only functions
 ```
 
 **Expected:** No CPU quota errors, no dist warnings in production logs.
@@ -164,9 +164,9 @@ firebase deploy --only functions
 
 ```bash
 # View logs (no --limit flag, use --lines instead)
-firebase functions:log --only clientCrmAsk --lines 120
-firebase functions:log --only whatsappExtractEventFromThread --lines 120
-firebase functions:log --only aggregateClientStats --lines 120
+supabase functions:log --only clientCrmAsk --lines 120
+supabase functions:log --only whatsappExtractEventFromThread --lines 120
+supabase functions:log --only aggregateClientStats --lines 120
 ```
 
 ---

@@ -1,14 +1,14 @@
-const { initializeTestEnvironment, assertFails, assertSucceeds } = require('@firebase/rules-unit-testing');
+const { initializeTestEnvironment, assertFails, assertSucceeds } = require('@supabase/rules-unit-testing');
 const fs = require('fs');
 const path = require('path');
 
 let testEnv;
 
 beforeAll(async () => {
-  const rules = fs.readFileSync(path.resolve(__dirname, '../../../../firestore.rules'), 'utf8');
+  const rules = fs.readFileSync(path.resolve(__dirname, '../../../../database.rules'), 'utf8');
   testEnv = await initializeTestEnvironment({
     projectId: "superparty-frontend-test",
-    firestore: { rules }
+    database: { rules }
   });
 });
 
@@ -17,16 +17,16 @@ afterAll(async () => {
 });
 
 beforeEach(async () => {
-  await testEnv.clearFirestore();
+  await testEnv.clearDatabase();
 });
 
-describe("Firebase Rules - Schema Guardrails", () => {
+describe("Supabase Rules - Schema Guardrails", () => {
   it("should NOT allow client to delete threads (NEVER DELETE constraint)", async () => {
-    const unauthedDb = testEnv.unauthenticatedContext().firestore();
-    const authedDb = testEnv.authenticatedContext('user-123').firestore();
+    const unauthedDb = testEnv.unauthenticatedContext().database();
+    const authedDb = testEnv.authenticatedContext('user-123').database();
 
     await testEnv.withSecurityRulesDisabled(async (context) => {
-      await context.firestore().collection("threads").doc("t1").set({ text: "Hello", lastMessageAt: Date.now() });
+      await context.database().collection("threads").doc("t1").set({ text: "Hello", lastMessageAt: Date.now() });
     });
 
     await assertFails(unauthedDb.collection("threads").doc("t1").delete());
@@ -34,17 +34,17 @@ describe("Firebase Rules - Schema Guardrails", () => {
   });
 
   it("should NOT allow client to mutate SERVER-ONLY role field", async () => {
-    const authedDb = testEnv.authenticatedContext('user-123').firestore();
+    const authedDb = testEnv.authenticatedContext('user-123').database();
     
     await testEnv.withSecurityRulesDisabled(async (context) => {
-      await context.firestore().collection("users").doc("user-123").set({ role: "user" });
+      await context.database().collection("users").doc("user-123").set({ role: "user" });
     });
 
     await assertFails(authedDb.collection("users").doc("user-123").update({ role: "admin" }));
   });
 
   it("should enforce required fields like lastMessageAt on creation", async () => {
-    const authedDb = testEnv.authenticatedContext('user-123').firestore();
+    const authedDb = testEnv.authenticatedContext('user-123').database();
     
     // Attempting to create a thread without lastMessageAt should fail.
     // (Assuming the real rules protect this - if not this will flag it as a regression).

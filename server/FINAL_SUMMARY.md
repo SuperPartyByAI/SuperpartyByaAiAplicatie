@@ -102,7 +102,7 @@ All requirements from "logica aplicatie.txt" have been successfully implemented.
   - Popcorn: popcorn, floricele
   - And 10+ more roles
 - Ambiguity detection → ask for clarification
-- AI overrides support (from Firestore)
+- AI overrides support (from Database)
 
 **Files Created**:
 - `functions/roleDetector.js`
@@ -150,7 +150,7 @@ All requirements from "logica aplicatie.txt" have been successfully implemented.
 - Transcript storage on event (`transcriptMessages`)
 - AI interpretation log on event (`aiInterpretationLog`)
 - Admin-only correction UI (documented)
-- Firestore `aiOverrides` collection
+- Database `aiOverrides` collection
 - Override application in role detection
 - Audit trail for overrides
 
@@ -321,7 +321,7 @@ npm run deploy
 ### 2. Initialize Counter
 
 ```bash
-firebase firestore:set counters/eventShortCode '{"value": 0}'
+supabase database:set counters/eventShortCode '{"value": 0}'
 ```
 
 ### 3. Test
@@ -334,7 +334,7 @@ npm test
 ### 4. Use
 
 ```javascript
-const result = await firebase.functions().httpsCallable('chatEventOpsV2')({
+const result = await supabase.functions().httpsCallable('chatEventOpsV2')({
   text: 'Vreau să notez un eveniment',
   sessionId: 'session_123',
 });

@@ -1,15 +1,15 @@
-# 🔧 Instalare Firebase CLI pe Windows
+# 🔧 Instalare Supabase CLI pe Windows
 
 ## Problema
 ```
-firebase: The term 'firebase' is not recognized...
+supabase: The term 'supabase' is not recognized...
 ```
 
-Firebase CLI nu este instalat pe sistemul tău Windows.
+Supabase CLI nu este instalat pe sistemul tău Windows.
 
 ---
 
-## ✅ Soluție: Instalare Firebase CLI
+## ✅ Soluție: Instalare Supabase CLI
 
 ### Opțiunea 1: NPM (Recomandat - Rapid)
 
@@ -28,10 +28,10 @@ npm --version
 3. Restart PowerShell
 4. Verifică din nou: `node --version`
 
-**Pasul 2: Instalează Firebase CLI**
+**Pasul 2: Instalează Supabase CLI**
 
 ```powershell
-npm install -g firebase-tools
+npm install -g supabase-tools
 ```
 
 **Timp estimat:** 1-2 minute
@@ -39,7 +39,7 @@ npm install -g firebase-tools
 **Pasul 3: Verifică instalarea**
 
 ```powershell
-firebase --version
+supabase --version
 ```
 
 Ar trebui să vezi: `15.x.x` sau similar
@@ -47,8 +47,8 @@ Ar trebui să vezi: `15.x.x` sau similar
 **Pasul 4: Continuă cu deploy**
 
 ```powershell
-firebase login
-firebase deploy --only functions
+supabase login
+supabase deploy --only functions
 ```
 
 ---
@@ -57,22 +57,22 @@ firebase deploy --only functions
 
 **Dacă NPM nu funcționează:**
 
-1. **Download Firebase CLI Standalone**
-   - Link: https://firebase.tools/bin/win/instant/latest
-   - Salvează ca: `firebase-tools.exe`
+1. **Download Supabase CLI Standalone**
+   - Link: https://supabase.tools/bin/win/instant/latest
+   - Salvează ca: `supabase-tools.exe`
 
 2. **Rulează installer-ul**
-   - Double-click pe `firebase-tools.exe`
+   - Double-click pe `supabase-tools.exe`
    - Urmează instrucțiunile
 
 3. **Restart PowerShell**
    - Închide și redeschide PowerShell
-   - Verifică: `firebase --version`
+   - Verifică: `supabase --version`
 
 4. **Continuă cu deploy**
    ```powershell
-   firebase login
-   firebase deploy --only functions
+   supabase login
+   supabase deploy --only functions
    ```
 
 ---
@@ -81,17 +81,17 @@ firebase deploy --only functions
 
 **Dacă nu vrei să instalezi global:**
 
-Folosește `npx` pentru a rula Firebase CLI direct:
+Folosește `npx` pentru a rula Supabase CLI direct:
 
 ```powershell
 # Login
-npx firebase-tools login
+npx supabase-tools login
 
 # Deploy
-npx firebase-tools deploy --only functions
+npx supabase-tools deploy --only functions
 ```
 
-**Notă:** Va descărca Firebase CLI temporar la fiecare rulare (mai lent).
+**Notă:** Va descărca Supabase CLI temporar la fiecare rulare (mai lent).
 
 ---
 
@@ -111,27 +111,27 @@ npx firebase-tools deploy --only functions
 **Soluție 1 - Rulează ca Administrator:**
 1. Click dreapta pe PowerShell
 2. "Run as Administrator"
-3. Rulează: `npm install -g firebase-tools`
+3. Rulează: `npm install -g supabase-tools`
 
 **Soluție 2 - Folosește npx:**
 ```powershell
-npx firebase-tools login
-npx firebase-tools deploy --only functions
+npx supabase-tools login
+npx supabase-tools deploy --only functions
 ```
 
-### Error: firebase command not found după instalare
+### Error: supabase command not found după instalare
 
 **Cauză:** PATH nu este actualizat
 
 **Soluție:**
 1. Închide toate ferestrele PowerShell
 2. Redeschide PowerShell
-3. Verifică: `firebase --version`
+3. Verifică: `supabase --version`
 
 **Dacă tot nu funcționează:**
 ```powershell
-# Găsește locația Firebase
-npm list -g firebase-tools
+# Găsește locația Supabase
+npm list -g supabase-tools
 
 # Adaugă manual la PATH (temporar)
 $env:Path += ";C:\Users\ursac\AppData\Roaming\npm"
@@ -145,16 +145,16 @@ După instalare, rulează:
 
 ```powershell
 # Verifică versiune
-firebase --version
+supabase --version
 
 # Verifică comenzi disponibile
-firebase --help
+supabase --help
 
 # Login
-firebase login
+supabase login
 
 # Verifică proiecte
-firebase projects:list
+supabase projects:list
 ```
 
 ---
@@ -167,10 +167,10 @@ firebase projects:list
 cd C:\Users\ursac\Desktop\Aplicatie-SuperpartyByAi\functions
 
 # Login (o singură dată)
-firebase login
+supabase login
 
 # Deploy
-firebase deploy --only functions
+supabase deploy --only functions
 ```
 
 ---
@@ -183,25 +183,25 @@ firebase deploy --only functions
 # Verifică Node.js
 node --version
 
-# Instalează Firebase CLI
-npm install -g firebase-tools
+# Instalează Supabase CLI
+npm install -g supabase-tools
 
 # Verifică instalare
-firebase --version
+supabase --version
 
 # Login
-firebase login
+supabase login
 
 # Deploy
 cd C:\Users\ursac\Desktop\Aplicatie-SuperpartyByAi\functions
-firebase deploy --only functions
+supabase deploy --only functions
 ```
 
 ---
 
 ## ⏱️ Timp Estimat
 
-- **Instalare Firebase CLI:** 1-2 minute
+- **Instalare Supabase CLI:** 1-2 minute
 - **Login:** 30 secunde
 - **Deploy:** 3-5 minute
 
@@ -212,7 +212,7 @@ firebase deploy --only functions
 ## 📞 Ajutor Suplimentar
 
 ### Documentație Oficială
-- Firebase CLI: https://firebase.google.com/docs/cli
+- Supabase CLI: https://supabase.google.com/docs/cli
 - Node.js: https://nodejs.org/
 
 ### Verificări Rapide
@@ -223,8 +223,8 @@ node --version
 # NPM instalat?
 npm --version
 
-# Firebase CLI instalat?
-firebase --version
+# Supabase CLI instalat?
+supabase --version
 
 # În directorul corect?
 pwd
@@ -233,7 +233,7 @@ pwd
 
 ---
 
-**Next Step:** După ce vezi `firebase --version` funcționând, rulează:
+**Next Step:** După ce vezi `supabase --version` funcționând, rulează:
 ```powershell
-firebase login
+supabase login
 ```

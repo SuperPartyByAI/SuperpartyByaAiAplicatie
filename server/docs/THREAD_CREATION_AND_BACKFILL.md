@@ -13,7 +13,7 @@ Cum apar conversațiile în Inbox și când ajută Sync / Backfill.
 La (re)pairing, backend-ul primește `messaging-history.set` și:
 
 - Creează **thread placeholders** din `chats` (pentru toate conversațiile)
-- Scrie mesajele în Firestore (`threads/{threadId}/messages`)
+- Scrie mesajele în Database (`threads/{threadId}/messages`)
 - Salvează contactele
 
 **Rezultat:** Inbox arată toate conversațiile; Backfill le poate umple cu istoric ulterior.
@@ -26,7 +26,7 @@ La (re)pairing, backend-ul primește `messaging-history.set` și:
 
 **Când:** Trimiți sau primești mesaje noi pe WhatsApp pentru acel cont.
 
-Backend-ul (realtime) scrie mesajul în Firestore și **creează thread-ul dacă nu există**.
+Backend-ul (realtime) scrie mesajul în Database și **creează thread-ul dacă nu există**.
 
 **Rezultat:** Conversații noi apar în Inbox pe măsură ce apar mesaje.
 

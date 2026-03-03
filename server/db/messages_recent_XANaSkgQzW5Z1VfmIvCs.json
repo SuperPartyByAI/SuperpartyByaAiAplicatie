@@ -1,0 +1,5 @@
+[
+  {
+    "error": "The Supabase REST API returned a Cloudflare Worker Exception 1101 when querying messages with ilike. The connection to Supabase was active but the specific endpoint threw an error. For diagnostic purposes, no messages are sent by this account yet due to the 503 error."
+  }
+]

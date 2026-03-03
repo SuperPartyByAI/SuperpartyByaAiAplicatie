@@ -7,9 +7,8 @@ Backend standalone pentru Hetzner care gestionează conexiunile WhatsApp folosin
 ### Required
 
 - `PORT`: Portul pe care rulează serverul (default: 8080 pe Hetzner)
-- `FIREBASE_PROJECT_ID`: ID-ul proiectului Firebase
-- `FIREBASE_PRIVATE_KEY`: Cheia privată Firebase (JSON escaped)
-- `FIREBASE_CLIENT_EMAIL`: Email-ul clientului Firebase
+- `SUPABASE_PRIVATE_KEY`: Cheia privată Supabase (JSON escaped)
+- `SUPABASE_CLIENT_EMAIL`: Email-ul clientului Supabase
 - `WHATSAPP_BACKEND_URL`: URL-ul de bază al backend-ului (ex: `http://37.27.34.179:8080`) pentru callbacks
 
 ### Optional

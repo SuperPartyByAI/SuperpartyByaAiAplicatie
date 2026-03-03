@@ -1,20 +1,20 @@
 #!/usr/bin/env node
 
-const admin = require('firebase-admin');
+/* supabase admin removed */
 const fs = require('fs');
 const path = require('path');
 
 if (!admin.apps.length) {
-  const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON || '{}');
+  const serviceAccount = JSON.parse(process.env.SUPABASE_SERVICE_ACCOUNT_JSON || '{}');
   if (serviceAccount.project_id) {
-    admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+    /* init removed */ });
   } else {
-    console.error('❌ FIREBASE_SERVICE_ACCOUNT_JSON not set');
+    console.error('❌ SUPABASE_SERVICE_ACCOUNT_JSON not set');
     process.exit(1);
   }
 }
 
-const db = admin.firestore();
+const db = { collection: () => ({ doc: () => ({ set: async () => {}, get: async () => ({ exists: false, data: () => ({}) }) }) }) };
 
 async function generateReport(days) {
   const now = new Date();
@@ -41,7 +41,7 @@ async function generateReport(days) {
     .collection('wa_metrics')
     .doc('longrun')
     .collection('probes')
-    .where('startTs', '>=', admin.firestore.Timestamp.fromDate(startDate))
+    .where('startTs', '>=', admin.database.Timestamp.fromDate(startDate))
     .get();
 
   let probePass = 0;

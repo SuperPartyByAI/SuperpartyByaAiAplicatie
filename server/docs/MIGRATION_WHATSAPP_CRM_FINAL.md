@@ -1,6 +1,6 @@
 # WhatsApp CRM Migration – Final Summary
 
-**Scope:** GetMessages removed, Send via proxy only, Firestore-only messages, WHATSAPP_BACKEND_URL config.
+**Scope:** GetMessages removed, Send via proxy only, Database-only messages, WHATSAPP_BACKEND_URL config.
 
 ---
 
@@ -12,14 +12,14 @@
 | `functions/lib/backend-url.js` | Folosește `WHATSAPP_BACKEND_BASE_URL` / `WHATSAPP_BACKEND_URL` / `BACKEND_BASE_URL` (Hetzner). |
 | `docs/WHATSAPP_PROD_RUNBOOK.md` | Troubleshooting 404/HTML; notă tsClient; deploy/index/secrets deja documentate. |
 | `superparty_flutter/.../README_CRM_FLOW.md` | 404/HTML fix; `orderBy('tsClient', descending: true)` în doc. |
-| `ACCEPTANCE_CHECKLIST_CRM_WHATSAPP.md` | Secțiune **Migration** (Inbox refresh, Chat Firestore, Send proxy, no GetMessages). |
+| `ACCEPTANCE_CHECKLIST_CRM_WHATSAPP.md` | Secțiune **Migration** (Inbox refresh, Chat Database, Send proxy, no GetMessages). |
 
 **Deja în repo (nu modificate acum):**
 - `functions/index.js`: export `whatsappProxyGetMessages` deja scos.
 - Flutter: chat stream `orderBy('tsClient', desc)`, `sendViaProxy`, inbox `onRefresh` async.
 - CI: `WHATSAPP_BACKEND_URL` în whatsapp-ci.
 - Smoke: `WHATSAPP_BACKEND_URL` + Hetzner default, http/https.
-- `firestore.indexes.json`: fieldOverrides `messages` + `tsClient`.
+- `database.indexes.json`: fieldOverrides `messages` + `tsClient`.
 
 ---
 
@@ -37,25 +37,25 @@
 ### Deploy
 
 ```bash
-firebase use superparty-frontend   # sau default / alias tău
+supabase use superparty-frontend   # sau default / alias tău
 cd functions && npm install && cd ..
 
-firebase deploy --only firestore:indexes
-firebase deploy --only firestore:rules
-firebase deploy --only functions:whatsappProxySend,functions:whatsappProxyGetAccounts,functions:whatsappProxyAddAccount,functions:whatsappProxyRegenerateQr
+supabase deploy --only database:indexes
+supabase deploy --only database:rules
+supabase deploy --only functions:whatsappProxySend,functions:whatsappProxyGetAccounts,functions:whatsappProxyAddAccount,functions:whatsappProxyRegenerateQr
 ```
 
 ### Secrets
 
 ```bash
-firebase functions:secrets:set WHATSAPP_BACKEND_URL
+supabase functions:secrets:set WHATSAPP_BACKEND_URL
 # Valoare ex.: http://37.27.34.179:8080
 ```
 
 ### Verify
 
 ```bash
-firebase functions:list | grep whatsappProxySend
+supabase functions:list | grep whatsappProxySend
 # Trebuie: whatsappProxySend(us-central1)
 ```
 
@@ -63,7 +63,7 @@ firebase functions:list | grep whatsappProxySend
 
 ```bash
 curl -sS -X POST "https://us-central1-superparty-frontend.cloudfunctions.net/whatsappProxySend" \
-  -H "Authorization: Bearer YOUR_FIREBASE_ID_TOKEN" \
+  -H "Authorization: Bearer YOUR_SUPABASE_ID_TOKEN" \
   -H "Content-Type: application/json" \
   -d '{
     "threadId": "EXISTENT_THREAD_ID",
@@ -80,7 +80,7 @@ curl -sS -X POST "https://us-central1-superparty-frontend.cloudfunctions.net/wha
 
 ## 4. Checklist acceptanță (migrare)
 
-1. **Inbox refresh** – pull-to-refresh, threads din Firestore.
+1. **Inbox refresh** – pull-to-refresh, threads din Database.
 2. **Chat stream** – mesaje din `threads/{threadId}/messages`, fără GetMessages.
 3. **Send** – `sendViaProxy` → 2xx JSON, „Message sent!”.
 4. **Logs** – zero request către `whatsappProxyGetMessages`.

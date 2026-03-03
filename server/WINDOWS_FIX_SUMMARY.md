@@ -72,7 +72,7 @@ flutter run -d windows
 | **3770defe** | Standardize to `evidenceState` | `evidence_service.dart`                                            |
 | **5e4a3fa5** | Fix method call                | `dovezi_screen.dart`                                               |
 | **b3898fd5** | Standardize parameters         | `file_storage_service.dart`                                        |
-| **4a7bd4cd** | Backward compat migration      | `evidence_model.dart`, `firestore.rules`, `firestore.indexes.json` |
+| **4a7bd4cd** | Backward compat migration      | `evidence_model.dart`, `database.rules`, `database.indexes.json` |
 | **db2bf19a** | Add flutter analyze to CI      | `.github/workflows/*`                                              |
 | **cf0e4d21** | AI Chat region + key           | `ai_chat_screen.dart`, `functions/index.js`                        |
 | **50106aee** | Remove duplicate trim          | `functions/index.js`                                               |

@@ -1,9 +1,6 @@
 plugins {
     id("com.android.application")
-    // START: FlutterFire Configuration
-    id("com.google.gms.google-services")
-    id("com.google.firebase.crashlytics")
-    // END: FlutterFire Configuration
+
     id("kotlin-android")
     // The Flutter Gradle Plugin must be applied after the Android and Kotlin Gradle plugins.
     id("dev.flutter.flutter-gradle-plugin")
@@ -73,13 +70,14 @@ flutter {
 }
 
 dependencies {
-    // Explicit Firebase dependencies so custom Kotlin services can compile
-    implementation(platform("com.google.firebase:firebase-bom:33.7.0"))
-    implementation("com.google.firebase:firebase-messaging-ktx")
-    // Twilio Voice SDK — needed by CustomVoiceFirebaseMessagingService for
+
+    // Twilio Voice SDK — needed by CustomVoiceSupabaseMessagingService for
     // Voice.handleMessage(), CallInvite, MessageListener (root cause fix v41)
     // MUST match plugin version: twilio_voice 0.3.2+2 uses voice-android:6.9.0
     implementation("com.twilio:voice-android:6.9.0")
     // LocalBroadcastManager — needed to forward CallInvite events to Flutter plugin
     implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
+
+    // Firebase Messaging logic specifically needed for VoIP push on Android
+    implementation("com.google.firebase:firebase-messaging:23.4.0")
 }

@@ -126,7 +126,7 @@ Dacă încă returnează 502 după setarea `ADMIN_TOKEN`:
 - `/api/longrun/*` - Long-running operations
 - Alte endpoint-uri sensibile
 
-**Firebase Functions proxy** (`whatsappProxyGetAccounts`) NU necesită `ADMIN_TOKEN` - el autentifică prin Firebase ID token și verifică dacă userul e super-admin.
+**Supabase Functions proxy** (`whatsappProxyGetAccounts`) NU necesită `ADMIN_TOKEN` - el autentifică prin Supabase ID token și verifică dacă userul e super-admin.
 
 ---
 

@@ -230,7 +230,7 @@ TOTAL: ~35ms (vs 5-15s înainte = 99.7% mai rapid!)
 4. Placeholder "..." apare → 100ms
 5. Check cache (miss) → 25ms
 6. Prepare payload (5 msgs) → 20ms
-7. Firebase Function call → 200ms
+7. Supabase Function call → 200ms
 8. Groq client (pooled) → 50ms
 9. AI processing (200 tokens) → 800ms
 10. Response back → 200ms
@@ -291,7 +291,7 @@ Frequent cache: Păstrat permanent
 ### 3. Network Failure
 
 ```dart
-// Dacă Firebase Function eșuează
+// Dacă Supabase Function eșuează
 Placeholder: Înlocuit cu mesaj eroare
 Cache: Păstrat pentru retry
 ```
@@ -336,11 +336,11 @@ done
 
 ## Deployment
 
-### 1. Deploy Firebase Function
+### 1. Deploy Supabase Function
 
 ```bash
 cd functions
-firebase deploy --only functions:chatWithAI
+supabase deploy --only functions:chatWithAI
 ```
 
 ### 2. Build Flutter App
@@ -360,7 +360,7 @@ flutter install --release
 
 ## Monitoring
 
-### Firebase Console Metrics
+### Supabase Console Metrics
 
 - **Execution time**: Should be 1-3s (down from 5-15s)
 - **Memory usage**: Should be 200-300MB

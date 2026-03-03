@@ -54,7 +54,7 @@ app.listen(PORT, '0.0.0.0', async () => {
 
 **Location:** `whatsapp-backend/server.js`
 
-**Evidence 1: Firestore restore (line 3590-3595)**
+**Evidence 1: Database restore (line 3590-3595)**
 ```javascript
 // Line 3590-3595
 // Add 2-5s jitter between account restores (staggered boot to avoid rate limiting)
@@ -98,7 +98,7 @@ if (i > 0) {
 
 **Location:** `whatsapp-backend/server.js`
 
-**Evidence 1: Firestore restore (line 3582-3583)**
+**Evidence 1: Database restore (line 3582-3583)**
 ```javascript
 // Line 3582-3583
 // Sort accounts deterministically for predictable boot order
@@ -308,7 +308,7 @@ async function gracefulShutdown(signal) {
   await Promise.allSettled(flushPromises);
   console.log('✅ All sessions flushed to disk');
 
-  // Release Firestore leases
+  // Release Database leases
   await releaseLeases();
 
   // Close all sockets
@@ -718,7 +718,7 @@ bash tool/forbid_named_navigator.sh
    - Hetzner dashboard → Service → **Settings** → **Restart**
    - Watch logs for boot sequence:
      ```
-     🔄 Restoring accounts from Firestore...
+     🔄 Restoring accounts from Database...
      📁 Found 30 session directories on disk
      ⏳ Waiting Xs before restoring next account (staggered boot)...
      ✅ Boot sequence complete: 30/30 accounts connected

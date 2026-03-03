@@ -1,0 +1,25 @@
+#!/usr/bin/expect -f
+set password "qnprPcARRmqv"
+set ip "89.167.115.150"
+spawn ssh -o StrictHostKeyChecking=no root@$ip
+expect "Password:"
+send "$password\r"
+expect {
+    "Current password:" {
+        send "$password\r"
+        expect "New password:"
+        send "$password\r"
+        expect "Retype new password:"
+        send "$password\r"
+        expect "#"
+    }
+    "#" { }
+}
+send "curl -fsSL https://raw.githubusercontent.com/SuperPartyByAI/SuperpartyByaAiAplicatie/fix/clean-voip-firebase-20260303-AG/server/deploy_new_vps.sh > deploy.sh || echo 'Manual pull needed'\r"
+expect "#"
+send "export PORT=3000\r"
+expect "#"
+send "bash <(curl -s https://raw.githubusercontent.com/SuperPartyByAI/SuperpartyByaAiAplicatie/fix/clean-voip-firebase-20260303-AG/server/deploy_new_vps.sh) || echo 'Failed'\r"
+expect "#"
+send "exit\r"
+expect eof

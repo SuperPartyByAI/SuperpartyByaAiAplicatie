@@ -70,7 +70,7 @@ app.delete('/api/whatsapp/accounts/:id', accountLimiter, async (req, res) => {
 
 ```javascript
 // whatsapp-backend/server.js - line 1794
-await saveAccountToFirestore(accountId, {
+await saveAccountToDatabase(accountId, {
   status: 'logged_out', // Changed from 'needs_qr'
   lastError: `logged_out (${reason}) - requires re-link`, // Updated message
   // ...

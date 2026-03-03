@@ -3,7 +3,7 @@
  *
  * Integrates all WA connection stability components:
  * - Distributed lock (single-instance)
- * - Firestore auth state
+ * - Database auth state
  * - Reconnect state machine
  * - Keepalive monitoring
  * - Auto-heal
@@ -11,7 +11,7 @@
  */
 
 const WAConnectionLock = require('./wa-connection-lock');
-const FirestoreAuthState = require('./wa-firestore-auth');
+const DatabaseAuthState = require('./wa-database-auth');
 const WAReconnectManager = require('./wa-reconnect-manager');
 const WAKeepaliveMonitor = require('./wa-keepalive-monitor');
 const WAAutoHeal = require('./wa-auto-heal');
@@ -24,7 +24,7 @@ class WAStabilityManager {
 
     // Initialize components
     this.lock = new WAConnectionLock(db, instanceId);
-    this.authState = new FirestoreAuthState(db);
+    this.authState = new DatabaseAuthState(db);
     this.reconnectManager = new WAReconnectManager(db, instanceId);
     this.keepalive = new WAKeepaliveMonitor();
     this.autoHeal = new WAAutoHeal(db, instanceId, this.reconnectManager, this.lock);
@@ -125,7 +125,7 @@ class WAStabilityManager {
       lock: lockStatus,
       connection: reconnectState,
       keepalive: keepaliveStatus,
-      authStore: 'firestore',
+      authStore: 'database',
       authInfo,
       disconnectIncident: disconnectIncident.exists ? disconnectIncident : null,
     };
@@ -144,7 +144,7 @@ class WAStabilityManager {
    * Get auth state handler for Baileys
    */
   async getAuthStateHandler() {
-    return await this.authState.useFirestoreAuthState();
+    return await this.authState.useDatabaseAuthState();
   }
 
   /**

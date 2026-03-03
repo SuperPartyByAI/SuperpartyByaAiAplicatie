@@ -12,8 +12,8 @@
 - **Fix:** Enhanced logging with full error object and stack trace
 - **Location:** `whatsapp-backend/server.js:1389-1415`
 
-### 3. Firestore Backup Killing Socket ✅ FIXED
-- **Issue:** Errors in Firestore backup could affect Baileys socket
+### 3. Database Backup Killing Socket ✅ FIXED
+- **Issue:** Errors in Database backup could affect Baileys socket
 - **Fix:** Wrapped backup in `setImmediate` and catch all errors (non-fatal)
 - **Location:** `whatsapp-backend/server.js:1067-1098`
 
@@ -89,12 +89,12 @@
 - Account not deleted during pairing
 - QR regenerated automatically
 
-### 4. Test Firestore Backup Error Handling
+### 4. Test Database Backup Error Handling
 
 ```bash
-# Simulate Firestore error (if possible):
+# Simulate Database error (if possible):
 1. Create account
-2. Monitor logs for Firestore backup errors
+2. Monitor logs for Database backup errors
 3. Verify: Socket not affected
 4. Verify: Connection continues normally
 ```
@@ -136,7 +136,7 @@ node test-smoke-reproduction.js
 ## Production Deployment Checklist
 
 - [ ] Deploy Flutter app with fixes
-- [ ] Deploy Firebase Functions with proxy fixes
+- [ ] Deploy Supabase Functions with proxy fixes
 - [ ] Deploy legacy hosting backend with regenerate QR fixes
 - [ ] Monitor logs for requestId correlation
 - [ ] Verify no spam loops in logs
@@ -150,8 +150,8 @@ node test-smoke-reproduction.js
 # Check legacy hosting health
 curl -sS https://whats-app-ompro.ro/health | jq
 
-# Check Firebase Functions
-firebase functions:list | grep whatsappProxy
+# Check Supabase Functions
+supabase functions:list | grep whatsappProxy
 
 # Run smoke test
 cd whatsapp-backend && node test-smoke-reproduction.js
@@ -166,7 +166,7 @@ cd whatsapp-backend && node test-smoke-reproduction.js
 1. `superparty_flutter/lib/services/whatsapp_api_service.dart` - Client guard + cooldown
 2. `functions/whatsappProxy.js` - Structured errors + requestId
 3. `whatsapp-backend/server.js` - checkPassiveModeGuard + regenerate QR fixes
-4. `whatsapp-backend/server.js` - Firestore backup error handling
+4. `whatsapp-backend/server.js` - Database backup error handling
 5. `whatsapp-backend/server.js` - Reason 515 enhanced logging
 6. `superparty_flutter/lib/screens/evenimente/evenimente_screen.dart` - Timeout + logging
 7. `whatsapp-backend/test-smoke-reproduction.js` - Smoke test script

@@ -23,7 +23,7 @@
 - setState()
 - notifyListeners()
 - HTTP calls
-- Firebase queries
+- Supabase queries
 - File I/O
 
 // ✅ ALLOWED in build()
@@ -105,11 +105,11 @@ final router = GoRouter(
 [ROUTER]    - Navigation events
 [AUTH]      - Authentication state
 [GATE]      - Update/migration gates
-[FIRESTORE] - Database operations
+[DATABASE] - Database operations
 [ERROR]     - Errors and exceptions
 
 // Example
-debugPrint('[BOOT] Initializing Firebase...');
+debugPrint('[BOOT] Initializing Supabase...');
 debugPrint('[ROUTER] Navigating to: /evenimente');
 debugPrint('[AUTH] User logged in: ${user.uid}');
 ```
@@ -195,7 +195,7 @@ flutter analyze
 ### Phase 3: Safety (PR3)
 
 - Remove all `!` operators
-- Safe Firestore parsing
+- Safe Database parsing
 - Widget tests
 - **Risk:** Low - defensive changes
 
@@ -251,7 +251,7 @@ flutter analyze
 
 ```dart
 void main() async {
-  await Firebase.initializeApp();  // ❌ Blocks UI
+  await Supabase.initializeApp();  // ❌ Blocks UI
   runApp(MyApp());
 }
 ```

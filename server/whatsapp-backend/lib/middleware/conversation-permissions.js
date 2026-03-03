@@ -4,7 +4,7 @@
  * Enforces permission rules for conversation operations
  */
 
-const admin = require('firebase-admin');
+/* supabase admin removed */
 
 class ConversationPermissions {
   constructor(db) {

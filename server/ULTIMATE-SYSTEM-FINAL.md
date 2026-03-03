@@ -340,7 +340,7 @@ console.log(stats);
 
 - ✅ Intelligent repair: $0
 - ✅ Self-healing: $0
-- ✅ Learning: $0 (Firestore gratuit)
+- ✅ Learning: $0 (Database gratuit)
 - ✅ Chaos testing: $0
 - ✅ Canary deploy: $0
 - ✅ Deep health checks: $0

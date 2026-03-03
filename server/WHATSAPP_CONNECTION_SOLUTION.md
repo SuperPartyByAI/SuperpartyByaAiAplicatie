@@ -18,7 +18,7 @@ Din logs-urile legacy hosting, văd **2 conturi**:
 ✅ QR Code generated (length: 237)
 ✅ phone: +407****97
 ✅ Status: qr_ready
-✅ QR saved to Firestore
+✅ QR saved to Database
 ```
 - **Status**: QR generat cu succes ✅
 - **Phone**: `+407****97` (numărul tău real, mascat în logs)
@@ -87,7 +87,7 @@ Din logs-urile legacy hosting, văd **2 conturi**:
 - ✅ QR generat: `length: 237`
 - ✅ Status: `qr_ready`
 - ✅ Phone: `+407****97` (numărul tău real)
-- ✅ Saved to Firestore
+- ✅ Saved to Database
 
 **Acțiune imediată**: Scanează QR code-ul pentru contul nou în app! 🚀
 

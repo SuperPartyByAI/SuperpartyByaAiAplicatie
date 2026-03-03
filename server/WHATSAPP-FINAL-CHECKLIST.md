@@ -8,7 +8,7 @@
 - ✅ TIER 1 îmbunătățiri (downtime -60%)
 - ✅ TIER 2 îmbunătățiri (pierdere -92%)
 - ✅ TIER 3 îmbunătățiri (downtime -98%, pierdere -99%)
-- ✅ Session persistence (Firestore)
+- ✅ Session persistence (Database)
 - ✅ Monitoring & Alerting
 - ✅ Multi-region support
 - ✅ Toate dependențele instalate
@@ -17,7 +17,7 @@
 
 ### Ce lipsește pentru funcționalitate:
 
-- ❌ Firebase Service Account configurat
+- ❌ Supabase Service Account configurat
 - ❌ legacy hosting variables setate
 - ❌ Sistem testat în producție
 - ❌ Cont WhatsApp adăugat și conectat
@@ -26,12 +26,12 @@
 
 ## 📋 PAȘI FINALI (30 minute)
 
-### Pas 1: Configurare Firebase (10 minute)
+### Pas 1: Configurare Supabase (10 minute)
 
-#### 1.1 Accesează Firebase Console
+#### 1.1 Accesează Supabase Console
 
 ```
-https://console.firebase.google.com
+https://console.supabase.google.com
 ```
 
 #### 1.2 Creează/Selectează Proiect
@@ -39,9 +39,9 @@ https://console.firebase.google.com
 - Dacă ai deja: selectează-l
 - Dacă nu: Click "Add project" → Nume: "SuperParty WhatsApp"
 
-#### 1.3 Activează Firestore Database
+#### 1.3 Activează Database Database
 
-1. Click "Firestore Database" în sidebar
+1. Click "Database Database" în sidebar
 2. Click "Create database"
 3. Selectează "Start in production mode"
 4. Location: "europe-west3" (Frankfurt - cel mai aproape de România)
@@ -65,8 +65,8 @@ https://console.firebase.google.com
   "type": "service_account",
   "project_id": "superparty-whatsapp",
   "private_key_id": "...",
-  "private_key": "-----BEGIN PRIVATE KEY-----\n...\n-----END PRIVATE KEY-----\n",
-  "client_email": "firebase-adminsdk-xxxxx@superparty-whatsapp.iam.gserviceaccount.com",
+  "private_key":"[REDACTED_GCP]",
+  "client_email": "supabase-adminsdk-xxxxx@superparty-whatsapp.iam.gserviceaccount.com",
   ...
 }
 ```
@@ -88,11 +88,11 @@ https://legacy hosting.app
 - Caută serviciul tău (ex: `web-production-xxxxx`)
 - Click pe serviciu
 
-#### 2.3 Adaugă Variabilă Firebase
+#### 2.3 Adaugă Variabilă Supabase
 
 1. Click tab "Variables"
 2. Click "New Variable"
-3. **Variable Name:** `FIREBASE_SERVICE_ACCOUNT`
+3. **Variable Name:** `SUPABASE_SERVICE_ACCOUNT`
 4. **Value:** Paste ÎNTREGUL JSON (tot ce ai copiat la Pas 1.5)
 5. Click "Add"
 
@@ -152,9 +152,9 @@ legacy hosting Dashboard → Logs
 
 **Caută:**
 
-- ✅ `✅ Firebase initialized` - Firebase OK
+- ✅ `✅ Supabase initialized` - Supabase OK
 - ✅ `🚀 SuperParty WhatsApp Server v3.0` - Server pornit
-- ❌ `⚠️ No Firebase credentials` - Firebase NU e configurat
+- ❌ `⚠️ No Supabase credentials` - Supabase NU e configurat
 
 **Status:** ⏳ Așteaptă să verifici
 
@@ -250,7 +250,7 @@ legacy hosting Dashboard → Logs
 **Caută:**
 
 - ✅ `✅ [account_xxx] Connected`
-- ✅ `💾 [account_xxx] Session saved to Firestore`
+- ✅ `💾 [account_xxx] Session saved to Database`
 - ✅ `✅ [account_xxx] Backup connection ready` (după 30s)
 
 #### 5.3 Test Trimite Mesaj
@@ -345,7 +345,7 @@ curl https://YOUR-LEGACY_HOSTING-URL.legacy hosting.app/api/metrics
 #### 7.3 Daily Report (Automat)
 
 - Sistemul generează raport zilnic la miezul nopții
-- Verifică în logs sau în Firestore (`monitoring_events` collection)
+- Verifică în logs sau în Database (`monitoring_events` collection)
 
 **Status:** ⏳ Setup monitoring
 
@@ -355,23 +355,23 @@ curl https://YOUR-LEGACY_HOSTING-URL.legacy hosting.app/api/metrics
 
 ### Înainte de a începe:
 
-- [ ] Ai cont Firebase (gratuit)
+- [ ] Ai cont Supabase (gratuit)
 - [ ] Ai cont legacy hosting (gratuit)
 - [ ] Ai telefon cu WhatsApp instalat
 - [ ] Ai acces la GitHub repo
 
-### Pas 1: Firebase (10 min)
+### Pas 1: Supabase (10 min)
 
-- [ ] Proiect Firebase creat
-- [ ] Firestore Database activat
+- [ ] Proiect Supabase creat
+- [ ] Database Database activat
 - [ ] Service Account key generat
 - [ ] JSON content copiat
 
 ### Pas 2: legacy hosting (5 min)
 
-- [ ] `FIREBASE_SERVICE_ACCOUNT` setat
+- [ ] `SUPABASE_SERVICE_ACCOUNT` setat
 - [ ] legacy hosting redeployed cu succes
-- [ ] Logs arată "Firebase initialized"
+- [ ] Logs arată "Supabase initialized"
 
 ### Pas 3: Verificare (2 min)
 
@@ -435,16 +435,16 @@ curl https://YOUR-LEGACY_HOSTING-URL.legacy hosting.app/api/metrics
 
 ## 🚨 TROUBLESHOOTING
 
-### Problema: "No Firebase credentials"
+### Problema: "No Supabase credentials"
 
-**Cauză:** `FIREBASE_SERVICE_ACCOUNT` nu e setat corect
+**Cauză:** `SUPABASE_SERVICE_ACCOUNT` nu e setat corect
 **Soluție:**
 
 1. Verifică că ai copiat ÎNTREGUL JSON (inclusiv `{` și `}`)
 2. Verifică că nu ai spații extra
 3. Redeploy legacy hosting
 
-### Problema: "Firebase initialization failed"
+### Problema: "Supabase initialization failed"
 
 **Cauză:** JSON invalid sau permissions
 **Soluție:**
@@ -498,7 +498,7 @@ https://YOUR-LEGACY_HOSTING-URL.legacy hosting.app/api/metrics
 
 ### Acum:
 
-1. **Configurează Firebase** (10 min)
+1. **Configurează Supabase** (10 min)
 2. **Setează legacy hosting variables** (5 min)
 3. **Adaugă cont WhatsApp** (5 min)
 4. **Testează sistemul** (5 min)
@@ -517,4 +517,4 @@ https://YOUR-LEGACY_HOSTING-URL.legacy hosting.app/api/metrics
 
 **După ce finalizezi acești pași, sistemul WhatsApp va fi 100% FUNCȚIONAL!**
 
-**Vrei să începem cu Pas 1 (Firebase)?** 🚀
+**Vrei să începem cu Pas 1 (Supabase)?** 🚀

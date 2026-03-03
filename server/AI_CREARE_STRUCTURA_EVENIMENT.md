@@ -54,7 +54,7 @@
    - Participanți
    - Roluri
    - Buget
-3. **CREEAZĂ AUTOMAT** evenimentul în Firestore
+3. **CREEAZĂ AUTOMAT** evenimentul în Database
 4. Returnează ID-ul evenimentului creat
 
 ---
@@ -97,7 +97,7 @@ exports.createEventFromAI = onCall(async (request) => {
   //   ]
   // }
   
-  // 2. Creează eveniment în Firestore
+  // 2. Creează eveniment în Database
   const eventRef = db.collection('evenimente').doc();
   await eventRef.set({
     userId: userId,
@@ -106,7 +106,7 @@ exports.createEventFromAI = onCall(async (request) => {
     locatie: extracted.locatie,
     numarParticipanti: extracted.numarParticipanti,
     status: 'planificat',
-    createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    createdAt: admin.database.FieldValue.serverTimestamp(),
     createdBy: 'AI',
   });
   
@@ -281,7 +281,7 @@ AI: ✅ Am creat evenimentul!
 Future<void> createEventWithAI(String description) async {
   try {
     // Apelează funcția AI
-    final result = await FirebaseFunctions.instance
+    final result = await SupabaseFunctions.instance
         .httpsCallable('createEventFromAI')
         .call({
           'query': description,
@@ -408,7 +408,7 @@ class _CreateEventAIDialogState extends State<CreateEventAIDialog> {
 
 ### Ce E Gata:
 
-1. ✅ **Funcția `createEventFromAI`** - Deployed pe Firebase
+1. ✅ **Funcția `createEventFromAI`** - Deployed pe Supabase
 2. ✅ **Extragere detalii cu AI** - Funcționează
 3. ✅ **Creare automată eveniment** - Funcționează
 4. ✅ **Adăugare roluri** - Funcționează
@@ -444,7 +444,7 @@ Eveniment apare în listă cu toate detaliile!
 2. Integrează în chat (detectare comandă)
 3. Testează funcția
 
-**Funcția e LIVE și funcțională pe Firebase!** 🚀
+**Funcția e LIVE și funcțională pe Supabase!** 🚀
 
 ---
 

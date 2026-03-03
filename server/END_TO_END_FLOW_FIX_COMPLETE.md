@@ -12,13 +12,13 @@
 ### 2. WhatsApp 401 Loop (PARTIALLY FIXED)
 **Problem**: Account gets 401 → cleanup → but something triggers `createConnection` again → 401 loop
 - ✅ FIXED: 401 handler clears timeout, sets `nextRetryAt=null`, doesn't schedule reconnect
-- ✅ FIXED: `createConnection` guard checks Firestore if account not in memory
+- ✅ FIXED: `createConnection` guard checks Database if account not in memory
 - ✅ FIXED: Timeout handler checks account exists before transition
 - ⚠️ REMAINING: Second 401 handler at ~line 5158 needs same fixes
 
 ### 3. Black Screen in Emulator
 **Problem**: Uncaught exceptions or null-state crashes in:
-- Firebase initialization timeout
+- Supabase initialization timeout
 - Auth state listener
 - StreamBuilder/FutureBuilder without error/empty states
 - Navigation route guard failures
@@ -26,13 +26,13 @@
 ### 4. Events Page Not Showing
 **Problem**: 
 - Query filters might be too restrictive
-- Missing Firestore indexes
+- Missing Database indexes
 - Empty state not handled (shows black screen)
 - Client-side filtering might filter out all events
 
 ### 5. AI Scoring Pipeline (NEEDS INVESTIGATION)
 **Problem**: Unclear where AI scoring is computed/stored
-- Need to locate scoring trigger, Firestore schema, write permissions
+- Need to locate scoring trigger, Database schema, write permissions
 
 ## Fixes Implemented
 
@@ -47,7 +47,7 @@ if (account.connectingTimeout) {
 }
 
 // ✅ Set explicit fields to prevent auto-reconnect
-await saveAccountToFirestore(accountId, {
+await saveAccountToDatabase(accountId, {
   status: 'needs_qr',
   nextRetryAt: null,  // Explicitly null
   retryCount: 0,      // Reset
@@ -60,8 +60,8 @@ await logIncident(accountId, 'wa_logged_out_requires_pairing', {...});
 
 #### Fix 2: createConnection Guard (~line 1025)
 ```javascript
-// ✅ Check Firestore if account not in memory
-if (!account && firestoreAvailable && db) {
+// ✅ Check Database if account not in memory
+if (!account && databaseAvailable && db) {
   const accountDoc = await db.collection('accounts').doc(accountId).get();
   if (accountDoc.exists) {
     const data = accountDoc.data();
@@ -88,7 +88,7 @@ if (currentAcc.status === 'connecting') {
 ```javascript
 // ✅ POST /api/whatsapp/accounts/:id/reset
 // - Clears disk session
-// - Clears Firestore backup
+// - Clears Database backup
 // - Sets needs_qr
 // - Clears timers
 ```
@@ -155,7 +155,7 @@ if (currentStatus != null) {
 
 ### Phase 0: Setup
 - [ ] Pull repo, install deps
-- [ ] Run Firebase emulators OR point to real project
+- [ ] Run Supabase emulators OR point to real project
 - [ ] Set `WHATSAPP_BACKEND_BASE_URL` for emulator
 - [ ] Run `whatsapp-backend/server.js` locally OR verify legacy hosting deployment
 - [ ] Check `/health` endpoint shows correct commit
@@ -177,7 +177,7 @@ if (currentStatus != null) {
 - [ ] **Flutter**: 500 error → shows error, stops retry loop
 
 ### Phase 3: Black Screen Fix
-- [ ] **Flutter**: Firebase init timeout → shows error screen (not black)
+- [ ] **Flutter**: Supabase init timeout → shows error screen (not black)
 - [ ] **Flutter**: Auth state listener error → logged, app continues
 - [ ] **Flutter**: Navigation guard failure → shows auth screen (not black)
 - [ ] **Flutter**: StreamBuilder error → shows error widget (not black)
@@ -186,12 +186,12 @@ if (currentStatus != null) {
 - [ ] **Flutter**: Events page loads → shows events or "No events" (not black)
 - [ ] **Flutter**: Date filter works → events filtered correctly
 - [ ] **Flutter**: Driver filter works → events filtered correctly
-- [ ] **Firestore**: Query doesn't require missing indexes
+- [ ] **Database**: Query doesn't require missing indexes
 
 ### Phase 5: AI Scoring (TBD)
 - [ ] **Locate**: Where is AI scoring computed?
 - [ ] **Verify**: Scoring trigger works
-- [ ] **Verify**: Firestore write succeeds
+- [ ] **Verify**: Database write succeeds
 - [ ] **Verify**: UI shows scoring data
 
 ## Commands for Verification
@@ -208,7 +208,7 @@ curl -X POST \
 ```bash
 curl -X POST \
   https://us-central1-superparty-frontend.cloudfunctions.net/whatsappProxyRegenerateQr?accountId=ACCOUNT_ID \
-  -H "Authorization: Bearer FIREBASE_ID_TOKEN" \
+  -H "Authorization: Bearer SUPABASE_ID_TOKEN" \
   -H "X-Request-ID: test_$(date +%s)"
 ```
 
@@ -234,12 +234,12 @@ flutter run -d emulator-5554 \
 
 ### Medium Risk
 - Backend 401 handler changes (affects reconnect behavior)
-- createConnection guard (might block legitimate connections if Firestore stale)
+- createConnection guard (might block legitimate connections if Database stale)
 
 ### Rollback Plan
 1. Revert backend changes: `git revert <commit-hash>`
 2. Revert Flutter changes: `git revert <commit-hash>`
-3. Redeploy Functions: `firebase deploy --only functions`
+3. Redeploy Functions: `supabase deploy --only functions`
 
 ## Next Steps
 

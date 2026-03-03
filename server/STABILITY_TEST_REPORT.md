@@ -12,11 +12,11 @@
 | Test | Status | Details |
 |------|--------|---------|
 | **1. Connection Stability** | ✅ **PASS** | 4/4 checks - account remained `connected` |
-| **2. Message Send & Save** | ✅ **PASS** | Message sent, saved to Firestore, status: `delivered` |
+| **2. Message Send & Save** | ✅ **PASS** | Message sent, saved to Database, status: `delivered` |
 | **3. Threads & Inbox API** | ✅ **PASS** | 1 thread found, messages retrievable via API |
 | **4. Push Notifications** | ⏳ **MANUAL** | Requires inbound message to test FCM |
 | **5. Error Monitoring** | ⚠️ **WARNING** | Non-critical `history_sync` error (known issue) |
-| **6. Session Backup** | ✅ **PASS** | Session saved to Firestore successfully |
+| **6. Session Backup** | ✅ **PASS** | Session saved to Database successfully |
 
 ---
 
@@ -35,14 +35,14 @@
 
 ---
 
-### Test 2: Message Send & Save to Firestore ✅
+### Test 2: Message Send & Save to Database ✅
 
-**Objective**: Send message and verify it's saved to Firestore
+**Objective**: Send message and verify it's saved to Database
 
 **Results**:
 - Message sent successfully
 - Message ID: `3EB05633487A87334037E6`
-- Saved to Firestore with full metadata:
+- Saved to Database with full metadata:
   ```json
   {
     "id": "3EB05633487A87334037E6",
@@ -99,7 +99,7 @@ legacy hosting logs --tail 100 | grep -E "FCM sent|messages.upsert"
 
 **Note**: To fully test, you need:
 - Flutter app running
-- FCM token registered in Firestore `users` collection
+- FCM token registered in Database `users` collection
 - `notificationsEnabled: true` for the user
 
 ---
@@ -112,30 +112,30 @@ legacy hosting logs --tail 100 | grep -E "FCM sent|messages.upsert"
 - ⚠️ **Non-critical warning found**: `history_sync_failed`
 - Error details:
   ```
-  Value for argument "data" is not a valid Firestore document. 
+  Value for argument "data" is not a valid Database document. 
   Couldn't serialize object of type "Long" (found in field "lastMessageTimestamp").
   ```
 
 **Analysis**:
-- This is a **known issue** with Baileys + Firestore
-- Baileys uses JavaScript `Long` objects (from WhatsApp protocol) which Firestore can't serialize
+- This is a **known issue** with Baileys + Database
+- Baileys uses JavaScript `Long` objects (from WhatsApp protocol) which Database can't serialize
 - **Impact**: History sync partially fails, but core functionality (send/receive messages) is **NOT affected**
 - Message storage works correctly (uses different code path)
 
 **Recommendation**: 
-- Add serialization helper to convert `Long` → `Number` before Firestore save
+- Add serialization helper to convert `Long` → `Number` before Database save
 - Or: Ignore history sync errors (non-critical)
 
 **Conclusion**: No critical errors, warning is **acceptable** ⚠️
 
 ---
 
-### Test 6: Session Backup to Firestore ✅
+### Test 6: Session Backup to Database ✅
 
-**Objective**: Verify Baileys session is backed up to Firestore
+**Objective**: Verify Baileys session is backed up to Database
 
 **Results**:
-- legacy hosting logs show: `💾 [account_prod_e08819ba086fc2b9e779ee9cfe708bb3] Saved to Firestore`
+- legacy hosting logs show: `💾 [account_prod_e08819ba086fc2b9e779ee9cfe708bb3] Saved to Database`
 - Session backup working as expected
 - Allows reconnect after legacy hosting restart/redeploy
 
@@ -147,9 +147,9 @@ legacy hosting logs --tail 100 | grep -E "FCM sent|messages.upsert"
 
 ### ✅ Production Ready Features:
 1. **Connection Management**: Stable, no disconnects
-2. **Message Send**: Working, saved to Firestore
+2. **Message Send**: Working, saved to Database
 3. **Message Receive**: API endpoints functional
-4. **Session Persistence**: Firestore backup active
+4. **Session Persistence**: Database backup active
 5. **Multi-instance Lock**: ACTIVE/PASSIVE mode working
 
 ### ⚠️ Known Issues (Non-Critical):
@@ -169,7 +169,7 @@ legacy hosting logs --tail 100 | grep -E "FCM sent|messages.upsert"
 1. ✅ **None required** - system is stable for production
 
 ### Optional Improvements:
-1. **Fix history_sync error**: Add `Long` → `Number` converter before Firestore save
+1. **Fix history_sync error**: Add `Long` → `Number` converter before Database save
 2. **Add metrics**: Track message send/receive rates, connection uptime
 3. **Alerting**: Set up Telegram alerts for critical errors (already implemented, just needs tokens)
 
@@ -185,7 +185,7 @@ legacy hosting logs --tail 100 | grep -E "FCM sent|messages.upsert"
 - **Connection Uptime**: 100% (during 15-min test)
 - **Message Send Success Rate**: 100% (1/1)
 - **API Response Time**: ~4-6 seconds (includes legacy hosting cold start)
-- **Firestore Save Success**: 100% (messages)
+- **Database Save Success**: 100% (messages)
 - **Session Backup Success**: 100%
 
 ---

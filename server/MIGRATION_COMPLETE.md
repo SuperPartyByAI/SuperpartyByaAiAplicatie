@@ -2,7 +2,7 @@
 
 ## ✅ Toate Problemele Rezolvate
 
-### 1. Schema Firestore - Migrare RO → EN ✅
+### 1. Schema Database - Migrare RO → EN ✅
 
 **Executat:** `node scripts/migrate_evenimente_schema_v2.js`
 
@@ -51,7 +51,7 @@
 - ❌ "No Material widget found" → ✅ InkWell → GestureDetector
 - ❌ "borderRadius with non-uniform colors" → ✅ Border.all()
 
-### 3. Firebase Init Fixes ✅
+### 3. Supabase Init Fixes ✅
 
 **Commits:**
 - `b04d8c15` - push_notification_service.dart
@@ -59,8 +59,8 @@
 - `3c707a78` - SuperPartyApp
 
 **Probleme rezolvate:**
-- ✅ Toate serviciile folosesc `FirebaseService` în loc de acces direct
-- ✅ SuperPartyApp așteaptă Firebase init înainte de build
+- ✅ Toate serviciile folosesc `SupabaseService` în loc de acces direct
+- ✅ SuperPartyApp așteaptă Supabase init înainte de build
 - ✅ AuthWrapper verifică `isInitialized`
 
 ### 4. "Ce cod am" Button ✅
@@ -75,9 +75,9 @@
 
 ```
 eb28f0de fix: replace InkWell with GestureDetector and fix border colors
-3c707a78 fix: make SuperPartyApp stateful to wait for Firebase init
-27bcdc73 fix: wait for FirebaseService.isInitialized before building AuthWrapper
-b04d8c15 fix: use FirebaseService in push_notification_service to prevent [core/no-app]
+3c707a78 fix: make SuperPartyApp stateful to wait for Supabase init
+27bcdc73 fix: wait for SupabaseService.isInitialized before building AuthWrapper
+b04d8c15 fix: use SupabaseService in push_notification_service to prevent [core/no-app]
 6c561dd5 feat: add schema v2 migration script + dual-read for 'este arhivat'
 a801b283 fix: 'Ce cod am' button always opens modal + remove service account from git
 ```
@@ -112,7 +112,7 @@ flutter run -d chrome
    - ✅ Filtrele funcționează
    - ✅ "Ce cod am" deschide mereu modalul
 
-3. **Firestore:**
+3. **Database:**
    - ✅ Toate documentele au schema v2
    - ✅ Câmpurile EN sunt populate
    - ✅ Câmpurile RO sunt eliminate
@@ -120,8 +120,8 @@ flutter run -d chrome
 ## 🎯 Status Final
 
 **Toate problemele identificate au fost rezolvate:**
-- ✅ Firebase init timing
-- ✅ Schema Firestore (RO → EN)
+- ✅ Supabase init timing
+- ✅ Schema Database (RO → EN)
 - ✅ UI errors (Material, borderRadius)
 - ✅ "Ce cod am" button behavior
 

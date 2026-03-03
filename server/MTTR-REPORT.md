@@ -3,7 +3,7 @@
 **Test Date:** 2025-12-29  
 **Test Time:** 10:35-10:42 UTC  
 **Test Duration:** 7 minutes  
-**Environment:** Firebase Functions (whatsappV3)
+**Environment:** Supabase Functions (whatsappV3)
 
 ---
 
@@ -13,7 +13,7 @@
 
 **MTTR:** ∞ (INFINITE) - Accounts do not reconnect automatically after cold start
 
-**Key Finding:** Session restore mechanism works (creds loaded from Firestore) but connection establishment fails. Accounts remain stuck in "connecting/reconnecting" state indefinitely.
+**Key Finding:** Session restore mechanism works (creds loaded from Database) but connection establishment fails. Accounts remain stuck in "connecting/reconnecting" state indefinitely.
 
 ---
 
@@ -69,7 +69,7 @@ curl https://us-central1-superparty-frontend.cloudfunctions.net/whatsappV3/api/w
 **Command:**
 
 ```bash
-firebase deploy --only functions:whatsappV3 --project superparty-frontend
+supabase deploy --only functions:whatsappV3 --project superparty-frontend
 ```
 
 **Result:**
@@ -158,23 +158,23 @@ done
 
 ### Session Restore Evidence
 
-**Firebase Functions Logs (10:40:10 UTC):**
+**Supabase Functions Logs (10:40:10 UTC):**
 
 ```
-2025-12-29T10:40:10.030764Z ? whatsappV3: ✅ [account_1767002145379] Session restored from Firestore
-2025-12-29T10:40:10.030834Z ? whatsappV3: ✅ [account_1767002145379] Session restored from Firestore
-2025-12-29T10:40:11.730226Z ? whatsappV3: ✅ [account_1767002145379] Session restored from Firestore
-2025-12-29T10:40:11.832312Z ? whatsappV3: ✅ [account_1767002145379] Session restored from Firestore
+2025-12-29T10:40:10.030764Z ? whatsappV3: ✅ [account_1767002145379] Session restored from Database
+2025-12-29T10:40:10.030834Z ? whatsappV3: ✅ [account_1767002145379] Session restored from Database
+2025-12-29T10:40:11.730226Z ? whatsappV3: ✅ [account_1767002145379] Session restored from Database
+2025-12-29T10:40:11.832312Z ? whatsappV3: ✅ [account_1767002145379] Session restored from Database
 ```
 
-**Analysis:** Session restore mechanism WORKS - creds are loaded from Firestore successfully.
+**Analysis:** Session restore mechanism WORKS - creds are loaded from Database successfully.
 
 ### Connection Events
 
 **Search for connection.update events:**
 
 ```bash
-firebase functions:log | grep "connection.update\|connection.*open\|Connected"
+supabase functions:log | grep "connection.update\|connection.*open\|Connected"
 ```
 
 **Result:** NO connection events found
@@ -201,7 +201,7 @@ curl .../api/whatsapp/accounts | jq '.accounts[] | .qrCode'
 
 **Evidence:**
 
-- ✅ Logs show: `Session restored from Firestore`
+- ✅ Logs show: `Session restored from Database`
 - ❌ No `connection.update` events
 - ❌ Status remains "connecting/reconnecting"
 
@@ -209,7 +209,7 @@ curl .../api/whatsapp/accounts | jq '.accounts[] | .qrCode'
 
 **Technical Details:**
 
-- Baileys loads creds from Firestore
+- Baileys loads creds from Database
 - Attempts to connect with restored creds
 - WhatsApp server rejects connection (silent failure)
 - No error logged, no fallback triggered
@@ -290,7 +290,7 @@ curl .../api/whatsapp/accounts | jq '.accounts[] | .qrCode'
 
 1. **Cold Start:**
    - Function restarts
-   - Sessions restored from Firestore
+   - Sessions restored from Database
    - Connections re-established automatically
    - **MTTR:** 45-65 seconds
 
@@ -303,7 +303,7 @@ curl .../api/whatsapp/accounts | jq '.accounts[] | .qrCode'
 
 1. **Cold Start:**
    - Function restarts ✅
-   - Sessions restored from Firestore ✅
+   - Sessions restored from Database ✅
    - Connections NOT established ❌
    - **MTTR:** ∞ (infinite)
 
@@ -444,7 +444,7 @@ curl https://us-central1-superparty-frontend.cloudfunctions.net/whatsappV3/api/w
 
 ```bash
 # Redeploy (no-op)
-firebase deploy --only functions:whatsappV3 --project superparty-frontend
+supabase deploy --only functions:whatsappV3 --project superparty-frontend
 ```
 
 ### Monitor Reconnect
@@ -462,12 +462,12 @@ done
 
 ```bash
 # View recent logs
-firebase functions:log --project superparty-frontend | grep whatsappV3 | tail -50
+supabase functions:log --project superparty-frontend | grep whatsappV3 | tail -50
 ```
 
 ---
 
 **Report Generated:** 2025-12-29T10:42:00Z  
 **By:** Ona AI Agent  
-**Test Environment:** Firebase Functions whatsappV3  
+**Test Environment:** Supabase Functions whatsappV3  
 **Test Result:** ❌ FAIL - Cold start persistence broken

@@ -5,7 +5,7 @@
 **Symptom:**
 ```
 📱 [account_xxx] QR Code generated (length: 237)
-✅ [account_xxx] QR saved to Firestore
+✅ [account_xxx] QR saved to Database
 🔌 [account_xxx] Current status: qr_ready
 ⚠️  [account_xxx] Already connecting, skipping duplicate
 ⚠️  [account_xxx] Connection already in progress, skipping
@@ -17,7 +17,7 @@
 **Root Causes:**
 1. **Reason code "unknown"** - `lastDisconnect` nu are reason code valid sau nu este parsat corect
 2. **Apeluri duplicate** - "Already connecting" + "Connection already in progress" indică race condition
-3. **Connection closes imediat după QR** - probabil din cauza unui error în Baileys sau Firestore backup
+3. **Connection closes imediat după QR** - probabil din cauza unui error în Baileys sau Database backup
 
 ---
 
@@ -89,7 +89,7 @@ console.error(`🔌 [${accountId}] connection.update: close`, logData);
 - Timeout de 60s marchează account-ul ca disconnected
 
 **Cauze posibile:**
-1. **Firestore backup error** - dacă backup-ul eșuează, poate afecta socket-ul (deja fixat cu `setImmediate`)
+1. **Database backup error** - dacă backup-ul eșuează, poate afecta socket-ul (deja fixat cu `setImmediate`)
 2. **Baileys internal error** - un error intern în Baileys care nu este expus corect
 3. **Network timeout** - conexiunea se închide din cauza unui timeout de rețea
 

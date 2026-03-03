@@ -9,20 +9,20 @@
 ## ❌ Problem (Before Fix)
 
 ### What Happened:
-1. User creates WhatsApp account, scans QR → account saved to **Firestore** + **memory** ✅
+1. User creates WhatsApp account, scans QR → account saved to **Database** + **memory** ✅
 2. legacy hosting redeploys backend (e.g., code change, instance restart)
 3. New backend instance starts in **PASSIVE mode** (lock held by old instance)
-4. `restoreAccountsFromFirestore()` is called, but **returns immediately** because `canStartBaileys() = false` in PASSIVE mode ❌
+4. `restoreAccountsFromDatabase()` is called, but **returns immediately** because `canStartBaileys() = false` in PASSIVE mode ❌
 5. Old instance releases lock → new instance acquires lock (becomes ACTIVE)
 6. **But account restoration is NEVER retried** ❌
 7. Result:
-   - `GET /api/whatsapp/accounts` → shows account (from Firestore) ✅
+   - `GET /api/whatsapp/accounts` → shows account (from Database) ✅
    - `POST /api/whatsapp/send-message` → `account_not_found` (memory lookup fails) ❌
 
 ### Root Cause:
 ```javascript
 // server.js - startup (line ~6952)
-await restoreAccountsFromFirestore(); // Only called ONCE at startup
+await restoreAccountsFromDatabase(); // Only called ONCE at startup
 // If backend is in PASSIVE mode, this returns early without restoring
 // When backend becomes ACTIVE later, restoration is NEVER retried
 ```
@@ -38,10 +38,10 @@ Added event listener for **PASSIVE→ACTIVE transition** that automatically trig
 // server.js - line ~6954
 process.on('wa-bootstrap:active', async ({ instanceId }) => {
   console.log(`🔔 [Auto-Restore] PASSIVE → ACTIVE transition detected`);
-  console.log(`🔄 [Auto-Restore] Triggering account restoration from Firestore...`);
+  console.log(`🔄 [Auto-Restore] Triggering account restoration from Database...`);
   
   try {
-    await restoreAccountsFromFirestore();
+    await restoreAccountsFromDatabase();
     await restoreAccountsFromDisk();
     console.log(`✅ [Auto-Restore] Account restoration complete`);
   } catch (error) {
@@ -51,10 +51,10 @@ process.on('wa-bootstrap:active', async ({ instanceId }) => {
 ```
 
 ### How It Works:
-1. Backend starts in PASSIVE mode → `restoreAccountsFromFirestore()` skipped (correct)
+1. Backend starts in PASSIVE mode → `restoreAccountsFromDatabase()` skipped (correct)
 2. Backend acquires lock → emits `wa-bootstrap:active` event
-3. Event listener triggers → `restoreAccountsFromFirestore()` runs again
-4. Accounts restored from Firestore → available in memory ✅
+3. Event listener triggers → `restoreAccountsFromDatabase()` runs again
+4. Accounts restored from Database → available in memory ✅
 5. `/send-message` now works because accounts are in `connections` Map ✅
 
 ---
@@ -75,7 +75,7 @@ process.on('wa-bootstrap:active', async ({ instanceId }) => {
   - Multiple instances competing for lock
   - Network blips causing lock release/reacquisition
 - ✅ **Zero manual intervention** required
-- ✅ **Accounts persist** correctly in both Firestore AND memory
+- ✅ **Accounts persist** correctly in both Database AND memory
 - ✅ **Production-ready** behavior
 
 ---
@@ -98,8 +98,8 @@ process.on('wa-bootstrap:active', async ({ instanceId }) => {
 # When lock acquired
 [WABootstrap] ✅ ACTIVE MODE - lock acquired after retry
 🔔 [Auto-Restore] PASSIVE → ACTIVE transition detected
-🔄 [Auto-Restore] Triggering account restoration from Firestore...
-📦 Found 2 accounts in Firestore (statuses: qr_ready, connecting, awaiting_scan, connected)
+🔄 [Auto-Restore] Triggering account restoration from Database...
+📦 Found 2 accounts in Database (statuses: qr_ready, connecting, awaiting_scan, connected)
 🔄 [account_prod_xxx] Restoring account (status: connected, name: John Doe)
 ✅ [Auto-Restore] Account restoration complete
 ```
@@ -169,7 +169,7 @@ curl "https://YOUR_BACKEND/api/status/dashboard" \
 
 ### Risk Level: **LOW**
 - ✅ Additive change only (no existing code modified)
-- ✅ Uses existing `restoreAccountsFromFirestore()` function
+- ✅ Uses existing `restoreAccountsFromDatabase()` function
 - ✅ Event is already emitted by `wa-bootstrap.js`
 - ✅ Fail-safe: if event never fires, behavior = old behavior (no worse)
 

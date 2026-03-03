@@ -1,7 +1,7 @@
 # QR GENERATION PRODUCTION REPORT
 
 **Timestamp:** 2025-12-29T12:51:30Z  
-**Environment:** Firebase Functions (whatsappV3)  
+**Environment:** Supabase Functions (whatsappV3)  
 **Account ID:** account_1767011755513
 
 ---

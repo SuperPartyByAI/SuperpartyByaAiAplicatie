@@ -16,7 +16,7 @@ Toate cerințele WA Stability Pack implementate cu reconectare <=120s.
 4. `lib/wa-bootstrap.js` - Graceful shutdown SIGTERM/SIGINT
 5. `lib/evidence-endpoints.js` - Complete DoD-WA-1 fields (cooldownUntil, lastInboundDedupeWriteAt)
 6. `lib/wa-connection-lock.js` - Existing (atomic lock + fencing)
-7. `lib/wa-firestore-auth.js` - Existing (auth in Firestore)
+7. `lib/wa-database-auth.js` - Existing (auth in Database)
 8. `lib/wa-disconnect-guard.js` - Existing (disconnect >10min incident)
 
 ### Evidence Runner (1 file)
@@ -58,11 +58,11 @@ Toate cerințele WA Stability Pack implementate cu reconectare <=120s.
 [WAIntegration] fencing_abort_inbound_dedupe waMessageId=msg_456 reason=lock_not_held
 ```
 
-### degraded_firestore_enter/exit
+### degraded_database_enter/exit
 
 ```
-[WAIntegration] degraded_firestore_enter consecutiveErrors=3
-[WAIntegration] degraded_firestore_exit
+[WAIntegration] degraded_database_enter consecutiveErrors=3
+[WAIntegration] degraded_database_exit
 ```
 
 ### cooldown_enter/exit
@@ -103,7 +103,7 @@ Toate cerințele WA Stability Pack implementate cu reconectare <=120s.
     "lastDisconnectReason": null,
     "retryCount": 0,
     "nextRetryAt": null,
-    "authStore": "firestore",
+    "authStore": "database",
     "authStateExists": false,
     "authKeyCount": 0,
     "lastAuthWriteAt": null,
@@ -113,9 +113,9 @@ Toate cerințele WA Stability Pack implementate cu reconectare <=120s.
     "outboxPendingCount": 0,
     "outboxOldestPendingAgeSec": null,
     "drainMode": false,
-    "inboundDedupeStore": "firestore",
+    "inboundDedupeStore": "database",
     "lastInboundDedupeWriteAt": null,
-    "consecutiveFirestoreErrors": 0,
+    "consecutiveDatabaseErrors": 0,
     "degradedSince": null,
     "reconnectMode": "normal",
     "cooldownUntil": null,
@@ -131,7 +131,7 @@ Toate cerințele WA Stability Pack implementate cu reconectare <=120s.
 
 ---
 
-## FIRESTORE PATHS
+## DATABASE PATHS
 
 ### Lock
 
@@ -198,7 +198,7 @@ wa_metrics/longrun/state/current
 wa_metrics/longrun/incidents/wa_logged_out_requires_pairing
 wa_metrics/longrun/incidents/wa_disconnect_stuck_active
 wa_metrics/longrun/incidents/wa_reconnect_loop_{timestamp}
-wa_metrics/longrun/incidents/degraded_firestore_active
+wa_metrics/longrun/incidents/degraded_database_active
 wa_metrics/longrun/incidents/wa_disconnect_storm_cooldown
 ```
 
@@ -272,10 +272,10 @@ All fields present (see payload above)
 
 ### DoD-WA-10: Dependency gating ✅
 
-- > =3 Firestore errors → degraded_firestore
+- > =3 Database errors → degraded_database
 - STOP reconnect/outbox/inbound
-- Incident: degraded_firestore_active
-- Log: degraded_firestore_enter/exit
+- Incident: degraded_database_active
+- Log: degraded_database_enter/exit
 
 ### DoD-WA-11: Circuit breaker ✅
 
@@ -327,7 +327,7 @@ Output includes:
 
 1. Health (commitHash + uptime)
 2. status-now (DoD-WA-1 fields)
-3. firestore-write-test
+3. database-write-test
 4. bootstrap (idempotent)
 5. verify/dataquality
 6. verify/readiness
@@ -354,7 +354,7 @@ d3307d83 - Add evidence runner + complete DoD-WA-1 fields
 ✅ PASSIVE MODE gating hard (no "not yet integrated")  
 ✅ Reconnect deterministic <=120s (worst case 75s)  
 ✅ loggedOut → STOP + pairingRequired + incident  
-✅ Outbox/inbound dedupe confirmed (Firestore docs + status-now)  
+✅ Outbox/inbound dedupe confirmed (Database docs + status-now)  
 ✅ Graceful shutdown confirmed (logs + lock release)  
 ✅ Dependency gating + cooldown confirmed (status-now/incidents)  
 ✅ All DoD-WA-1 through DoD-WA-12 verified
@@ -369,11 +369,11 @@ WA Stability Pack **COMPLETE** cu:
 - ZERO pierdere date outbound (outbox persistent + ACK)
 - Idempotency inbound (dedupe atomic)
 - PASSIVE mode gating hard (lock + fencing)
-- Dependency gating (Firestore/network fail → degrade)
+- Dependency gating (Database/network fail → degrade)
 - Circuit breaker (disconnect storm → cooldown)
 - Watchdogs + graceful shutdown
-- Toate Firestore paths sub `wa_metrics/longrun/...`
+- Toate Database paths sub `wa_metrics/longrun/...`
 
-**NO BULLSHIT** - Toate afirmațiile verificate cu cod, logs, Firestore paths, status-now payload.
+**NO BULLSHIT** - Toate afirmațiile verificate cu cod, logs, Database paths, status-now payload.
 
 END.

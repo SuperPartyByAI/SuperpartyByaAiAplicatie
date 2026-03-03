@@ -10,7 +10,7 @@ import { QueryClient } from '@tanstack/react-query';
  * - Background refetching for fresh data
  * - Optimistic updates
  * - Automatic retry on failure
- * - Reduced Firebase reads (70% reduction)
+ * - Reduced Supabase reads (70% reduction)
  */
 export const queryClient = new QueryClient({
   defaultOptions: {

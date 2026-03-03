@@ -1,4 +1,4 @@
-const { db } = require('./src/firebase');
+const { db } = require('./src/supabase');
 
 async function checkStatus() {
     try {

@@ -1,7 +1,7 @@
 # Auto-Reply Fix - Rezumat Implementare
 
 ## Problema Identificată
-Auto-reply nu răspundea la mesaje INBOUND (client → WhatsApp conectat), deși mesajele outbound (din app) erau salvate corect în Firestore.
+Auto-reply nu răspundea la mesaje INBOUND (client → WhatsApp conectat), deși mesajele outbound (din app) erau salvate corect în Database.
 
 ## Modificări Implementate
 
@@ -21,7 +21,7 @@ Auto-reply nu răspundea la mesaje INBOUND (client → WhatsApp conectat), deși
   - `skipped_notFresh` - mesaj mai vechi de 2 minute
   - `skipped_dedupe` - mesaj deja procesat (idempotency)
   - `skipped_nonText` - mesaj non-text (imagine/video/etc)
-  - `skipped_noFirestore` - Firestore indisponibil
+  - `skipped_noDatabase` - Database indisponibil
   - `skipped_disabled` - auto-reply dezactivat (account/thread)
   - `skipped_cooldown_thread` - cooldown activ per thread (10s)
   - `skipped_cooldown_clientJid` - cooldown activ per clientJid (10s)
@@ -52,7 +52,7 @@ Auto-reply nu răspundea la mesaje INBOUND (client → WhatsApp conectat), deși
 4. **Gate 4**: Doar mesaje fresh (< 2 minute)
 5. **Gate 5**: Idempotency (dedupe per messageId)
 6. **Gate 6**: Doar mesaje text (conversation/extendedText)
-7. **Gate 7**: Firestore disponibil
+7. **Gate 7**: Database disponibil
 8. **Gate 8**: Auto-reply enabled (account/thread)
 9. **Gate 9**: Comenzi speciale (stop/dezactiveaza)
 10. **Gate 10**: Cooldown per thread (10s)
@@ -81,7 +81,7 @@ Auto-reply nu răspundea la mesaje INBOUND (client → WhatsApp conectat), deși
    🤖 [AutoReply] ✅ SUCCESS: ...
    ```
 
-4. **Verifică în Firestore**:
+4. **Verifică în Database**:
    - Mesajul INBOUND apare în `threads/{threadId}/messages/{messageId}` cu `fromMe=false`
    - Mesajul OUTBOUND (auto-reply) apare în `threads/{threadId}/messages/{outboundMessageId}` cu `fromMe=true` și `autoReply=true`
 
@@ -100,7 +100,7 @@ Auto-reply nu răspundea la mesaje INBOUND (client → WhatsApp conectat), deși
    [AutoReply] ⏭️  SKIP_OUTBOUND: message fromMe=true (sent from app)
    ```
 
-4. **Verifică în Firestore**:
+4. **Verifică în Database**:
    - Mesajul OUTBOUND apare în `threads/{threadId}/messages/{messageId}` cu `fromMe=true`
    - **NU** apare mesaj auto-reply
 
@@ -131,9 +131,9 @@ Auto-reply nu răspundea la mesaje INBOUND (client → WhatsApp conectat), deși
 
 ## Verificare Configurare
 
-### 1. Auto-Reply Enabled în Firestore
+### 1. Auto-Reply Enabled în Database
 ```javascript
-// Verifică în Firestore Console
+// Verifică în Database Console
 accounts/{accountId}:
   - autoReplyEnabled: true
   - autoReplyPrompt: "Ești un asistent WhatsApp..."
@@ -145,8 +145,8 @@ accounts/{accountId}:
 echo $GROQ_API_KEY
 ```
 
-### 3. Firestore Disponibil
-- Verifică logurile la startup: `✅ Firebase Admin initialized`
+### 3. Database Disponibil
+- Verifică logurile la startup: `✅ Supabase Admin initialized`
 
 ## Debugging
 
@@ -159,7 +159,7 @@ echo $GROQ_API_KEY
 
 2. **Verifică ce gate eșuează**:
    - `skipped_fromMe` → OK (mesaj outbound, normal să skip-uie)
-   - `skipped_disabled` → Activează auto-reply în Firestore
+   - `skipped_disabled` → Activează auto-reply în Database
    - `skipped_noGroqKey` → Configurează GROQ_API_KEY
    - `skipped_cooldown_*` → Așteaptă 10s între mesaje
    - `skipped_notFresh` → Mesaj prea vechi (> 2 minute)
@@ -179,7 +179,7 @@ echo $GROQ_API_KEY
 
 ✅ **Când trimit mesaj din telefonul clientului către WA conectat**:
 - Backend trimite exact un auto-reply
-- Auto-reply este salvat în Firestore ca outbound (`fromMe=true`, `autoReply=true`)
+- Auto-reply este salvat în Database ca outbound (`fromMe=true`, `autoReply=true`)
 
 ✅ **Când trimit mesaj din app (outbound/fromMe)**:
 - NU trimite auto-reply

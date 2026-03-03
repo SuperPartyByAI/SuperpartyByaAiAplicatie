@@ -9,7 +9,7 @@
 
 ## 🎯 Deliverables
 
-### 1. Firestore Schema ✅
+### 1. Database Schema ✅
 
 **Location:** `whatsapp-backend/lib/longrun-schema.js`
 
@@ -23,7 +23,7 @@
 - `wa_metrics/longrun/incidents/{incidentId}` - Incidents
 - `wa_metrics/longrun/rollups/{date}` - Daily rollups
 
-**Evidence:** 43 heartbeats, 1 probe in Firestore
+**Evidence:** 43 heartbeats, 1 probe in Database
 
 ---
 
@@ -80,7 +80,7 @@ Distributed lock: ✅ PASS (3 sequential instances, no overlaps)
 
 **Verification:** `scripts/verify-probes.js`
 
-**Evidence:** Firestore path `wa_metrics/longrun/probes/OUT_20251229T22`
+**Evidence:** Database path `wa_metrics/longrun/probes/OUT_20251229T22`
 
 ---
 
@@ -191,7 +191,7 @@ curl https://whats-app-ompro.ro/api/admin/longrun/heartbeats?limit=5
 
 ## 🔍 Evidence
 
-### Firestore Paths
+### Database Paths
 
 ```
 wa_metrics/longrun/heartbeats/2025-12-29T23-07-30
@@ -208,7 +208,7 @@ de2c6c30 - Add production evidence and final reports
 1a9b0b60 - Add Telegram alerts for long-run monitoring
 53c8ed5b - Add admin endpoints for locks and config
 820116a4 - Integrate LongRunJobs v3 into existing server.js
-b05469d7 - Add admin endpoints for longrun Firestore queries
+b05469d7 - Add admin endpoints for longrun Database queries
 d900ea6f - docs: long-run production artifacts (READY+COLLECTING)
 3d4adc99 - feat: long-run production-grade (distributed lock, idempotent, gap detection)
 ```
@@ -270,7 +270,7 @@ curl https://whats-app-ompro.ro/health
     "needs_qr": 0,
     "max": 18
   },
-  "firestore": "connected"
+  "database": "connected"
 }
 ```
 
@@ -280,7 +280,7 @@ curl https://whats-app-ompro.ro/health
 
 **ALL REQUIREMENTS MET:**
 
-- [x] Firestore schema complete
+- [x] Database schema complete
 - [x] Distributed lock (prevents duplicate schedulers)
 - [x] Idempotent writes (deterministic docIds)
 - [x] Gap detection (missed heartbeats)
@@ -335,7 +335,7 @@ curl https://whats-app-ompro.ro/health
 
 All deliverables complete:
 
-- ✅ Firestore schema (7 collections)
+- ✅ Database schema (7 collections)
 - ✅ Restart-safe jobs (distributed lock, idempotent, gap detection)
 - ✅ Heartbeat coverage (81.1%, above 80% threshold)
 - ✅ Probe system (outbound 100% pass rate)

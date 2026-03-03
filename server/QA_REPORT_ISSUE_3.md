@@ -9,7 +9,7 @@
 
 ## 📊 Executive Summary
 
-Issue #3 requested stabilization of WhatsApp (Baileys) integration with Firebase.
+Issue #3 requested stabilization of WhatsApp (Baileys) integration with Supabase.
 **Result:** 5/6 requirements PASSED, 1 documentation gap identified.
 
 ---
@@ -38,7 +38,7 @@ Issue #3 requested stabilization of WhatsApp (Baileys) integration with Firebase
 **Evidence:**
 
 - Reconnect logic with backoff implemented
-- Retry count tracking in Firestore
+- Retry count tracking in Database
 - Verification script: `scripts/verify-wa-stability.js`
 - Logs show retry attempts with backoff
 
@@ -48,12 +48,12 @@ Issue #3 requested stabilization of WhatsApp (Baileys) integration with Firebase
 
 ### C) Inbox Dedup - ✅ PASSED
 
-**Requirement:** Același mesaj → UN document în Firestore
+**Requirement:** Același mesaj → UN document în Database
 
 **Evidence:**
 
 - Uses unique `messageId` from Baileys
-- Firestore document ID = messageId
+- Database document ID = messageId
 - Prevents duplicate message storage
 - Code location: `server.js` message handling
 
@@ -99,7 +99,7 @@ Issue #3 requested stabilization of WhatsApp (Baileys) integration with Firebase
 
 - Structured logs with `[accountId]` prefix
 - `/health` endpoint implemented
-- Status tracking in Firestore
+- Status tracking in Database
 - Incident logging system
 
 **Status:** ✅ IMPLEMENTED

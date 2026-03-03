@@ -3,10 +3,10 @@
 ## Objective
 
 Make the Force Update system **fail-safe** so the app never crashes or blocks users when:
-- Firestore config is missing or malformed
-- Firebase is not initialized
+- Database config is missing or malformed
+- Supabase is not initialized
 - Device is offline
-- Firestore rules block access
+- Database rules block access
 - Config uses legacy schema
 
 ## Problem Statement
@@ -17,7 +17,7 @@ I/flutter (10520): [ForceUpdateChecker] ❌ Error reading version config:
 FormatException: Missing required field: min_version
 ```
 
-App would crash on startup if Firestore document used legacy field names (`latest_version`, `latest_build_number`) or if required fields were missing.
+App would crash on startup if Database document used legacy field names (`latest_version`, `latest_build_number`) or if required fields were missing.
 
 ## Solution Overview
 
@@ -26,8 +26,8 @@ Implemented **multiple layers of fail-safe protection**:
 1. **Schema Flexibility**: Support multiple field name variations
 2. **Safe Defaults**: Return valid config even when fields are missing
 3. **Error Handling**: Catch all exceptions and continue gracefully
-4. **Timeout Protection**: Don't hang indefinitely on Firestore reads
-5. **Firebase Check**: Skip update check if Firebase not initialized
+4. **Timeout Protection**: Don't hang indefinitely on Database reads
+5. **Supabase Check**: Skip update check if Supabase not initialized
 6. **Clear Logging**: Diagnostic messages for troubleshooting
 
 ## Changes Made
@@ -47,7 +47,7 @@ factory AppVersionConfig.safeDefault() {
 }
 ```
 
-#### Enhanced fromFirestore Parser
+#### Enhanced fromDatabase Parser
 **Field Name Support:**
 - `min_version` / `latest_version` / `minVersion` / `latestVersion`
 - `min_build_number` / `latest_build_number` / `minBuildNumber` / `latestBuildNumber`
@@ -74,7 +74,7 @@ factory AppVersionConfig.safeDefault() {
 #### Added Imports
 ```dart
 import 'dart:async';  // For TimeoutException
-import 'package:firebase_core/firebase_core.dart';  // For Firebase.apps check
+import 'package:supabase_core/supabase_core.dart';  // For Supabase.apps check
 ```
 
 #### Enhanced getVersionConfig()
@@ -83,24 +83,24 @@ import 'package:firebase_core/firebase_core.dart';  // For Firebase.apps check
 **After:** Always returns valid `AppVersionConfig`, never throws
 
 **Features:**
-- 10-second timeout on Firestore reads
-- Catches `TimeoutException`, `FirebaseException`, and all other exceptions
+- 10-second timeout on Database reads
+- Catches `TimeoutException`, `SupabaseException`, and all other exceptions
 - Returns safe default on any error
 - Detailed error logging with troubleshooting hints
 
 **Error Handling:**
 ```dart
 try {
-  // Read from Firestore with timeout
+  // Read from Database with timeout
 } on TimeoutException catch (e) {
-  print('[ForceUpdateChecker] ⚠️ Firestore timeout: $e');
+  print('[ForceUpdateChecker] ⚠️ Database timeout: $e');
   return AppVersionConfig.safeDefault();
-} on FirebaseException catch (e) {
-  print('[ForceUpdateChecker] ⚠️ Firebase error: ${e.code} - ${e.message}');
+} on SupabaseException catch (e) {
+  print('[ForceUpdateChecker] ⚠️ Supabase error: ${e.code} - ${e.message}');
   print('[ForceUpdateChecker] ℹ️ Common causes:');
-  print('[ForceUpdateChecker]    - Firestore not initialized');
+  print('[ForceUpdateChecker]    - Database not initialized');
   print('[ForceUpdateChecker]    - No internet connection');
-  print('[ForceUpdateChecker]    - Firestore rules blocking read');
+  print('[ForceUpdateChecker]    - Database rules blocking read');
   return AppVersionConfig.safeDefault();
 } catch (e, stackTrace) {
   print('[ForceUpdateChecker] ❌ Unexpected error: $e');
@@ -109,10 +109,10 @@ try {
 ```
 
 #### Enhanced needsForceUpdate()
-**Added Firebase Initialization Check:**
+**Added Supabase Initialization Check:**
 ```dart
-if (Firebase.apps.isEmpty) {
-  print('[ForceUpdateChecker] ⚠️ Firebase not initialized');
+if (Supabase.apps.isEmpty) {
+  print('[ForceUpdateChecker] ⚠️ Supabase not initialized');
   print('[ForceUpdateChecker] ℹ️ Skipping force update check');
   return false;
 }
@@ -166,17 +166,17 @@ try {
 
 ### 4. Main App Entry (`lib/main.dart`)
 
-#### Enhanced Firebase Initialization
+#### Enhanced Supabase Initialization
 ```dart
 try {
-  print('[Main] Initializing Firebase...');
-  await FirebaseService.initialize();
-  print('[Main] ✅ Firebase initialized successfully');
+  print('[Main] Initializing Supabase...');
+  await SupabaseService.initialize();
+  print('[Main] ✅ Supabase initialized successfully');
 } catch (e, stackTrace) {
-  print('[Main] ❌ Firebase initialization failed: $e');
+  print('[Main] ❌ Supabase initialization failed: $e');
   print('[Main] Stack trace: $stackTrace');
   print('[Main] ⚠️ App will continue with limited functionality');
-  print('[Main] ℹ️ Features requiring Firebase will be unavailable');
+  print('[Main] ℹ️ Features requiring Supabase will be unavailable');
 }
 ```
 
@@ -220,7 +220,7 @@ try {
 ## Acceptance Criteria
 
 ### ✅ AC1: Legacy Schema Support
-**Test:** Firestore document with `latest_version` and `latest_build_number`
+**Test:** Database document with `latest_version` and `latest_build_number`
 
 **Result:**
 - ✅ App parses config successfully
@@ -229,21 +229,21 @@ try {
 - ✅ Log shows: "Legacy schema detected"
 
 ### ✅ AC2: Missing Document
-**Test:** Delete `app_config/version` from Firestore
+**Test:** Delete `app_config/version` from Database
 
 **Result:**
 - ✅ App starts without crashing
 - ✅ No force update dialog shown
-- ✅ Log shows: "No version config in Firestore"
+- ✅ Log shows: "No version config in Database"
 - ✅ Log shows: "Using safe default (force_update=false)"
 
 ### ✅ AC3: Empty Document
-**Test:** Firestore document with no fields `{}`
+**Test:** Database document with no fields `{}`
 
 **Result:**
 - ✅ App starts without crashing
 - ✅ Safe default used
-- ✅ Log shows: "Missing required fields in Firestore config"
+- ✅ Log shows: "Missing required fields in Database config"
 - ✅ No force update dialog shown
 
 ### ✅ AC4: Offline Mode
@@ -252,16 +252,16 @@ try {
 **Result:**
 - ✅ App starts without crashing
 - ✅ Timeout after 10 seconds
-- ✅ Log shows: "Firestore timeout"
+- ✅ Log shows: "Database timeout"
 - ✅ Safe default used
 - ✅ No force update dialog shown
 
-### ✅ AC5: Firebase Not Initialized
-**Test:** Firebase initialization fails
+### ✅ AC5: Supabase Not Initialized
+**Test:** Supabase initialization fails
 
 **Result:**
 - ✅ App starts without crashing
-- ✅ Log shows: "Firebase not initialized"
+- ✅ Log shows: "Supabase not initialized"
 - ✅ Log shows: "Skipping force update check"
 - ✅ App continues with limited functionality
 
@@ -301,7 +301,7 @@ try {
 **Principle:** Don't hang indefinitely waiting for network.
 
 **Implementation:**
-- 10-second timeout on Firestore reads
+- 10-second timeout on Database reads
 - Explicit timeout handling
 - Continue with safe default after timeout
 
@@ -318,7 +318,7 @@ try {
 **Principle:** App should work with reduced functionality if services fail.
 
 **Implementation:**
-- Firebase init failure → app continues without Firebase features
+- Supabase init failure → app continues without Supabase features
 - Force update check failure → app continues without update enforcement
 - Background service failure → app continues without background features
 
@@ -334,10 +334,10 @@ test('prioritizes min_version over latest_version', () { ... });
 ```
 
 ### Integration Tests
-- Test with real Firestore (emulator)
+- Test with real Database (emulator)
 - Test offline scenarios
 - Test timeout scenarios
-- Test Firebase init failures
+- Test Supabase init failures
 
 ### Manual Tests
 - 14 scenarios documented in TEST_FORCE_UPDATE_FAILSAFE.md
@@ -353,7 +353,7 @@ cd superparty_flutter
 flutter build apk --release
 ```
 
-### 2. Firestore Config (Optional)
+### 2. Database Config (Optional)
 **Option A:** Keep legacy schema (no action needed)
 ```javascript
 {
@@ -406,7 +406,7 @@ Monitor logs at each phase for unexpected errors.
 
 ### If Issues Arise
 
-**Immediate Action (Firestore):**
+**Immediate Action (Database):**
 ```javascript
 // Disable force update
 {
@@ -460,7 +460,7 @@ flutter logs | grep "AppVersionConfig"
 
 2. **10-Second Timeout:** Hardcoded timeout may be too short for very slow connections
 
-3. **No Retry Logic:** If Firestore read fails, no automatic retry (fail-safe kicks in)
+3. **No Retry Logic:** If Database read fails, no automatic retry (fail-safe kicks in)
 
 4. **No Offline Cache:** Config is not cached locally for offline use
 
@@ -469,7 +469,7 @@ flutter logs | grep "AppVersionConfig"
 ## Future Enhancements
 
 - [ ] **Config Caching:** Cache last valid config locally for offline use
-- [ ] **Retry Logic:** Retry Firestore read on transient failures
+- [ ] **Retry Logic:** Retry Database read on transient failures
 - [ ] **Configurable Timeout:** Make timeout configurable via remote config
 - [ ] **Partial Validation:** Use valid fields even if some are missing
 - [ ] **Analytics:** Track force update success/failure rates
@@ -482,14 +482,14 @@ flutter logs | grep "AppVersionConfig"
 ### Core Implementation
 1. `superparty_flutter/lib/models/app_version_config.dart`
    - Added `safeDefault()` factory
-   - Enhanced `fromFirestore()` with multi-schema support
+   - Enhanced `fromDatabase()` with multi-schema support
    - Added type normalization
    - Added fail-safe defaults
 
 2. `superparty_flutter/lib/services/force_update_checker_service.dart`
    - Added timeout protection
    - Enhanced error handling
-   - Added Firebase initialization check
+   - Added Supabase initialization check
    - Improved logging
 
 3. `superparty_flutter/lib/widgets/update_gate.dart`
@@ -498,7 +498,7 @@ flutter logs | grep "AppVersionConfig"
    - Improved logging
 
 4. `superparty_flutter/lib/main.dart`
-   - Enhanced Firebase init error handling
+   - Enhanced Supabase init error handling
    - Added detailed logging
    - Improved fail-safe behavior
 
@@ -530,20 +530,20 @@ The Force Update system is now **completely fail-safe**:
 ✅ **Well Logged:** Clear diagnostic messages  
 ✅ **Migration Optional:** No forced migration required  
 ✅ **Timeout Protected:** Won't hang indefinitely  
-✅ **Firebase Independent:** Works even if Firebase fails  
+✅ **Supabase Independent:** Works even if Supabase fails  
 
 **Key Achievement:** The app will **always start** regardless of:
-- Missing Firestore document
+- Missing Database document
 - Missing required fields
 - Invalid field types
-- Firebase not initialized
+- Supabase not initialized
 - Device offline
-- Firestore rules blocking access
+- Database rules blocking access
 - Timeout on network requests
 
 Force update only blocks when **all conditions are met**:
-1. Firebase initialized ✅
-2. Firestore accessible ✅
+1. Supabase initialized ✅
+2. Database accessible ✅
 3. Config document exists ✅
 4. Required fields present ✅
 5. `force_update` = true ✅

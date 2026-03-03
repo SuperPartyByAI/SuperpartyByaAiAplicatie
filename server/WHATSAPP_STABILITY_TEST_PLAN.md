@@ -4,7 +4,7 @@
 
 ### Local Environment
 ```bash
-# Terminal 1: Firebase emulators
+# Terminal 1: Supabase emulators
 cd Aplicatie-SuperpartyByAi
 npm run emu:all
 
@@ -153,7 +153,7 @@ curl -X POST -H "Authorization: Bearer $ADMIN_TOKEN" \
 ### Success Criteria
 - ✅ addAccount returns existing accountId if account is in pairing phase
 - ✅ No duplicate session directories created for same phone
-- ✅ No duplicate accounts in Firestore for same phone
+- ✅ No duplicate accounts in Database for same phone
 
 ## Test 5: 401/logged_out Handling
 
@@ -213,7 +213,7 @@ curl -H "Authorization: Bearer $ADMIN_TOKEN" \
 
 ### Steps
 ```bash
-# 1. Start Firebase emulators
+# 1. Start Supabase emulators
 npm run emu:all
 
 # 2. Run Flutter WITHOUT adb reverse
@@ -232,7 +232,7 @@ flutter run -d emulator-5554 \
 
 ### Success Criteria
 - ✅ Functions URL = `http://10.0.2.2:5002` when `USE_ADB_REVERSE=false`
-- ✅ App can reach Firebase Functions emulator
+- ✅ App can reach Supabase Functions emulator
 - ✅ WhatsApp accounts screen loads without errors
 
 ## Test 8: Flutter UI Loops Prevention

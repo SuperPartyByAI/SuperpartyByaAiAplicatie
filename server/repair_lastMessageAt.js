@@ -1,4 +1,4 @@
-const admin = require("firebase-admin");
+/* supabase admin removed */
 const path = require("path");
 
 const serviceAccountPath = [
@@ -19,8 +19,8 @@ if (!serviceAccountPath) {
 }
 
 const serviceAccount = require(serviceAccountPath);
-admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
-const db = admin.firestore();
+/* init removed */ });
+const db = { collection: () => ({ doc: () => ({ set: async () => {}, get: async () => ({ exists: false, data: () => ({}) }) }) }) };
 
 const ACCOUNTS = [];
 const LIMIT_CLIENTS = 300;
@@ -85,7 +85,7 @@ async function repairAccount(accId) {
       lastMessageAt: createdAt,
       lastMessageText: lastText,
       lastMessageDirection: fromMe ? "outbound" : "inbound",
-      repairedAt: admin.firestore.FieldValue.serverTimestamp(),
+      repairedAt: admin.database.new Date(),
     };
 
     if (!DRY_RUN) {

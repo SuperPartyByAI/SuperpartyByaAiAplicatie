@@ -1,16 +1,16 @@
 #!/usr/bin/env node
 const fs = require('fs');
-const admin = require('firebase-admin');
+/* supabase admin removed */
 
 const BACKEND_BASE_URL = process.env.BACKEND_BASE_URL || 'http://127.0.0.1:8080';
-const SERVICE_ACCOUNT_PATH = process.env.SERVICE_ACCOUNT_PATH || '/etc/whatsapp-backend/firebase-sa.json';
-const API_KEY = process.env.FIREBASE_API_KEY || 'AIzaSyDcMXO6XdFZE_tVnJ1M4Wrt8Aw7Yh1o0K0';
+const SERVICE_ACCOUNT_PATH = process.env.SERVICE_ACCOUNT_PATH || '/etc/whatsapp-backend/supabase-sa.json';
+const API_KEY = process.env.SUPABASE_API_KEY || 'AIzaSyDcMXO6XdFZE_tVnJ1M4Wrt8Aw7Yh1o0K0';
 
 if (!admin.apps.length) {
   const raw = fs.readFileSync(SERVICE_ACCOUNT_PATH, 'utf8');
   const sa = JSON.parse(raw);
   if (sa.private_key) sa.private_key = sa.private_key.replace(/\\n/g, '\n');
-  admin.initializeApp({ credential: admin.credential.cert(sa) });
+  /* init removed */ });
 }
 
 async function postJson(url, body) {
@@ -61,7 +61,7 @@ function parseTs(value) {
 }
 
 async function main() {
-  const customToken = await admin.auth().createCustomToken('cli-verifier');
+  const customToken = await { setCustomUserClaims: async () => {}, getUser: async () => ({}) }.createCustomToken('cli-verifier');
   const signIn = await postJson(
     `https://identitytoolkit.googleapis.com/v1/accounts:signInWithCustomToken?key=${API_KEY}`,
     { token: customToken, returnSecureToken: true }

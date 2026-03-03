@@ -1,6 +1,6 @@
 -- ============================================================
 -- SUPERPARTY - SUPABASE SCHEMA
--- Migrated from Firebase Firestore
+-- Migrated from Supabase Database
 -- ============================================================
 
 -- Enable UUID extension
@@ -10,7 +10,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- CONVERSATIONS (WhatsApp threads)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS conversations (
-  id TEXT PRIMARY KEY,                    -- firestore doc id (jid@s.whatsapp.net)
+  id TEXT PRIMARY KEY,                    -- database doc id (jid@s.whatsapp.net)
   jid TEXT,                               -- WhatsApp JID
   name TEXT,
   phone TEXT,
@@ -67,7 +67,7 @@ CREATE TABLE IF NOT EXISTS wa_accounts (
 -- EMPLOYEES (staff profiles)
 -- ============================================================
 CREATE TABLE IF NOT EXISTS employees (
-  id TEXT PRIMARY KEY,                    -- firebase UID
+  id TEXT PRIMARY KEY,                    -- supabase UID
   email TEXT UNIQUE,
   name TEXT,
   role TEXT DEFAULT 'staff',             -- admin, staff

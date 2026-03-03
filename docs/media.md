@@ -3,28 +3,28 @@
 ## Arhitectura media
 
 ```
-Inbound (WhatsApp → server → Firestore + Storage)
+Inbound (WhatsApp → server → Database + Storage)
   Baileys msg → downloadMediaMessage → buffer
-    → uploadMediaToStorage(buffer, convoId, msgId, mime) → Firebase Storage
-    → syncMessageToFirestore cu media{path, bucket, mime, size, name}
+    → uploadMediaToStorage(buffer, convoId, msgId, mime) → Supabase Storage
+    → syncMessageToDatabase cu media{path, bucket, mime, size, name}
     → disc local /public/media/ (fallback)
 
-Outbound (Flutter → server → WhatsApp + Firestore + Storage)
+Outbound (Flutter → server → WhatsApp + Database + Storage)
   POST /messages/:jid/media (multipart/form-data)
     → multer → buffer
     → resolveCanonicalJid(jid) → canonical
     → sock.sendMessage(canonical, {image/video/doc: buffer})
     → uploadMediaToStorage → media{}
-    → syncMessageToFirestore → conversations/{accountId_canonicalJid}/messages/{msgId}
+    → syncMessageToDatabase → conversations/{accountId_canonicalJid}/messages/{msgId}
 
 Signed URL (Flutter → server)
   GET /api/media/url/:convoId/:msgId
-    → verifyFirebaseToken (ID token)
-    → Firestore lookup → media.path
+    → verifySupabaseToken (ID token)
+    → Database lookup → media.path
     → getSignedUrl(path, 1h) → returned to Flutter
 ```
 
-## Structura Firestore
+## Structura Database
 
 ```
 conversations/{accountId_canonicalJid}/messages/{msgId}:
@@ -47,7 +47,7 @@ conversations/{accountId_canonicalJid}/messages/{msgId}:
 | Endpoint                             | Middleware          | Funcție                               |
 | ------------------------------------ | ------------------- | ------------------------------------- |
 | `POST /messages/:jid/media`          | multer (25MB)       | Trimite media prin WhatsApp + Storage |
-| `GET /api/media/url/:convoId/:msgId` | verifyFirebaseToken | Signed URL on-demand (1h)             |
+| `GET /api/media/url/:convoId/:msgId` | verifySupabaseToken | Signed URL on-demand (1h)             |
 | `GET /media/:jid/:id`                | -                   | Fallback download din store (legacy)  |
 
 ## Anti-amestec

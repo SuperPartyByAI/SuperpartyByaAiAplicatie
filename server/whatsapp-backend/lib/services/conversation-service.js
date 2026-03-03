@@ -4,7 +4,7 @@
  * Handles conversation operations and business logic
  */
 
-const admin = require('firebase-admin');
+/* supabase admin removed */
 const Conversation = require('../models/conversation');
 const Message = require('../models/message');
 
@@ -25,7 +25,7 @@ class ConversationService {
       .get();
 
     if (!snapshot.empty) {
-      return Conversation.fromFirestore(snapshot.docs[0]);
+      return Conversation.fromDatabase(snapshot.docs[0]);
     }
 
     // Create new conversation
@@ -35,7 +35,7 @@ class ConversationService {
       unread_count_for_operator: 0,
     });
 
-    const docRef = await this.conversationsRef.add(newConv.toFirestore());
+    const docRef = await this.conversationsRef.add(newConv.toDatabase());
     newConv.conversation_id = docRef.id;
 
     return newConv;
@@ -52,15 +52,15 @@ class ConversationService {
       throw new Error('Conversation not found');
     }
 
-    const conversation = Conversation.fromFirestore(doc);
+    const conversation = Conversation.fromDatabase(doc);
 
     if (!conversation.canBeReservedBy(operatorCode)) {
       throw new Error('Conversation cannot be reserved');
     }
 
-    conversation.reserve(operatorCode, admin.firestore.FieldValue.serverTimestamp());
+    conversation.reserve(operatorCode, admin.database.new Date());
 
-    await docRef.update(conversation.toFirestore());
+    await docRef.update(conversation.toDatabase());
 
     return conversation;
   }
@@ -76,10 +76,10 @@ class ConversationService {
       throw new Error('Conversation not found');
     }
 
-    const conversation = Conversation.fromFirestore(doc);
-    conversation.release(admin.firestore.FieldValue.serverTimestamp());
+    const conversation = Conversation.fromDatabase(doc);
+    conversation.release(admin.database.new Date());
 
-    await docRef.update(conversation.toFirestore());
+    await docRef.update(conversation.toDatabase());
 
     return conversation;
   }
@@ -88,15 +88,15 @@ class ConversationService {
    * Add client message to conversation
    */
   async addClientMessage(conversationId, content) {
-    const timestamp = admin.firestore.FieldValue.serverTimestamp();
+    const timestamp = admin.database.new Date();
 
     const message = Message.createClientMessage(conversationId, content, timestamp);
-    await this.messagesRef.add(message.toFirestore());
+    await this.messagesRef.add(message.toDatabase());
 
     // Update conversation
     await this.conversationsRef.doc(conversationId).update({
       last_client_message_at: timestamp,
-      unread_count_for_operator: admin.firestore.FieldValue.increment(1),
+      unread_count_for_operator: admin.database.FieldValue.increment(1),
     });
 
     return message;
@@ -113,16 +113,16 @@ class ConversationService {
       throw new Error('Conversation not found');
     }
 
-    const conversation = Conversation.fromFirestore(doc);
+    const conversation = Conversation.fromDatabase(doc);
 
     if (!conversation.canBeWrittenBy(operatorCode)) {
       throw new Error('Operator cannot write to this conversation');
     }
 
-    const timestamp = admin.firestore.FieldValue.serverTimestamp();
+    const timestamp = admin.database.new Date();
 
     const message = Message.createOperatorMessage(conversationId, operatorCode, content, timestamp);
-    await this.messagesRef.add(message.toFirestore());
+    await this.messagesRef.add(message.toDatabase());
 
     // Update conversation - reset 5h timer
     await docRef.update({
@@ -136,10 +136,10 @@ class ConversationService {
    * Add AI message to conversation
    */
   async addAIMessage(conversationId, content, isAutoResponse = false) {
-    const timestamp = admin.firestore.FieldValue.serverTimestamp();
+    const timestamp = admin.database.new Date();
 
     const message = Message.createAIMessage(conversationId, content, timestamp, isAutoResponse);
-    await this.messagesRef.add(message.toFirestore());
+    await this.messagesRef.add(message.toDatabase());
 
     // Update conversation
     await this.conversationsRef.doc(conversationId).update({
@@ -158,7 +158,7 @@ class ConversationService {
       .orderBy('timestamp', 'asc')
       .get();
 
-    return snapshot.docs.map(doc => Message.fromFirestore(doc));
+    return snapshot.docs.map(doc => Message.fromDatabase(doc));
   }
 
   /**
@@ -171,7 +171,7 @@ class ConversationService {
       throw new Error('Conversation not found');
     }
 
-    return Conversation.fromFirestore(doc);
+    return Conversation.fromDatabase(doc);
   }
 
   /**
@@ -180,7 +180,7 @@ class ConversationService {
   async getAvailableConversations() {
     const snapshot = await this.conversationsRef.where('status', '==', 'AVAILABLE').get();
 
-    return snapshot.docs.map(doc => Conversation.fromFirestore(doc));
+    return snapshot.docs.map(doc => Conversation.fromDatabase(doc));
   }
 
   /**
@@ -189,7 +189,7 @@ class ConversationService {
   async getReservedConversations() {
     const snapshot = await this.conversationsRef.where('status', '==', 'RESERVED').get();
 
-    return snapshot.docs.map(doc => Conversation.fromFirestore(doc));
+    return snapshot.docs.map(doc => Conversation.fromDatabase(doc));
   }
 
   /**
@@ -201,7 +201,7 @@ class ConversationService {
       .where('status', '==', 'RESERVED')
       .get();
 
-    return snapshot.docs.map(doc => Conversation.fromFirestore(doc));
+    return snapshot.docs.map(doc => Conversation.fromDatabase(doc));
   }
 }
 

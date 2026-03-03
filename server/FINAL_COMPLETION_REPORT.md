@@ -22,7 +22,7 @@
 
 ## ✅ Task 1: Backend Message Persistence
 **Status**: Already working correctly
-- `messages.upsert` handler saves to Firestore
+- `messages.upsert` handler saves to Database
 - Thread metadata updated automatically
 - Deduplication logic prevents duplicates
 
@@ -30,7 +30,7 @@
 
 ## ✅ Task 2: Inbox Screen Listing
 **Status**: Already working correctly
-- `StreamBuilder` listens to Firestore threads
+- `StreamBuilder` listens to Database threads
 - Real-time updates with `lastMessageText` and `lastMessageAt`
 - Search functionality by phone/name
 
@@ -39,7 +39,7 @@
 ## ✅ Task 3: Complete WhatsApp Flow
 **Status**: Already working correctly
 - Auto-polling for QR code (2-second intervals)
-- Message receive → save to Firestore → update UI
+- Message receive → save to Database → update UI
 - Message send → via proxy endpoint → delivery status tracking
 
 ---
@@ -86,11 +86,11 @@
 
 **Problem**: `clang: error: unsupported option '-G' for target 'arm64-apple-macos13.0'`
 
-**Root Cause**: Known issue with `gRPC-Core` / `BoringSSL-GRPC` in Firebase iOS/macOS SDK
+**Root Cause**: Known issue with `gRPC-Core` / `BoringSSL-GRPC` in Supabase iOS/macOS SDK
 
 **Solutions Documented** in `FLUTTER_BUILD_FIX_DOCUMENTED.md`:
-1. **Option 1**: Upgrade Firebase dependencies to latest versions
-2. **Option 2**: Temporarily remove `firebase_messaging` (quick fix)
+1. **Option 1**: Upgrade Supabase dependencies to latest versions
+2. **Option 2**: Temporarily remove `supabase_messaging` (quick fix)
 3. **Option 3**: Use Rosetta 2 (`arch -x86_64 flutter build macos`)
 4. **Option 4**: Manual Xcode fix
 
@@ -101,9 +101,9 @@
 
 ---
 
-## ✅ Task 7: Firestore Composite Index for `outbox`
+## ✅ Task 7: Database Composite Index for `outbox`
 
-**Added** to `firestore.indexes.json`:
+**Added** to `database.indexes.json`:
 ```json
 {
   "collectionGroup": "outbox",
@@ -116,7 +116,7 @@
 }
 ```
 
-**Deployed**: `firebase deploy --only firestore:indexes`
+**Deployed**: `supabase deploy --only database:indexes`
 
 **Result**: Index created successfully, eliminates `FAILED_PRECONDITION` errors
 
@@ -133,7 +133,7 @@
 | UI Improvements | ✅ COMPLETED | Avatars, timestamps, delivery status implemented |
 | Push Notifications | ✅ IMPLEMENTED | Backend FCM + Flutter local notifications |
 | Flutter Build Fix | ✅ DOCUMENTED | 4 solution options provided |
-| Firestore Index | ✅ DEPLOYED | Composite index for `outbox` collection |
+| Database Index | ✅ DEPLOYED | Composite index for `outbox` collection |
 
 ---
 
@@ -149,8 +149,8 @@
 - **Status**: ✅ Pushed to main
 - **Note**: macOS build requires Option 1-4 from `FLUTTER_BUILD_FIX_DOCUMENTED.md`
 
-### Firebase
-- **Firestore Indexes**: ✅ Deployed
+### Supabase
+- **Database Indexes**: ✅ Deployed
 - **Rules**: ✅ Active
 
 ---
@@ -163,7 +163,7 @@
    - Verify FCM notification appears in Flutter app
    
 2. **Resolve Flutter macOS Build** (when time permits):
-   - Try Option 1: Upgrade Firebase dependencies
+   - Try Option 1: Upgrade Supabase dependencies
    - Or Option 3: Build with Rosetta 2
 
 3. **Monitor legacy hosting Logs**:
@@ -182,8 +182,8 @@
 - `lib/main.dart` (+7 lines): Navigation callback
 - `pubspec.yaml` (+1 line): `flutter_local_notifications` dependency
 
-### Firebase
-- `firestore.indexes.json` (+13 lines): Outbox composite index
+### Supabase
+- `database.indexes.json` (+13 lines): Outbox composite index
 
 ### Documentation
 - `FLUTTER_BUILD_FIX_DOCUMENTED.md` (new file): Comprehensive build fix guide

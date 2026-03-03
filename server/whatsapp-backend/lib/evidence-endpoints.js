@@ -44,7 +44,7 @@ class EvidenceEndpoints {
         if (this.waBootstrap) {
           waStatus = await this.waBootstrap.getWAStatus();
         } else {
-          // Fallback: read from Firestore directly
+          // Fallback: read from Database directly
           const waConnectionDoc = await this.db.doc('wa_metrics/longrun/state/wa_connection').get();
           const waConnection = waConnectionDoc.exists ? waConnectionDoc.data() : null;
 
@@ -143,7 +143,7 @@ class EvidenceEndpoints {
           nextRetryAt: waStatus.nextRetryAt || null,
 
           // Auth
-          authStore: 'firestore',
+          authStore: 'database',
           authStateExists: authStateExists,
           authKeyCount: authKeyCount,
           lastAuthWriteAt: lastAuthWriteAt,
@@ -159,11 +159,11 @@ class EvidenceEndpoints {
           drainMode: waStatus.drainMode || false,
 
           // Inbound dedupe
-          inboundDedupeStore: 'firestore',
+          inboundDedupeStore: 'database',
           lastInboundDedupeWriteAt: waStatus.lastInboundDedupeWriteAt || null,
 
           // Dependency health
-          consecutiveFirestoreErrors: waStatus.consecutiveFirestoreErrors || 0,
+          consecutiveDatabaseErrors: waStatus.consecutiveDatabaseErrors || 0,
           degradedSince: waStatus.degradedSince || null,
 
           // Circuit breaker
@@ -230,8 +230,8 @@ class EvidenceEndpoints {
       }
     });
 
-    // POST /api/longrun/firestore-write-test (also support GET for convenience)
-    const firestoreWriteTestHandler = async (req, res) => {
+    // POST /api/longrun/database-write-test (also support GET for convenience)
+    const databaseWriteTestHandler = async (req, res) => {
       try {
         const testId = `TEST_${Date.now()}`;
         const testRef = this.db.doc(`wa_metrics/longrun/tests/${testId}`);
@@ -260,7 +260,7 @@ class EvidenceEndpoints {
             exists: readDoc.exists,
             data: readDoc.data(),
           },
-          proof: 'Firestore write/read capability confirmed',
+          proof: 'Database write/read capability confirmed',
         });
       } catch (error) {
         res.status(500).json({ error: error.message, stack: error.stack });
@@ -268,14 +268,14 @@ class EvidenceEndpoints {
     };
 
     this.app.post(
-      '/api/longrun/firestore-write-test',
+      '/api/longrun/database-write-test',
       this.verifyToken.bind(this),
-      firestoreWriteTestHandler
+      databaseWriteTestHandler
     );
     this.app.get(
-      '/api/longrun/firestore-write-test',
+      '/api/longrun/database-write-test',
       this.verifyToken.bind(this),
-      firestoreWriteTestHandler
+      databaseWriteTestHandler
     );
 
     // GET /api/longrun/fs-check
@@ -771,9 +771,9 @@ class EvidenceEndpoints {
       }
     });
 
-    // GET /api/longrun/firestore-snapshot
+    // GET /api/longrun/database-snapshot
     this.app.get(
-      '/api/longrun/firestore-snapshot',
+      '/api/longrun/database-snapshot',
       this.verifyToken.bind(this),
       async (req, res) => {
         try {

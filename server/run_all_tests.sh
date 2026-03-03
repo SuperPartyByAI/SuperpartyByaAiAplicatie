@@ -6,7 +6,7 @@
 # - Railway health check
 # - Functions smoke tests
 # - Flutter analyze
-# - Firebase functions verification
+# - Supabase functions verification
 # 
 # Usage: ./run_all_tests.sh
 ###############################################################################
@@ -51,17 +51,17 @@ fi
 echo ""
 
 ###############################################################################
-# TEST 2: Firebase Functions Deployment Check
+# TEST 2: Supabase Functions Deployment Check
 ###############################################################################
 echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
-echo -e "${YELLOW}TEST 2: Firebase Functions Deployment${NC}"
+echo -e "${YELLOW}TEST 2: Supabase Functions Deployment${NC}"
 echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━${NC}"
 
 TOTAL_TESTS=$((TOTAL_TESTS + 1))
 
 cd "$(dirname "$0")"
 
-FUNCTIONS_OUTPUT=$(firebase functions:list 2>&1)
+FUNCTIONS_OUTPUT=$(supabase functions:list 2>&1)
 
 REQUIRED_FUNCTIONS=(
     "bootstrapAdmin"
@@ -100,7 +100,7 @@ echo -e "${YELLOW}━━━━━━━━━━━━━━━━━━━━�
 TOTAL_TESTS=$((TOTAL_TESTS + 1))
 
 cd functions
-if FIREBASE_PROJECT=superparty-frontend node tools/smoke_test_crm_ai.js 2>&1 | tee /tmp/smoke_test_output.log; then
+if SUPABASE_PROJECT=superparty-frontend node tools/smoke_test_crm_ai.js 2>&1 | tee /tmp/smoke_test_output.log; then
     echo -e "${GREEN}✅ PASS${NC} - Smoke tests completed successfully"
     PASSED_TESTS=$((PASSED_TESTS + 1))
 else

@@ -8,26 +8,26 @@ Toate componentele sunt deployed și funcționale.
 
 ## 🎯 Ce e gata:
 
-### 1. ✅ Firestore Configuration
+### 1. ✅ Database Configuration
 
 ```javascript
 // app_config/version
 {
   "min_build_number": 4,
   "force_update": true,
-  "android_download_url": "https://firebasestorage.googleapis.com/v0/b/superparty-frontend.firebasestorage.app/o/apk%2Fapp-release.apk?alt=media",
+  "android_download_url": "https://supabasestorage.googleapis.com/v0/b/superparty-frontend.supabasestorage.app/o/apk%2Fapp-release.apk?alt=media",
   "update_message": "🎉 Versiune nouă disponibilă! Actualizează pentru AI Chat fix + Force Update îmbunătățit."
 }
 ```
 
-### 2. ✅ Firestore Rules
+### 2. ✅ Database Rules
 
 - `app_config` collection: **readable by all** (deployed)
 - Permite Force Update checks fără autentificare
 
 ### 3. ✅ APK Build 3 (pentru instalare inițială)
 
-**Link:** https://storage.googleapis.com/superparty-frontend.firebasestorage.app/apk/app-release.apk
+**Link:** https://storage.googleapis.com/superparty-frontend.supabasestorage.app/apk/app-release.apk
 
 - Version: 1.0.2
 - Build: 3
@@ -36,7 +36,7 @@ Toate componentele sunt deployed și funcționale.
 
 ### 4. ✅ APK Build 4 (target pentru update)
 
-**Link:** https://storage.googleapis.com/superparty-frontend.firebasestorage.app/apk/app-release.apk
+**Link:** https://storage.googleapis.com/superparty-frontend.supabasestorage.app/apk/app-release.apk
 
 - Version: 1.0.3
 - Build: 4
@@ -69,13 +69,13 @@ adb uninstall com.superpartybyai.superparty_app
 
 ### Step 2: Instalează APK Build 3
 
-**Download:** https://storage.googleapis.com/superparty-frontend.firebasestorage.app/apk/app-release.apk
+**Download:** https://storage.googleapis.com/superparty-frontend.supabasestorage.app/apk/app-release.apk
 
 **SAU prin ADB:**
 
 ```bash
 # Download APK
-curl -o app-release.apk "https://storage.googleapis.com/superparty-frontend.firebasestorage.app/apk/app-release.apk"
+curl -o app-release.apk "https://storage.googleapis.com/superparty-frontend.supabasestorage.app/apk/app-release.apk"
 
 # Install
 adb install app-release.apk
@@ -155,7 +155,7 @@ Expected logs:
 **Check 3: Internet**
 
 - Verifică că telefonul are internet
-- Verifică că Firestore e accesibil
+- Verifică că Database e accesibil
 
 ---
 
@@ -164,7 +164,7 @@ Expected logs:
 **Check URL:**
 
 ```bash
-curl -I "https://storage.googleapis.com/superparty-frontend.firebasestorage.app/apk/app-release.apk"
+curl -I "https://storage.googleapis.com/superparty-frontend.supabasestorage.app/apk/app-release.apk"
 ```
 
 Expected: `HTTP/2 200`
@@ -197,7 +197,7 @@ adb shell dumpsys package com.superpartybyai.superparty_app | grep "REQUEST_INST
 ### Pentru useri reali:
 
 - [ ] Anunță userii: "Dezinstalați + reinstalați (DOAR ODATĂ)"
-- [ ] Trimite link: https://storage.googleapis.com/superparty-frontend.firebasestorage.app/apk/app-release.apk
+- [ ] Trimite link: https://storage.googleapis.com/superparty-frontend.supabasestorage.app/apk/app-release.apk
 - [ ] Explică: "Update-urile viitoare vor fi automate din app"
 - [ ] Monitorizează: Verifică că userii pot instala
 
@@ -205,18 +205,18 @@ adb shell dumpsys package com.superpartybyai.superparty_app | grep "REQUEST_INST
 
 1. **Incrementează build number** în pubspec.yaml
 2. **Build APK:** `flutter build apk --release`
-3. **Upload la Firebase Storage** (automat prin GitHub Actions)
-4. **Update Firestore:** `min_build_number: X`
+3. **Upload la Supabase Storage** (automat prin GitHub Actions)
+4. **Update Database:** `min_build_number: X`
 5. **Userii vor vedea ForceUpdateScreen automat** ✅
 
 ---
 
 ## 🎯 Success Criteria
 
-- ✅ Firestore config: min_build_number = 4
-- ✅ Firestore rules: app_config readable
+- ✅ Database config: min_build_number = 4
+- ✅ Database rules: app_config readable
 - ✅ APK build 3: Disponibil pentru instalare
-- ✅ APK build 4: Uploadat la Firebase Storage
+- ✅ APK build 4: Uploadat la Supabase Storage
 - ✅ Code: UpdateGate + ForceUpdateScreen functional
 - ✅ Signing: Toate APK-urile cu același keystore
 
@@ -226,7 +226,7 @@ adb shell dumpsys package com.superpartybyai.superparty_app | grep "REQUEST_INST
 
 - **04:06 UTC:** Keystore adăugat în GitHub secrets
 - **06:56 UTC:** Keystore adăugat în repo
-- **10:27 UTC:** Firestore rules deployed
+- **10:27 UTC:** Database rules deployed
 - **10:35 UTC:** APK build 3 uploaded
 - **10:57 UTC:** APK build 4 uploaded
 - **NOW:** Ready for testing ✅

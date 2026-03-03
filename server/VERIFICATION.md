@@ -131,11 +131,11 @@ git push origin main
 ### Verification
 ```bash
 # Check function deployment
-firebase functions:list
+supabase functions:list
 
 # Check function logs
-firebase functions:log --only chatEventOps
-firebase functions:log --only chatWithAI
+supabase functions:log --only chatEventOps
+supabase functions:log --only chatWithAI
 
 # Check app version
 grep "version:" superparty_flutter/pubspec.yaml

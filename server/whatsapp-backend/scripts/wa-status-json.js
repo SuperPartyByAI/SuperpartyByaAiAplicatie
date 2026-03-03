@@ -38,7 +38,7 @@ const readEnvToken = () => {
           connected: diag.data.connected ?? 0,
           session_present: Boolean(diag.data.session_present),
           last_inbound_at_ms: diag.data.last_inbound_at_ms ?? null,
-          last_firestore_write_at_ms: diag.data.last_firestore_write_at_ms ?? null,
+          last_database_write_at_ms: diag.data.last_database_write_at_ms ?? null,
           last_error_sha8: diag.data.last_error_sha8 ?? null,
           ts: diag.data.ts || ts,
         })
@@ -55,7 +55,7 @@ const readEnvToken = () => {
         connected: health.data.connected ?? 0,
         session_present: (health.data.accounts_total ?? 0) > 0,
         last_inbound_at_ms: null,
-        last_firestore_write_at_ms: null,
+        last_database_write_at_ms: null,
         last_error_sha8: null,
         ts,
       })
@@ -71,7 +71,7 @@ const readEnvToken = () => {
         connected: dashboard.data.connected ?? 0,
         session_present: (dashboard.data.accounts_total ?? dashboard.data.total ?? 0) > 0,
         last_inbound_at_ms: null,
-        last_firestore_write_at_ms: null,
+        last_database_write_at_ms: null,
         last_error_sha8: null,
         ts,
       })
@@ -85,7 +85,7 @@ const readEnvToken = () => {
       connected: 0,
       session_present: false,
       last_inbound_at_ms: null,
-      last_firestore_write_at_ms: null,
+      last_database_write_at_ms: null,
       last_error_sha8: null,
       ts,
     })

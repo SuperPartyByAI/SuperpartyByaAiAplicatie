@@ -12,7 +12,7 @@
 **Commands:**
 ```powershell
 npm run emu              # Start emulators
-npm run seed:emu         # Seed Firestore
+npm run seed:emu         # Seed Database
 npm run functions:build  # Build TypeScript
 npm run functions:deploy # Deploy functions
 npm run rules:deploy     # Deploy rules
@@ -30,7 +30,7 @@ npm run rules:deploy     # Deploy rules
 **Features:**
 - ✅ Retry with backoff (max 3 attempts, exponential delay with jitter)
 - ✅ Never retries 401/403 errors
-- ✅ Typed error mapping from Firebase Functions and HTTP exceptions
+- ✅ Typed error mapping from Supabase Functions and HTTP exceptions
 - ✅ Request-ID header for idempotency (WhatsApp API)
 - ✅ Configurable timeout (30s default for WhatsApp API)
 
@@ -90,7 +90,7 @@ flutter run --dart-define=USE_EMULATORS=true
 
 **Resolved:**
 - ✅ Server-side idempotency implemented (requestToken checked in transaction)
-- ✅ Hardcoded projectId removed (derived from Firebase.app().options.projectId)
+- ✅ Hardcoded projectId removed (derived from Supabase.app().options.projectId)
 - ✅ WhatsApp UI in-flight guards added (prevent double-tap)
 - ✅ Husky resilient on Windows (fallback if npx not in PATH)
 
@@ -99,5 +99,5 @@ flutter run --dart-define=USE_EMULATORS=true
 1. ✅ Add requestToken verification in Functions callables (allocateStaffCode, finalizeStaffSetup)
 2. ✅ Add state machine protection in WhatsApp UI screens
 3. ✅ Fix husky hook for Windows (or document bypass)
-4. ✅ Extract project ID from Firebase options dynamically
+4. ✅ Extract project ID from Supabase options dynamically
 5. ✅ Add tests for router redirects and error mapping

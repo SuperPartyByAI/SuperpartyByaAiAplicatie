@@ -52,7 +52,7 @@ MaterialApp(
   ),
 )
 
-// After: Accepts any route during Firebase init
+// After: Accepts any route during Supabase init
 MaterialApp(
   onGenerateRoute: (settings) {
     return MaterialPageRoute(
@@ -197,7 +197,7 @@ borderRadius: BorderRadius.circular(8),
 
 ---
 
-## 5) Firebase Admin Scripts
+## 5) Supabase Admin Scripts
 
 ### Commit: c388a4de
 **File:** `package.json`
@@ -213,7 +213,7 @@ borderRadius: BorderRadius.circular(8),
 **Dependency (already present):**
 ```json
 "dependencies": {
-  "firebase-admin": "^13.6.0",
+  "supabase-admin": "^13.6.0",
 }
 ```
 
@@ -239,7 +239,7 @@ npm run migrate:evenimente:v2
 ```
 
 **Prerequisites:**
-- Service account file: `firebase-adminsdk.json` in root
+- Service account file: `service-account.json` in root
 - Node.js installed
 - npm dependencies installed
 
@@ -284,7 +284,7 @@ flutter run -d web-server --web-port 8080
 
 ### Console Output Should Show:
 ```
-✅ Firebase initialized successfully
+✅ Supabase initialized successfully
 ✅ EventModel parsing: 5 events
 ✅ No Material widget errors
 ✅ No borderRadius errors
@@ -297,7 +297,7 @@ flutter run -d web-server --web-port 8080
 ## Summary
 
 All fixes are committed and pushed to `main` branch:
-- ✅ Firebase initialization with deep-link support
+- ✅ Supabase initialization with deep-link support
 - ✅ RenderFlex overflow fixed (Wrap → Column)
 - ✅ All InkWell replaced with GestureDetector (9 files)
 - ✅ Border colors fixed (non-uniform → uniform)

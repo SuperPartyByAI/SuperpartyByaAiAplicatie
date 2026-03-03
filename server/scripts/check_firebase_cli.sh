@@ -1,58 +1,58 @@
 #!/bin/bash
 
-# Check Firebase Project and Firestore via CLI
-# Requires: firebase-tools installed and logged in
+# Check Supabase Project and Database via CLI
+# Requires: supabase-tools installed and logged in
 
-echo "🔍 FIREBASE PROJECT VERIFICATION"
+echo "🔍 SUPABASE PROJECT VERIFICATION"
 echo "═══════════════════════════════════════════════════════════"
 
-# Check if firebase CLI is installed
-if ! command -v firebase &> /dev/null; then
-    echo "❌ Firebase CLI not installed"
+# Check if supabase CLI is installed
+if ! command -v supabase &> /dev/null; then
+    echo "❌ Supabase CLI not installed"
     echo ""
     echo "Install with:"
-    echo "  npm install -g firebase-tools"
+    echo "  npm install -g supabase-tools"
     echo ""
     exit 1
 fi
 
-echo "✅ Firebase CLI installed"
+echo "✅ Supabase CLI installed"
 echo ""
 
 # Check current project
 echo "📋 Current Project:"
-firebase use
+supabase use
 
 echo ""
 echo "─────────────────────────────────────────────────────────────"
 
 # List projects
 echo "📁 Available Projects:"
-firebase projects:list
+supabase projects:list
 
 echo ""
 echo "─────────────────────────────────────────────────────────────"
 
-# Check Firestore collections (requires authentication)
-echo "🔥 Firestore Collections:"
+# Check Database collections (requires authentication)
+echo "🔥 Database Collections:"
 echo ""
 echo "To list collections, run:"
-echo "  firebase firestore:indexes"
+echo "  supabase database:indexes"
 echo ""
 echo "To check counter:"
-echo "  firebase firestore:get counters/eventShortCode"
+echo "  supabase database:get counters/eventShortCode"
 echo ""
 
 # Check functions
 echo "─────────────────────────────────────────────────────────────"
 echo "⚙️  Cloud Functions:"
-firebase functions:list 2>&1 | head -20
+supabase functions:list 2>&1 | head -20
 
 echo ""
 echo "─────────────────────────────────────────────────────────────"
 echo "✅ Verification complete"
 echo ""
 echo "To deploy:"
-echo "  firebase deploy --only functions"
-echo "  firebase deploy --only firestore:rules"
+echo "  supabase deploy --only functions"
+echo "  supabase deploy --only database:rules"
 echo ""

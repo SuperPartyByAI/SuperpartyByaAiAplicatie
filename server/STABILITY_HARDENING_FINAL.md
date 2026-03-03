@@ -26,9 +26,9 @@ All stability hardening tasks completed with comprehensive testing, improved err
 
 ### 2. Port Consistency Fix
 
-- `superparty_flutter/lib/services/firebase_service.dart` - Firestore emulator port: 8080 → 8082
-- `LOCAL_DEV_WINDOWS.md` - Updated Firestore port to 8082
-- `MANUAL_VERIFICATION_CHECKLIST.md` - Updated Firestore port to 8082
+- `superparty_flutter/lib/services/supabase_service.dart` - Database emulator port: 8080 → 8082
+- `LOCAL_DEV_WINDOWS.md` - Updated Database port to 8082
+- `MANUAL_VERIFICATION_CHECKLIST.md` - Updated Database port to 8082
 
 ### 3. WhatsApp UI Hardening
 
@@ -47,9 +47,9 @@ All stability hardening tasks completed with comprehensive testing, improved err
 ```powershell
 npm run emu
 ```
-**Expected:** Emulators start on ports: Firestore 8082, Functions 5002, Auth 9098, UI 4001
+**Expected:** Emulators start on ports: Database 8082, Functions 5002, Auth 9098, UI 4001
 
-### 2. Seed Firestore (in separate terminal)
+### 2. Seed Database (in separate terminal)
 ```powershell
 npm run seed:emu
 ```
@@ -60,7 +60,7 @@ npm run seed:emu
 cd superparty_flutter
 flutter run --dart-define=USE_EMULATORS=true
 ```
-**Expected:** App connects to emulators, logs show Firestore:8082, Auth:9099, Functions:5002
+**Expected:** App connects to emulators, logs show Database:8082, Auth:9099, Functions:5002
 
 ### 4. Run Flutter Tests
 ```powershell
@@ -92,7 +92,7 @@ npm run build
 |----------|--------|-------|
 | allocateStaffCode/finalizeStaffSetup: requestToken mandatory end-to-end | ✅ | Enforced in Flutter service + Functions validation |
 | WhatsAppApiService: timeout + retry + request-id + projectId derived + emulator mode | ✅ | All features implemented |
-| No Firestore rules allow client writes on WhatsApp backend collections | ✅ | All rules set to `allow write: if false` |
+| No Database rules allow client writes on WhatsApp backend collections | ✅ | All rules set to `allow write: if false` |
 | npm scripts Windows-friendly present and documented | ✅ | All scripts use `.cmd` extensions |
 | Husky doesn't block on Windows | ✅ | Non-blocking fallback implemented |
 | Tests exist for retry/error mapping (not placeholders) | ✅ | Comprehensive tests added |

@@ -191,7 +191,7 @@ AI: "Perfect! Cu ce te mai pot ajuta?" ✅
 
 2. **Verificare:**
    ```bash
-   firebase functions:log --only chatWithAI
+   supabase functions:log --only chatWithAI
    ```
 
 3. **Test în App:**

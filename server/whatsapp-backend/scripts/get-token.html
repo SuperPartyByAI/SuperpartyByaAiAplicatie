@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Get Firebase ID Token</title>
+    <title>Get Supabase ID Token</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -66,7 +66,7 @@
 </head>
 <body>
     <div class="container">
-        <h1>🔑 Obținere Firebase ID Token</h1>
+        <h1>🔑 Obținere Supabase ID Token</h1>
         
         <div class="info">
             <strong>Instrucțiuni:</strong>
@@ -90,7 +90,7 @@
             <p>3. Mergi la tab-ul "Console"</p>
             <p>4. Copiază și lipește această comandă:</p>
             <div class="token-box">
-firebase.auth().currentUser.getIdToken().then(token => {
+supabase.auth().currentUser.getIdToken().then(token => {
   console.log('TOKEN:', token);
   prompt('Copiază token-ul:', token);
 });
@@ -110,8 +110,8 @@ firebase.auth().currentUser.getIdToken().then(token => {
 
             // Încearcă să acceseze window.opener sau window.parent
             try {
-                if (window.opener && window.opener.firebase) {
-                    window.opener.firebase.auth().currentUser.getIdToken().then(token => {
+                if (window.opener && window.opener.supabase) {
+                    window.opener.supabase.auth().currentUser.getIdToken().then(token => {
                         showToken(token);
                     }).catch(err => {
                         showError('Nu am putut obține token-ul. Asigură-te că ești autentificat în aplicație.');
@@ -165,7 +165,7 @@ firebase.auth().currentUser.getIdToken().then(token => {
         // Încearcă automat dacă e deschis din aplicație
         window.addEventListener('load', () => {
             setTimeout(() => {
-                if (window.opener && window.opener.firebase) {
+                if (window.opener && window.opener.supabase) {
                     getTokenFromParent();
                 }
             }, 1000);

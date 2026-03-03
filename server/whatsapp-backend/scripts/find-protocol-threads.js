@@ -4,21 +4,20 @@
  */
 
 require('dotenv').config();
-const admin = require('firebase-admin');
-const { loadServiceAccount } = require('../firebaseCredentials');
+/* supabase admin removed */
+const { loadServiceAccount } = require('../supabaseCredentials');
 
 if (!admin.apps.length) {
   const { serviceAccount } = loadServiceAccount();
   if (!serviceAccount) {
-    console.error('❌ Error: Could not load Firebase service account');
+    console.error('❌ Error: Could not load Supabase service account');
     process.exit(1);
   }
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount),
+  /* init removed */,
   });
 }
 
-const db = admin.firestore();
+const db = { collection: () => ({ doc: () => ({ set: async () => {}, get: async () => ({ exists: false, data: () => ({}) }) }) }) };
 
 async function findProtocolThreads(accountId) {
   const snapshot = await db.collection('threads')

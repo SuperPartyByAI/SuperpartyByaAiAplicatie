@@ -1,21 +1,21 @@
-# 🔥 Runbook: Firestore Rules Deploy
+# 🔥 Runbook: Database Rules Deploy
 
 ## 📋 Prerequisite
 
-Trebuie să ai Firebase CLI instalat și autentificat:
+Trebuie să ai Supabase CLI instalat și autentificat:
 
 ```bash
-firebase login
+supabase login
 ```
 
 ---
 
-## 1️⃣ Identifică Proiectul Firebase
+## 1️⃣ Identifică Proiectul Supabase
 
 ### Listează toate proiectele disponibile:
 
 ```bash
-firebase projects:list
+supabase projects:list
 ```
 
 **Output așteptat:**
@@ -31,7 +31,7 @@ firebase projects:list
 ### Selectează proiectul corect:
 
 ```bash
-firebase use superparty-xxxxx
+supabase use superparty-xxxxx
 ```
 
 _(Înlocuiește `superparty-xxxxx` cu Project ID-ul real)_
@@ -39,19 +39,19 @@ _(Înlocuiește `superparty-xxxxx` cu Project ID-ul real)_
 **Verificare:**
 
 ```bash
-firebase use
+supabase use
 ```
 
 **Output așteptat:** `Active Project: superparty-xxxxx (SuperParty)`
 
 ---
 
-## 2️⃣ Deploy Firestore Rules
+## 2️⃣ Deploy Database Rules
 
 ### Comandă:
 
 ```bash
-firebase deploy --only firestore:rules
+supabase deploy --only database:rules
 ```
 
 **Output așteptat (SUCCESS):**
@@ -59,11 +59,11 @@ firebase deploy --only firestore:rules
 ```
 === Deploying to 'superparty-xxxxx'...
 
-i  deploying firestore
-i  firestore: checking firestore.rules for compilation errors...
-✔  firestore: rules file firestore.rules compiled successfully
-i  firestore: uploading rules firestore.rules...
-✔  firestore: released rules firestore.rules to cloud.firestore
+i  deploying database
+i  database: checking database.rules for compilation errors...
+✔  database: rules file database.rules compiled successfully
+i  database: uploading rules database.rules...
+✔  database: released rules database.rules to cloud.database
 
 ✔  Deploy complete!
 ```
@@ -71,21 +71,21 @@ i  firestore: uploading rules firestore.rules...
 **Output așteptat (ERROR - dacă există erori de sintaxă):**
 
 ```
-Error: Compilation error in firestore.rules:
+Error: Compilation error in database.rules:
 Line 42: Unexpected token '}'
 ```
 
-_(Fixează eroarea în `firestore.rules` și re-run)_
+_(Fixează eroarea în `database.rules` și re-run)_
 
 ---
 
 ## 3️⃣ Verificare Post-Deploy
 
-### A) Verificare în Firebase Console
+### A) Verificare în Supabase Console
 
-1. Deschide [Firebase Console](https://console.firebase.google.com/)
+1. Deschide [Supabase Console](https://console.supabase.google.com/)
 2. Selectează proiectul `SuperParty`
-3. Navighează la **Firestore Database** → **Rules**
+3. Navighează la **Database Database** → **Rules**
 4. Verifică că rules-urile afișate conțin:
    - `staffProfiles` cu `allow write: if isAuthenticated() && (request.auth.uid == profileId || isAdmin())`
    - `kycSubmissions` cu reguli pentru read/create/update
@@ -113,7 +113,7 @@ _(Fixează eroarea în `firestore.rules` și re-run)_
 
 5. **Verifică Console:**
    - ✅ **PASS**: Zero erori "Missing or insufficient permissions"
-   - ✅ **PASS**: Zero erori "FirebaseError: permission-denied"
+   - ✅ **PASS**: Zero erori "SupabaseError: permission-denied"
    - ❌ **FAIL**: Dacă apar erori de permissions → rules nu sunt deploy-uite corect
 
 ### C) Test Specific pentru staffProfiles
@@ -140,25 +140,25 @@ _(Fixează eroarea în `firestore.rules` și re-run)_
 ### Eroare: "Failed to authenticate"
 
 ```bash
-firebase login --reauth
+supabase login --reauth
 ```
 
 ### Eroare: "Permission denied" după deploy
 
-- Verifică că ai selectat proiectul corect: `firebase use`
-- Verifică că ai permisiuni de deploy în Firebase Console (Owner/Editor role)
+- Verifică că ai selectat proiectul corect: `supabase use`
+- Verifică că ai permisiuni de deploy în Supabase Console (Owner/Editor role)
 
 ### Eroare: "Rules compilation failed"
 
-- Verifică sintaxa în `firestore.rules`
-- Rulează: `firebase firestore:rules:validate`
+- Verifică sintaxa în `database.rules`
+- Rulează: `supabase database:rules:validate`
 
 ### Aplicația încă aruncă "Missing permissions" după deploy
 
 1. **Hard refresh în browser:** Ctrl+Shift+R (sau Cmd+Shift+R pe Mac)
 2. **Clear cache:** Șterge cache-ul browser-ului
 3. **Logout + Login:** Logout din aplicație și login din nou
-4. **Verifică în Firebase Console:** Rules-urile sunt efectiv deploy-uite?
+4. **Verifică în Supabase Console:** Rules-urile sunt efectiv deploy-uite?
 
 ---
 
@@ -166,8 +166,8 @@ firebase login --reauth
 
 **Deploy este SUCCESS dacă:**
 
-1. ✅ Comanda `firebase deploy --only firestore:rules` returnează "Deploy complete!"
-2. ✅ Firebase Console arată rules-urile noi
+1. ✅ Comanda `supabase deploy --only database:rules` returnează "Deploy complete!"
+2. ✅ Supabase Console arată rules-urile noi
 3. ✅ Aplicația funcționează fără erori "Missing or insufficient permissions" în console
 4. ✅ Staff Setup salvează profil fără erori
 5. ✅ Admin mode încarcă KYC submissions fără erori
@@ -179,9 +179,9 @@ firebase login --reauth
 - **Rules modificate în PR #9:**
   - `staffProfiles`: write pentru owner (nu doar admin)
   - `kycSubmissions`: read/create pentru owner, update/delete pentru admin
-- **Fișier:** `firestore.rules` (commit `441fa082`)
+- **Fișier:** `database.rules` (commit `441fa082`)
 
-- **Backup:** Rules vechi sunt în Firebase Console → Rules → History
+- **Backup:** Rules vechi sunt în Supabase Console → Rules → History
 
 ---
 

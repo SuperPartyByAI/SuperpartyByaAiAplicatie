@@ -76,5 +76,5 @@ Write-Host "OK" -ForegroundColor Green
 
 # 9) Run app
 Write-Host "`n[9/9] Running app (USE_EMULATORS=true)..." -ForegroundColor Yellow
-Write-Host "Ensure Firebase emulators are running in T1 (npm run emu)" -ForegroundColor Cyan
+Write-Host "Ensure Supabase emulators are running in T1 (npm run emu)" -ForegroundColor Cyan
 & flutter run --dart-define=USE_EMULATORS=true | Out-Host

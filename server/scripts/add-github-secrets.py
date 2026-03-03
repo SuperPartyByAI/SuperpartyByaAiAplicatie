@@ -70,8 +70,8 @@ def main():
         print("   KEYSTORE_PASSWORD:")
         print("   SuperParty2024!")
         print("")
-        print("   FIREBASE_SERVICE_ACCOUNT:")
-        with open("/tmp/firebase_service_account.json", "r") as f:
+        print("   SUPABASE_SERVICE_ACCOUNT:")
+        with open("/tmp/supabase_service_account.json", "r") as f:
             print(f"   {f.read()[:100]}...")
         sys.exit(1)
     
@@ -99,12 +99,12 @@ def main():
         add_secret(token, "KEYSTORE_PASSWORD", "SuperParty2024!", key_id, public_key)
         print("✅ KEYSTORE_PASSWORD adăugat")
         
-        # 3. FIREBASE_SERVICE_ACCOUNT
-        print("🔥 Adăugare FIREBASE_SERVICE_ACCOUNT...")
-        with open("/tmp/firebase_service_account.json", "r") as f:
-            firebase_sa = f.read().strip()
-        add_secret(token, "FIREBASE_SERVICE_ACCOUNT", firebase_sa, key_id, public_key)
-        print("✅ FIREBASE_SERVICE_ACCOUNT adăugat")
+        # 3. SUPABASE_SERVICE_ACCOUNT
+        print("🔥 Adăugare SUPABASE_SERVICE_ACCOUNT...")
+        with open("/tmp/supabase_service_account.json", "r") as f:
+            supabase_sa = f.read().strip()
+        add_secret(token, "SUPABASE_SERVICE_ACCOUNT", supabase_sa, key_id, public_key)
+        print("✅ SUPABASE_SERVICE_ACCOUNT adăugat")
         
         print("")
         print("✅ Toate secretele au fost adăugate cu succes!")

@@ -1,8 +1,8 @@
-# 🧪 TEST WhatsApp pe Firebase - ACUM
+# 🧪 TEST WhatsApp pe Supabase - ACUM
 
 ## ✅ STATUS
 
-**Firebase Function:** DEPLOYED și FUNCȚIONEAZĂ
+**Supabase Function:** DEPLOYED și FUNCȚIONEAZĂ
 
 - URL: https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp
 - Versiune: 5.0.0 (veche, dar funcționează)
@@ -43,9 +43,9 @@ curl -X POST https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp
 
 ### Pas 2: Verifică QR Code în Logs
 
-**Opțiunea A: Firebase Console (RECOMANDAT)**
+**Opțiunea A: Supabase Console (RECOMANDAT)**
 
-1. Deschide: https://console.firebase.google.com/project/superparty-frontend/functions/logs
+1. Deschide: https://console.supabase.google.com/project/superparty-frontend/functions/logs
 2. Caută: "QR Code generated"
 3. Vei vedea: `📱 [account_xxx] QR Code generated`
 4. QR code-ul e salvat în account object
@@ -53,7 +53,7 @@ curl -X POST https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp
 **Opțiunea B: CLI**
 
 ```bash
-firebase functions:log --only whatsapp
+supabase functions:log --only whatsapp
 ```
 
 Caută în output: "QR Code generated"
@@ -135,10 +135,10 @@ curl https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp/api/wha
 
 După test:
 
-- ✅ Cont creat pe Firebase
+- ✅ Cont creat pe Supabase
 - ✅ QR code generat
 - ✅ WhatsApp conectat
-- ✅ Session salvat în Firestore
+- ✅ Session salvat în Database
 - ✅ Cont rămâne în listă după restart
 
 ---
@@ -149,10 +149,10 @@ După test:
 
 **Cauză:** Funcția nu generează QR code
 
-**Soluție:** Verifică logs în Firebase Console:
+**Soluție:** Verifică logs în Supabase Console:
 
 ```
-https://console.firebase.google.com/project/superparty-frontend/functions/logs
+https://console.supabase.google.com/project/superparty-frontend/functions/logs
 ```
 
 Caută erori sau "QR Code generated"
@@ -198,7 +198,7 @@ curl https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp/api/wha
 ### Logs:
 
 ```bash
-firebase functions:log --only whatsapp
+supabase functions:log --only whatsapp
 ```
 
 ---

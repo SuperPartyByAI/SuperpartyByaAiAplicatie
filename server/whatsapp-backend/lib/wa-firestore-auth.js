@@ -1,31 +1,31 @@
 /**
- * FIRESTORE AUTH STATE FOR BAILEYS
+ * DATABASE AUTH STATE FOR BAILEYS
  *
- * Persists Baileys auth state (creds + keys) in Firestore instead of filesystem.
+ * Persists Baileys auth state (creds + keys) in Database instead of filesystem.
  *
  * Structure:
  * - wa_metrics/longrun/baileys_auth/creds -> { creds: {...} }
  * - wa_metrics/longrun/baileys_auth/keys/{type}/{id} -> { data: {...} }
  */
 
-const { FieldValue } = require('firebase-admin/firestore');
+const { FieldValue } = {};
 const { initAuthCreds, BufferJSON } = require('@whiskeysockets/baileys');
 
-class FirestoreAuthState {
+class DatabaseAuthState {
   constructor(db) {
     this.db = db;
     this.basePath = 'wa_metrics/longrun/baileys_auth';
     this.lastAuthWriteAt = null;
 
-    console.log('[FirestoreAuth] Initialized');
+    console.log('[DatabaseAuth] Initialized');
   }
 
   /**
-   * Load auth state from Firestore
+   * Load auth state from Database
    */
   async loadAuthState() {
     try {
-      console.log('[FirestoreAuth] Loading auth state from Firestore...');
+      console.log('[DatabaseAuth] Loading auth state from Database...');
 
       // Load creds
       const credsDoc = await this.db.doc(`${this.basePath}/creds`).get();
@@ -33,10 +33,10 @@ class FirestoreAuthState {
 
       if (credsDoc.exists) {
         creds = credsDoc.data().creds;
-        console.log('[FirestoreAuth] ✅ Loaded existing creds');
+        console.log('[DatabaseAuth] ✅ Loaded existing creds');
       } else {
         creds = initAuthCreds();
-        console.log('[FirestoreAuth] ⚠️ No existing creds, initialized new');
+        console.log('[DatabaseAuth] ⚠️ No existing creds, initialized new');
       }
 
       // Load keys
@@ -52,22 +52,22 @@ class FirestoreAuthState {
           if (keysData && keysData.keys) {
             // Keys are stored as nested object in document
             keys = keysData.keys;
-            console.log(`[FirestoreAuth] ✅ Loaded keys from document (${Object.keys(keys).length} types)`);
+            console.log(`[DatabaseAuth] ✅ Loaded keys from document (${Object.keys(keys).length} types)`);
           } else {
-            console.log(`[FirestoreAuth] ⚠️ Keys document exists but has no keys data`);
+            console.log(`[DatabaseAuth] ⚠️ Keys document exists but has no keys data`);
           }
         } else {
-          console.log(`[FirestoreAuth] ⚠️ Keys document doesn't exist yet, starting with empty keys`);
+          console.log(`[DatabaseAuth] ⚠️ Keys document doesn't exist yet, starting with empty keys`);
         }
       } catch (keysError) {
         // Keys document doesn't exist yet or error reading - non-fatal
-        console.log(`[FirestoreAuth] ⚠️ Could not load keys (document not found or error): ${keysError.message}`);
+        console.log(`[DatabaseAuth] ⚠️ Could not load keys (document not found or error): ${keysError.message}`);
         keys = {}; // Start with empty keys
       }
 
       return { creds, keys };
     } catch (error) {
-      console.error('[FirestoreAuth] Error loading auth state:', error);
+      console.error('[DatabaseAuth] Error loading auth state:', error);
       // Return fresh creds on error
       return {
         creds: initAuthCreds(),
@@ -79,7 +79,7 @@ class FirestoreAuthState {
   /**
    * Create auth state handler for Baileys
    */
-  async useFirestoreAuthState() {
+  async useDatabaseAuthState() {
     const { creds, keys } = await this.loadAuthState();
 
     const saveState = async () => {
@@ -87,7 +87,7 @@ class FirestoreAuthState {
         // Save creds
         await this.db.doc(`${this.basePath}/creds`).set({
           creds: JSON.parse(JSON.stringify(creds, BufferJSON.replacer)),
-          updatedAt: FieldValue.serverTimestamp(),
+          updatedAt: new Date(),
         });
 
         // Save keys
@@ -103,22 +103,22 @@ class FirestoreAuthState {
           const keysRef = this.db.doc(`${this.basePath}/keys`);
           await keysRef.set({
             keys: JSON.parse(JSON.stringify(keys, BufferJSON.replacer)),
-            updatedAt: FieldValue.serverTimestamp(),
+            updatedAt: new Date(),
           }, { merge: true });
           
           if (keyCount > 0) {
-            console.log(`[FirestoreAuth] ✅ Saved ${keyCount} keys to document`);
+            console.log(`[DatabaseAuth] ✅ Saved ${keyCount} keys to document`);
           }
         } catch (keysError) {
-          console.error(`[FirestoreAuth] ❌ Error saving keys: ${keysError.message}`);
+          console.error(`[DatabaseAuth] ❌ Error saving keys: ${keysError.message}`);
         }
 
         this.lastAuthWriteAt = new Date().toISOString();
         if (keyCount > 0) {
-          console.log(`[FirestoreAuth] ✅ Saved auth state (${keyCount} keys)`);
+          console.log(`[DatabaseAuth] ✅ Saved auth state (${keyCount} keys)`);
         }
       } catch (error) {
-        console.error('[FirestoreAuth] Error saving auth state:', error);
+        console.error('[DatabaseAuth] Error saving auth state:', error);
       }
     };
 
@@ -148,7 +148,7 @@ class FirestoreAuthState {
    */
   async clearAuthState() {
     try {
-      console.log('[FirestoreAuth] Clearing auth state...');
+      console.log('[DatabaseAuth] Clearing auth state...');
 
       // Delete creds
       await this.db.doc(`${this.basePath}/creds`).delete();
@@ -158,16 +158,16 @@ class FirestoreAuthState {
       try {
         const keysRef = this.db.doc(`${this.basePath}/keys`);
         await keysRef.delete();
-        console.log(`[FirestoreAuth] ✅ Deleted keys document`);
+        console.log(`[DatabaseAuth] ✅ Deleted keys document`);
       } catch (keysError) {
         // Keys document doesn't exist - non-fatal
-        console.log(`[FirestoreAuth] ⚠️ Could not delete keys (document not found): ${keysError.message}`);
+        console.log(`[DatabaseAuth] ⚠️ Could not delete keys (document not found): ${keysError.message}`);
       }
 
       this.lastAuthWriteAt = null;
-      console.log('[FirestoreAuth] ✅ Cleared auth state');
+      console.log('[DatabaseAuth] ✅ Cleared auth state');
     } catch (error) {
-      console.error('[FirestoreAuth] Error clearing auth state:', error);
+      console.error('[DatabaseAuth] Error clearing auth state:', error);
     }
   }
 
@@ -179,7 +179,7 @@ class FirestoreAuthState {
       const credsDoc = await this.db.doc(`${this.basePath}/creds`).get();
       return credsDoc.exists;
     } catch (error) {
-      console.error('[FirestoreAuth] Error checking auth state:', error);
+      console.error('[DatabaseAuth] Error checking auth state:', error);
       return false;
     }
   }
@@ -218,7 +218,7 @@ class FirestoreAuthState {
         lastAuthWriteAt: this.lastAuthWriteAt,
       };
     } catch (error) {
-      console.error('[FirestoreAuth] Error getting auth state info:', error);
+      console.error('[DatabaseAuth] Error getting auth state info:', error);
       return {
         hasAuth: false,
         keyCount: 0,
@@ -228,4 +228,4 @@ class FirestoreAuthState {
   }
 }
 
-module.exports = FirestoreAuthState;
+module.exports = DatabaseAuthState;

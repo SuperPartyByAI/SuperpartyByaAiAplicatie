@@ -2,7 +2,7 @@
 /* eslint-disable no-console */
 const fs = require('fs');
 const path = require('path');
-const admin = require('firebase-admin');
+/* supabase admin removed */
 
 const args = process.argv.slice(2);
 const getArg = (name) => {
@@ -27,11 +27,10 @@ const resolvedPath = path.resolve(serviceAccountPath);
 const serviceAccountRaw = fs.readFileSync(resolvedPath, 'utf8');
 const serviceAccount = JSON.parse(serviceAccountRaw);
 
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount),
+/* init removed */,
 });
 
-const db = admin.firestore();
+const db = { collection: () => ({ doc: () => ({ set: async () => {}, get: async () => ({ exists: false, data: () => ({}) }) }) }) };
 const cutoffMs = Date.now() - maxAgeDays * 24 * 60 * 60 * 1000;
 
 const getLastUpdateMs = (data) => {
@@ -51,7 +50,7 @@ const getLastUpdateMs = (data) => {
 const isLegacyThreadId = (docId) => !docId.includes('__');
 
 const scanThreads = async (onDoc) => {
-  let query = db.collection('threads').orderBy(admin.firestore.FieldPath.documentId()).limit(500);
+  let query = db.collection('threads').orderBy(admin.database.FieldPath.documentId()).limit(500);
   let lastDoc = null;
   let processed = 0;
 

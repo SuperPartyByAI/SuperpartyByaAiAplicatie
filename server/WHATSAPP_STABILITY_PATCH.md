@@ -25,7 +25,7 @@ const threadId = from; // remoteJid only
 const threadId = `${accountId}__${from}`; // accountId__clientJid
 ```
 
-### 2) Made Outgoing Messages First-Class in Firestore ✅
+### 2) Made Outgoing Messages First-Class in Database ✅
 **Problem:** Outgoing messages weren't persisted until after send, causing loss on failure.
 
 **Solution:** Create message doc + outbox entry in a batch before sending.
@@ -50,7 +50,7 @@ const threadId = `${accountId}__${from}`; // accountId__clientJid
 
 **Changes:**
 - Query queued messages ordered by `createdAt`
-- For each doc, in a Firestore transaction:
+- For each doc, in a Database transaction:
   - Check if `status == 'queued'` and `leaseUntil < now` (or null)
   - If valid, claim: set `status='processing'`, `claimedBy=WORKER_ID`, `leaseUntil=now+60s`, `attempts++`
   - If already claimed, skip
@@ -66,7 +66,7 @@ const threadId = `${accountId}__${from}`; // accountId__clientJid
 ### 4) Implemented Status Updates ✅
 **Problem:** Provider status updates (sent/delivered/read) weren't persisted.
 
-**Solution:** Map provider events to Firestore message status updates.
+**Solution:** Map provider events to Database message status updates.
 
 **Files Changed:**
 - `whatsapp-backend/server.js` (lines ~998, ~3460): `messages.update` and `message-receipt.update` handlers
@@ -87,15 +87,15 @@ const threadId = `${accountId}__${from}`; // accountId__clientJid
 
 **Changes:**
 - Changed `wa_accounts` → `accounts` in reset session endpoint
-- Note: `restoreAccountsFromFirestore` already uses `accounts` collection
+- Note: `restoreAccountsFromDatabase` already uses `accounts` collection
 
-### 6) Updated Firestore Indexes ✅
+### 6) Updated Database Indexes ✅
 **Problem:** Missing indexes for new query patterns.
 
 **Solution:** Added indexes for outbox and messages queries.
 
 **Files Changed:**
-- `firestore.indexes.json`
+- `database.indexes.json`
 
 **New Indexes:**
 ```json
@@ -117,7 +117,7 @@ const threadId = `${accountId}__${from}`; // accountId__clientJid
 }
 ```
 
-**Note:** Firestore rules already allow server-side writes (Admin SDK bypasses rules). No rule changes needed for new fields.
+**Note:** Database rules already allow server-side writes (Admin SDK bypasses rules). No rule changes needed for new fields.
 
 ---
 
@@ -134,7 +134,7 @@ const threadId = `${accountId}__${from}`; // accountId__clientJid
    - Line ~4028: Reset session - accounts collection
    - Line ~4087: Outbox worker - claim/lease mechanism
 
-2. `firestore.indexes.json` - Firestore indexes
+2. `database.indexes.json` - Database indexes
    - Added outbox index: accountId + status + createdAt
    - Added messages index: threadId + createdAt (collection group)
 
@@ -154,7 +154,7 @@ const threadId = `${accountId}__${from}`; // accountId__clientJid
 
 **Commands:**
 ```bash
-# Check Firestore
+# Check Database
 # threads collection should have:
 # - account1__40712345678@s.whatsapp.net
 # - account2__40712345678@s.whatsapp.net
@@ -164,7 +164,7 @@ const threadId = `${accountId}__${from}`; // accountId__clientJid
 ### B) Outgoing Message First-Class Test
 **Setup:**
 1. Send message from app via `/api/whatsapp/send-message`
-2. Check Firestore immediately (before send completes)
+2. Check Database immediately (before send completes)
 
 **Expected:**
 - Message doc exists in `threads/{threadId}/messages/{messageId}` with `status='queued'`
@@ -178,7 +178,7 @@ curl -X POST http://localhost:8080/api/whatsapp/send-message \
   -H "Content-Type: application/json" \
   -d '{"accountId": "account1", "to": "40712345678", "message": "Test"}'
 
-# Check Firestore immediately
+# Check Database immediately
 # threads/{accountId}__{to}/messages/{messageId} should exist with status='queued'
 # outbox/{requestId} should exist with messageRef field
 ```
@@ -208,7 +208,7 @@ curl -X POST http://localhost:8080/api/whatsapp/send-message \
   -d '{"accountId": "account1", "to": "40712345678", "message": "Test"}'
 
 # Check logs - only one worker should log "Sent outbox message"
-# Check Firestore - outbox doc should have claimedBy=worker1 or worker2 (not both)
+# Check Database - outbox doc should have claimedBy=worker1 or worker2 (not both)
 ```
 
 ### D) Inbound Message Test
@@ -223,7 +223,7 @@ curl -X POST http://localhost:8080/api/whatsapp/send-message \
 **Commands:**
 ```bash
 # Send message TO the account from WhatsApp client
-# Check Firestore:
+# Check Database:
 # threads/{accountId}__{clientJid}/messages/{messageId} should exist
 # threads/{accountId}__{clientJid} should have lastMessageAt updated
 ```
@@ -244,7 +244,7 @@ curl -X POST http://localhost:8080/api/whatsapp/send-message \
   -H "Content-Type: application/json" \
   -d '{"accountId": "account1", "to": "40712345678", "message": "Test"}'
 
-# Check Firestore - message status should update as provider sends receipts
+# Check Database - message status should update as provider sends receipts
 # Monitor logs for "Updated message {id} status to {status}"
 ```
 
@@ -289,7 +289,7 @@ curl -X POST http://localhost:8080/api/whatsapp/send-message \
 - [ ] C) Duplicate send prevention test passes
 - [ ] D) Inbound message test passes
 - [ ] E) Status updates test passes
-- [ ] Firestore indexes deployed
+- [ ] Database indexes deployed
 - [ ] No errors in logs
 - [ ] Messages persist correctly
 - [ ] Threads update correctly

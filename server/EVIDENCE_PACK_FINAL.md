@@ -28,7 +28,7 @@ curl -s https://whats-app-ompro.ro/health | jq
     "needs_qr": 0,
     "max": 18
   },
-  "firestore": "connected"
+  "database": "connected"
 }
 ```
 
@@ -36,7 +36,7 @@ curl -s https://whats-app-ompro.ro/health | jq
 
 - ❌ No `mode` field (ACTIVE/PASSIVE)
 - ❌ No `lockOwner` or `lockExpiresAt`
-- ❌ No explicit Firestore policy
+- ❌ No explicit Database policy
 - ✅ commitSHA present
 
 ---
@@ -71,19 +71,19 @@ account_dev_dde908a65501c63b124cb94c627e551d: connecting, hasQR=False  ❌ Still
 account_f8bc6f83b05264a5: connected, hasQR=False  ✅ Connected
 ```
 
-**Issue:** Timeout not applied to accounts restored from Firestore before deployment.
+**Issue:** Timeout not applied to accounts restored from Database before deployment.
 
 ---
 
 ## C) Logs Analysis
 
-**Problem:** Accounts restored from Firestore do NOT have:
+**Problem:** Accounts restored from Database do NOT have:
 
 1. Event handlers attached (messages.upsert = 0)
 2. Connecting timeout set
 3. QR generation triggered
 
-**Root Cause:** `restoreAccountsFromFirestore()` creates account objects but doesn't call `createConnection()` properly.
+**Root Cause:** `restoreAccountsFromDatabase()` creates account objects but doesn't call `createConnection()` properly.
 
 ---
 
@@ -116,7 +116,7 @@ account_f8bc6f83b05264a5: connected, hasQR=False  ✅ Connected
 
 ### 🔧 What's Needed:
 
-1. Fix `restoreAccountsFromFirestore()` to properly initialize accounts
+1. Fix `restoreAccountsFromDatabase()` to properly initialize accounts
 2. Attach event handlers when restoring
 3. Set connecting timeout when restoring
 4. Trigger QR generation for accounts without valid creds

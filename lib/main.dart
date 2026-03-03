@@ -2,13 +2,9 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:twilio_voice/twilio_voice.dart';
-import 'package:firebase_crashlytics/firebase_crashlytics.dart';
-import 'package:firebase_app_check/firebase_app_check.dart';
 
 
 import 'services/auth_service.dart';
@@ -18,7 +14,6 @@ import 'package:superparty_app/screens/team_management_screen.dart';
 import 'services/voip_service.dart';
 import 'services/call_kit_service.dart';
 import 'services/voip_logger.dart';
-import 'services/crashlytics_helper.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'services/supabase_service.dart';
 import 'screens/login_screen.dart';
@@ -28,44 +23,16 @@ import 'screens/pending_approval_screen.dart';
 import 'screens/consent_screen.dart';
 import 'package:in_app_update/in_app_update.dart';
 
-import 'firebase_options.dart';
-
 const _kCallActionsChannel = 'com.superpartybyai.app/call_actions';
 const _kAudioChannel       = 'com.superpartybyai.app/audio';
 const _kDiagChannel        = 'com.superpartybyai.app/diag';
 
-// TOP-LEVEL background handler
-@pragma('vm:entry-point')
-Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  // Ensure Firebase is initialized in the background isolate
-  await Firebase.initializeApp();
 
-  debugPrint('[FIREBASE BACKGROUND] messageId=${message.messageId}');
-  debugPrint('[FIREBASE BACKGROUND] data=${message.data}');
-
-  // Detect Twilio voice call push — log ONLY.
-  // DO NOT call flutter_callkit_incoming from this background Dart isolate:
-  // plugin platform channels are not available here and the call silently fails.
-  // Twilio's native VoiceFirebaseMessagingService (registered in AndroidManifest)
-  // will process the FCM push natively and fire CallEvent.incoming in the main
-  // app process → VoipService listener → CallKitService().showIncomingCall() safely.
-  final data = message.data;
-  if (data['twi_message_type'] == 'twilio.voice.call') {
-    final from = data['twi_from'] ?? 'Unknown';
-    final callSid = data['twi_call_sid'] ?? '';
-    debugPrint('[FIREBASE BACKGROUND] 📞 Twilio call from $from (sid=$callSid) — handled natively by Twilio SDK.');
-    if (callSid.isNotEmpty) VoipLogger.instance.setLastCallSid(callSid);
-    VoipLogger.instance.logCallInvite(from: from as String, to: 'superparty_admin', callSid: callSid as String?);
-  }
-}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
   try {
-    await Firebase.initializeApp(
-      options: DefaultFirebaseOptions.currentPlatform,
-    );
 
     // ── Supabase: Initialize Supabase client ──
     await Supabase.initialize(
@@ -75,70 +42,13 @@ void main() async {
     await SupabaseService.initialize();
     debugPrint('[Supabase] ✅ Initialized');
 
-    // ── Crashlytics: Initialize global error handlers ──
-    await CrashlyticsHelper.instance.init();
-
-    // ── App Check: Activate with platform-appropriate provider ──
-    await FirebaseAppCheck.instance.activate(
-      androidProvider: kDebugMode
-          ? AndroidProvider.debug
-          : AndroidProvider.playIntegrity,
-      appleProvider: kDebugMode
-          ? AppleProvider.debug
-          : AppleProvider.deviceCheck,
-    );
-    debugPrint('[AppCheck] ✅ Activated');
-    
-    // Request POST_NOTIFICATIONS at runtime on Android 13+ (API 33)
-    if (Platform.isAndroid) {
-      final settings = await FirebaseMessaging.instance.requestPermission(
-        alert: true,
-        badge: true,
-        sound: true,
-        provisional: false,
-      );
-      debugPrint('[FIREBASE PERM] authorizationStatus=${settings.authorizationStatus}');
-      debugPrint('[FIREBASE PERM] alert=${settings.alert} sound=${settings.sound}');
-    }
-
     // Initialize CallKit
     await CallKitService().init();
   } catch (e) {
-    print("----------------------------------------------------------------");
-    print("FIREBASE INIT FAILED: $e");
-    print("----------------------------------------------------------------");
-    VoipLogger.instance.logAuthError(e.toString().contains('network') ? 'firebase_auth/network-request-failed' : 'firebase_init_error', details: e.toString());
+    debugPrint("App Initialization Error: $e");
   }
 
-  // Înregistrează handler-ul background (trebuie apelat înainte de runApp)
-  FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
 
-  // Foreground → show Flutter UI only when app is active
-  FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-    debugPrint('[FIREBASE FOREGROUND] messageId=${message.messageId}');
-    debugPrint('[FIREBASE FOREGROUND] data=${message.data}');
-    if (message.notification != null) {
-      debugPrint('[FIREBASE FOREGROUND] notification=${message.notification!.title} / ${message.notification!.body}');
-    }
-    // AppLifecycleState guard: only show Flutter incoming UI in foreground
-    // When in background/killed, native ConnectionService handles the call UI
-    final lifecycle = WidgetsBinding.instance.lifecycleState;
-    debugPrint('[FIREBASE FOREGROUND] lifecycleState=$lifecycle');
-    // (VoipService handles CallEvent.incoming separately via Twilio SDK)
-  });
-
-  // Când utilizatorul deschide app din notificare
-  FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-    debugPrint('[FIREBASE OPENEDAPP] messageId=${message.messageId}');
-    debugPrint('[FIREBASE OPENEDAPP] data=${message.data}');
-  });
-
-  // Explicit Token Logging
-  FirebaseMessaging.instance.getToken().then((token) {
-    debugPrint("----------------------------------------------------------------");
-    debugPrint("FCM TOKEN: $token");
-    debugPrint("----------------------------------------------------------------");
-  });
 
   // --- Automated Google Play In-App Updates ---
   // Only execute the Google Play check in release mode.
@@ -394,10 +304,6 @@ class _ApprovalGateState extends State<ApprovalGate> {
           if ((_approved || _isAdmin) && _consentGiven) {
              debugPrint("[App] User approved & consented. Initializing VoIP...");
              final user = auth.currentUser;
-             if (user != null) {
-               CrashlyticsHelper.instance.setUserId(user.id);
-               CrashlyticsHelper.instance.setCustomKey('email', user.email ?? '');
-             }
              final backend = Provider.of<BackendService>(context, listen: false);
              VoipService().init(backend);
           }

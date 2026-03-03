@@ -1,10 +1,10 @@
-# 🔍 WhatsApp Firebase - Status REAL și Soluție
+# 🔍 WhatsApp Supabase - Status REAL și Soluție
 
 ## 📊 Situația Actuală (29 Dec 2025, 09:38 UTC)
 
 ### ✅ Ce FUNCȚIONEAZĂ:
 
-**Funcția deployed pe Firebase:**
+**Funcția deployed pe Supabase:**
 
 - URL: `https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp`
 - Version: `5.0.0`
@@ -62,13 +62,13 @@ curl -X POST https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp
 ### Timeline:
 
 1. **28 Dec 2025** - Commit `7cc8300d`: "Revert to 1st Gen - keep existing working deployment"
-   - Deployed cu succes pe Firebase
+   - Deployed cu succes pe Supabase
    - Versiune: 5.0.0
    - Doar 3 endpoint-uri: GET /, GET /accounts, POST /add-account
 
 2. **28 Dec 2025** - Commit `32b1f42d`: "Add missing WhatsApp API endpoints"
    - Adăugate: DELETE, POST /send, POST /send-message, GET /messages, GET /clients, GET /health
-   - **NU a fost deployed pe Firebase!**
+   - **NU a fost deployed pe Supabase!**
 
 3. **29 Dec 2025** - Commit `3aabb1c3`: "Add GitHub Actions workflow for WhatsApp Functions deployment"
    - Creat workflow pentru auto-deploy
@@ -83,7 +83,7 @@ curl -X POST https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp
 **Posibile cauze:**
 
 1. ✅ Workflow-ul există și e valid
-2. ❓ Secret `FIREBASE_SERVICE_ACCOUNT_SUPERPARTY_FRONTEND` lipsește sau e invalid
+2. ❓ Secret `SUPABASE_SERVICE_ACCOUNT_SUPERPARTY_FRONTEND` lipsește sau e invalid
 3. ❓ GitHub Actions disabled pentru repository
 4. ❓ Workflow-ul nu s-a trigger-uit (branch protection, permissions)
 
@@ -102,16 +102,16 @@ curl -X POST https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp
    git pull
    ```
 
-2. **Autentificare Firebase:**
+2. **Autentificare Supabase:**
 
    ```cmd
-   firebase login
+   supabase login
    ```
 
 3. **Deploy:**
 
    ```cmd
-   firebase deploy --only functions --project superparty-frontend
+   supabase deploy --only functions --project superparty-frontend
    ```
 
 4. **Verificare:**
@@ -131,16 +131,16 @@ curl -X POST https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp
 
 1. **Verifică GitHub Actions status:**
    - Mergi la: https://github.com/SuperPartyByAI/Aplicatie-SuperpartyByAi/actions
-   - Verifică dacă workflow-ul "Deploy WhatsApp Functions to Firebase" a rulat
+   - Verifică dacă workflow-ul "Deploy WhatsApp Functions to Supabase" a rulat
    - Verifică logs pentru erori
 
 2. **Verifică Secret:**
    - Settings → Secrets and variables → Actions
-   - Verifică că există `FIREBASE_SERVICE_ACCOUNT_SUPERPARTY_FRONTEND`
+   - Verifică că există `SUPABASE_SERVICE_ACCOUNT_SUPERPARTY_FRONTEND`
    - Verifică că JSON-ul e valid
 
 3. **Trigger manual:**
-   - Actions → "Deploy WhatsApp Functions to Firebase"
+   - Actions → "Deploy WhatsApp Functions to Supabase"
    - Click "Run workflow" → "Run workflow"
 
 4. **Verificare:**
@@ -171,22 +171,22 @@ curl -X POST https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp
 
 **Dezavantaje:**
 
-- ❌ Frontend-ul e configurat pentru Firebase
+- ❌ Frontend-ul e configurat pentru Supabase
 - ❌ Trebuie să migrezi frontend-ul
 
 ---
 
 ## 📋 Ce Trebuie Făcut ACUM:
 
-### Prioritate 1: Deploy pe Firebase (URGENT)
+### Prioritate 1: Deploy pe Supabase (URGENT)
 
 **Metoda recomandată:** Deploy manual de pe Windows
 
 ```cmd
 cd C:\Users\ursac\Aplicatie-SuperpartyByAi
 git pull
-firebase login
-firebase deploy --only functions --project superparty-frontend
+supabase login
+supabase deploy --only functions --project superparty-frontend
 ```
 
 **Verificare după deploy:**
@@ -226,7 +226,7 @@ curl -X POST https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp
 După deploy manual, investighează de ce GitHub Actions nu rulează:
 
 1. Verifică logs în GitHub Actions
-2. Verifică Secret-ul Firebase
+2. Verifică Secret-ul Supabase
 3. Test manual trigger
 4. Dacă nu merge, disable workflow-ul și folosește deploy manual
 
@@ -255,7 +255,7 @@ După deploy, testează:
 - ❌ NU folosi legacy hosting ca workaround fără să migrezi complet
 - ❌ NU lăsa codul nedeployed
 
-**Obiectiv:** WhatsApp 100% funcțional pe Firebase, long-term, cu toate endpoint-urile.
+**Obiectiv:** WhatsApp 100% funcțional pe Supabase, long-term, cu toate endpoint-urile.
 
 **Next step:** Deploy manual ACUM, apoi investigăm GitHub Actions.
 

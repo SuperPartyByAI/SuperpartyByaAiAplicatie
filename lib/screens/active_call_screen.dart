@@ -1,13 +1,12 @@
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:twilio_voice/twilio_voice.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../services/voip_service.dart';
 import 'dart:async';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 
 const _kAudioChannel = 'com.superpartybyai.app/audio';
@@ -30,7 +29,7 @@ class _ActiveCallScreenState extends State<ActiveCallScreen> {
   StreamSubscription<CallEvent>? _sub;
   StreamSubscription<RemoteMessage>? _fcmSub;
   Timer? _inactivityTimer;
-  Timer? _firestorePollTimer;
+  Timer? _databasePollTimer;
   bool _isClosing = false;
   String? _activeCallSid; // tracks current call SID to avoid closing on unrelated events
   final DateTime _screenOpenedAt = DateTime.now(); // for time-window close logic
@@ -94,32 +93,32 @@ class _ActiveCallScreenState extends State<ActiveCallScreen> {
       _closeCall('Call Ended');
     });
 
-    // Fallback 2: Real-time Firestore stream on active_incoming_calls for completion
+    // Fallback 2: Real-time Database stream on active_incoming_calls for completion
     // Simple query — no orderBy, no index needed
-    _firestorePollTimer = Timer.periodic(const Duration(seconds: 4), (_) {
-      _checkCallStatusInFirestore();
+    _databasePollTimer = Timer.periodic(const Duration(seconds: 4), (_) {
+      _checkCallStatusInDatabase();
     });
   }
 
-  Future<void> _checkCallStatusInFirestore() async {
+  Future<void> _checkCallStatusInDatabase() async {
     if (_isClosing) return;
     try {
       // If we have a known callSid, look up that specific document
       if (_activeCallSid != null) {
-        final doc = await FirebaseFirestore.instance
-            .collection('active_incoming_calls')
-            .doc(_activeCallSid)
-            .get();
-        if (!doc.exists || !mounted) return;
-        final data = doc.data()!;
+        final doc = await Supabase.instance.client.from('calls').select().eq('callSid', _activeCallSid!).maybeSingle();
+        if (doc == null || !mounted) return;
+        final data = doc;
         final status = data['status'] as String? ?? '';
         final terminalStatuses = ['completed', 'failed', 'no-answer', 'canceled', 'busy'];
         if (terminalStatuses.contains(status)) {
           final ts = data['endTime'] ?? data['timestamp'];
           if (ts != null) {
-            final dt = (ts as Timestamp).toDate();
-            if (DateTime.now().difference(dt).inSeconds < 300) {
-              debugPrint('[ActiveCall] Firestore: call $status — closing screen');
+            DateTime? dt;
+            if (ts is String) dt = DateTime.tryParse(ts);
+            if (ts is int) dt = DateTime.fromMillisecondsSinceEpoch(ts);
+            
+            if (dt != null && DateTime.now().difference(dt).inSeconds < 300) {
+              debugPrint('[ActiveCall] Database: call $status — closing screen');
               _closeCall("Apelul s-a terminat");
             }
           }
@@ -127,7 +126,7 @@ class _ActiveCallScreenState extends State<ActiveCallScreen> {
       }
       // If no callSid, do nothing (avoid false positives from old calls)
     } catch (e) {
-      debugPrint('[ActiveCall] Firestore poll error: $e');
+      debugPrint('[ActiveCall] Database poll error: $e');
     }
   }
 
@@ -135,7 +134,7 @@ class _ActiveCallScreenState extends State<ActiveCallScreen> {
     if (_isClosing) return;
     _isClosing = true;
     _inactivityTimer?.cancel();
-    _firestorePollTimer?.cancel();
+    _databasePollTimer?.cancel();
     _releaseAudioFocus();
     VoipService.clearCallAnswered();
     if (mounted) {
@@ -169,7 +168,7 @@ class _ActiveCallScreenState extends State<ActiveCallScreen> {
     _sub?.cancel();
     _fcmSub?.cancel();
     _inactivityTimer?.cancel();
-    _firestorePollTimer?.cancel();
+    _databasePollTimer?.cancel();
     super.dispose();
   }
 
@@ -192,9 +191,9 @@ class _ActiveCallScreenState extends State<ActiveCallScreen> {
 
   Future<void> _forceHangupOnServer() async {
     try {
-      final token = await FirebaseAuth.instance.currentUser?.getIdToken();
+      final token = await Future.value(Supabase.instance.client.auth.currentSession?.accessToken);
       await http.post(
-        Uri.parse('http://46.225.182.127/api/voice/forceHangup'),
+        Uri.parse('http://89.167.115.150:3001/api/voice/forceHangup'),
         headers: {
           'Content-Type': 'application/json',
           if (token != null) 'Authorization': 'Bearer $token',

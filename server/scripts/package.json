@@ -1,0 +1,10 @@
+{
+  "name": "assign-client-names",
+  "version": "1.0.0",
+  "description": "Auto assign Client N display names",
+  "main": "assign_client_names.js",
+  "type": "commonjs",
+  "dependencies": {
+    "pg": "^8.11.0"
+  }
+}

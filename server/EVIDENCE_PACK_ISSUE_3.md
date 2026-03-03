@@ -34,7 +34,7 @@ $ curl -s https://whats-app-ompro.ro/health | python3 -m json.tool
         "needs_qr": 2,
         "max": 18
     },
-    "firestore": "connected"
+    "database": "connected"
 }
 ```
 
@@ -88,7 +88,7 @@ account_dev_4abd0b81b61a636f36880426d4628bb0
 ```javascript
 // whatsapp-backend/server.js
 private async attemptLockPromotion(): Promise<void> {
-  const accountsSnapshot = await this.firestore.collection('whatsapp_accounts').get();
+  const accountsSnapshot = await this.database.collection('whatsapp_accounts').get();
 
   if (accountsSnapshot.empty) {
     console.log('[WhatsAppService] No accounts to manage, staying in PASSIVE mode');
@@ -108,7 +108,7 @@ private async attemptLockPromotion(): Promise<void> {
 
 ```bash
 curl -s https://whats-app-ompro.ro/health
-# Result: 200 OK, Firestore connected
+# Result: 200 OK, Database connected
 ```
 
 ### ✅ Test 2: Account Creation
@@ -185,7 +185,7 @@ curl -X POST https://whats-app-ompro.ro/api/whatsapp/send \
 **Backend-ul funcționează perfect!**
 
 ✅ Health endpoint: OK  
-✅ Firestore connection: OK  
+✅ Database connection: OK  
 ✅ Account creation: OK  
 ✅ QR generation: OK  
 ✅ Multiple accounts: OK  

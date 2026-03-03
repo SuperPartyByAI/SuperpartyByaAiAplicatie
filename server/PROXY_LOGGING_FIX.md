@@ -5,7 +5,7 @@
 **Symptom:** Flutter primește erori 500 generice "Backend service returned an error" fără detalii.
 
 **Root Cause:**
-- Firebase Functions proxy primește răspunsuri non-2xx de la legacy hosting
+- Supabase Functions proxy primește răspunsuri non-2xx de la legacy hosting
 - Proxy-ul maschează erorile ca 500 generic
 - Proxy-ul loghează doar `statusCode` și `errorId` (scurt), nu body-ul complet
 - Detaliile reale sunt în legacy hosting logs, dar nu sunt vizibile în Functions logs
@@ -154,7 +154,7 @@ return res.status(httpStatus >= 400 && httpStatus < 500 ? httpStatus : 500).json
 
 ### Pasul 2: Caută în Functions Logs
 ```bash
-# Firebase Functions logs
+# Supabase Functions logs
 grep "req_1234567890" functions.log
 # Expected: [whatsappProxy/regenerateQr] legacy hosting error body: {...}
 ```
@@ -177,7 +177,7 @@ grep "req_1234567890" functions.log
 
 ## Next Steps
 
-1. **Deploy** fix la Firebase Functions
+1. **Deploy** fix la Supabase Functions
 2. **Test** - Trigger regenerateQr care returnează 500
 3. **Verifică** logs în Functions pentru detalii legacy hosting
 4. **Corelează** requestId între Flutter → Functions → legacy hosting

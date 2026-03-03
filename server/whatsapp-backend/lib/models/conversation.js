@@ -18,7 +18,7 @@ class Conversation {
     this.released_at = data.released_at || null;
   }
 
-  toFirestore() {
+  toDatabase() {
     return {
       client_phone: this.client_phone,
       status: this.status,
@@ -32,7 +32,7 @@ class Conversation {
     };
   }
 
-  static fromFirestore(doc) {
+  static fromDatabase(doc) {
     const data = doc.data();
     return new Conversation({
       conversation_id: doc.id,

@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { auth, db } from '../firebase';
-import { collection, query, where, getDocs } from 'firebase/firestore';
+import { auth, db } from '../supabase';
+import { collection, query, where, getDocs } from 'supabase/database';
 
 function SalarizareScreen() {
   const navigate = useNavigate();
@@ -56,18 +56,18 @@ function SalarizareScreen() {
       // OPTIMIZATION: Batch fetch all staff profiles to eliminate N+1 queries
       // Instead of fetching each staff profile individually inside the loop (N queries),
       // we collect all unique staff IDs first and fetch them in batches (1-2 queries)
-      // This reduces Firestore reads by ~90% for large datasets
+      // This reduces Database reads by ~90% for large datasets
 
       const uniqueStaffIds = new Set();
       evenimenteFiltrate.forEach(ev => {
         (ev.staffAlocat || []).forEach(id => uniqueStaffIds.add(id));
       });
 
-      // Batch fetch staff profiles (Firestore 'in' query supports max 10 items per batch)
+      // Batch fetch staff profiles (Database 'in' query supports max 10 items per batch)
       const staffProfiles = {};
       if (uniqueStaffIds.size > 0) {
         const staffIds = Array.from(uniqueStaffIds);
-        const batchSize = 10; // Firestore 'in' query limit
+        const batchSize = 10; // Database 'in' query limit
 
         for (let i = 0; i < staffIds.length; i += batchSize) {
           const batch = staffIds.slice(i, i + batchSize);

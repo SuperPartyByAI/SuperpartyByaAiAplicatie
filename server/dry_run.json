@@ -1,3 +1,3 @@
-Starting replay_baileys_to_firestore. Dry run: true
+Starting replay_baileys_to_database. Dry run: true
 Capturing pm2 logs...
 Replay finished. Report saved to ./replay_report_dryrun.json

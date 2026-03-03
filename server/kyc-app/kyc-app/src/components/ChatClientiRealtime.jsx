@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { db, auth, functions } from '../firebase';
+import { db, auth, functions } from '../supabase';
 import {
   collection,
   query,
@@ -13,7 +13,7 @@ import {
   doc,
   serverTimestamp,
   getDocs,
-} from 'firebase/firestore';
+} from 'supabase/database';
 
 const BACKEND_URL = 'https://whats-upp-production.up.railway.app';
 
@@ -88,7 +88,7 @@ function ChatClientiRealtime({
     );
 
     // Filter threads by accountId to prevent mixing accounts
-    // Note: Removed orderBy to work without Firestore index (sorting done client-side)
+    // Note: Removed orderBy to work without Database index (sorting done client-side)
     const threadsQuery = query(
       collection(db, 'threads'),
       where('accountId', '==', connectedAccount.id),
@@ -124,7 +124,7 @@ function ChatClientiRealtime({
         let errorMessage = 'Eroare la încărcarea conversațiilor';
         if (error.code === 'failed-precondition' || error.message.includes('index')) {
           errorMessage =
-            '⚠️ Index Firestore lipsă. Se construiește automat (2-5 min). Reîmprospătează pagina.';
+            '⚠️ Index Database lipsă. Se construiește automat (2-5 min). Reîmprospătează pagina.';
         } else if (error.code === 'permission-denied') {
           errorMessage = '❌ Permisiuni insuficiente. Contactează administratorul.';
         }
@@ -262,10 +262,10 @@ function ChatClientiRealtime({
       }
 
       const token = await user.getIdToken();
-      // Derive projectId from Firebase config (no hardcoding)
+      // Derive projectId from Supabase config (no hardcoding)
       const projectId = auth.app.options.projectId || functions.app.options.projectId;
       if (!projectId) {
-        throw new Error('Firebase projectId not found in app configuration');
+        throw new Error('Supabase projectId not found in app configuration');
       }
       const functionsUrl = `https://us-central1-${projectId}.cloudfunctions.net`;
 

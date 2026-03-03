@@ -1,5 +1,5 @@
 ========================================
-DEPLOY FIREBASE CU TOKEN CI
+DEPLOY SUPABASE CU TOKEN CI
 ========================================
 
 PASUL 1: Genereaza token (DOAR PRIMA DATA)
@@ -7,7 +7,7 @@ PASUL 1: Genereaza token (DOAR PRIMA DATA)
 
 Ruleaza in CMD (pe Windows):
 
-firebase login:ci
+supabase login:ci
 
 Copiaza token-ul afisat.
 
@@ -20,21 +20,21 @@ Ruleaza in CMD:
 cd C:\Users\ursac\Aplicatie-SuperpartyByAi\kyc-app\kyc-app
 npm run build
 cd ..\..
-firebase deploy --token "PUNE_TOKENUL_TAU_AICI"
+supabase deploy --token "PUNE_TOKENUL_TAU_AICI"
 
 SAU deploy doar hosting:
 
-firebase deploy --only hosting --token "PUNE_TOKENUL_TAU_AICI"
+supabase deploy --only hosting --token "PUNE_TOKENUL_TAU_AICI"
 
-SAU deploy doar firestore:
+SAU deploy doar database:
 
-firebase deploy --only firestore --token "PUNE_TOKENUL_TAU_AICI"
+supabase deploy --only database --token "PUNE_TOKENUL_TAU_AICI"
 
 ========================================
 COMANDA COMPLETA (COPY/PASTE)
 ========================================
 
-cd C:\Users\ursac\Aplicatie-SuperpartyByAi\kyc-app\kyc-app && npm run build && cd ..\.. && firebase deploy --token "PUNE_TOKENUL_TAU_AICI"
+cd C:\Users\ursac\Aplicatie-SuperpartyByAi\kyc-app\kyc-app && npm run build && cd ..\.. && supabase deploy --token "PUNE_TOKENUL_TAU_AICI"
 
 ========================================
 NOTA:
@@ -50,4 +50,4 @@ VERIFICARE DUPA DEPLOY:
 ========================================
 
 Aplicatie: https://superparty-frontend.web.app/home
-Console: https://console.firebase.google.com/project/superparty-frontend
+Console: https://console.supabase.google.com/project/superparty-frontend

@@ -70,7 +70,7 @@ Am creat funcții pentru:
 **Exemplu cod:**
 
 ```javascript
-// În Firebase Functions
+// În Supabase Functions
 const vision = require('@google-cloud/vision');
 const client = new vision.ImageAnnotatorClient();
 
@@ -111,7 +111,7 @@ exports.rateazaPetrecereAI = onCall(async (request) => {
       atmosfera: atmosferaScore,
       participare: participareScore,
       comentariuAI: completion.choices[0].message.content,
-      analyzedAt: admin.firestore.FieldValue.serverTimestamp(),
+      analyzedAt: admin.database.FieldValue.serverTimestamp(),
     }
   });
   
@@ -154,7 +154,7 @@ exports.rateazaPetrecereAI = onCall(async (request) => {
   await db.collection('evenimente').doc(evenimentId).update({
     rating: {
       ...rating,
-      analyzedAt: admin.firestore.FieldValue.serverTimestamp(),
+      analyzedAt: admin.database.FieldValue.serverTimestamp(),
     }
   });
   
@@ -173,7 +173,7 @@ exports.rateazaPetrecereAI = onCall(async (request) => {
 2. User deschide eveniment în app
 3. Click "Evaluează cu AI" 
 4. Selectează poza
-5. Poza se uploadează pe Firebase Storage
+5. Poza se uploadează pe Supabase Storage
 6. Se apelează rateazaPetrecereAI cu URL-ul pozei
 7. AI analizează:
    - Câte persoane sunt
@@ -189,7 +189,7 @@ exports.rateazaPetrecereAI = onCall(async (request) => {
    "Petrecere reușită! Atmosferă excelentă, 
     participare foarte bună. Sugestie: mai multe 
     decorațiuni ar fi fost ideale."
-10. Rating se salvează în Firestore
+10. Rating se salvează în Database
 11. User vede rating-ul în app
 ```
 
@@ -311,14 +311,14 @@ exports.rateazaPetrecereAI = onCall(async (request) => {
 
 ```powershell
 cd functions
-npx firebase-tools deploy --only functions:rateazaPetrecereAI
+npx supabase-tools deploy --only functions:rateazaPetrecereAI
 ```
 
 ### 3. Integrează în App
 
 ```dart
 // În Flutter
-final rating = await FirebaseFunctions.instance
+final rating = await SupabaseFunctions.instance
     .httpsCallable('rateazaPetrecereAI')
     .call({
       'descriere': descriereText,

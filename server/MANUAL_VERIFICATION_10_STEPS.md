@@ -24,7 +24,7 @@ npm run emu
 ```
 **Verify in logs:**
 - `✔  All emulators ready!`
-- Firestore: http://127.0.0.1:8082
+- Database: http://127.0.0.1:8082
 - Functions: http://127.0.0.1:5002
 - Auth: http://127.0.0.1:9098
 
@@ -32,7 +32,7 @@ npm run emu
 
 ---
 
-### Step 2: Seed Firestore
+### Step 2: Seed Database
 **Terminal 2 (after emulators start):**
 ```powershell
 npm run seed:emu
@@ -54,7 +54,7 @@ cd superparty_flutter
 flutter run --dart-define=USE_EMULATORS=true
 ```
 **Verify in Flutter logs:**
-- `[FirebaseService] ✅ Emulators configured: Firestore:8082, Auth:9098, Functions:5002`
+- `[SupabaseService] ✅ Emulators configured: Database:8082, Auth:9098, Functions:5002`
 
 ---
 
@@ -66,7 +66,7 @@ flutter run --dart-define=USE_EMULATORS=true
 **Verify:**
 - Screen loads without errors
 - Name displayed at top (from `users/{uid}.kycData.fullName` or fallback)
-- Email displayed (read-only, from FirebaseAuth)
+- Email displayed (read-only, from SupabaseAuth)
 - Phone field editable
 - Teams dropdown shows teams (only `active != false`, sorted)
 
@@ -133,14 +133,14 @@ flutter run --dart-define=USE_EMULATORS=true
 
 ---
 
-### Step 9: Test Firestore Rules - Client Write Denied
+### Step 9: Test Database Rules - Client Write Denied
 **In Flutter app (DevTools console or manually):**
-Try to write directly to Firestore:
+Try to write directly to Database:
 ```dart
 // This should fail with permission-denied
-FirebaseFirestore.instance.collection('teamAssignments').doc('test').set({'test': true});
-FirebaseFirestore.instance.collection('adminActions').doc('test').set({'test': true});
-FirebaseFirestore.instance.collection('threads').doc('test').set({'test': true});
+SupabaseDatabase.instance.collection('teamAssignments').doc('test').set({'test': true});
+SupabaseDatabase.instance.collection('adminActions').doc('test').set({'test': true});
+SupabaseDatabase.instance.collection('threads').doc('test').set({'test': true});
 ```
 
 **Verify:**
@@ -175,7 +175,7 @@ FirebaseFirestore.instance.collection('threads').doc('test').set({'test': true})
 | Idempotency finalizeStaffSetup | Single setup, cached token result |
 | Admin gating | Non-admin → redirect `/home` |
 | WhatsApp UI guards | Buttons disabled, no duplicate actions |
-| Firestore rules | Client writes denied to server-only collections |
+| Database rules | Client writes denied to server-only collections |
 | Router redirects | Auth required → `/`, Admin required → `/home` |
 
 ---
@@ -185,6 +185,6 @@ FirebaseFirestore.instance.collection('threads').doc('test').set({'test': true})
 1. **Check Emulator UI** - Verify collections exist, documents created correctly
 2. **Check Flutter logs** - Look for errors, connection issues
 3. **Check Functions logs** - In Terminal 1, look for callable execution logs
-4. **Verify ports** - Ensure Firestore:8082, Auth:9098, Functions:5002 match in logs
+4. **Verify ports** - Ensure Database:8082, Auth:9098, Functions:5002 match in logs
 
 **All tests passing = PR ready for merge** ✅

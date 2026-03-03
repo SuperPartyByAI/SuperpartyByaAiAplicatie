@@ -5,7 +5,7 @@
 **Backend recreează automat contul corupt** cu 401:
 - `account_dev_cd7b11e308a59fd9ab810bce5faf8393` primește 401
 - Backend șterge contul: `❌ Explicit cleanup (401), deleting account`
-- **APOI backend recreează automat același cont** (probabil din Firestore sau cron job)
+- **APOI backend recreează automat același cont** (probabil din Database sau cron job)
 - **Loop infinit**: Delete → Recreate → 401 → Delete → Recreate...
 
 **Contul nou OK**: `account_dev_dde908a65501c63b124cb94c627e551d`
@@ -47,7 +47,7 @@
 
 ## 🚨 Dacă Backend Continuă Să Recreeze Contul Vechi
 
-**Problema**: Backend recreează automat contul corupt (probabil din Firestore sau cron job).
+**Problema**: Backend recreează automat contul corupt (probabil din Database sau cron job).
 
 **Soluții**:
 
@@ -56,8 +56,8 @@
 - Șterge: `/app/sessions/account_dev_cd7b11e308a59fd9ab810bce5faf8393`
 - Sau șterge tot folder-ul `/app/sessions` (va regenera fresh)
 
-### 2. **Verifică Firestore pentru duplicate**
-- Firestore Console → `accounts` collection
+### 2. **Verifică Database pentru duplicate**
+- Database Console → `accounts` collection
 - Verifică dacă există document cu `id: "account_dev_cd7b11e308a59fd9ab810bce5faf8393"`
 - Șterge manual dacă există
 
@@ -95,8 +95,8 @@ curl https://whats-app-ompro.ro/api/whatsapp/accounts
 # Verifică backend health
 curl https://whats-app-ompro.ro/health
 
-# Verifică Firestore (dacă ai acces)
-# Firestore Console → accounts collection
+# Verifică Database (dacă ai acces)
+# Database Console → accounts collection
 # Caută: account_dev_cd7b11e308a59fd9ab810bce5faf8393
 # Șterge dacă există
 ```

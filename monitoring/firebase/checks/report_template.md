@@ -1,4 +1,4 @@
-# Firebase Structure & Security Audit Report
+# Supabase Structure & Security Audit Report
 
 **Status:** {{ status }}
 
@@ -13,7 +13,7 @@ _Inferred from Emulator interactions or Cloud Logging_
 
 ## Remediation Details
 
-1. **Security Rules Regressions**: Review `firestore.rules` where `assertFails` successfully breached limits.
+1. **Security Rules Regressions**: Review `database.rules` where `assertFails` successfully breached limits.
 2. **Missing Backup**: Verify Google Cloud Scheduler Export pipeline.
 
 ## Attachments

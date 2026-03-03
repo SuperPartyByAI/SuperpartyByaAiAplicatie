@@ -5,7 +5,7 @@
 La fiecare push pe `main` care modifică `superparty_flutter/**`:
 
 1. ✅ Build-ează APK automat (GitHub Actions)
-2. ✅ Upload-ează pe Firebase App Distribution
+2. ✅ Upload-ează pe Supabase App Distribution
 3. ✅ Îți trimite notificare pe telefon
 4. ✅ Instalezi direct din notificare
 
@@ -13,11 +13,11 @@ La fiecare push pe `main` care modifică `superparty_flutter/**`:
 
 ## 📋 Setup Necesar (O SINGURĂ DATĂ)
 
-### 1. Firebase App ID
+### 1. Supabase App ID
 
 **Găsește App ID:**
 
-1. Mergi la: https://console.firebase.google.com/project/superparty-frontend/settings/general
+1. Mergi la: https://console.supabase.google.com/project/superparty-frontend/settings/general
 2. Scroll la "Your apps"
 3. Click pe Android app
 4. Copiază **App ID** (format: `1:xxxxx:android:xxxxx`)
@@ -26,17 +26,17 @@ La fiecare push pe `main` care modifică `superparty_flutter/**`:
 
 1. Mergi la: https://github.com/SuperPartyByAI/Aplicatie-SuperpartyByAi/settings/secrets/actions
 2. Click "New repository secret"
-3. Name: `FIREBASE_APP_ID`
+3. Name: `SUPABASE_APP_ID`
 4. Value: App ID-ul copiat
 5. Click "Add secret"
 
 ---
 
-### 2. Firebase Service Account
+### 2. Supabase Service Account
 
 **Generează Service Account:**
 
-1. Mergi la: https://console.firebase.google.com/project/superparty-frontend/settings/serviceaccounts/adminsdk
+1. Mergi la: https://console.supabase.google.com/project/superparty-frontend/settings/serviceaccounts/adminsdk
 2. Click "Generate new private key"
 3. Click "Generate key"
 4. Se descarcă un fișier JSON (ex: `superparty-frontend-xxxxx.json`)
@@ -47,17 +47,17 @@ La fiecare push pe `main` care modifică `superparty_flutter/**`:
 2. Copiază ÎNTREG conținutul (tot JSON-ul)
 3. Mergi la: https://github.com/SuperPartyByAI/Aplicatie-SuperpartyByAi/settings/secrets/actions
 4. Click "New repository secret"
-5. Name: `FIREBASE_SERVICE_ACCOUNT`
+5. Name: `SUPABASE_SERVICE_ACCOUNT`
 6. Value: Paste întreg JSON-ul
 7. Click "Add secret"
 
 ---
 
-### 3. Activează Firebase App Distribution
+### 3. Activează Supabase App Distribution
 
-**În Firebase Console:**
+**În Supabase Console:**
 
-1. Mergi la: https://console.firebase.google.com/project/superparty-frontend/appdistribution
+1. Mergi la: https://console.supabase.google.com/project/superparty-frontend/appdistribution
 2. Click "Get started"
 3. Selectează Android app
 4. Click "Register testers"
@@ -93,12 +93,12 @@ git push origin main
 
 ## 📱 Primești APK pe Telefon
 
-### Pas 1: Instalează Firebase App Distribution
+### Pas 1: Instalează Supabase App Distribution
 
 **Pe telefon:**
 
-1. Deschide: https://appdistribution.firebase.dev/i/xxxxx (link din email)
-2. SAU descarcă app: https://play.google.com/store/apps/details?id=com.google.firebase.appdistribution
+1. Deschide: https://appdistribution.supabase.dev/i/xxxxx (link din email)
+2. SAU descarcă app: https://play.google.com/store/apps/details?id=com.google.supabase.appdistribution
 
 ### Pas 2: Primești Notificare
 
@@ -146,9 +146,9 @@ https://github.com/SuperPartyByAI/Aplicatie-SuperpartyByAi/actions
    ↓
 7. flutter build apk --release (~3-5 min)
    ↓
-8. Upload APK pe Firebase App Distribution
+8. Upload APK pe Supabase App Distribution
    ↓
-9. Firebase trimite notificare pe telefon
+9. Supabase trimite notificare pe telefon
    ↓
 10. Tu instalezi din notificare
 ```
@@ -157,12 +157,12 @@ https://github.com/SuperPartyByAI/Aplicatie-SuperpartyByAi/actions
 
 ## 🐛 Troubleshooting
 
-### Build Failed: "FIREBASE_APP_ID not found"
+### Build Failed: "SUPABASE_APP_ID not found"
 
 **Soluție:**
 
 - Verifică că ai adăugat secret în GitHub
-- Name exact: `FIREBASE_APP_ID`
+- Name exact: `SUPABASE_APP_ID`
 - Fără spații sau caractere extra
 
 ### Build Failed: "Service account invalid"
@@ -178,7 +178,7 @@ https://github.com/SuperPartyByAI/Aplicatie-SuperpartyByAi/actions
 **Soluție:**
 
 1. Verifică email-ul (spam folder)
-2. Instalează Firebase App Distribution app
+2. Instalează Supabase App Distribution app
 3. Login cu același email
 4. Activează notificări în app
 
@@ -188,7 +188,7 @@ https://github.com/SuperPartyByAI/Aplicatie-SuperpartyByAi/actions
 
 1. Activează "Install from unknown sources"
 2. Settings → Security → Unknown sources → ON
-3. Sau Settings → Apps → Special access → Install unknown apps → Firebase App Distribution → Allow
+3. Sau Settings → Apps → Special access → Install unknown apps → Supabase App Distribution → Allow
 
 ---
 
@@ -258,7 +258,7 @@ gh run download --name superparty-app
 
 **Service Account:**
 
-- ✅ Acces doar la Firebase App Distribution
+- ✅ Acces doar la Supabase App Distribution
 - ✅ Nu poate șterge/modifica alte resurse
 - ✅ Poate fi revocat oricând
 
@@ -269,7 +269,7 @@ gh run download --name superparty-app
 După ce funcționează:
 
 1. **Adaugă mai mulți testeri:**
-   - Firebase Console → App Distribution → Testers
+   - Supabase Console → App Distribution → Testers
    - Adaugă emails
 
 2. **Creează grupuri:**
@@ -289,4 +289,4 @@ După ce funcționează:
 ---
 
 **Status**: ✅ Workflow configurat, așteaptă secrets
-**Next**: Adaugă FIREBASE_APP_ID și FIREBASE_SERVICE_ACCOUNT în GitHub Secrets
+**Next**: Adaugă SUPABASE_APP_ID și SUPABASE_SERVICE_ACCOUNT în GitHub Secrets

@@ -1,4 +1,4 @@
-# 📊 RAPORT VERIFICARE FIREBASE - SALVARE ȘI STOCARE DATE
+# 📊 RAPORT VERIFICARE SUPABASE - SALVARE ȘI STOCARE DATE
 
 **Data verificării:** 5 Ianuarie 2026  
 **Status:** ✅ TOTUL FUNCȚIONEAZĂ CORECT
@@ -7,16 +7,16 @@
 
 ## 🎯 REZUMAT EXECUTIV
 
-Aplicația Flutter salvează și stochează corect toate datele în Firebase:
+Aplicația Flutter salvează și stochează corect toate datele în Supabase:
 
-- ✅ **Firestore**: Toate colecțiile funcționează corect
+- ✅ **Database**: Toate colecțiile funcționează corect
 - ✅ **Storage**: Fișierele se salvează în locațiile corecte
 - ✅ **Security Rules**: Configurate corect pentru protecție și acces
 - ✅ **Cache Local**: SQLite funcționează pentru performanță
 
 ---
 
-## 📁 FIRESTORE - COLECȚII ȘI DATE
+## 📁 DATABASE - COLECȚII ȘI DATE
 
 ### ✅ 1. USERS (4 documente)
 
@@ -39,7 +39,7 @@ Aplicația Flutter salvează și stochează corect toate datele în Firebase:
 
 - ✅ **Create**: `login_screen.dart` - linia 54 (la înregistrare)
 - ✅ **Update**: `kyc_screen.dart` - linia 232 (după submit KYC)
-- ✅ **Read**: Implicit prin Firebase Auth
+- ✅ **Read**: Implicit prin Supabase Auth
 
 **Security Rules:**
 
@@ -76,9 +76,9 @@ allow write: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
   contractPeriodTo: string,
   submittedAt: timestamp,
   uploads: {
-    idFront: string,    // URL Firebase Storage
-    idBack: string,     // URL Firebase Storage
-    driverLicense: string  // URL Firebase Storage (opțional)
+    idFront: string,    // URL Supabase Storage
+    idBack: string,     // URL Supabase Storage
+    driverLicense: string  // URL Supabase Storage (opțional)
   }
 }
 ```
@@ -207,7 +207,7 @@ allow write: if isAdmin();
 
 **Operații Flutter:**
 
-- ✅ **Read**: `whatsapp_screen.dart` (prin WebSocket, nu direct Firestore)
+- ✅ **Read**: `whatsapp_screen.dart` (prin WebSocket, nu direct Database)
 - ❌ **Write**: Nu se scrie din Flutter, doar din backend
 
 **Security Rules:**
@@ -251,7 +251,7 @@ allow delete: if isAdmin();
 
 ---
 
-## 📦 FIREBASE STORAGE - FIȘIERE
+## 📦 SUPABASE STORAGE - FIȘIERE
 
 ### ✅ 1. APK FOLDER (1 fișier)
 
@@ -285,7 +285,7 @@ match /apk/{fileName} {
 
 - ✅ **Write**: `kyc_screen.dart` - liniile 183-196
   ```dart
-  final ref = FirebaseStorage.instance.ref().child('kyc/${user.uid}/id_front.jpg');
+  final ref = SupabaseStorage.instance.ref().child('kyc/${user.uid}/id_front.jpg');
   await ref.putFile(_idFront!);
   ```
 - ✅ **Read**: Admin panel pentru verificare KYC
@@ -330,16 +330,16 @@ CREATE TABLE messages (
 
 - ⚡ Răspuns instant la deschidere chat
 - 📱 Funcționează offline
-- 🔄 Sincronizare cu Firestore pentru backup
+- 🔄 Sincronizare cu Database pentru backup
 
 ---
 
 ## 🔒 SECURITY RULES - VERIFICARE
 
-### ✅ Firestore Rules
+### ✅ Database Rules
 
 **Status:** ✅ Deployed și funcționale  
-**Fișier:** `firestore.rules`
+**Fișier:** `database.rules`
 
 **Verificări:**
 
@@ -405,7 +405,7 @@ CREATE TABLE messages (
 
 ## 📊 STATISTICI CURENTE
 
-### Firestore
+### Database
 
 - **Total colecții:** 8
 - **Total documente:** ~20
@@ -445,7 +445,7 @@ CREATE TABLE messages (
 
 ### 🔧 Recomandări viitoare:
 
-1. **Backup**: Configurare backup automat Firestore
+1. **Backup**: Configurare backup automat Database
 2. **Monitoring**: Alerting pentru erori de salvare
 3. **Indexing**: Adăugare indexuri pentru query-uri complexe
 4. **Retention**: Politici de ștergere date vechi (GDPR)
@@ -456,9 +456,9 @@ CREATE TABLE messages (
 
 **TOTUL FUNCȚIONEAZĂ CORECT!** 🎉
 
-Aplicația Flutter salvează și stochează corect toate datele în Firebase:
+Aplicația Flutter salvează și stochează corect toate datele în Supabase:
 
-- ✅ Firestore: 8 colecții active, ~20 documente
+- ✅ Database: 8 colecții active, ~20 documente
 - ✅ Storage: 8 fișiere, ~50 MB
 - ✅ Cache Local: SQLite pentru performanță
 - ✅ Security Rules: Configurate și deployed

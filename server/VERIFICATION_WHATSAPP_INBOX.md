@@ -7,7 +7,7 @@ All three inbox screens use the **same** canonical helper:
 - **`superparty_flutter/lib/utils/threads_query.dart`**  
   `buildThreadsQuery(accountId)` =  
   `collection('threads').where('accountId', isEqualTo: accountId).orderBy('lastMessageAt', descending: true).limit(1000)`  
-  Index: `accountId` ASC + `lastMessageAt` DESC (see `firestore.indexes.json`). `lastMessageAt` = canonical last activity (inbound+outbound).
+  Index: `accountId` ASC + `lastMessageAt` DESC (see `database.indexes.json`). `lastMessageAt` = canonical last activity (inbound+outbound).
 
 - **WhatsApp Inbox (canonical):** `whatsapp_inbox_screen.dart` → `buildThreadsQuery(accountId).snapshots().listen(...)`
 - **Employee Inbox:** `employee_inbox_screen.dart` → `buildThreadsQuery(accountId).snapshots().listen(...)`
@@ -25,19 +25,19 @@ Query-ul e canonic; dacă **audit + migrate dry-run** sunt OK (threads există, 
 
 1. **Deschizi Employee/Staff Inbox** ca angajat **non-admin** și cauți în log:
    - `accountIds queried: [...]`
-   - orice `FirebaseException code=...`
+   - orice `SupabaseException code=...`
 
 2. **Interpretare rapidă**
 
    | Log | Cauză |
    |-----|--------|
-   | **permission-denied** | Firestore Rules/RBAC blochează read pentru angajați. |
+   | **permission-denied** | Database Rules/RBAC blochează read pentru angajați. |
    | **failed-precondition** | Index (cu query canonic + index existent, de obicei nu mai apare). |
    | **Fără eroare, dar listă goală** | accountIds greșite/goale sau nu există threads pentru acele conturi. |
 
 3. **Dacă vezi permission-denied**
    - Confirmă că rules au `isEmployee()` pe **read** pentru `threads` și `threads/{threadId}/messages`.
-   - Apoi: `firebase deploy --only firestore:rules`
+   - Apoi: `supabase deploy --only database:rules`
 
 4. **Dacă nu e eroare dar e gol**
    - Ia un **accountId** din `accountIds queried` (din Employee/Staff Inbox) și rulează audit pentru **acel** accountId (nu pentru unul „care merge” la tine):
@@ -51,7 +51,7 @@ Query-ul e canonic; dacă **audit + migrate dry-run** sunt OK (threads există, 
 
 Doar **2 linii** din log la deschiderea Inbox Angajați:
 1. `accountIds queried: [...]`
-2. orice `FirebaseException code=...` (dacă există)
+2. orice `SupabaseException code=...` (dacă există)
 
 Cu ele se poate spune exact care dintre cele 3 cazuri e și ce schimbare minimă mai lipsește.
 
@@ -59,16 +59,16 @@ Cu ele se poate spune exact care dintre cele 3 cazuri e și ce schimbare minimă
 
 ## Diagnostic: Backfill vs UI (unde e problema?)
 
-**Important:** Mesajul din log **"Backfill started (runs asynchronously)"** confirmă doar că request-ul a ajuns la endpoint (prin Functions proxy), **nu** că mesajele „history” sunt deja scrise în Firestore. Endpoint-ul este explicit async.
+**Important:** Mesajul din log **"Backfill started (runs asynchronously)"** confirmă doar că request-ul a ajuns la endpoint (prin Functions proxy), **nu** că mesajele „history” sunt deja scrise în Database. Endpoint-ul este explicit async.
 
 Ca să afli rapid dacă problema e la **backend/backfill** sau la **UI**, urmează diagnosticul în ordinea de mai jos.
 
-### 1) Verifică dacă „history” chiar a ajuns în Firestore (fără să ghicești)
+### 1) Verifică dacă „history” chiar a ajuns în Database (fără să ghicești)
 
 Din **WhatsApp Accounts** screen, pe contul conectat:
 
 1. Apasă **Backfill history** (butonul există pentru admin când status e `connected`).
-2. Apoi apasă iconița **🐞 „Verify Firestore (debug)”** (în `kDebugMode`), care deschide **WhatsAppBackfillDiagnosticScreen**.
+2. Apoi apasă iconița **🐞 „Verify Database (debug)”** (în `kDebugMode`), care deschide **WhatsAppBackfillDiagnosticScreen**.
 
 Pe ecranul de diagnostic, verificarea face:
 
@@ -88,7 +88,7 @@ Pe ecranul de diagnostic, verificarea face:
 
 **Important:** Job-ul de backfill e **async** (pornire cu delay/jitter/cooldown). După ce apeși „Backfill history”, **așteaptă 1–3 minute** și re-verifică diagnosticul; dacă verifici imediat, poți concluziona greșit că nu funcționează.
 
-În **Firestore**, în `accounts/{accountId}`, verifică statusul de auto-backfill (câmpuri din runbook):
+În **Database**, în `accounts/{accountId}`, verifică statusul de auto-backfill (câmpuri din runbook):
 
 - `lastAutoBackfillStatus.running`
 - `lastAutoBackfillStatus.ok`
@@ -112,7 +112,7 @@ curl -s http://HETZNER_IP:8080/ready | jq
 
 ### 3) Dacă „Messages OK” în diagnostic, dar în UI nu vezi history
 
-Confirmă pe **un document de mesaj** din Firestore că are timestamp-uri și câmpuri corecte:
+Confirmă pe **un document de mesaj** din Database că are timestamp-uri și câmpuri corecte:
 
 - modelul de mesaj suportă: `tsClient`, `tsServer`, `createdAt`, `syncedAt`, `syncSource`.
 
@@ -142,8 +142,8 @@ Dacă conversațiile par amestecate (în special în grupurile cu același „Xh
 1. **Cauză frecventă:** thread-uri fără `lastMessageAtMs` (vechi, nereparate) – toate primesc timp 0 și sunt ordonate doar după id (arbitrar).
 2. **Ce faci:**
    - Pe backend: lasă auto-repair să ruleze după backfill (ENV `AUTO_REPAIR_THREADS_ENABLED=true`) sau rulează scriptul de backfill pentru thread-uri vechi ca să completeze `lastMessageAt` + `lastMessageAtMs` din ultimul mesaj.
-   - În Firestore: verifică că `threads/{id}` au câmpurile `lastMessageAt` și `lastMessageAtMs` (number, ms) setate.
-   - În app: **pull-to-refresh** în Inbox Angajați sau închide/redeschide ecranul ca să reîncarci din Firestore și să se reaplice sortarea (desc după `threadTimeMs`, tie-break după thread id).
+   - În Database: verifică că `threads/{id}` au câmpurile `lastMessageAt` și `lastMessageAtMs` (number, ms) setate.
+   - În app: **pull-to-refresh** în Inbox Angajați sau închide/redeschide ecranul ca să reîncarci din Database și să se reaplice sortarea (desc după `threadTimeMs`, tie-break după thread id).
 
 Sortarea în app folosește: `lastMessageAtMs` → `lastMessageAt` → `updatedAt` → `lastMessageTimestamp`; când timpul e egal, ordinea e stabilă după id-ul thread-ului.
 
@@ -186,8 +186,8 @@ node scripts/migrate_threads_backfill_lastMessageAt.mjs --project superparty-fro
 
 - **(a) Outbound:** Alege o conversație **B** care nu e prima. Trimite un mesaj **outbound** în B (din app / integrare). Verifică că **B** urcă pe **locul 1** în Inbox Angajați.
 - **(b) Inbound:** Alege o conversație **A** care nu e prima. Primește un mesaj **inbound** în A (de pe telefon). Verifică că **A** urcă pe **locul 1** în Inbox Angajați.
-- **(c) Firestore:** Deschide `threads/{threadId}`. După un mesaj (inbound sau outbound), confirmă că `lastMessageAt` și `lastMessageAtMs` sunt actualizate.
-- **(d) Auto-backfill + repair:** Conectezi un account → aștepți un tick (interval WHATSAPP_BACKFILL_INTERVAL_SECONDS sau 12 min) → vezi în log `Backfill start accountId=…` și `[repair] start accountId=…`. În Firestore: `threads/{id}/messages` crește; `threads/{id}.lastMessageAt` și `lastMessageAtMs` se setează (inclusiv prin repair dacă lipseau). `accounts/{id}.lastAutoRepairAt`, `lastAutoRepairResult` (updatedThreads, scanned, durationMs). Inbox Angajați: conversația cu ultimul mesaj (inbound/outbound) urcă sus.
+- **(c) Database:** Deschide `threads/{threadId}`. După un mesaj (inbound sau outbound), confirmă că `lastMessageAt` și `lastMessageAtMs` sunt actualizate.
+- **(d) Auto-backfill + repair:** Conectezi un account → aștepți un tick (interval WHATSAPP_BACKFILL_INTERVAL_SECONDS sau 12 min) → vezi în log `Backfill start accountId=…` și `[repair] start accountId=…`. În Database: `threads/{id}/messages` crește; `threads/{id}.lastMessageAt` și `lastMessageAtMs` se setează (inclusiv prin repair dacă lipseau). `accounts/{id}.lastAutoRepairAt`, `lastAutoRepairResult` (updatedThreads, scanned, durationMs). Inbox Angajați: conversația cu ultimul mesaj (inbound/outbound) urcă sus.
 
 ### Schema-guard (backend)
 
@@ -356,9 +356,9 @@ Dacă trimiți output-ul complet al comenzii `gcloud auth application-default lo
 
 ### Opțiunea 2: Service Account JSON (fără să-l pui în git)
 
-Obține un JSON key (GCP/Firebase Console) pentru un service account cu acces la Firestore:
+Obține un JSON key (GCP/Supabase Console) pentru un service account cu acces la Database:
 - **audit:** read e suficient  
-- **migrate --apply:** trebuie write pe Firestore  
+- **migrate --apply:** trebuie write pe Database  
 
 Salvează-l într-o locație sigură (ex. în afara repo-ului):
 
@@ -413,13 +413,13 @@ Fără credențiale valide rămâi blocat doar pe „no credentials”; nu se aj
 1. Open **Employee** or **Staff Inbox**.
 2. In logs, search for:
    - `accountIds queried: [...]`
-   - Any `FirebaseException code=...`
+   - Any `SupabaseException code=...`
 
 **Interpretation:**
 
-- **Empty `accountIds queried`** → Problem *before* Firestore (RBAC / getAccountsStaff / mapping).
-- **`FirebaseException code=failed-precondition`** → Index/query mismatch or index still building.
-- **`FirebaseException code=permission-denied`** → Rules/RBAC.
+- **Empty `accountIds queried`** → Problem *before* Database (RBAC / getAccountsStaff / mapping).
+- **`SupabaseException code=failed-precondition`** → Index/query mismatch or index still building.
+- **`SupabaseException code=permission-denied`** → Rules/RBAC.
 
 With those two log lines, you can tell which of the three causes it is.
 

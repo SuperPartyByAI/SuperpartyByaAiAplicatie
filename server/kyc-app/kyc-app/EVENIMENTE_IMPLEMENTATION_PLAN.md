@@ -22,11 +22,11 @@ lib/screens/evenimente/
 ### 1.2 Fișiere Suport
 ```
 lib/models/
-├── event_model.dart - model Firestore
+├── event_model.dart - model Database
 └── event_filters.dart - filter state
 
 lib/services/
-└── event_service.dart - Firestore operations
+└── event_service.dart - Database operations
 
 lib/widgets/
 ├── modals/ (dacă există)
@@ -61,9 +61,9 @@ lib/widgets/
 7. `lib/widgets/modals/code_info_modal.dart` - code info (verifică dacă există)
 
 **PRIORITATE 3 (MODELS/SERVICES):**
-8. `lib/models/event_model.dart` - verifică schema Firestore
+8. `lib/models/event_model.dart` - verifică schema Database
 9. `lib/models/event_filters.dart` - verifică filter state
-10. `lib/services/event_service.dart` - verifică Firestore ops
+10. `lib/services/event_service.dart` - verifică Database ops
 
 ---
 
@@ -144,7 +144,7 @@ lib/widgets/
   - [ ] Click → preview full-screen
 - [ ] **Verdict Logic:**
   - [ ] Click status pill → show options
-  - [ ] Save to Firestore
+  - [ ] Save to Database
   - [ ] Lock category if APPROVED
   - [ ] "Reverifică" unlocks
 
@@ -157,7 +157,7 @@ lib/widgets/
 - [ ] NotedBy filter (creator)
 - [ ] **IMPORTANT:** Filtrele sunt EXCLUSIVE (NU se combină)
 
-### 3.6 Firestore Operations
+### 3.6 Database Operations
 - [ ] Stream `evenimente` collection
 - [ ] Stream `evenimente/{id}/dovezi` subcollection
 - [ ] Stream `evenimente/{id}/evidenceState/{category}` subcollection
@@ -228,7 +228,7 @@ grep -n "category\|upload\|verdict\|lock" lib/screens/evenimente/dovezi_screen_h
 4. `lib/widgets/modals/code_info_modal.dart`
 
 ### PASUL 4.6: Verificare Models & Services
-**Verifică schema Firestore:**
+**Verifică schema Database:**
 - `event_model.dart` - date format DD-MM-YYYY, roles structure
 - `event_filters.dart` - toate filtrele din spec
 - `event_service.dart` - stream operations, NEVER DELETE

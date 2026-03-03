@@ -1,4 +1,4 @@
-# 🚀 Deploy WhatsApp pe Firebase Functions
+# 🚀 Deploy WhatsApp pe Supabase Functions
 
 ## ✅ CE AM FĂCUT
 
@@ -8,25 +8,25 @@
    - ❌ NU folosește pairing codes (nu merg în Cloud Functions)
 
 2. **Cod gata de deploy:**
-   - ✅ Firebase Functions 1st Gen (funcționează cu deployment existent)
+   - ✅ Supabase Functions 1st Gen (funcționează cu deployment existent)
    - ✅ WhatsApp Manager cu Baileys
-   - ✅ Session persistence în Firestore
+   - ✅ Session persistence în Database
    - ✅ QR codes prin Socket.io
 
 ---
 
 ## 📋 PAȘI DEPLOY (10-15 minute)
 
-### Pas 1: Login Firebase (2 min)
+### Pas 1: Login Supabase (2 min)
 
 ```bash
-firebase login
+supabase login
 ```
 
 **Dacă ești în Gitpod/Codespace:**
 
 ```bash
-firebase login --no-localhost
+supabase login --no-localhost
 ```
 
 Apoi deschide link-ul în browser și autentifică-te.
@@ -34,21 +34,21 @@ Apoi deschide link-ul în browser și autentifică-te.
 ### Pas 2: Selectează Proiect (1 min)
 
 ```bash
-firebase use superparty-frontend
+supabase use superparty-frontend
 ```
 
 Sau dacă nu există:
 
 ```bash
-firebase projects:list
-firebase use <project-id>
+supabase projects:list
+supabase use <project-id>
 ```
 
 ### Pas 3: Deploy Functions (5-10 min)
 
 ```bash
 cd /workspaces/Aplicatie-SuperpartyByAi
-firebase deploy --only functions
+supabase deploy --only functions
 ```
 
 **Output așteptat:**
@@ -138,8 +138,8 @@ După deploy, verifică:
 
    Trebuie să returneze `{"status":"online",...}`
 
-2. **Firestore e configurat:**
-   - Firebase Console → Firestore Database
+2. **Database e configurat:**
+   - Supabase Console → Database Database
    - Trebuie să existe colecția `whatsapp_sessions`
 
 3. **QR codes se generează:**
@@ -184,16 +184,16 @@ curl -X POST .../api/whatsapp/add-account \
 
 ## 🐛 Troubleshooting
 
-### Problema: "firebase: command not found"
+### Problema: "supabase: command not found"
 
 ```bash
-npm install -g firebase-tools
+npm install -g supabase-tools
 ```
 
 ### Problema: "Cannot run login in non-interactive mode"
 
 ```bash
-firebase login --no-localhost
+supabase login --no-localhost
 ```
 
 Apoi deschide link-ul în browser.
@@ -201,7 +201,7 @@ Apoi deschide link-ul în browser.
 ### Problema: "No project active"
 
 ```bash
-firebase use superparty-frontend
+supabase use superparty-frontend
 ```
 
 ### Problema: "Pairing code invalid"
@@ -212,9 +212,9 @@ firebase use superparty-frontend
 
 **Verifică:**
 
-1. Firestore e activat în Firebase Console
+1. Database e activat în Supabase Console
 2. Există colecția `whatsapp_sessions`
-3. Vezi în logs: "💾 Session saved to Firestore"
+3. Vezi în logs: "💾 Session saved to Database"
 
 ---
 
@@ -222,14 +222,14 @@ firebase use superparty-frontend
 
 După deploy:
 
-- ✅ WhatsApp pe Firebase Functions (1st Gen)
+- ✅ WhatsApp pe Supabase Functions (1st Gen)
 - ✅ QR codes funcționează 100%
-- ✅ Sessions persistă în Firestore
+- ✅ Sessions persistă în Database
 - ✅ Conturile rămân în listă după restart
 - ✅ Până la 20 conturi simultane
 - ✅ 0% risc ban (folosește Baileys oficial)
 
-**Cost:** $0-2/lună (Firebase free tier)
+**Cost:** $0-2/lună (Supabase free tier)
 
 ---
 
@@ -239,7 +239,7 @@ După deploy:
 
 1. Adaugă 20 conturi WhatsApp
 2. Testează trimitere mesaje
-3. Monitorizează în Firebase Console → Functions → Logs
-4. Verifică Firestore → `whatsapp_sessions` collection
+3. Monitorizează în Supabase Console → Functions → Logs
+4. Verifică Database → `whatsapp_sessions` collection
 
-**Gata! WhatsApp REAL și STABIL pe Firebase!** 🎉
+**Gata! WhatsApp REAL și STABIL pe Supabase!** 🎉

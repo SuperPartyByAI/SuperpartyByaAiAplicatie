@@ -1,4 +1,4 @@
-# Firestore Backup — Setup & Restore
+# Database Backup — Setup & Restore
 
 ## Configurare
 
@@ -29,18 +29,18 @@ gsutil lifecycle set /tmp/lifecycle.json gs://superparty-frontend-backups
 # Adaugă în crontab (rulează zilnic la 02:00)
 sudo crontab -e
 # Adaugă linia:
-0 2 * * * /opt/superparty/scripts/firestore-backup.sh >> /var/log/firestore-backup.log 2>&1
+0 2 * * * /opt/superparty/scripts/database-backup.sh >> /var/log/database-backup.log 2>&1
 ```
 
 ### 4. SAU Cloud Scheduler (GCP Console)
 
 ```bash
-gcloud scheduler jobs create http firestore-daily-backup \
+gcloud scheduler jobs create http database-daily-backup \
   --schedule="0 2 * * *" \
-  --uri="https://firestore.googleapis.com/v1/projects/superparty-frontend/databases/(default)/exportDocuments" \
+  --uri="https://database.googleapis.com/v1/projects/superparty-frontend/databases/(default)/exportDocuments" \
   --http-method=POST \
   --message-body='{"outputUriPrefix":"gs://superparty-frontend-backups/daily"}' \
-  --oauth-service-account-email=firebase-adminsdk-xxxxx@superparty-frontend.iam.gserviceaccount.com \
+  --oauth-service-account-email=supabase-adminsdk-xxxxx@superparty-frontend.iam.gserviceaccount.com \
   --time-zone="Europe/Bucharest" \
   --location=europe-west1
 ```
@@ -58,14 +58,14 @@ gsutil ls gs://superparty-frontend-backups/
 ### 2. Restore din backup
 
 ```bash
-gcloud firestore import gs://superparty-frontend-backups/2026-02-26_0200 \
+gcloud database import gs://superparty-frontend-backups/2026-02-26_0200 \
   --project=superparty-frontend
 ```
 
 ### 3. Verifică status
 
 ```bash
-gcloud firestore operations list --project=superparty-frontend
+gcloud database operations list --project=superparty-frontend
 ```
 
 ---
@@ -76,4 +76,4 @@ gcloud firestore operations list --project=superparty-frontend
 - [ ] Setează lifecycle rule 30 zile
 - [ ] Configurează Cloud Scheduler SAU cron pe server
 - [ ] Verifică IAM permissions: service account necesită `roles/datastore.importExportAdmin` + write pe bucket
-- [ ] Testează un export manual: `bash scripts/firestore-backup.sh`
+- [ ] Testează un export manual: `bash scripts/database-backup.sh`

@@ -22,11 +22,11 @@
 ### ✅ Null Safety
 
 - [ ] No `!` operators on:
-  - `FirebaseAuth.instance.currentUser`
+  - `SupabaseAuth.instance.currentUser`
   - `ModalRoute.of(context)`
   - `settings.arguments`
   - `child` in builder
-- [ ] Firestore parsing uses safe defaults
+- [ ] Database parsing uses safe defaults
 - [ ] Missing user → Login/Loader with clear message
 
 ### ✅ Build() Purity
@@ -65,8 +65,8 @@ flutter run -d web-server --web-port=5051
 - ✅ No "Unexpected null value"
 - ✅ Console shows:
   ```
-  [Main] Initializing Firebase...
-  [Main] ✅ Firebase initialized successfully
+  [Main] Initializing Supabase...
+  [Main] ✅ Supabase initialized successfully
   [ROUTE] Raw: /#/evenimente
   [ROUTE] Normalized: /evenimente
   ```
@@ -169,10 +169,10 @@ flutter run -d web-server --web-port=5051
 
 ### Error Handling Tests
 
-#### Test 7: Firebase Init Timeout
+#### Test 7: Supabase Init Timeout
 
 ```bash
-# Simulate slow Firebase init (disconnect network briefly)
+# Simulate slow Supabase init (disconnect network briefly)
 ```
 
 **Expected:**
@@ -185,7 +185,7 @@ flutter run -d web-server --web-port=5051
 
 ---
 
-#### Test 8: Firestore Parse Error
+#### Test 8: Database Parse Error
 
 ```bash
 # Create event with missing required field
@@ -355,7 +355,7 @@ flutter run -d windows
 **Check:**
 
 - No `!` operators? ✅
-- Safe Firestore parsing? ✅
+- Safe Database parsing? ✅
 - User null checks? ✅
 
 ### Issue: Rebuild loop

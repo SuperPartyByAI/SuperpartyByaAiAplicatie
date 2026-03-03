@@ -122,9 +122,9 @@ def detect_account_id_from_logs():
     return None
 
 
-def detect_account_id_from_firestore(env):
-    sa_json = env.get("FIREBASE_SERVICE_ACCOUNT_JSON")
-    sa_path = env.get("FIREBASE_SERVICE_ACCOUNT_PATH") or env.get("GOOGLE_APPLICATION_CREDENTIALS")
+def detect_account_id_from_database(env):
+    sa_json = env.get("SUPABASE_SERVICE_ACCOUNT_JSON")
+    sa_path = env.get("SUPABASE_SERVICE_ACCOUNT_PATH") or env.get("GOOGLE_APPLICATION_CREDENTIALS")
     temp_path = None
     if sa_json and sa_json.strip().startswith("{"):
         fd, temp_path = tempfile.mkstemp(prefix="sa_", suffix=".json")
@@ -137,14 +137,14 @@ def detect_account_id_from_firestore(env):
     account_id = None
     if sa_path and os.path.isfile(sa_path):
         node_script = """
-const admin = require('firebase-admin');
+const admin = require('supabase-admin');
 const fs = require('fs');
 const path = process.argv[1];
 const raw = fs.readFileSync(path, 'utf8');
 const sa = JSON.parse(raw);
 if (sa.private_key) sa.private_key = sa.private_key.replace(/\\\\n/g, '\\n');
 admin.initializeApp({ credential: admin.credential.cert(sa) });
-const db = admin.firestore();
+const db = admin.database();
 (async () => {
   const snapshot = await db.collection('wa_accounts').where('status','==','connected').limit(1).get();
   if (!snapshot.empty) {
@@ -192,7 +192,7 @@ def main():
 
     account_id = detect_account_id_from_logs()
     if not account_id:
-        account_id = detect_account_id_from_firestore(env)
+        account_id = detect_account_id_from_database(env)
 
     if not account_id:
         print("Admin endpoints authorized: yes")

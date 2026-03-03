@@ -1,19 +1,19 @@
-# Firestore Retention + CRM Profile Plan
+# Database Retention + CRM Profile Plan
 
 **Date:** 2026-01-17  
 **Goal:** 
-1. **Firestore nu șterge niciodată conversațiile** (retention policy)
+1. **Database nu șterge niciodată conversațiile** (retention policy)
 2. **AI construiește profil CRM per client** (orders, parties, characters, revenue)
 
 ---
 
-## ✅ **1. Firestore Retention (Conversațiile Rămân Forever)**
+## ✅ **1. Database Retention (Conversațiile Rămân Forever)**
 
 ### 1.1 Verificare TTL Policy
 
-**Firestore Console Check:**
+**Database Console Check:**
 ```
-Firebase Console → Firestore Database → Data → TTL
+Supabase Console → Database Database → Data → TTL
 ```
 
 **Asigură-te că NU ai TTL activ pe:**
@@ -44,8 +44,8 @@ db.collection('accounts').doc(accountId).delete() // Account management (opțion
 
 **Recomandare:**
 ```bash
-# Periodic export (via gcloud/firebase-tools)
-firebase firestore:export gs://your-bucket/firestore-backup-$(date +%Y%m%d)
+# Periodic export (via gcloud/supabase-tools)
+supabase database:export gs://your-bucket/database-backup-$(date +%Y%m%d)
 
 # Sau programat în Cloud Scheduler:
 # - Daily export → GCS
@@ -56,7 +56,7 @@ firebase firestore:export gs://your-bucket/firestore-backup-$(date +%Y%m%d)
 - Conversațiile cresc nelimitat → costuri cresc
 - Mitigare:
   - Păstrezi mesajele, dar **NU salvezi payload-uri uriașe** în `raw` field
-  - Body limitat la 10,000 chars (deja implementat în `saveMessageToFirestore`) ✅
+  - Body limitat la 10,000 chars (deja implementat în `saveMessageToDatabase`) ✅
   - Media URLs (nu binary) - doar metadata
   - Agregări CRM separate (mult mai mic decât chat-ul complet)
 
@@ -64,7 +64,7 @@ firebase firestore:export gs://your-bucket/firestore-backup-$(date +%Y%m%d)
 
 ## ✅ **2. CRM Profile per Client (AI Pipeline)**
 
-### 2.1 Schema Firestore (Stabilă & Scalabilă)
+### 2.1 Schema Database (Stabilă & Scalabilă)
 
 #### **Collection: `customers`**
 ```
@@ -148,7 +148,7 @@ customers/{customerId}/events/{eventId}
   - eventType: string
   - address: string
   - feedback?: string
-  - photos?: string[] (GCS/Firebase Storage URLs)
+  - photos?: string[] (GCS/Supabase Storage URLs)
   - createdAt: timestamp
 ```
 
@@ -160,7 +160,7 @@ customers/{customerId}/events/{eventId}
 
 **Opțiunea A (Recomandat): Cloud Function / Cloud Run Trigger**
 
-**Trigger:** Firestore `onCreate` pe `threads/{threadId}/messages/{messageId}`
+**Trigger:** Database `onCreate` pe `threads/{threadId}/messages/{messageId}`
 
 **Flow:**
 1. Cloud Function detectează mesaj nou
@@ -181,7 +181,7 @@ customers/{customerId}/events/{eventId}
 
 #### **Opțiunea B: Backend Node.js Worker (Intern)**
 
-**Trigger:** În handler-ul `messages.upsert`, după `saveMessageToFirestore()`
+**Trigger:** În handler-ul `messages.upsert`, după `saveMessageToDatabase()`
 
 **Flow:**
 1. După salvare mesaj → verifică dacă merită AI (reguli simple)
@@ -249,7 +249,7 @@ async function upsertCustomerProfile(customerId, accountId, clientJid, extractio
   const updates = {
     accountId,
     clientJid,
-    lastMessageAt: admin.firestore.FieldValue.serverTimestamp(),
+    lastMessageAt: admin.database.FieldValue.serverTimestamp(),
   };
   
   if (extraction.intent === 'order' && extraction.entities) {
@@ -257,18 +257,18 @@ async function upsertCustomerProfile(customerId, accountId, clientJid, extractio
     
     // Update stats
     if (amount) {
-      updates['stats.totalRevenue'] = admin.firestore.FieldValue.increment(amount);
-      updates['stats.totalOrders'] = admin.firestore.FieldValue.increment(1);
+      updates['stats.totalRevenue'] = admin.database.FieldValue.increment(amount);
+      updates['stats.totalOrders'] = admin.database.FieldValue.increment(1);
       updates['stats.currency'] = extraction.entities.currency || 'RON';
-      updates['lastOrderAt'] = admin.firestore.FieldValue.serverTimestamp();
+      updates['lastOrderAt'] = admin.database.FieldValue.serverTimestamp();
     }
     
     // Update preferences
     if (characters && characters.length > 0) {
-      updates['preferences.favoriteCharacters'] = admin.firestore.FieldValue.arrayUnion(...characters);
+      updates['preferences.favoriteCharacters'] = admin.database.FieldValue.arrayUnion(...characters);
     }
     if (location) {
-      updates['preferences.locations'] = admin.firestore.FieldValue.arrayUnion(location);
+      updates['preferences.locations'] = admin.database.FieldValue.arrayUnion(location);
     }
     
     // Create/update order doc
@@ -278,7 +278,7 @@ async function upsertCustomerProfile(customerId, accountId, clientJid, extractio
         orderId,
         customerId,
         accountId,
-        eventDate: date ? admin.firestore.Timestamp.fromDate(new Date(date)) : null,
+        eventDate: date ? admin.database.Timestamp.fromDate(new Date(date)) : null,
         eventType: eventType || null,
         address: location || null,
         total: amount || null,
@@ -286,9 +286,9 @@ async function upsertCustomerProfile(customerId, accountId, clientJid, extractio
         characters: characters ? characters.map(name => ({ name, qty: 1 })) : [],
         status: 'lead',
         sourceMessageIds: [extraction.messageId],
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
-        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
-        extractedAt: admin.firestore.FieldValue.serverTimestamp(),
+        createdAt: admin.database.FieldValue.serverTimestamp(),
+        updatedAt: admin.database.FieldValue.serverTimestamp(),
+        extractedAt: admin.database.FieldValue.serverTimestamp(),
         extractedBy: 'ai',
         confidence: extraction.confidence,
       }, { merge: true });
@@ -347,7 +347,7 @@ Response: {
   - Nu salva PII fără scop explicit (telefon, adresă doar dacă e necesar pentru order)
 
 #### **Recomandare implementare:**
-1. **Phase 1:** Schema Firestore (`customers` + `orders` + `extractions`)
+1. **Phase 1:** Schema Database (`customers` + `orders` + `extractions`)
 2. **Phase 2:** Quick check + AI extraction (Cloud Function sau backend worker)
 3. **Phase 3:** Flutter UI pentru CRM profile
 4. **Phase 4:** Manual override + human review flow
@@ -356,10 +356,10 @@ Response: {
 
 ## 📋 **Checklist Implementare**
 
-### Firestore Retention
-- [ ] Verifică TTL în Firestore Console → confirmă că NU e activ pe `threads`/`messages`
+### Database Retention
+- [ ] Verifică TTL în Database Console → confirmă că NU e activ pe `threads`/`messages`
 - [ ] Verifică cod pentru `.delete()` calls → elimina din fluxuri normale
-- [ ] Setează backup periodic (Cloud Scheduler + Firestore export → GCS)
+- [ ] Setează backup periodic (Cloud Scheduler + Database export → GCS)
 
 ### CRM Schema
 - [ ] Creează `customers` collection (structură documentată)

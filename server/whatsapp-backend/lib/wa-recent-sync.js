@@ -1,6 +1,6 @@
 /**
  * Recent-sync (gap-filler): periodic lightweight fetch of last N messages from recent threads.
- * Complements realtime (messages.upsert) and full backfill. Uses Firestore lease per account.
+ * Complements realtime (messages.upsert) and full backfill. Uses Database lease per account.
  *
  * Env: RECENT_SYNC_ENABLED, RECENT_SYNC_INTERVAL_MS, RECENT_SYNC_LOOKBACK_MS,
  *      RECENT_SYNC_MAX_THREADS, RECENT_SYNC_MAX_MESSAGES_PER_THREAD, RECENT_SYNC_MAX_CONCURRENCY.
@@ -37,7 +37,7 @@ function toDate(v) {
 
 /**
  * @param {object} ctx
- * @param {import('@google-cloud/firestore').Firestore} ctx.db
+ * @param {import('@google-cloud/database').Database} ctx.db
  * @param {() => object} ctx.timestamp
  * @param {string} ctx.instanceId
  * @param {() => Promise<boolean>} ctx.isPassive

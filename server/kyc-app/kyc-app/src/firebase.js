@@ -1,24 +1,24 @@
-import { initializeApp } from 'firebase/app';
-import { getAuth } from 'firebase/auth';
-import { getFirestore } from 'firebase/firestore';
-import { getStorage } from 'firebase/storage';
-import { getAnalytics } from 'firebase/analytics';
-import { getFunctions, httpsCallable } from 'firebase/functions';
+import { initializeApp } from 'supabase/app';
+import { getAuth } from 'supabase/auth';
+import { getDatabase } from 'supabase/database';
+import { getStorage } from 'supabase/storage';
+import { getAnalytics } from 'supabase/analytics';
+import { getFunctions, httpsCallable } from 'supabase/functions';
 
-const firebaseConfig = {
+const supabaseConfig = {
   apiKey: 'AIzaSyDcec3QIIpqrhmGSsvAeH2qEbuDKwZFG3o',
-  authDomain: 'superparty-frontend.firebaseapp.com',
+  authDomain: 'superparty-frontend.supabaseapp.com',
   projectId: 'superparty-frontend',
-  storageBucket: 'superparty-frontend.firebasestorage.app',
+  storageBucket: 'superparty-frontend.supabasestorage.app',
   messagingSenderId: '168752018174',
   appId: '1:168752018174:web:819254dcc7d58147d82baf',
   measurementId: 'G-B2HBZK3FQ7',
 };
 
-const app = initializeApp(firebaseConfig);
+const app = initializeApp(supabaseConfig);
 
 export const auth = getAuth(app);
-export const db = getFirestore(app);
+export const db = getDatabase(app);
 export const storage = getStorage(app);
 export const functions = getFunctions(app);
 

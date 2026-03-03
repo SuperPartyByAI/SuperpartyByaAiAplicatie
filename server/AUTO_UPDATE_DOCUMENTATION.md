@@ -18,7 +18,7 @@ Sistem de auto-update pentru Flutter app care:
 ```
 1. User deschide app
    ↓
-2. App verifică versiune în Firestore
+2. App verifică versiune în Database
    ↓
 3. Versiune nouă detectată (build number mai mare)
    ↓
@@ -26,7 +26,7 @@ Sistem de auto-update pentru Flutter app care:
    ↓
 5. User apasă "Actualizează Acum"
    ↓
-6. App deconectează userul (FirebaseAuth.signOut())
+6. App deconectează userul (SupabaseAuth.signOut())
    ↓
 7. Salvează flag în SharedPreferences: pending_update = true
    ↓
@@ -135,7 +135,7 @@ class _AuthWrapperState extends State<AuthWrapper> {
 
 ---
 
-## 🗄️ STRUCTURA FIRESTORE
+## 🗄️ STRUCTURA DATABASE
 
 ### Collection: `app_config`
 
@@ -180,10 +180,10 @@ dependencies:
 flutter pub get
 ```
 
-### Pas 2: Configurează Firestore (Admin)
+### Pas 2: Configurează Database (Admin)
 
 ```dart
-// Rulează o singură dată (de pe un device admin sau din Firebase Console)
+// Rulează o singură dată (de pe un device admin sau din Supabase Console)
 await AutoUpdateService.initializeVersionConfig(
   minVersion: '1.0.1',
   minBuildNumber: 2,
@@ -194,10 +194,10 @@ await AutoUpdateService.initializeVersionConfig(
 );
 ```
 
-**SAU din Firebase Console:**
+**SAU din Supabase Console:**
 
 ```
-Firestore → app_config → version → Add document:
+Database → app_config → version → Add document:
 {
   "min_version": "1.0.1",
   "min_build_number": 2,
@@ -232,7 +232,7 @@ flutter build ios --build-number=2 --build-name=1.0.1
 **Android (Direct APK):**
 
 ```
-1. Upload APK pe server (ex: Firebase Storage, AWS S3)
+1. Upload APK pe server (ex: Supabase Storage, AWS S3)
 2. URL: https://example.com/superparty-v1.0.1.apk
 ```
 
@@ -253,7 +253,7 @@ flutter build ios --build-number=2 --build-name=1.0.1
 **Setup:**
 
 ```dart
-// Firestore: app_config/version
+// Database: app_config/version
 {
   "min_build_number": 999,  // Mai mare decât versiunea ta
   "force_update": true
@@ -306,7 +306,7 @@ pending_update = true
 **Setup:**
 
 ```dart
-// Firestore: app_config/version
+// Database: app_config/version
 {
   "min_build_number": 1,  // Mai mic decât versiunea ta
   "force_update": false
@@ -352,11 +352,11 @@ final hasPending = prefs.getBool('pending_update') ?? false;
 print('Pending update: $hasPending');
 ```
 
-### Verificare Firestore
+### Verificare Database
 
 ```dart
 // Debug: Verifică configurația
-final doc = await FirebaseFirestore.instance
+final doc = await SupabaseDatabase.instance
     .collection('app_config')
     .doc('version')
     .get();
@@ -370,7 +370,7 @@ print('Version config: ${doc.data()}');
 ### Mesaje Personalizate
 
 ```dart
-// Firestore: app_config/version
+// Database: app_config/version
 {
   "update_message": "🎉 Versiune nouă cu:\n• Bug fixes\n• Performance improvements\n• New features"
 }
@@ -379,7 +379,7 @@ print('Version config: ${doc.data()}');
 ### Update Opțional (Nu Forțat)
 
 ```dart
-// Firestore: app_config/version
+// Database: app_config/version
 {
   "force_update": false  // User poate ignora update-ul
 }
@@ -394,7 +394,7 @@ print('Version config: ${doc.data()}');
 ### URL-uri Diferite per Platformă
 
 ```dart
-// Firestore: app_config/version
+// Database: app_config/version
 {
   "android_download_url": "https://play.google.com/store/apps/...",
   "ios_download_url": "https://apps.apple.com/app/...",
@@ -417,13 +417,13 @@ if (Platform.isAndroid) {
 
 ### Problema: Dialog nu apare
 
-**Cauză:** Configurația lipsește din Firestore
+**Cauză:** Configurația lipsește din Database
 
 **Soluție:**
 
 ```dart
-// Verifică în Firebase Console
-Firestore → app_config → version → Există?
+// Verifică în Supabase Console
+Database → app_config → version → Există?
 
 // Dacă nu există, creează:
 await AutoUpdateService.initializeVersionConfig(
@@ -589,10 +589,10 @@ Fiecare release → build number +1
 
 ```
 1. Build versiune nouă (build number +1)
-2. Configurează Firestore cu build number vechi
+2. Configurează Database cu build number vechi
 3. Testează flow-ul complet
 4. Publică pe store
-5. Actualizează Firestore cu build number nou
+5. Actualizează Database cu build number nou
 ```
 
 ### 5. Backup Plan
@@ -613,11 +613,11 @@ await AutoUpdateService.initializeVersionConfig(
 ### Tracking Update-uri
 
 ```dart
-// Adaugă în Firestore când user actualizează
-await FirebaseFirestore.instance
+// Adaugă în Database când user actualizează
+await SupabaseDatabase.instance
     .collection('update_logs')
     .add({
-  'user_id': FirebaseAuth.instance.currentUser?.uid,
+  'user_id': SupabaseAuth.instance.currentUser?.uid,
   'old_version': '1.0.0',
   'new_version': '1.0.1',
   'old_build': 1,
@@ -629,8 +629,8 @@ await FirebaseFirestore.instance
 ### Analytics
 
 ```dart
-// Firebase Analytics
-await FirebaseAnalytics.instance.logEvent(
+// Supabase Analytics
+await SupabaseAnalytics.instance.logEvent(
   name: 'app_update',
   parameters: {
     'old_version': '1.0.0',
@@ -654,7 +654,7 @@ await FirebaseAnalytics.instance.logEvent(
 
 ### După Release:
 
-- [ ] Actualizează Firestore cu build number nou
+- [ ] Actualizează Database cu build number nou
 - [ ] Testează flow-ul de update pe device vechi
 - [ ] Monitorizează logs pentru erori
 - [ ] Verifică că userii actualizează

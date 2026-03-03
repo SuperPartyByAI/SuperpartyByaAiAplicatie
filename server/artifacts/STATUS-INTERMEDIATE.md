@@ -17,11 +17,11 @@
 
 - **Fix Applied:** makeInMemoryStore
 - **Evidence:** Message AC9F58710C77F1073D10A2ECEDA278E4 with direction=inbound
-- **Firestore:** threads/153407742578775@lid/messages/AC9F58710C77F1073D10A2ECEDA278E4
+- **Database:** threads/153407742578775@lid/messages/AC9F58710C77F1073D10A2ECEDA278E4
 
 ### ✅ FAZA 2: COLD START RECOVERY - PASS
 
-- **Evidence:** 2 accounts restored from Firestore
+- **Evidence:** 2 accounts restored from Database
 - Account 1: account_1767031103153 (40792864811) - connected
 - Account 2: account_1767031472746 (40737571397) - connected
 

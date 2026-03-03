@@ -10,9 +10,9 @@
 
 **STATUS**: **READY FOR MANUAL ACCEPTANCE TESTS**
 
-**BLOCKERS REMAINING**: **2 CRITICAL** (require manual action in Firebase Console)
+**BLOCKERS REMAINING**: **2 CRITICAL** (require manual action in Supabase Console)
 
-**FIXES APPLIED**: **2 CRITICAL** (region mismatch + firebase.json)
+**FIXES APPLIED**: **2 CRITICAL** (region mismatch + supabase.json)
 
 ---
 
@@ -25,14 +25,14 @@ Status: Up to date with origin/audit-whatsapp-30
 Recent commit: e34cab54 fix(flutter): update callable region to europe-west1
 ```
 
-### Firebase Functions List
+### Supabase Functions List
 **All functions deployed in**: `us-central1`
 
 | Function | Version | Type | Region | Memory | Runtime |
 |----------|---------|------|--------|--------|---------|
 | whatsappExtractEventFromThread | v2 | callable | us-central1 | 512MB | nodejs20 |
 | clientCrmAsk | v2 | callable | us-central1 | 512MB | nodejs20 |
-| aggregateClientStats | v2 | firestore.written | us-central1 | 256MB | nodejs20 |
+| aggregateClientStats | v2 | database.written | us-central1 | 256MB | nodejs20 |
 | whatsappProxyGetAccounts | v2 | https | us-central1 | 256MB | nodejs20 |
 | whatsappProxyAddAccount | v2 | https | us-central1 | 256MB | nodejs20 |
 | whatsappProxySend | v2 | https | us-central1 | 256MB | nodejs20 |
@@ -45,7 +45,7 @@ Recent commit: e34cab54 fix(flutter): update callable region to europe-west1
 ```json
 {
   "status": "healthy",
-  "firestore": {
+  "database": {
     "status": "connected"
   },
   "accounts": {
@@ -69,14 +69,14 @@ Recent commit: e34cab54 fix(flutter): update callable region to europe-west1
 
 **Change**:
 ```diff
-- final functions = FirebaseFunctions.instanceFor(region: 'europe-west1');
-+ final functions = FirebaseFunctions.instanceFor(region: 'us-central1');
+- final functions = SupabaseFunctions.instanceFor(region: 'europe-west1');
++ final functions = SupabaseFunctions.instanceFor(region: 'us-central1');
 ```
 
 **Result**: ✅ Region now matches deployment
 
-### FIX 2: FIREBASE.JSON PREDEPLOY HOOKS
-**File**: `firebase.json`  
+### FIX 2: SUPABASE.JSON PREDEPLOY HOOKS
+**File**: `supabase.json`  
 **Issue**: No build hooks → "dist/index.js missing" warnings in function startup logs  
 **Impact**: Potential deployment failures, confusing error logs
 
@@ -114,13 +114,13 @@ whatsapp  v1  https  us-central1  2048MB  nodejs20
 ```
 
 **Resolution**:
-1. Open: https://console.firebase.google.com/project/superparty-frontend/functions
+1. Open: https://console.supabase.google.com/project/superparty-frontend/functions
 2. Filter: "1st gen" or search "whatsapp"
 3. Find: `whatsapp` (v1, 2048MB)
 4. Click: **Delete** → Confirm
-5. Verify: Run `firebase functions:list | grep "^whatsapp"` → should show ONLY v2 functions
+5. Verify: Run `supabase functions:list | grep "^whatsapp"` → should show ONLY v2 functions
 
-**Why Manual**: Firebase CLI cannot delete v1 functions; requires Console UI action.
+**Why Manual**: Supabase CLI cannot delete v1 functions; requires Console UI action.
 
 ---
 
@@ -133,7 +133,7 @@ whatsapp  v1  https  us-central1  2048MB  nodejs20
 - Current: No `role` field OR `role != "admin"`
 
 **Resolution**:
-1. Open: https://console.firebase.google.com/project/superparty-frontend/firestore/data/~2Fusers~2FFBQUjlK2dFNjv9uvUOseV85uXmE3
+1. Open: https://console.supabase.google.com/project/superparty-frontend/database/data/~2Fusers~2FFBQUjlK2dFNjv9uvUOseV85uXmE3
 2. If document doesn't exist:
    - Click: **+ Add document**
    - Document ID: `FBQUjlK2dFNjv9uvUOseV85uXmE3`
@@ -144,7 +144,7 @@ whatsapp  v1  https  us-central1  2048MB  nodejs20
 4. Save
 5. **In Flutter app**: Hot reload (`r` in terminal) or restart app
 
-**Why Manual**: No service account key available for automated Firebase Admin SDK write.
+**Why Manual**: No service account key available for automated Supabase Admin SDK write.
 
 ---
 
@@ -152,7 +152,7 @@ whatsapp  v1  https  us-central1  2048MB  nodejs20
 
 ### Modified (9 files)
 ```
-firebase.json                                              (predeploy hooks)
+supabase.json                                              (predeploy hooks)
 functions/src/index.ts                                     (tempSetAdmin export)
 superparty_flutter/lib/services/whatsapp_api_service.dart (region fix)
 superparty_flutter/ios/Podfile                             (iOS build fixes)
@@ -197,7 +197,7 @@ flutter run -d emulator-5554
 4. **Send** (app → client)
 5. **Restart Safety** (legacy hosting restart, no data loss)
 6. **CRM Extract** (draft event)
-7. **CRM Save** (create event in Firestore)
+7. **CRM Save** (create event in Database)
 8. **CRM Aggregate** (automatic trigger, verify clients update)
 9. **CRM Ask AI** (verify AI answer matches data)
 
@@ -212,15 +212,15 @@ flutter run -d emulator-5554
 **Emulator Impact**: Uses placeholder token (functional)  
 **Action**: Safe to ignore for testing; can enable for production later
 
-### Firebase CLI Log Syntax
+### Supabase CLI Log Syntax
 **CORRECT**:
 ```bash
-firebase functions:log --only functionName --lines 200
+supabase functions:log --only functionName --lines 200
 ```
 
 **INCORRECT** (will error):
 ```bash
-firebase functions:log --only functionName --lines 200  # ❌ Invalid
+supabase functions:log --only functionName --lines 200  # ❌ Invalid
 ```
 
 ### Cleanup After Testing
@@ -237,14 +237,14 @@ firebase functions:log --only functionName --lines 200  # ❌ Invalid
 ## 🎯 FINAL STATUS
 
 ### BLOCKERS
-**Count**: **2 CRITICAL** (both require Firebase Console action)
+**Count**: **2 CRITICAL** (both require Supabase Console action)
 
 1. ❌ Delete old v1 "whatsapp" function
 2. ❌ Set admin role for user FBQUjlK2dFNjv9uvUOseV85uXmE3
 
 ### READY
 - ✅ Region consistency: ALL callables → us-central1
-- ✅ Firebase.json: predeploy hooks added
+- ✅ Supabase.json: predeploy hooks added
 - ✅ Flutter analysis: PASS
 - ✅ legacy hosting backend: HEALTHY
 - ✅ Android emulator: RUNNING (emulator-5554)

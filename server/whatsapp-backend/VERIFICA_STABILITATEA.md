@@ -32,7 +32,7 @@ curl -H "Authorization: Bearer $ADMIN_TOKEN" \
 - Deschide: https://legacy hosting.app/project
 - Selectează proiectul "Whats Upp"
 - Click pe service → Logs
-- Caută: `restore.*Firestore` sau `Session restored`
+- Caută: `restore.*Database` sau `Session restored`
 
 **Opțiunea 2: legacy hosting CLI (dacă e linkat)**
 ```bash
@@ -41,11 +41,11 @@ cd whatsapp-backend
 legacy hosting link
 
 # Apoi verifică logurile:
-legacy hosting logs | grep -i "restore.*Firestore\|Session restored" | tail -20
+legacy hosting logs | grep -i "restore.*Database\|Session restored" | tail -20
 ```
 
 **Rezultat OK:**
-- Apare `"Session restored from Firestore"` doar la redeploy/crash
+- Apare `"Session restored from Database"` doar la redeploy/crash
 - NU apare frecvent (dacă apare constant = problemă)
 
 ---
@@ -65,11 +65,11 @@ legacy hosting logs | grep -i "restore.*Firestore\|Session restored" | tail -20
 
 **Pas 3:** Verifică restore în loguri:
 - În legacy hosting Dashboard → Logs
-- SAU: `legacy hosting logs | grep -i "restore.*Firestore" | tail -10`
+- SAU: `legacy hosting logs | grep -i "restore.*Database" | tail -10`
 
 **✅ SUCCESS dacă:**
-- Apare `"🔄 [account_xxx] Disk session missing, attempting Firestore restore..."`
-- Apare `"✅ [account_xxx] Session restored from Firestore (X files)"`
+- Apare `"🔄 [account_xxx] Disk session missing, attempting Database restore..."`
+- Apare `"✅ [account_xxx] Session restored from Database (X files)"`
 - Accounts rămân `"connected"` (NU trebuie QR nou)
 
 ---
@@ -105,6 +105,6 @@ echo "Accounts:" && curl -s -H "Authorization: Bearer $ADMIN_TOKEN" \
 # Opțiunea 1: legacy hosting Dashboard → Logs → Search "restore"
 # Opțiunea 2: legacy hosting CLI (dacă e linkat)
 echo "Recent restores:" && legacy hosting logs | \
-  grep -c "restore.*Firestore" || echo "None (good - session stable)"
+  grep -c "restore.*Database" || echo "None (good - session stable)"
 ```
 

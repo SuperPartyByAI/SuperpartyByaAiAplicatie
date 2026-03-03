@@ -3,7 +3,7 @@
  * Restart-safe, idempotent, distributed lock, gap detection, Telegram alerts
  */
 
-const admin = require('firebase-admin');
+/* supabase admin removed */
 const TelegramAlerts = require('./telegram-alerts');
 
 let db;
@@ -17,8 +17,8 @@ const HEARTBEAT_INTERVAL_SEC = 60;
 const LOCK_LEASE_SEC = 120;
 const LOCK_RENEW_SEC = 60;
 
-async function initJobs(firestoreDb, baseUrl) {
-  db = firestoreDb;
+async function initJobs(databaseDb, baseUrl) {
+  db = databaseDb;
   instanceId = process.env.INSTANCE_ID || process.env.DEPLOYMENT_ID || process.env.HOSTNAME || `local-${Date.now()}`;
 
   console.log(`🔧 Initializing long-run jobs (instanceId: ${instanceId})`);
@@ -71,7 +71,7 @@ async function initConfig(baseUrl) {
       },
       commitHash: process.env.GIT_COMMIT_SHA?.slice(0, 8) || 'unknown',
       serviceVersion: '2.0.0',
-      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.database.new Date(),
     });
 
     console.log('✅ Config initialized');
@@ -97,7 +97,7 @@ async function acquireLock(lockName) {
       transaction.set(lockRef, {
         holderInstanceId: instanceId,
         leaseUntilTs: leaseUntil,
-        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt: admin.database.new Date(),
       });
     });
 
@@ -122,7 +122,7 @@ function startLockRenew() {
 
       await lockRef.update({
         leaseUntilTs: leaseUntil,
-        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt: admin.database.new Date(),
       });
 
       console.log('🔒 Lock renewed');
@@ -159,7 +159,7 @@ function startHeartbeatJob() {
         .collection('heartbeats')
         .doc(bucketId)
         .set({
-          ts: admin.firestore.FieldValue.serverTimestamp(),
+          ts: admin.database.new Date(),
           tsIso: now.toISOString(),
           bucketId,
           commitHash: process.env.GIT_COMMIT_SHA?.slice(0, 8) || 'unknown',
@@ -222,7 +222,7 @@ async function runOutboundProbe() {
     await probeRef.set({
       probeKey,
       type: 'outbound',
-      ts: admin.firestore.FieldValue.serverTimestamp(),
+      ts: admin.database.new Date(),
       tsIso: now.toISOString(),
       result: 'PASS',
       latencyMs: Date.now() - startTs,
@@ -243,7 +243,7 @@ async function runOutboundProbe() {
       .set({
         probeKey,
         type: 'outbound',
-        ts: admin.firestore.FieldValue.serverTimestamp(),
+        ts: admin.database.new Date(),
         result: 'FAIL',
         error: error.message,
         latencyMs: Date.now() - startTs,
@@ -272,7 +272,7 @@ async function runQueueProbe() {
     await probeRef.set({
       probeKey,
       type: 'queue',
-      ts: admin.firestore.FieldValue.serverTimestamp(),
+      ts: admin.database.new Date(),
       tsIso: now.toISOString(),
       result: 'PASS',
       instanceId,
@@ -307,7 +307,7 @@ async function runInboundProbe() {
     await probeRef.set({
       probeKey,
       type: 'inbound',
-      ts: admin.firestore.FieldValue.serverTimestamp(),
+      ts: admin.database.new Date(),
       tsIso: now.toISOString(),
       result: 'PASS',
       instanceId,
@@ -467,7 +467,7 @@ async function runDailyRollup() {
       commitHash: process.env.GIT_COMMIT_SHA?.slice(0, 8) || 'unknown',
       serviceVersion: '2.0.0',
       instanceId,
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      createdAt: admin.database.new Date(),
     });
 
     console.log(
@@ -486,8 +486,8 @@ async function checkMissedHeartbeats() {
     .collection('wa_metrics')
     .doc('longrun')
     .collection('heartbeats')
-    .where('ts', '>=', admin.firestore.Timestamp.fromMillis(hourAgo))
-    .where('ts', '<=', admin.firestore.Timestamp.fromMillis(now))
+    .where('ts', '>=', admin.database.Timestamp.fromMillis(hourAgo))
+    .where('ts', '<=', admin.database.Timestamp.fromMillis(now))
     .get();
 
   const expectedHb = 60; // 1 per minute
@@ -517,7 +517,7 @@ async function checkMissedHeartbeats() {
         missedHb,
         commitHash: process.env.GIT_COMMIT_SHA?.slice(0, 8) || 'unknown',
         instanceId,
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        createdAt: admin.database.new Date(),
       });
 
     console.log(`🚨 Incident created: ${incidentId}`);
@@ -573,7 +573,7 @@ async function checkConsecutiveProbeFails() {
           failedProbes: probes.slice(0, consecutiveFails).map(p => p.probeKey),
           commitHash: process.env.GIT_COMMIT_SHA?.slice(0, 8) || 'unknown',
           instanceId,
-          createdAt: admin.firestore.FieldValue.serverTimestamp(),
+          createdAt: admin.database.new Date(),
         });
 
       console.log(`🚨 Incident created: ${incidentId}`);

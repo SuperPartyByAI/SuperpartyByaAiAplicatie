@@ -1,4 +1,4 @@
-# Firebase Functions Deploy Fixes (CPU Quota, createEventFromAI, whatsapp Stub)
+# Supabase Functions Deploy Fixes (CPU Quota, createEventFromAI, whatsapp Stub)
 
 **Context:** Deploy fails with "Quota exceeded for total allowable CPU per project per region", `createEventFromAI` container "failed to start and listen on PORT=8080", and `whatsapp` Gen1 delete blocks deploy.
 
@@ -28,7 +28,7 @@
 - **us-central1:** whatsapp stub (Gen1), whatsappV4, whatsappProxy\*, processOutbox, auditEventChanges, setStaffCode, processFollowUps.
 - **europe-west1:** chatWithAI, createEventFromAI, aiEventHandler, chatEventOps, chatEventOpsV2, clientCrmAsk, whatsappExtractEventFromThread, noteazaEventeAutomat, getEventeAI, updateEventAI, manageRoleAI, archiveEventAI, manageEvidenceAI, generateReportAI, aggregateClientStats.
 
-**Flutter:** Callable-urile AI trebuie invocate cu `region: 'europe-west1'` (e.g. `FirebaseFunctions.instanceFor(region: 'europe-west1')`).
+**Flutter:** Callable-urile AI trebuie invocate cu `region: 'europe-west1'` (e.g. `SupabaseFunctions.instanceFor(region: 'europe-west1')`).
 
 ---
 
@@ -61,7 +61,7 @@
 Dacă vrei să elimini complet `whatsapp`:
 
 ```bash
-firebase functions:delete whatsapp --region us-central1 --force
+supabase functions:delete whatsapp --region us-central1 --force
 ```
 
 Dacă eșuează, șterge din **GCP Console** → **Cloud Functions** → **1st gen** → `whatsapp` (us-central1) → Delete. Apoi elimină exportul `whatsapp` din `functions/index.js` și redeploy.
@@ -75,31 +75,31 @@ Dacă eșuează, șterge din **GCP Console** → **Cloud Functions** → **1st g
 ```bash
 cd /Users/universparty/Aplicatie-SuperpartyByAi
 
-firebase deploy --only "functions:whatsappProxyGetAccounts,functions:whatsappProxyAddAccount,functions:whatsappProxyRegenerateQr,functions:whatsappProxyGetThreads,functions:whatsappProxyDeleteAccount,functions:whatsappProxyBackfillAccount,functions:whatsappProxySend"
+supabase deploy --only "functions:whatsappProxyGetAccounts,functions:whatsappProxyAddAccount,functions:whatsappProxyRegenerateQr,functions:whatsappProxyGetThreads,functions:whatsappProxyDeleteAccount,functions:whatsappProxyBackfillAccount,functions:whatsappProxySend"
 ```
 
 ### Bucket 2: WhatsApp + processOutbox + stub
 
 ```bash
-firebase deploy --only "functions:whatsapp,functions:whatsappV4,functions:whatsappProxyGetAccounts,functions:whatsappProxyAddAccount,functions:whatsappProxyRegenerateQr,functions:whatsappProxyGetThreads,functions:whatsappProxyDeleteAccount,functions:whatsappProxyBackfillAccount,functions:whatsappProxySend,functions:processOutbox"
+supabase deploy --only "functions:whatsapp,functions:whatsappV4,functions:whatsappProxyGetAccounts,functions:whatsappProxyAddAccount,functions:whatsappProxyRegenerateQr,functions:whatsappProxyGetThreads,functions:whatsappProxyDeleteAccount,functions:whatsappProxyBackfillAccount,functions:whatsappProxySend,functions:processOutbox"
 ```
 
 ### Bucket 3: AI (europe-west1)
 
 ```bash
-firebase deploy --only "functions:chatWithAI,functions:createEventFromAI,functions:aiEventHandler,functions:chatEventOps,functions:chatEventOpsV2,functions:clientCrmAsk,functions:whatsappExtractEventFromThread,functions:noteazaEventeAutomat,functions:getEventeAI,functions:updateEventAI,functions:manageRoleAI,functions:archiveEventAI,functions:manageEvidenceAI,functions:generateReportAI"
+supabase deploy --only "functions:chatWithAI,functions:createEventFromAI,functions:aiEventHandler,functions:chatEventOps,functions:chatEventOpsV2,functions:clientCrmAsk,functions:whatsappExtractEventFromThread,functions:noteazaEventeAutomat,functions:getEventeAI,functions:updateEventAI,functions:manageRoleAI,functions:archiveEventAI,functions:manageEvidenceAI,functions:generateReportAI"
 ```
 
-### Bucket 4: Staff / firestore / scheduler
+### Bucket 4: Staff / database / scheduler
 
 ```bash
-firebase deploy --only "functions:setStaffCode,functions:aggregateClientStats,functions:auditEventChanges,functions:processFollowUps"
+supabase deploy --only "functions:setStaffCode,functions:aggregateClientStats,functions:auditEventChanges,functions:processFollowUps"
 ```
 
 ### Deploy complet (după ce quota e ok)
 
 ```bash
-firebase deploy --only functions
+supabase deploy --only functions
 ```
 
 ---
@@ -133,7 +133,7 @@ firebase deploy --only functions
 
 ## 6. Acceptanță
 
-- [ ] `firebase deploy --only functions` (sau deploy pe buckets) reușește fără „Quota exceeded … CPU”.
+- [ ] `supabase deploy --only functions` (sau deploy pe buckets) reușește fără „Quota exceeded … CPU”.
 - [ ] `createEventFromAI` este READY (nu mai dă „container failed to start” / PORT=8080).
 - [ ] Deploy-ul nu mai e blocat de ștergerea `whatsapp` (stub activ).
 - [ ] Proxy-urile WhatsApp rămân funcționale (testează Accounts / Inbox / Send).

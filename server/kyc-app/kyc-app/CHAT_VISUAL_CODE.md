@@ -5,8 +5,8 @@
 ```jsx
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { auth, db } from '../firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { auth, db } from '../supabase';
+import { doc, getDoc } from 'supabase/database';
 import ChatClientiRealtime from '../components/ChatClientiRealtime';
 
 function ChatClientiScreen() {
@@ -26,7 +26,7 @@ function ChatClientiScreen() {
       return;
     }
 
-    // Load user's code from Firestore
+    // Load user's code from Database
     const loadUserCode = async () => {
       try {
         const userDoc = await getDoc(doc(db, 'users', currentUser.uid));
@@ -89,7 +89,7 @@ export default ChatClientiScreen;
 
 ```jsx
 import React, { useState, useEffect } from 'react';
-import { db } from '../firebase';
+import { db } from '../supabase';
 import {
   collection,
   query,
@@ -103,7 +103,7 @@ import {
   doc,
   serverTimestamp,
   getDocs,
-} from 'firebase/firestore';
+} from 'supabase/database';
 
 const BACKEND_URL = 'https://whats-app-ompro.ro';
 
@@ -136,7 +136,7 @@ function ChatClientiRealtime({
     );
 
     // Filter threads by accountId to prevent mixing accounts
-    // Note: Removed orderBy to work without Firestore index (sorting done client-side)
+    // Note: Removed orderBy to work without Database index (sorting done client-side)
     const threadsQuery = query(
       collection(db, 'threads'),
       where('accountId', '==', connectedAccount.id),
@@ -172,7 +172,7 @@ function ChatClientiRealtime({
         let errorMessage = 'Eroare la încărcarea conversațiilor';
         if (error.code === 'failed-precondition' || error.message.includes('index')) {
           errorMessage =
-            '⚠️ Index Firestore lipsă. Se construiește automat (2-5 min). Reîmprospătează pagina.';
+            '⚠️ Index Database lipsă. Se construiește automat (2-5 min). Reîmprospătează pagina.';
         } else if (error.code === 'permission-denied') {
           errorMessage = '❌ Permisiuni insuficiente. Contactează administratorul.';
         }

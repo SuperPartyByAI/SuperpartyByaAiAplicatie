@@ -129,7 +129,7 @@ const fail = (payload, exitCode = 2) => {
       fail({ error: 'not_connected', status });
     }
 
-    const beforeRaw = runNode('audit-firestore-duplicates.js', [
+    const beforeRaw = runNode('audit-database-duplicates.js', [
       '--windowHours=0.25',
       '--limit=500',
       '--excludeMarked',
@@ -138,13 +138,13 @@ const fail = (payload, exitCode = 2) => {
     const before = parseJsonOutput('before', beforeRaw);
     if (before?.hint === 'missing_index') {
       fail({
-        error: 'firestore_index_required',
+        error: 'database_index_required',
         indexLink: before.indexLink,
       });
     }
     if (before?.hint === 'missing_credentials') {
       fail({
-        error: 'firestore_credentials_missing',
+        error: 'database_credentials_missing',
         message: 'Set GOOGLE_APPLICATION_CREDENTIALS or gcloud ADC',
       });
     }
@@ -159,7 +159,7 @@ const fail = (payload, exitCode = 2) => {
 
     const restartInfo = performRestart();
 
-    const afterRaw = runNode('audit-firestore-duplicates.js', [
+    const afterRaw = runNode('audit-database-duplicates.js', [
       '--windowHours=0.25',
       '--limit=500',
       '--excludeMarked',
@@ -168,13 +168,13 @@ const fail = (payload, exitCode = 2) => {
     const after = parseJsonOutput('after', afterRaw);
     if (after?.hint === 'missing_index') {
       fail({
-        error: 'firestore_index_required',
+        error: 'database_index_required',
         indexLink: after.indexLink,
       });
     }
     if (after?.hint === 'missing_credentials') {
       fail({
-        error: 'firestore_credentials_missing',
+        error: 'database_credentials_missing',
         message: 'Set GOOGLE_APPLICATION_CREDENTIALS or gcloud ADC',
       });
     }

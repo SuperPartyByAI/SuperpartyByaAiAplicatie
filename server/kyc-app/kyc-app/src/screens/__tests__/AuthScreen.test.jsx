@@ -3,21 +3,21 @@ import { render, screen } from '@testing-library/react';
 import { BrowserRouter } from 'react-router-dom';
 import AuthScreen from '../AuthScreen';
 
-// Mock Firebase
-vi.mock('../../firebase', () => ({
+// Mock Supabase
+vi.mock('../../supabase', () => ({
   auth: {},
   db: {},
 }));
 
-// Mock Firebase Auth
-vi.mock('firebase/auth', () => ({
+// Mock Supabase Auth
+vi.mock('supabase/auth', () => ({
   createUserWithEmailAndPassword: vi.fn(),
   signInWithEmailAndPassword: vi.fn(),
   sendEmailVerification: vi.fn(),
 }));
 
-// Mock Firestore
-vi.mock('firebase/firestore', () => ({
+// Mock Database
+vi.mock('supabase/database', () => ({
   doc: vi.fn(),
   setDoc: vi.fn(),
   getDoc: vi.fn(),

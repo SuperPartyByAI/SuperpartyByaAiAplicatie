@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'dart:io';
 import 'dart:typed_data';
 import 'dart:math';
@@ -156,12 +157,20 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
 
   Future<void> _loadConversation() async {
     try {
-      final conv = await SupabaseService.getById(
-        'conversations',
-        id: widget.conversationId,
-        select: 'id,name,jid,phone,photo_url,assigned_employee_id,assigned_employee_name,account_label',
-      );
-      if (mounted) setState(() => _conversation = conv);
+      try {
+        // Attempt secure RPC first (Security Definer on backend)
+        final res = await Supabase.instance.client.rpc('get_conversation', params: {'p_conv_id': widget.conversationId}).single();
+        if (mounted) setState(() => _conversation = res);
+      } catch (rpcError) {
+        // Fallback to direct table read if RPC is not yet created
+        debugPrint('RPC fallback triggered: $rpcError');
+        final conv = await SupabaseService.getById(
+          'conversations',
+          id: widget.conversationId,
+          select: 'id,name,jid,phone,photo_url,assigned_employee_id,assigned_employee_name,account_label',
+        );
+        if (mounted) setState(() => _conversation = conv);
+      }
     } catch (e) {
       debugPrint('Supabase conv error: $e');
     }
@@ -194,7 +203,56 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     }
   }
 
-  // NOTE: Schema for messages in Firestore:
+  // --- Avatar tap handler: show real phone only for special email ---
+  Future<void> _onAvatarTap(BuildContext context) async {
+    final authService = Provider.of<AuthService>(context, listen: false);
+    final userEmail = authService.currentUser?.email?.toLowerCase();
+    const allowedEmail = 'ursache.andrei1995@gmail.com';
+
+    final showRealNumber = (userEmail != null && userEmail == allowedEmail);
+    final phone = (_conversation?['phone'] ?? '').toString();
+    final waName = (_conversation?['name'] ?? _conversation?['client_display_name'] ?? widget.name ?? '').toString();
+
+    debugPrint('[AvatarTap] userEmail=$userEmail showRealNumber=$showRealNumber');
+    debugPrint('[AvatarTap] phone=$phone waName=$waName');
+
+    final content = showRealNumber ? (phone.isNotEmpty ? phone : 'Număr indisponibil') : (waName.isNotEmpty ? waName : 'Nume WhatsApp indisponibil');
+
+    await showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: Text(showRealNumber ? 'Număr client' : 'Nume WhatsApp'),
+        content: SelectableText(content),
+        actions: [
+          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Închide')),
+          if (showRealNumber && phone.isNotEmpty)
+            TextButton(
+              onPressed: () {
+                Clipboard.setData(ClipboardData(text: phone));
+                Navigator.of(ctx).pop();
+                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Număr copiat în clipboard')));
+              },
+              child: const Text('Copiază'),
+            ),
+          if (showRealNumber && phone.isNotEmpty)
+            TextButton(
+              onPressed: () async {
+                final uri = Uri.parse('tel:$phone');
+                if (await canLaunchUrl(uri)) {
+                  await launchUrl(uri);
+                } else {
+                  if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Nu pot iniția apel')));
+                }
+                if (ctx.mounted) Navigator.of(ctx).pop();
+              },
+              child: const Text('Sună'),
+            ),
+        ],
+      ),
+    );
+  }
+
+  // NOTE: Schema for messages in Database:
   // direction, text, timestamp, type, hasMedia, etc.
 
   @override
@@ -214,17 +272,25 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
             
             if (_conversation != null) {
                final data = _conversation!;
-               if ((data['name']?.toString() ?? '').isNotEmpty) displayName = data['name'];
+               // Enforce Client N explicitly across the UI
+               if ((data['client_display_name']?.toString() ?? '').isNotEmpty) {
+                 displayName = data['client_display_name'];
+               } else if ((data['name']?.toString() ?? '').isNotEmpty) {
+                 displayName = data['name'];
+               }
                photoUrl = data['photo_url'];
             }
 
             return Row(
               children: [
-                CircleAvatar(
-                  radius: 16,
-                  backgroundColor: Colors.grey[300],
-                  backgroundImage: (photoUrl != null && photoUrl.isNotEmpty) ? NetworkImage(photoUrl) : null,
-                  child: (photoUrl == null || photoUrl.isEmpty) ? const Icon(Icons.person, size: 20, color: Colors.white) : null,
+                GestureDetector(
+                  onTap: () => _onAvatarTap(context),
+                  child: CircleAvatar(
+                    radius: 16,
+                    backgroundColor: Colors.grey[300],
+                    backgroundImage: (photoUrl != null && photoUrl.isNotEmpty) ? NetworkImage(photoUrl) : null,
+                    child: (photoUrl == null || photoUrl.isEmpty) ? const Icon(Icons.person, size: 20, color: Colors.white) : null,
+                  ),
                 ),
                 const SizedBox(width: 10),
                 Expanded(
@@ -475,16 +541,43 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         } catch (_) {
           message = errorStr;
         }
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(message),
-            backgroundColor: Colors.red,
-          ),
-        );
+
+        if (message.contains('No active') || message.contains('503')) {
+          showDialog(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: const Text('Cont Deconectat'),
+              content: const Text('Acest cont WhatsApp nu are o sesiune activă. Trebuie să scanezi codul QR pentru a trimite mesaje.'),
+              actions: [
+                TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Închide')),
+                ElevatedButton(
+                  onPressed: () async {
+                    Navigator.of(ctx).pop();
+                    try {
+                      final accId = widget.conversationId.split('_')[0];
+                      await Provider.of<BackendService>(context, listen: false).regenerateQR(accId);
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Codul QR a fost generat! Navighează la Conturi pentru a-l scana.')));
+                    } catch (err) {
+                      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Eroare: $err'), backgroundColor: Colors.red));
+                    }
+                  },
+                  child: const Text('Generează QR', style: TextStyle(color: Colors.white)),
+                  style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF008069)),
+                )
+              ],
+            )
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(message),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     }
   }
-
 
   String _formatMessageTime(DateTime ts) {
     final now = DateTime.now();
@@ -518,7 +611,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
 
   /// Resolve media URL: prefer media.url (public permanent), fallback to legacy mediaUrl
   String? _resolveMediaUrl(Map<String, dynamic> data) {
-    // 1. Structured media{} from Firebase Storage — use public URL
+    // 1. Structured media{} from Supabase Storage — use public URL
     final media = data['media'];
     if (media is Map && media['url'] != null && (media['url'] as String).isNotEmpty) {
       return media['url'] as String;

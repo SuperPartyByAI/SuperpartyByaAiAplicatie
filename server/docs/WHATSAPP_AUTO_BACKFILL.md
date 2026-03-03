@@ -3,7 +3,7 @@
 ## Overview
 
 - **Server-side** (Hetzner): auto backfill on connect + periodic; **recent-sync** (gap-filler) every ~2 min. **Production-safe:** distributed lock, throttling, PASSIVE-aware. **No user action required.** History sync is 100% server-side.
-- **Realtime:** `messages.upsert` → Firestore; diagnostics in `accounts/{id}`: `lastRealtimeIngestAt`, `lastRealtimeMessageAt`, `lastRealtimeError`. **`GET /diag`** returns `latestRealtime` for up to 3 connected accounts.
+- **Realtime:** `messages.upsert` → Database; diagnostics in `accounts/{id}`: `lastRealtimeIngestAt`, `lastRealtimeMessageAt`, `lastRealtimeError`. **`GET /diag`** returns `latestRealtime` for up to 3 connected accounts.
 - **Flutter:** **never** auto-calls backfill. No admin gating, no BackfillManager in Inbox, no "Syncing history…" banner or auto snackbars.
 - **Manual "Sync / Backfill"** in Inbox is **debug-only** (⋯ menu), if desired.
 
@@ -13,7 +13,7 @@ See **`whatsapp-backend/RUNBOOK_WHATSAPP_SYNC.md`** → **Server-side auto backf
 
 ### Production-safe behaviour
 
-- **Distributed lock:** Firestore lease per account (`autoBackfillLeaseUntil`, `autoBackfillLeaseHolder`, `autoBackfillLeaseAcquiredAt`). Only one instance runs backfill per account; others skip.
+- **Distributed lock:** Database lease per account (`autoBackfillLeaseUntil`, `autoBackfillLeaseHolder`, `autoBackfillLeaseAcquiredAt`). Only one instance runs backfill per account; others skip.
 - **Eligibility:** Connected accounts sorted by `lastAutoBackfillAt` asc. Limits: `AUTO_BACKFILL_MAX_ACCOUNTS_PER_TICK`, `AUTO_BACKFILL_MAX_CONCURRENCY`.
 - **Cooldown:** Success 6 h; attempt backoff 10 min for retry after failure.
 - **Status:** `lastAutoBackfillStatus` → `running` → `ok` / `error` with `threads`, `messages`, `durationMs`, etc.
@@ -45,12 +45,12 @@ See **`whatsapp-backend/RUNBOOK_WHATSAPP_SYNC.md`** → **Server-side auto backf
 
 ## Commands (prod)
 
-**Firebase Functions** (backend URL for proxy):
+**Supabase Functions** (backend URL for proxy):
 
 ```bash
 cd /Users/universparty/Aplicatie-SuperpartyByAi
-firebase functions:config:set whatsapp.backend_base_url="http://37.27.34.179:8080"
-firebase deploy --only "functions:whatsappProxyGetAccounts,functions:whatsappProxyAddAccount,functions:whatsappProxyRegenerateQr,functions:whatsappProxyGetThreads,functions:whatsappProxyDeleteAccount,functions:whatsappProxyBackfillAccount,functions:whatsappProxySend"
+supabase functions:config:set whatsapp.backend_base_url="http://37.27.34.179:8080"
+supabase deploy --only "functions:whatsappProxyGetAccounts,functions:whatsappProxyAddAccount,functions:whatsappProxyRegenerateQr,functions:whatsappProxyGetThreads,functions:whatsappProxyDeleteAccount,functions:whatsappProxyBackfillAccount,functions:whatsappProxySend"
 ```
 
 **Hetzner backend:** Set env vars (see RUNBOOK); run via systemd / pm2 / Docker. Use `INSTANCE_ID` per instance. See **Deploy checklist** below.
@@ -59,12 +59,12 @@ firebase deploy --only "functions:whatsappProxyGetAccounts,functions:whatsappPro
 
 See **`whatsapp-backend/RUNBOOK_WHATSAPP_SYNC.md`** → **“How to tell if sync is running or blocked”**:
 
-1. **Firestore** `accounts/{accountId}`: `lastAutoBackfillStatus`, `lastAutoBackfillSuccessAt`, `lastAutoBackfillAttemptAt`, `lastRealtimeIngestAt`, `lastRealtimeMessageAt`.
-2. **Live test:** Send a WhatsApp message → appears in Inbox/Firestore? If yes, live works; gaps → backfill/recent-sync. If no, fix backend first.
+1. **Database** `accounts/{accountId}`: `lastAutoBackfillStatus`, `lastAutoBackfillSuccessAt`, `lastAutoBackfillAttemptAt`, `lastRealtimeIngestAt`, `lastRealtimeMessageAt`.
+2. **Live test:** Send a WhatsApp message → appears in Inbox/Database? If yes, live works; gaps → backfill/recent-sync. If no, fix backend first.
 3. **`/ready`:** `mode: "active"` vs `"passive"` (ticks run only when active).
 4. **Manual backfill** (debug) → check `lastBackfillAt` and `threads/…/messages` growth.
 
-**Minimal steps:** Live test → Firestore fields → logs if live fails → manual backfill if gaps remain.
+**Minimal steps:** Live test → Database fields → logs if live fails → manual backfill if gaps remain.
 
 ---
 
@@ -74,7 +74,7 @@ See **`whatsapp-backend/RUNBOOK_WHATSAPP_SYNC.md`** → **“How to tell if sync
 - [ ] 1 instance: backfill on connect + periodic; no parallel runs per account.
 - [ ] 2 instances: only one obtains lease per account; other skips.
 - [ ] No spam: retry after failure limited; success cooldown respected.
-- [ ] Firestore: `lastAutoBackfillStatus` running / ok / error; lease fields when running.
+- [ ] Database: `lastAutoBackfillStatus` running / ok / error; lease fields when running.
 - [ ] Logs: tick summary + start/end per account (accountId masked).
 
 **Flutter:**
@@ -87,4 +87,4 @@ See **`whatsapp-backend/RUNBOOK_WHATSAPP_SYNC.md`** → **“How to tell if sync
 - **systemd:** `WorkingDirectory` = backend dir, `EnvironmentFile` = `.env`, `ExecStart=node server.js`, `User=deploy`. `systemctl daemon-reload && enable && start whatsapp-backend`.
 - **pm2:** `pm2 start server.js --name wa-backend`; set env via `--env-file` or `ecosystem.config.js`. Use distinct `INSTANCE_ID` per process.
 - **Docker:** Build image, run with `-e AUTO_BACKFILL_ENABLED=true` etc. One `INSTANCE_ID` per container.
-- **Verify:** `curl -fsS http://127.0.0.1:8080/ready` and `curl -s http://127.0.0.1:8080/diag | jq`; `journalctl -u whatsapp-backend -n 200` for `[wa-auto-backfill]`, `[recent-sync]`, `[realtime]` logs; Firestore `accounts/{id}.lastAutoBackfillStatus`, `lastRealtimeIngestAt`, `lastRecentSyncAt`.
+- **Verify:** `curl -fsS http://127.0.0.1:8080/ready` and `curl -s http://127.0.0.1:8080/diag | jq`; `journalctl -u whatsapp-backend -n 200` for `[wa-auto-backfill]`, `[recent-sync]`, `[realtime]` logs; Database `accounts/{id}.lastAutoBackfillStatus`, `lastRealtimeIngestAt`, `lastRecentSyncAt`.

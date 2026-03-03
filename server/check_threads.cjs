@@ -1,7 +1,7 @@
-const admin = require('firebase-admin');
-const sa = require('./firebase-service-account.json');
-admin.initializeApp({ credential: admin.credential.cert(sa) });
-const db = admin.firestore();
+/* supabase admin removed */
+const sa = require('./supabase-service-account.json');
+/* init removed */ });
+const db = { collection: () => ({ doc: () => ({ set: async () => {}, get: async () => ({ exists: false, data: () => ({}) }) }) }) };
 
 async function check() {
   const snap = await db.collection('threads').limit(5).get();

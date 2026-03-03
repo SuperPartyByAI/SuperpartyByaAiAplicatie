@@ -2,11 +2,11 @@
 
 ## Status curent
 
-**Hetzner rulează versiune veche** - `/health` nu include `firestore` în răspuns.
+**Hetzner rulează versiune veche** - `/health` nu include `database` în răspuns.
 
 **Codul local** (commit `be6a9ade` pe branch `fix/whatsapp-improvements-20260127`) include:
-- `firestore: firestoreAvailable && db ? 'connected' : 'disabled'` în `/health` (linia 7124)
-- Status Firestore în răspunsul `/health` pentru diagnosticare
+- `database: databaseAvailable && db ? 'connected' : 'disabled'` în `/health` (linia 7124)
+- Status Database în răspunsul `/health` pentru diagnosticare
 
 ## Deploy pe Hetzner
 
@@ -61,17 +61,17 @@ sudo systemctl status whatsapp-backend
 # Verifică logs
 sudo journalctl -u whatsapp-backend -f --lines 50
 
-# Verifică /health include firestore
-curl -s http://localhost:8080/health | jq .firestore
+# Verifică /health include database
+curl -s http://localhost:8080/health | jq .database
 # SAU
-curl -s http://37.27.34.179:8080/health | jq .firestore
+curl -s http://37.27.34.179:8080/health | jq .database
 ```
 
 **Așteptat după deploy:**
-- `"firestore": "connected"` (dacă FIREBASE_SERVICE_ACCOUNT_JSON e setat)
-- `"firestore": "disabled"` (dacă nu e setat)
+- `"database": "connected"` (dacă SUPABASE_SERVICE_ACCOUNT_JSON e setat)
+- `"database": "disabled"` (dacă nu e setat)
 
-**Dacă încă nu apare `firestore` în răspuns:**
+**Dacă încă nu apare `database` în răspuns:**
 - Backend-ul nu s-a restartat cu noul cod
 - Verifică logs pentru erori la start
 - Verifică că ai pull-at branch-ul corect
@@ -81,13 +81,13 @@ curl -s http://37.27.34.179:8080/health | jq .firestore
 După deploy, rulează:
 
 ```bash
-curl -s http://37.27.34.179:8080/health | jq '{firestore, version, commit}'
+curl -s http://37.27.34.179:8080/health | jq '{database, version, commit}'
 ```
 
 **Așteptat:**
 ```json
 {
-  "firestore": "connected",  // sau "disabled"
+  "database": "connected",  // sau "disabled"
   "version": "2.0.0",
   "commit": "be6a9ade"  // sau hash-ul commit-ului deploy-at
 }
@@ -108,16 +108,16 @@ sudo lsof -i :8080
 sudo systemctl show whatsapp-backend | grep Environment
 ```
 
-### Firestore rămâne "disabled" după deploy
+### Database rămâne "disabled" după deploy
 
-1. Verifică că `FIREBASE_SERVICE_ACCOUNT_JSON` e setat:
+1. Verifică că `SUPABASE_SERVICE_ACCOUNT_JSON` e setat:
    ```bash
-   sudo systemctl show whatsapp-backend | grep FIREBASE
+   sudo systemctl show whatsapp-backend | grep SUPABASE
    ```
 
-2. Verifică logs pentru erori de inițializare Firebase:
+2. Verifică logs pentru erori de inițializare Supabase:
    ```bash
-   sudo journalctl -u whatsapp-backend | grep -i "firebase\|firestore"
+   sudo journalctl -u whatsapp-backend | grep -i "supabase\|database"
    ```
 
 3. Dacă lipsește, setează env var și restart:
@@ -126,7 +126,7 @@ sudo systemctl show whatsapp-backend | grep Environment
    sudo systemctl edit whatsapp-backend
    # Adaugă:
    [Service]
-   Environment="FIREBASE_SERVICE_ACCOUNT_JSON=..."
+   Environment="SUPABASE_SERVICE_ACCOUNT_JSON=..."
    ```
 
 ## Note
@@ -135,4 +135,4 @@ sudo systemctl show whatsapp-backend | grep Environment
 - Restart time: ~10-30 secunde
 - Total: ~2-3 minute
 
-După deploy, `/health` ar trebui să includă `firestore` pentru diagnosticare rapidă a problemelor de inbox clienți.
+După deploy, `/health` ar trebui să includă `database` pentru diagnosticare rapidă a problemelor de inbox clienți.

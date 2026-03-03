@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { auth } from '../firebase';
+import { auth } from '../supabase';
 import { io } from 'socket.io-client';
 import { Device } from '@twilio/voice-sdk';
 
@@ -289,10 +289,10 @@ export default function CentralaTelefonicaScreen() {
     if (!dateString) return '-';
 
     try {
-      // Handle Firestore Timestamp format
+      // Handle Database Timestamp format
       let date;
       if (typeof dateString === 'object' && dateString._seconds) {
-        // Firestore Timestamp
+        // Database Timestamp
         date = new Date(dateString._seconds * 1000);
       } else if (typeof dateString === 'string' || typeof dateString === 'number') {
         // ISO string or timestamp

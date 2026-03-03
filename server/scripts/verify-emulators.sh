@@ -1,13 +1,13 @@
 #!/bin/bash
-# verify-emulators.sh - Verificare Firebase Emulators Setup
+# verify-emulators.sh - Verificare Supabase Emulators Setup
 
-echo "=== Verificare Firebase Emulators ==="
+echo "=== Verificare Supabase Emulators ==="
 echo ""
 
 # Check if emulators are running
 echo "1. Verificare emulators (ports 9098, 8082, 5002)..."
 AUTH_OK=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:9098 2>/dev/null || echo "000")
-FIRESTORE_OK=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8082 2>/dev/null || echo "000")
+DATABASE_OK=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:8082 2>/dev/null || echo "000")
 FUNCTIONS_OK=$(curl -s -o /dev/null -w "%{http_code}" http://127.0.0.1:5002 2>/dev/null || echo "000")
 
 if [ "$AUTH_OK" != "000" ]; then
@@ -16,10 +16,10 @@ else
   echo "❌ Auth emulator (9098): DOWN"
 fi
 
-if [ "$FIRESTORE_OK" != "000" ]; then
-  echo "✅ Firestore emulator (8082): OK (HTTP $FIRESTORE_OK)"
+if [ "$DATABASE_OK" != "000" ]; then
+  echo "✅ Database emulator (8082): OK (HTTP $DATABASE_OK)"
 else
-  echo "❌ Firestore emulator (8082): DOWN"
+  echo "❌ Database emulator (8082): DOWN"
 fi
 
 if [ "$FUNCTIONS_OK" != "000" ]; then
@@ -47,7 +47,7 @@ fi
 
 echo ""
 echo "=== Rezumat ==="
-if [ "$AUTH_OK" != "000" ] && [ "$FIRESTORE_OK" != "000" ] && [ "$FUNCTIONS_OK" != "000" ]; then
+if [ "$AUTH_OK" != "000" ] && [ "$DATABASE_OK" != "000" ] && [ "$FUNCTIONS_OK" != "000" ]; then
   echo "✅ Toate emulators sunt pornite"
   echo ""
   echo "Pentru a rula aplicația:"
@@ -56,5 +56,5 @@ else
   echo "❌ Unele emulators nu sunt pornite"
   echo ""
   echo "Pentru a porni emulators:"
-  echo "  firebase emulators:start"
+  echo "  supabase emulators:start"
 fi

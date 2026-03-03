@@ -2,36 +2,36 @@
 $ErrorActionPreference = "Continue"
 
 Write-Host ""
-Write-Host "=== Firebase Emulator Port Check ==="
+Write-Host "=== Supabase Emulator Port Check ==="
 Write-Host ""
 
 # Repo root from script location
 $repoRoot = Split-Path -Parent $PSScriptRoot
-$firebaseJsonPath = Join-Path $repoRoot "firebase.json"
+$supabaseJsonPath = Join-Path $repoRoot "supabase.json"
 
-# Defaults (if firebase.json not readable)
+# Defaults (if supabase.json not readable)
 $ports = @{
-  Firestore = 8082
+  Database = 8082
   Auth      = 9098
   Functions = 5002
   UI        = 4001
   Hub       = 4401
 }
 
-# Try read ports from firebase.json if present
+# Try read ports from supabase.json if present
 try {
-  if (Test-Path $firebaseJsonPath) {
-    $json = Get-Content $firebaseJsonPath -Raw | ConvertFrom-Json
-    if ($json.emulators.firestore.port) { $ports.Firestore = [int]$json.emulators.firestore.port }
+  if (Test-Path $supabaseJsonPath) {
+    $json = Get-Content $supabaseJsonPath -Raw | ConvertFrom-Json
+    if ($json.emulators.database.port) { $ports.Database = [int]$json.emulators.database.port }
     if ($json.emulators.auth.port)      { $ports.Auth      = [int]$json.emulators.auth.port }
     if ($json.emulators.functions.port) { $ports.Functions = [int]$json.emulators.functions.port }
     if ($json.emulators.ui.port)        { $ports.UI        = [int]$json.emulators.ui.port }
     if ($json.emulators.hub.port)       { $ports.Hub       = [int]$json.emulators.hub.port }
   } else {
-    Write-Host "WARNING: firebase.json not found at $firebaseJsonPath, using defaults."
+    Write-Host "WARNING: supabase.json not found at $supabaseJsonPath, using defaults."
   }
 } catch {
-  Write-Host "WARNING: Error reading firebase.json, using defaults: $($_.Exception.Message)"
+  Write-Host "WARNING: Error reading supabase.json, using defaults: $($_.Exception.Message)"
 }
 
 function Test-Port([int]$port) {
@@ -42,7 +42,7 @@ function Test-Port([int]$port) {
 }
 
 $required = @(
-  @{ Name="Firestore"; Port=$ports.Firestore },
+  @{ Name="Database"; Port=$ports.Database },
   @{ Name="Auth";      Port=$ports.Auth },
   @{ Name="Functions"; Port=$ports.Functions }
 )
@@ -82,7 +82,7 @@ try {
     $rev = & adb reverse --list
     if ([string]::IsNullOrWhiteSpace($rev)) {
       Write-Host "WARNING: No ADB reversals configured"
-      Write-Host ("  adb reverse tcp:{0} tcp:{0}" -f $ports.Firestore)
+      Write-Host ("  adb reverse tcp:{0} tcp:{0}" -f $ports.Database)
       Write-Host ("  adb reverse tcp:{0} tcp:{0}" -f $ports.Auth)
       Write-Host ("  adb reverse tcp:{0} tcp:{0}" -f $ports.Functions)
     } else {

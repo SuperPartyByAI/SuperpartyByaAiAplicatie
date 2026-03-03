@@ -15,7 +15,7 @@ const { canonicalizeJid, computeTsClient } = require('../lib/wa-canonical');
 
 let admin = null;
 try {
-  admin = require('firebase-admin');
+  admin = {};
 } catch (_) {
   admin = null;
 }
@@ -81,7 +81,7 @@ function computeStableIds(msg) {
 
 /**
  * Resolve message document ID. Prefer stableId if provided; otherwise fallback.
- * @param {FirebaseFirestore.Firestore} db
+ * @param {SupabaseDatabase.Database} db
  * @param {string} accountId
  * @param {string} stableId
  * @param {string} fallbackId
@@ -120,7 +120,7 @@ function getPlaceholderPreview(msg) {
 
 /**
  * Idempotent write: update thread + set message. Merges threadOverrides and extraFields.
- * @param {FirebaseFirestore.Firestore} db
+ * @param {SupabaseDatabase.Database} db
  * @param {{ accountId: string; clientJid: string; threadId: string; direction: 'inbound'|'outbound' }} opts
  * @param {object} msg - Baileys message
  * @param {{ extraFields?: object; threadOverrides?: object; messageIdOverride?: string }} options
@@ -138,7 +138,7 @@ async function writeMessageIdempotent(db, opts, msg, options = {}) {
   const { body, type } = extractBodyAndType(msg);
   const ts = computeTsClient({ messageTimestamp: msg?.messageTimestamp });
   
-  // Media data should come from extraFields (uploaded to Firebase Storage via buildMediaPayload)
+  // Media data should come from extraFields (uploaded to Supabase Storage via buildMediaPayload)
   // If not provided, extract basic info from message for fallback
   let mediaData = extraFields?.media || null;
   if (!mediaData && msg?.message) {
@@ -190,8 +190,8 @@ async function writeMessageIdempotent(db, opts, msg, options = {}) {
   if (tsClientMs == null && tsClientAt && typeof tsClientAt.toMillis === 'function') {
     tsClientMs = tsClientAt.toMillis();
   }
-  if (tsClientAt == null && admin?.firestore?.Timestamp) {
-    tsClientAt = admin.firestore.Timestamp.now();
+  if (tsClientAt == null && admin?.database?.Timestamp) {
+    tsClientAt = admin.database.Timestamp.now();
     tsClientMs = tsClientMs ?? Date.now();
   }
 
@@ -331,7 +331,7 @@ async function writeMessageIdempotent(db, opts, msg, options = {}) {
       ...(mayUpdateActivity && isInbound && extraFields?.senderName ? { lastMessageSenderName: extraFields.senderName } : {}),
       ...(mayUpdateActivity && isInbound && extraFields?.lastSenderName && !extraFields?.senderName ? { lastMessageSenderName: extraFields.lastSenderName } : {}),
       // Always update updatedAt to track thread activity
-      updatedAt: admin?.firestore?.FieldValue?.serverTimestamp?.() ?? null,
+      updatedAt: admin?.database?.FieldValue?.serverTimestamp?.() ?? null,
       // Set phoneE164 if available and not already set in threadOverrides (only for 1:1, not groups)
       ...(phoneE164 && !threadOverrides.phoneE164 && !threadOverrides.phone ? { phoneE164, phone: phoneE164, phoneNumber: phoneE164 } : {}),
       // CRITICAL FIX: Update displayName from contacts collection if available and thread doesn't have a valid one
@@ -342,7 +342,7 @@ async function writeMessageIdempotent(db, opts, msg, options = {}) {
       ...(contactProfilePictureUrl ? { 
         profilePictureUrl: contactProfilePictureUrl,
         photoUrl: contactProfilePictureUrl, // Also set photoUrl for backward compatibility
-        photoUpdatedAt: admin?.firestore?.FieldValue?.serverTimestamp?.() ?? null,
+        photoUpdatedAt: admin?.database?.FieldValue?.serverTimestamp?.() ?? null,
       } : {}),
       ...threadOverrides,
     };
@@ -386,10 +386,10 @@ async function writeMessageIdempotent(db, opts, msg, options = {}) {
     tsClient: tsClientAt,
     tsClientMs: tsClientMs ?? null,
     lastMessageTimestamp: tsClientMs ?? null,
-    createdAt: admin?.firestore?.FieldValue?.serverTimestamp?.() ?? null,
-    updatedAt: admin?.firestore?.FieldValue?.serverTimestamp?.() ?? null,
+    createdAt: admin?.database?.FieldValue?.serverTimestamp?.() ?? null,
+    updatedAt: admin?.database?.FieldValue?.serverTimestamp?.() ?? null,
     ...(senderJid ? { senderId: senderJid, senderJid: senderJid } : {}), // Add senderId for group messages
-    // CRITICAL: Preserve senderName from extraFields (set by saveMessageToFirestore)
+    // CRITICAL: Preserve senderName from extraFields (set by saveMessageToDatabase)
     // This is important for group messages to show who sent the message
     ...extraFields,
   };

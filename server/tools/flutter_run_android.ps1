@@ -82,11 +82,11 @@ Write-Host "`n[6/8] Cleaning up build folder (best-effort)..." -ForegroundColor 
 $buildPath = Join-Path $flutterDir "build"
 if (Test-Path $buildPath) {
     try {
-        # Try to delete problematic cloud_firestore build folder
-        $cloudFirestoreBuild = Join-Path $buildPath "cloud_firestore"
-        if (Test-Path $cloudFirestoreBuild) {
-            Write-Host "  Attempting to delete cloud_firestore build folder..." -ForegroundColor Cyan
-            Remove-Item -Path $cloudFirestoreBuild -Recurse -Force -ErrorAction SilentlyContinue
+        # Try to delete problematic cloud_database build folder
+        $cloudDatabaseBuild = Join-Path $buildPath "cloud_database"
+        if (Test-Path $cloudDatabaseBuild) {
+            Write-Host "  Attempting to delete cloud_database build folder..." -ForegroundColor Cyan
+            Remove-Item -Path $cloudDatabaseBuild -Recurse -Force -ErrorAction SilentlyContinue
             Start-Sleep -Milliseconds 500
         }
         Write-Host "✓ Build folder cleanup attempted" -ForegroundColor Green

@@ -10,7 +10,7 @@
 
 ### Definition
 
-Percentage of expected heartbeats successfully written to Firestore within a time window.
+Percentage of expected heartbeats successfully written to Database within a time window.
 
 ### Formula
 
@@ -52,7 +52,7 @@ where:
 ```
 windowDurationMin = 7 × 24 × 60 = 10,080 minutes
 expectedHb = 10,080 / 1 = 10,080 heartbeats
-writtenHb = 9,990 (from Firestore query)
+writtenHb = 9,990 (from Database query)
 missedHb = 10,080 - 9,990 = 90
 
 uptime% = (9,990 / 10,080) × 100 = 99.11%
@@ -361,7 +361,7 @@ expectedHb = 180 × 24 × 60 = 259,200
 
 ---
 
-## 9. Firestore Query Examples
+## 9. Database Query Examples
 
 ### Get heartbeats for 7-day window
 

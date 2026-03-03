@@ -1,4 +1,4 @@
-const admin = require('firebase-admin');
+/* supabase admin removed */
 const fs = require('fs');
 
 const accountId = process.argv[2];
@@ -7,17 +7,17 @@ if (!accountId) {
   process.exit(1);
 }
 
-const saPath = process.env.FIREBASE_SA_PATH || '/etc/whatsapp-backend/firebase-sa.json';
+const saPath = process.env.SUPABASE_SA_PATH || '/etc/whatsapp-backend/supabase-sa.json';
 if (!admin.apps.length) {
   const raw = fs.readFileSync(saPath, 'utf8');
   const sa = JSON.parse(raw);
   if (sa.private_key) {
     sa.private_key = sa.private_key.replace(/\n/g, '\n');
   }
-  admin.initializeApp({ credential: admin.credential.cert(sa) });
+  /* init removed */ });
 }
 
-const db = admin.firestore();
+const db = { collection: () => ({ doc: () => ({ set: async () => {}, get: async () => ({ exists: false, data: () => ({}) }) }) }) };
 
 function phoneFromJid(jid) {
   if (!jid || typeof jid !== 'string') return null;
@@ -51,7 +51,7 @@ async function run() {
       phoneE164: phoneE164 || null,
       phone: data.phone || phoneE164 || null,
       phoneNumber: data.phoneNumber || phoneE164 || null,
-      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.database.new Date(),
     };
 
     batch.set(doc.ref, updates, { merge: true });

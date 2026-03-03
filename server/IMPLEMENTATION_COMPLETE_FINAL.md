@@ -45,9 +45,9 @@
 - ✅ Ursitoare: 3 sau 4, durationMin=60 fix, sloturi consecutive
 - ✅ `tasksManager_v3.js` - Task creation (due tomorrow 12:00)
 
-### E. FIRESTORE RULES ✅ DONE
+### E. DATABASE RULES ✅ DONE
 
-- ✅ `firestore.rules` actualizat
+- ✅ `database.rules` actualizat
 - ✅ ai_global_rules: read employee, write super admin only
 - ✅ tasks: read assigned/open, write backend only
 - ✅ history: read employee, write backend only
@@ -135,13 +135,13 @@ Time:        0.571 s
 9. `E2E_SCENARIOS.md` - 6 scenarii
 10. `DEPLOY_MANUAL.md` - Ghid deploy
 11. `IMPLEMENTATION_COMPLETE_FINAL.md` - Acest document
-12. `scripts/verify_firestore.js` - Verificare DB
-13. `scripts/check_firestore.js` - Check script
+12. `scripts/verify_database.js` - Verificare DB
+13. `scripts/check_database.js` - Check script
 14. `deploy_with_api.js` - Deploy helper
 
 ### Modified (2 files):
 
-1. `firestore.rules` - Rules pentru V3
+1. `database.rules` - Rules pentru V3
 2. `functions/index.js` - Export aiEventHandler
 
 ---
@@ -155,17 +155,17 @@ Time:        0.571 s
 - ✅ Tests passing (7/7)
 - ✅ GROQ_API_KEY saved to functions/.env
 - ✅ Counter initialized (value=5)
-- ✅ Firestore Rules file ready
+- ✅ Database Rules file ready
 - ✅ Functions code ready
 
 ### ⏳ PENDING (Manual - requires authentication):
 
-- ⏳ Deploy Firestore Rules to Firebase
-- ⏳ Set GROQ_API_KEY as Firebase secret
-- ⏳ Deploy Functions to Firebase
+- ⏳ Deploy Database Rules to Supabase
+- ⏳ Set GROQ_API_KEY as Supabase secret
+- ⏳ Deploy Functions to Supabase
 
 **WHY MANUAL?**  
-Firebase deploy requires interactive authentication (`firebase login`) which doesn't work in Gitpod/headless environments. Service account can't deploy directly without additional setup.
+Supabase deploy requires interactive authentication (`supabase login`) which doesn't work in Gitpod/headless environments. Service account can't deploy directly without additional setup.
 
 ---
 
@@ -173,7 +173,7 @@ Firebase deploy requires interactive authentication (`firebase login`) which doe
 
 ### Prerequisites:
 
-- Firebase CLI installed: `npm install -g firebase-tools`
+- Supabase CLI installed: `npm install -g supabase-tools`
 - Access to superparty-frontend project
 
 ### Commands:
@@ -186,17 +186,17 @@ cd Aplicatie-SuperpartyByAi
 # 2. Pull latest
 git pull origin main
 
-# 3. Login Firebase
-firebase login
+# 3. Login Supabase
+supabase login
 
 # 4. Set project
-firebase use superparty-frontend
+supabase use superparty-frontend
 
-# 5. Deploy Firestore Rules
-firebase deploy --only firestore:rules
+# 5. Deploy Database Rules
+supabase deploy --only database:rules
 
 # 6. Set GROQ API Key
-firebase functions:secrets:set GROQ_API_KEY
+supabase functions:secrets:set GROQ_API_KEY
 # Paste: <GROQ_KEY_REDACTED>
 
 # 7. Install dependencies
@@ -205,10 +205,10 @@ npm install
 
 # 8. Deploy Functions
 cd ..
-firebase deploy --only functions
+supabase deploy --only functions
 
 # 9. Verify
-firebase functions:list
+supabase functions:list
 ```
 
 ---
@@ -219,15 +219,15 @@ firebase functions:list
 
 ```bash
 # 1. Check functions deployed
-firebase functions:list
+supabase functions:list
 # Expected: aiEventHandler, setStaffCode, processFollowUps
 
 # 2. Check logs
-firebase functions:log --only aiEventHandler --lines 10
+supabase functions:log --only aiEventHandler --lines 10
 
-# 3. Verify Firestore
+# 3. Verify Database
 cd functions
-node verify_firestore.js
+node verify_database.js
 # Expected: 5 V3 events, counter=5
 
 # 4. Test function (optional)
@@ -335,14 +335,14 @@ https://github.com/SuperPartyByAI/Aplicatie-SuperpartyByAi
 - https://github.com/SuperPartyByAI/Aplicatie-SuperpartyByAi/commit/b3079732
 - https://github.com/SuperPartyByAI/Aplicatie-SuperpartyByAi/commit/2aa10ef9
 
-**Firebase Console**:  
-https://console.firebase.google.com/project/superparty-frontend
+**Supabase Console**:  
+https://console.supabase.google.com/project/superparty-frontend
 
-**Firestore Rules**:  
-https://console.firebase.google.com/project/superparty-frontend/firestore/rules
+**Database Rules**:  
+https://console.supabase.google.com/project/superparty-frontend/database/rules
 
 **Functions**:  
-https://console.firebase.google.com/project/superparty-frontend/functions
+https://console.supabase.google.com/project/superparty-frontend/functions
 
 ---
 
@@ -358,7 +358,7 @@ https://console.firebase.google.com/project/superparty-frontend/functions
 
 ### DEPLOY: ⏳ PENDING MANUAL AUTH
 
-- ⏳ Firestore Rules (1 min)
+- ⏳ Database Rules (1 min)
 - ⏳ GROQ_API_KEY secret (1 min)
 - ⏳ Functions deploy (3 min)
 
@@ -371,18 +371,18 @@ https://console.firebase.google.com/project/superparty-frontend/functions
 1. **Run manual deploy** (5 min):
 
    ```bash
-   firebase login
-   firebase use superparty-frontend
-   firebase deploy --only firestore:rules
-   firebase functions:secrets:set GROQ_API_KEY
-   firebase deploy --only functions
+   supabase login
+   supabase use superparty-frontend
+   supabase deploy --only database:rules
+   supabase functions:secrets:set GROQ_API_KEY
+   supabase deploy --only functions
    ```
 
 2. **Verify deployment**:
 
    ```bash
-   firebase functions:list
-   cd functions && node verify_firestore.js
+   supabase functions:list
+   cd functions && node verify_database.js
    ```
 
 3. **Test in production**:
@@ -404,7 +404,7 @@ https://console.firebase.google.com/project/superparty-frontend/functions
 
 **TOT CE AI CERUT ÎN PROMPT A FOST IMPLEMENTAT ȘI TESTAT.**
 
-Singura diferență: deploy-ul necesită autentificare manuală (5 minute) pentru că Firebase nu permite deploy automat fără `firebase login` interactiv.
+Singura diferență: deploy-ul necesită autentificare manuală (5 minute) pentru că Supabase nu permite deploy automat fără `supabase login` interactiv.
 
 **Cod gata, teste pass, migrare executată, documentație completă.**
 

@@ -13,7 +13,7 @@
 
 ### 2. Connection Close Reason 515 (Stream Errored)
 **Root Cause:**
-- Firestore backup in `saveCreds` wrapper can throw errors
+- Database backup in `saveCreds` wrapper can throw errors
 - Errors in backup don't kill socket directly, but connection.update events may not fire
 - Reason 515 = "restart required" - socket needs recreation
 - Backend correctly detects 515 but connection closes before QR can be scanned

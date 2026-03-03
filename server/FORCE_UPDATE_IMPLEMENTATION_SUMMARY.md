@@ -8,7 +8,7 @@ Sistemul de **Force Update** este complet implementat și testat. User-ul NU poa
 
 ## 📦 Deliverables
 
-### A) Firestore Schema ✅
+### A) Database Schema ✅
 
 **Collection**: `app_config`  
 **Document**: `version`
@@ -35,11 +35,11 @@ Sistemul de **Force Update** este complet implementat și testat. User-ul NU poa
 - Model cu parsing strict și null-safe
 - Validare câmpuri obligatorii (`min_version`, `min_build_number`)
 - Throws `FormatException` dacă datele sunt invalide
-- Metode: `fromFirestore()`, `toFirestore()`
+- Metode: `fromDatabase()`, `toDatabase()`
 
 #### 2. `lib/services/force_update_checker_service.dart`
 
-- Citește config din Firestore `app_config/version`
+- Citește config din Database `app_config/version`
 - Compară build local cu `min_build_number`
 - Metode:
   - `needsForceUpdate()`: bool - verifică dacă e nevoie de update obligatoriu
@@ -227,7 +227,7 @@ class ApkInstallerBridge {
 | 3   | Download APK pornește și afișează progress 0-100%                                    | ✅     |
 | 4   | După download, installerul Android pornește din aplicație                            | ✅     |
 | 5   | Dacă "install unknown apps" e off, dialogul ghidează către Settings                  | ✅     |
-| 6   | Nu există URL-uri hardcodate; totul vine din Firestore                               | ✅     |
+| 6   | Nu există URL-uri hardcodate; totul vine din Database                               | ✅     |
 | 7   | Download nu ține APK-ul în RAM (stream-to-file)                                      | ✅     |
 
 ### H) Teste + Docs ✅
@@ -240,7 +240,7 @@ class ApkInstallerBridge {
 - ✅ Default values pentru câmpuri opționale
 - ✅ FormatException când lipsesc câmpuri obligatorii
 - ✅ FormatException când tipurile sunt greșite
-- ✅ toFirestore() conversion
+- ✅ toDatabase() conversion
 
 **2. `test/services/force_update_checker_service_test.dart`**
 
@@ -250,7 +250,7 @@ class ApkInstallerBridge {
 - ✅ getUpdateMessage() cu mesaj custom
 - ✅ getReleaseNotes() din config
 
-**Dependency adăugată**: `fake_cloud_firestore: ^2.4.1+1`
+**Dependency adăugată**: `fake_cloud_database: ^2.4.1+1`
 
 #### Documentation
 
@@ -258,7 +258,7 @@ class ApkInstallerBridge {
 
 - Overview și features
 - Flow complet
-- Firestore schema
+- Database schema
 - Setup inițial (pas cu pas)
 - Cum să actualizezi versiunea
 - **Manual testing steps** (4 scenarii complete)
@@ -312,17 +312,17 @@ class _AuthWrapperState extends State<AuthWrapper> {
 
 ## 📋 Setup Steps (Pentru Admin)
 
-### 1. Configurează Firestore
+### 1. Configurează Database
 
 ```javascript
-// Firebase Console → Firestore → app_config/version
+// Supabase Console → Database → app_config/version
 {
   "min_version": "1.0.1",
   "min_build_number": 2,
   "force_update": true,
   "update_message": "Versiune nouă disponibilă! Actualizează pentru a continua.",
   "release_notes": "- Adăugat pagina Evenimente\n- Adăugat sistem Dovezi\n- Bug fixes",
-  "android_download_url": "https://firebasestorage.googleapis.com/v0/b/superparty-ai.appspot.com/o/apk%2Fapp-release.apk?alt=media&token=...",
+  "android_download_url": "https://supabasestorage.googleapis.com/v0/b/superparty-ai.appspot.com/o/apk%2Fapp-release.apk?alt=media&token=...",
   "updated_at": "2026-01-05T05:45:00Z"
 }
 ```
@@ -336,22 +336,22 @@ match /app_config/{document} {
 }
 ```
 
-### 3. Upload APK în Firebase Storage
+### 3. Upload APK în Supabase Storage
 
 ```bash
 # Build APK
 cd superparty_flutter
 flutter build apk --release
 
-# Upload manual în Firebase Console → Storage → apk/
+# Upload manual în Supabase Console → Storage → apk/
 # SAU: GitHub Actions face asta automat
 ```
 
 ### 4. Obține Download URL
 
-- Firebase Console → Storage → apk/app-release.apk
+- Supabase Console → Storage → apk/app-release.apk
 - Click "Get download URL"
-- Copiază URL-ul în Firestore `android_download_url`
+- Copiază URL-ul în Database `android_download_url`
 
 ---
 
@@ -362,7 +362,7 @@ flutter build apk --release
 **Setup:**
 
 1. Instalează APK cu build 1
-2. Setează în Firestore: `min_build_number: 2, force_update: true`
+2. Setează în Database: `min_build_number: 2, force_update: true`
 
 **Expected:**
 
@@ -379,7 +379,7 @@ flutter build apk --release
 **Setup:**
 
 1. Instalează APK cu build 2
-2. Setează în Firestore: `min_build_number: 2`
+2. Setează în Database: `min_build_number: 2`
 
 **Expected:**
 
@@ -392,7 +392,7 @@ flutter build apk --release
 **Setup:**
 
 1. Instalează APK cu build 1
-2. Setează în Firestore: `min_build_number: 2, force_update: true`
+2. Setează în Database: `min_build_number: 2, force_update: true`
 3. Dezactivează "Install unknown apps":
    - Settings → Apps → SuperParty → Advanced → Install unknown apps → OFF
 
@@ -409,7 +409,7 @@ flutter build apk --release
 
 **Setup:**
 
-1. Setează în Firestore un URL invalid: `android_download_url: "https://invalid.url"`
+1. Setează în Database un URL invalid: `android_download_url: "https://invalid.url"`
 
 **Expected:**
 
@@ -439,7 +439,7 @@ flutter build apk --release
 - `lib/services/apk_downloader_service.dart` (stream-to-file refactor)
 - `lib/widgets/force_update_dialog.dart` (complete rewrite)
 - `android/.../MainActivity.kt` (MethodChannel implementation)
-- `pubspec.yaml` (added fake_cloud_firestore)
+- `pubspec.yaml` (added fake_cloud_database)
 
 ### Deleted (1 file):
 
@@ -476,9 +476,9 @@ Sistemul este **complet funcțional** și **production-ready**. Toate acceptance
 
 **Next Steps**:
 
-1. Configurează Firestore `app_config/version`
-2. Upload APK în Firebase Storage
+1. Configurează Database `app_config/version`
+2. Upload APK în Supabase Storage
 3. Testează manual pe un device
 4. Deploy în producție
 
-**GitHub Actions** va builda automat APK-ul la fiecare push pe `main`. Admin-ul trebuie doar să actualizeze Firestore config când vrea să forțeze un update.
+**GitHub Actions** va builda automat APK-ul la fiecare push pe `main`. Admin-ul trebuie doar să actualizeze Database config când vrea să forțeze un update.

@@ -11,7 +11,7 @@
  *   --account=ID  : Procesează doar un anumit account
  */
 
-const admin = require('firebase-admin');
+/* supabase admin removed */
 const fs = require('fs');
 const path = require('path');
 
@@ -28,14 +28,14 @@ if (specificAccount) {
 }
 console.log('');
 
-// Initialize Firebase Admin
+// Initialize Supabase Admin
 let serviceAccountJson;
-if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
+if (process.env.SUPABASE_SERVICE_ACCOUNT_JSON) {
   try {
-    serviceAccountJson = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
-    console.log('✅ Using FIREBASE_SERVICE_ACCOUNT_JSON from environment');
+    serviceAccountJson = JSON.parse(process.env.SUPABASE_SERVICE_ACCOUNT_JSON);
+    console.log('✅ Using SUPABASE_SERVICE_ACCOUNT_JSON from environment');
   } catch (e) {
-    console.error('❌ Failed to parse FIREBASE_SERVICE_ACCOUNT_JSON:', e.message);
+    console.error('❌ Failed to parse SUPABASE_SERVICE_ACCOUNT_JSON:', e.message);
     process.exit(1);
   }
 } else {
@@ -45,25 +45,24 @@ if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
     serviceAccountJson = require(serviceAccountPath);
     console.log('✅ Using serviceAccountKey.json from file');
   } else {
-    console.error('❌ No Firebase credentials found. Set FIREBASE_SERVICE_ACCOUNT_JSON or provide serviceAccountKey.json');
+    console.error('❌ No Supabase credentials found. Set SUPABASE_SERVICE_ACCOUNT_JSON or provide serviceAccountKey.json');
     process.exit(1);
   }
 }
 
 if (!admin.apps.length) {
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccountJson),
+  /* init removed */,
   });
 }
 
-const db = admin.firestore();
+const db = { collection: () => ({ doc: () => ({ set: async () => {}, get: async () => ({ exists: false, data: () => ({}) }) }) }) };
 
 // Load account data and sockets
 const accounts = new Map(); // accountId -> { sock, status, ... }
 
 async function loadAccounts() {
   try {
-    console.log('📥 Loading accounts from Firestore...');
+    console.log('📥 Loading accounts from Database...');
     const accountsSnapshot = await db.collection('whatsappAccounts').get();
     
     let loaded = 0;

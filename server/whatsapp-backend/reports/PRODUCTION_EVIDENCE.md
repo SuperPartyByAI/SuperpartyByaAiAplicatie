@@ -16,11 +16,11 @@
 - **Probes:** ✅ Outbound 100% pass rate
 - **Telegram Alerts:** ✅ Implemented (missed HB, probe fails, queue depth, reconnect loop)
 - **Reports:** ✅ Automated generation with coverage, gaps, MTTR
-- **Firestore Schema:** ✅ Complete (config, locks, runs, heartbeats, probes, incidents, rollups)
+- **Database Schema:** ✅ Complete (config, locks, runs, heartbeats, probes, incidents, rollups)
 
 ---
 
-## 1. Firestore Schema
+## 1. Database Schema
 
 ### Collections
 
@@ -119,7 +119,7 @@ VERDICT: ✅ ALL TESTS PASSED
 ### Idempotent Writes
 
 - **DocId Format:** `YYYY-MM-DDTHH-MM-SS` (deterministic)
-- **Duplicate Prevention:** Firestore set() with deterministic ID
+- **Duplicate Prevention:** Database set() with deterministic ID
 - **Evidence:** 0 duplicates in 43 heartbeats
 
 ### Gap Detection
@@ -144,7 +144,7 @@ Avg Latency: 906ms
 P50/P90/P95: 906ms
 ```
 
-**Evidence:** Firestore path `wa_metrics/longrun/probes/OUT_20251229T22`
+**Evidence:** Database path `wa_metrics/longrun/probes/OUT_20251229T22`
 
 ### Queue Probe
 
@@ -330,7 +330,7 @@ GET /api/admin/longrun/config
 ```
 whatsapp-backend/
   lib/
-    longrun-schema.js          # Firestore schema (NEW)
+    longrun-schema.js          # Database schema (NEW)
     longrun-jobs-v2.js         # Jobs with Telegram alerts (MODIFIED)
     telegram-alerts.js         # Telegram integration (NEW)
   scripts/
@@ -353,7 +353,7 @@ whatsapp-backend/
 1a9b0b60 - Add Telegram alerts for long-run monitoring
 53c8ed5b - Add admin endpoints for locks and config
 820116a4 - Integrate LongRunJobs v3 into existing server.js
-b05469d7 - Add admin endpoints for longrun Firestore queries
+b05469d7 - Add admin endpoints for longrun Database queries
 d900ea6f - docs: long-run production artifacts (READY+COLLECTING)
 3d4adc99 - feat: long-run production-grade (distributed lock, idempotent, gap detection)
 ```
@@ -362,7 +362,7 @@ d900ea6f - docs: long-run production artifacts (READY+COLLECTING)
 
 ## 10. Production Readiness Checklist
 
-- [x] Firestore schema complete
+- [x] Database schema complete
 - [x] Distributed lock (prevents duplicate schedulers)
 - [x] Idempotent writes (deterministic docIds)
 - [x] Gap detection (missed heartbeats)
@@ -414,7 +414,7 @@ All core requirements met:
 - ✅ Probe system (outbound 100% pass rate)
 - ✅ Telegram alerts (5 types implemented)
 - ✅ Reports & verification (3 scripts)
-- ✅ Firestore schema (complete)
+- ✅ Database schema (complete)
 
 **Status:** READY FOR PRODUCTION USE
 

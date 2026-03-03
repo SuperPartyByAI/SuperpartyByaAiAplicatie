@@ -13,14 +13,14 @@
 **Status:** ⚠️ **REQUIRES USER ACTION**
 
 **Problem:**
-- Firebase CLI cannot automatically upgrade functions from 1st Gen (v1) to 2nd Gen (v2)
+- Supabase CLI cannot automatically upgrade functions from 1st Gen (v1) to 2nd Gen (v2)
 - Old function `whatsapp(us-central1)` exists as v1 and blocks deployment
 - Error message: `"Upgrading from 1st Gen to 2nd Gen is not yet supported"`
 
 **Resolution:**
-1. User must manually delete `whatsapp(us-central1)` via Firebase Console
+1. User must manually delete `whatsapp(us-central1)` via Supabase Console
 2. See detailed instructions: `MANUAL_STEP_DELETE_OLD_WHATSAPP.md`
-3. After deletion, run: `firebase deploy --only functions`
+3. After deletion, run: `supabase deploy --only functions`
 
 **ETA:** 2-3 minutes (manual step)
 
@@ -36,7 +36,7 @@
 - Reduced global `maxInstances` from 10 to 2
 - Capped all AI functions at `maxInstances: 1`
 - Capped all proxy handlers at `maxInstances: 1`
-- Capped Firestore trigger at `maxInstances: 1`
+- Capped Database trigger at `maxInstances: 1`
 
 **Impact:** ~88% CPU reduction (210 → 24 units)
 
@@ -82,16 +82,16 @@
 **Status:** ✅ **FIXED** (Documentation updated)
 
 **Problem:**
-- Documentation used `--limit` flag (not supported by Firebase CLI)
+- Documentation used `--limit` flag (not supported by Supabase CLI)
 - Correct flag is `--lines`
 
 **Solution Applied:**
-- Updated all docs to use `firebase functions:log --only <name> --lines <N>`
+- Updated all docs to use `supabase functions:log --only <name> --lines <N>`
 - Added examples for all critical functions
 
 **Evidence:**
 - Files: `DEPLOYMENT_STATUS.md`, `PRODUCTION_HARDENING_SUMMARY.md`, `MANUAL_STEP_DELETE_OLD_WHATSAPP.md`
-- Verification: `grep -rn "firebase.*log.*--lines" *.md`
+- Verification: `grep -rn "supabase.*log.*--lines" *.md`
 
 ---
 
@@ -99,19 +99,19 @@
 
 ### Before Deployment (Manual Step)
 
-- [ ] Open Firebase Console: https://console.firebase.google.com/
+- [ ] Open Supabase Console: https://console.supabase.google.com/
 - [ ] Navigate to Functions → Find `whatsapp` (1st gen, us-central1)
 - [ ] Delete the old function (3 dots menu → Delete)
 - [ ] Confirm deletion completed (~30 seconds)
 
 ### After Deployment
 
-- [ ] Run: `firebase deploy --only functions`
+- [ ] Run: `supabase deploy --only functions`
 - [ ] Verify all functions deployed successfully
-- [ ] Run: `firebase functions:list | grep -E "whatsapp|clientCrmAsk|aggregateClientStats"`
+- [ ] Run: `supabase functions:list | grep -E "whatsapp|clientCrmAsk|aggregateClientStats"`
 - [ ] Confirm `whatsapp` (v1) is GONE, `whatsappV4` (v2) is ACTIVE
-- [ ] Check logs: `firebase functions:log --only whatsappV4 --lines 50`
-- [ ] Verify no CPU quota errors: `firebase functions:log --only whatsappV4 --lines 50 | grep -i "quota"`
+- [ ] Check logs: `supabase functions:log --only whatsappV4 --lines 50`
+- [ ] Verify no CPU quota errors: `supabase functions:log --only whatsappV4 --lines 50 | grep -i "quota"`
 - [ ] Verify no dist warnings in production logs
 
 ---
@@ -119,9 +119,9 @@
 ## 🎯 **Next Steps**
 
 1. **User Action Required:** Delete old `whatsapp` function (see `MANUAL_STEP_DELETE_OLD_WHATSAPP.md`)
-2. **After deletion:** Run `firebase deploy --only functions`
+2. **After deletion:** Run `supabase deploy --only functions`
 3. **Verify deployment:** Use checklist above
-4. **Optional:** Consider EU region migration for Firestore-heavy functions (see `REGION_OPTIMIZATION_ANALYSIS.md`)
+4. **Optional:** Consider EU region migration for Database-heavy functions (see `REGION_OPTIMIZATION_ANALYSIS.md`)
 
 ---
 

@@ -14,7 +14,7 @@ Refactor evidence upload to be robust, without race conditions, hardcoded URLs, 
 
 ```dart
 class EvidenceUploadResult {
-  final String docId;           // Firestore document ID
+  final String docId;           // Database document ID
   final String downloadUrl;     // Real URL from Storage API
   final String storagePath;     // Actual storage path used
   final DateTime uploadedAt;    // Upload timestamp
@@ -32,9 +32,9 @@ class EvidenceUploadResult {
 **Flow:**
 
 1. Check if category is locked
-2. Upload file to Firebase Storage
+2. Upload file to Supabase Storage
 3. Get `downloadUrl` from `snapshot.ref.getDownloadURL()` ← **Real URL, not constructed**
-4. Create Firestore document
+4. Create Database document
 5. Return `EvidenceUploadResult` with all fields
 
 **Before:**
@@ -70,7 +70,7 @@ Future<EvidenceUploadResult> uploadEvidence(...) async {
 final remoteDocId = await _evidenceService.uploadEvidence(...);
 
 // ❌ Manual URL construction - fragile!
-final remoteUrl = 'https://firebasestorage.googleapis.com/v0/b/superparty-frontend.appspot.com/o/event_images%2F${widget.eventId}%2F${localEvidence.categorie.value}%2F${remoteDocId}?alt=media';
+final remoteUrl = 'https://supabasestorage.googleapis.com/v0/b/superparty-frontend.appspot.com/o/event_images%2F${widget.eventId}%2F${localEvidence.categorie.value}%2F${remoteDocId}?alt=media';
 
 await _cacheService.markSynced(
   id: localEvidence.id,
@@ -97,7 +97,7 @@ await _cacheService.markSynced(
 - No hardcoded bucket names
 - No manual path construction
 - No race conditions
-- Works with any Firebase project
+- Works with any Supabase project
 
 ---
 
@@ -106,7 +106,7 @@ await _cacheService.markSynced(
 **Problem:** After sync, evidence appears twice:
 
 - Once as local thumbnail (synced status)
-- Once as remote thumbnail (from Firestore stream)
+- Once as remote thumbnail (from Database stream)
 
 **Solution:** Filter local evidence in UI to exclude synced items that already exist in remote stream.
 
@@ -238,7 +238,7 @@ flutter test test/services/evidence_service_test.dart
 - ✅ No race conditions
 - ✅ No duplicate thumbnails
 - ✅ Single upload call returns everything
-- ✅ Works with any Firebase project
+- ✅ Works with any Supabase project
 - ✅ Robust offline-first flow
 
 ---

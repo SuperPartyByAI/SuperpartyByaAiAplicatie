@@ -69,7 +69,7 @@
 ## ❌ Dacă Apare Eroare
 
 ### Eroare: "Account already exists"
-- **Fix**: Verifică dacă există un cont vechi în Firestore
+- **Fix**: Verifică dacă există un cont vechi în Database
 - Sau: Șterge contul vechi și adaugă din nou
 
 ### Eroare: "Invalid phone number"
@@ -135,7 +135,7 @@ curl -X POST https://whats-app-ompro.ro/api/whatsapp/add-account \
 ## 🆘 Dacă Tot Nu Merge
 
 1. **Verifică logs Hetzner** (dacă ai acces)
-2. **Verifică Firestore** → `accounts` collection (dacă ai acces)
+2. **Verifică Database** → `accounts` collection (dacă ai acces)
 3. **Reîncearcă** cu Regenerate QR
 4. **Șterge contul vechi** și adaugă din nou
 

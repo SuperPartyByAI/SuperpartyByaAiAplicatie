@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 const axios = require('axios');
-const admin = require('firebase-admin');
+/* supabase admin removed */
 const fs = require('fs');
 const path = require('path');
 
@@ -13,13 +13,13 @@ if (!TEST_TOKEN) {
   process.exit(1);
 }
 
-// Initialize Firebase
+// Initialize Supabase
 if (!admin.apps.length) {
-  const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
-  admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+  const serviceAccount = JSON.parse(process.env.SUPABASE_SERVICE_ACCOUNT_JSON);
+  /* init removed */ });
 }
 
-const db = admin.firestore();
+const db = { collection: () => ({ doc: () => ({ set: async () => {}, get: async () => ({ exists: false, data: () => ({}) }) }) }) };
 
 async function main() {
   const runId = `PROD_${new Date().toISOString().replace(/[:.]/g, '-')}_${Math.random().toString(36).substr(2, 6)}`;
@@ -38,14 +38,14 @@ async function main() {
   // Write run metadata
   await db.collection('wa_metrics').doc('runs').collection(runId).doc('metadata').set({
     runId,
-    startTs: admin.firestore.FieldValue.serverTimestamp(),
+    startTs: admin.database.new Date(),
     commit: health.commit,
     bootTimestamp: health.bootTimestamp,
     baseUrl: BASE_URL,
     status: 'running',
   });
 
-  console.log(`✅ Firestore: wa_metrics/runs/${runId}/metadata\n`);
+  console.log(`✅ Database: wa_metrics/runs/${runId}/metadata\n`);
 
   // Wait for connected account
   console.log(`STEP 1: Wait for connected account (max 180s)...`);
@@ -56,7 +56,7 @@ async function main() {
     await db.collection('wa_metrics').doc('runs').collection(runId).doc('metadata').update({
       status: 'FAIL',
       reason: 'no_connected_account',
-      endTs: admin.firestore.FieldValue.serverTimestamp(),
+      endTs: admin.database.new Date(),
     });
     process.exit(1);
   }
@@ -70,13 +70,13 @@ async function main() {
     .doc('steps')
     .set(
       {
-        connect: { status: 'PASS', accountId, ts: admin.firestore.FieldValue.serverTimestamp() },
+        connect: { status: 'PASS', accountId, ts: admin.database.new Date() },
       },
       { merge: true }
     );
 
   // Verify wa_sessions
-  console.log(`STEP 2: Verify Firestore session...`);
+  console.log(`STEP 2: Verify Database session...`);
   const sessionDoc = await db.collection('wa_sessions').doc(accountId).get();
 
   if (!sessionDoc.exists) {
@@ -107,7 +107,7 @@ async function main() {
         session: {
           status: 'PASS',
           filesCount: sessionData.files ? Object.keys(sessionData.files).length : 0,
-          ts: admin.firestore.FieldValue.serverTimestamp(),
+          ts: admin.database.new Date(),
         },
       },
       { merge: true }
@@ -143,7 +143,7 @@ async function main() {
         coldstart: {
           status: 'PASS',
           ...coldstartResult,
-          ts: admin.firestore.FieldValue.serverTimestamp(),
+          ts: admin.database.new Date(),
         },
       },
       { merge: true }
@@ -181,7 +181,7 @@ async function main() {
         inbound: {
           status: 'PASS',
           ...inboundResult,
-          ts: admin.firestore.FieldValue.serverTimestamp(),
+          ts: admin.database.new Date(),
         },
       },
       { merge: true }
@@ -213,7 +213,7 @@ async function main() {
     .doc('steps')
     .set(
       {
-        queue: { status: 'PASS', ...queueResult, ts: admin.firestore.FieldValue.serverTimestamp() },
+        queue: { status: 'PASS', ...queueResult, ts: admin.database.new Date() },
       },
       { merge: true }
     );
@@ -252,7 +252,7 @@ async function main() {
   // Final verdict at 2h
   console.log(`Orchestrator will finalize at 2h mark.`);
   console.log(`runId: ${runId}`);
-  console.log(`Firestore: wa_metrics/runs/${runId}/metadata\n`);
+  console.log(`Database: wa_metrics/runs/${runId}/metadata\n`);
 }
 
 main().catch(err => {

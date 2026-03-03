@@ -60,25 +60,25 @@ flutter run
 
 ---
 
-## 4. Deploy Firebase Hosting (Flutter Web)
+## 4. Deploy Supabase Hosting (Flutter Web)
 
 ```bash
 cd /path/to/Aplicatie-SuperpartyByAi
 
 # Login (dacă e nevoie)
-npx firebase-tools login --no-localhost
+npx supabase-tools login --no-localhost
 
 # Proiect
-npx firebase-tools use superparty-frontend
+npx supabase-tools use superparty-frontend
 
 # Build
 cd superparty_flutter && flutter pub get && flutter build web --release && cd ..
 
 # Deploy doar hosting
-npx firebase-tools deploy --only hosting --non-interactive
+npx supabase-tools deploy --only hosting --non-interactive
 ```
 
-**Output folder:** `superparty_flutter/build/web` (configurat în `firebase.json` → `hosting.public`).
+**Output folder:** `superparty_flutter/build/web` (configurat în `supabase.json` → `hosting.public`).
 
 ---
 
@@ -89,5 +89,5 @@ npx firebase-tools deploy --only hosting --non-interactive
 - [ ] Inbox: nume/număr + preview + avatar (inițială sau `photoUrl` dacă există)
 - [ ] „No conversations yet” + Refresh când 0 thread-uri
 - [ ] Diagnostics: Threads API count + first thread JSON
-- [ ] Tap pe thread → Chat se încarcă din Firestore
+- [ ] Tap pe thread → Chat se încarcă din Database
 - [ ] Pull-to-refresh în Inbox nu strică listarea

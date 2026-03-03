@@ -6,7 +6,7 @@
 **Bucket A: Backend receives WhatsApp events but ONLY protocol/sync signals, not real text messages**
 
 **Evidence:**
-- ✅ Backend is running (service active, Firestore available)
+- ✅ Backend is running (service active, Database available)
 - ✅ Messages are being received (`📨 Processing X message(s) in real-time`)
 - ❌ **ALL messages are protocol messages** (historySyncNotification, type=5)
 - ❌ **ZERO real text messages** in last 30+ minutes
@@ -88,7 +88,7 @@ sudo journalctl -u whatsapp-backend --since "1 min ago" -f | grep -E "📨|🔍.
 ```bash
 # Get accountId from /api/whatsapp/accounts first
 ACCOUNT_ID="account_prod_..."
-TOKEN="<firebase_id_token>"
+TOKEN="<supabase_id_token>"
 
 curl -s -H "Authorization: Bearer $TOKEN" \
   "http://37.27.34.179:8080/api/whatsapp/accounts/$ACCOUNT_ID/health" | python3 -m json.tool
@@ -116,7 +116,7 @@ curl -s -H "Authorization: Bearer $TOKEN" \
 }
 ```
 
-### Test 3: Check Firestore
+### Test 3: Check Database
 
 **Collection:** `threads/{threadId}/messages`
 
@@ -155,7 +155,7 @@ Look for:
 
 1. **Monitor logs** for `real=X protocol=Y` counts
 2. **If real=0 consistently** → Session is degraded → Re-pair required
-3. **If real>0 but messages don't appear in app** → Check Flutter/Firestore stream (different issue)
+3. **If real>0 but messages don't appear in app** → Check Flutter/Database stream (different issue)
 4. **After re-pair** → Verify with test message and confirm `real=1` in logs
 
 ## Files Changed

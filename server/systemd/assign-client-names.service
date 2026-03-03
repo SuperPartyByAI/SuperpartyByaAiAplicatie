@@ -1,0 +1,11 @@
+[Unit]
+Description=Assign Client Names (daily job)
+After=network.target
+
+[Service]
+Type=oneshot
+Environment=DATABASE_URL=postgres://postgres:YOURPASSWORD@dbhost:5432/postgres
+Environment=DB_SSL=false
+WorkingDirectory=/opt/superparty/scripts
+ExecStart=/usr/bin/node /opt/superparty/scripts/assign_client_names.js
+User=root

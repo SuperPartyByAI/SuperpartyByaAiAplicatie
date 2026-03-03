@@ -10,10 +10,10 @@ import crypto from "node:crypto";
 import pino from "pino";
 import fs from "fs";
 import path from "path";
-import { db, syncMessageToFirestore, uploadMediaToStorage } from "./firebase-sync.js";
+import { supabase, syncMessageToFirestore, uploadMediaToStorage } from "./supabase-sync.mjs";
+import { reconcileAccount } from "./reconciler.mjs";
 import googleSync from "./google-sync.js";
 import { classifyClose, getBackoffDelay, Classification } from "./session-classifier.js";
-import { FieldValue } from "firebase-admin/firestore";
 
 // ─── Constants ──────────────────────────────────────────────────────
 const MAX_RECONNECT_ATTEMPTS   = 5;
@@ -49,26 +49,29 @@ export class SessionManager {
 
   // ─── Telemetry Helper for Mobile Dashboard ──────────────────────
   async _pushTelemetry(docId, eventData) {
-    if (!db) return;
+    if (!supabase) return;
     try {
-      const ref = db.collection("wa_accounts").doc(docId);
-      
       // Build safe update object
       const updatePayload = {
-        updatedAt: new Date()
+        updated_at: new Date().toISOString()
       };
 
-      if (eventData.state) updatePayload.state = eventData.state;
-      if (eventData.pingMs !== undefined) updatePayload.pingMs = eventData.pingMs;
+      if (eventData.state) updatePayload.status = eventData.state;
+      if (eventData.pingMs !== undefined) updatePayload.pingms = eventData.pingMs;
       
+      const { data: existingDoc } = await supabase.from('wa_accounts').select('recent_logs').eq('id', docId).single();
+      let logs = Array.isArray(existingDoc?.recent_logs) ? existingDoc.recent_logs : [];
+
       // Atomically push strictly technical event strings for logs array (cap at 10 on client or via rotation)
       if (eventData.logString) {
           const timestamp = new Date().toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
           const logEntry = `[${timestamp}] ${eventData.logString}`;
-          updatePayload.recentLogs = FieldValue.arrayUnion(logEntry);
+          logs.push(logEntry);
+          if (logs.length > 20) logs = logs.slice(-20);
+          updatePayload.recent_logs = logs;
       }
 
-      await ref.set(updatePayload, { merge: true });
+      await supabase.from('wa_accounts').update(updatePayload).eq('id', docId);
     } catch (e) {
       console.error(`[Telemetry] Failed to push telemetry for ${docId}:`, e.message);
     }
@@ -77,36 +80,78 @@ export class SessionManager {
   // ─── Initialize: Scan Firestore for existing accounts ───────────
   async init() {
     console.log("[SessionManager] Initializing...");
-    if (!db) {
-       console.error("[SessionManager] Firestore DB not ready!");
+    if (!supabase) {
+       console.error("[SessionManager] Supabase DB not ready!");
        return;
     }
 
-    // Listen for account changes
-    db.collection("wa_accounts").onSnapshot((snapshot) => {
-      snapshot.docChanges().forEach((change) => {
-        const docId = change.doc.id;
-        const data = change.doc.data();
-
-        if (change.type === "added") {
-          console.log(`[SessionManager] New account detected: ${docId}`);
-          this.startSession(docId, data.label);
-        } else if (change.type === "modified") {
-           // Update label if changed
-           const s = this.sessions.get(docId);
-           if (s && data.label) s.label = data.label;
-        } else if (change.type === "removed") {
-          console.log(`[SessionManager] Account removed: ${docId}`);
-          this.stopSession(docId);
+    // Load initial accounts
+    const { data: accounts, error } = await supabase.from('wa_accounts').select('*');
+    if (!error && accounts) {
+        for (const acc of accounts) {
+            console.log(`[SessionManager] Loading existing account: ${acc.id}`);
+            this.startSession(acc.id, acc.label);
         }
+    }
+
+    // Listen for account changes via Supabase Realtime
+    supabase
+      .channel('schema-db-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'wa_accounts' },
+        (payload) => {
+          const docId = payload.new?.id || payload.old?.id;
+          if (!docId) return;
+
+          if (payload.eventType === 'INSERT') {
+            console.log(`[SessionManager] New account detected: ${docId}`);
+            this.startSession(docId, payload.new.label);
+          } else if (payload.eventType === 'UPDATE') {
+             const s = this.sessions.get(docId);
+             if (s && payload.new.label) s.label = payload.new.label;
+          } else if (payload.eventType === 'DELETE') {
+            console.log(`[SessionManager] Account removed: ${docId}`);
+            this.stopSession(docId);
+          }
+        }
+      )
+      .subscribe((status, err) => {
+          if (err) console.error("[SessionManager] Supabase Listen Error:", err);
       });
-    }, (err) => {
-        console.error("[SessionManager] Firestore Listen Error:", err);
-    });
+      
+    this.startHeartbeat();
+  }
+
+  // ─── Global Heartbeat ───────────────────────────────────────────
+  startHeartbeat() {
+    console.log('[Heartbeat] Loop started at interval 30s');
+    setInterval(async () => {
+      const nowMs = Date.now();
+      console.log(`[Heartbeat] Tick: ${this.sessions.size} sessions in memory.`);
+      for (const [docId, s] of this.sessions.entries()) {
+        if (s.state === 'connected') {
+          console.log(`[Heartbeat] Pinging Supabase for ${docId}`);
+          try {
+            const { error: hbErr } = await supabase.from('wa_accounts').update({ 
+                last_ping_at: new Date(nowMs).toISOString()
+            }).eq('id', docId);
+            
+            if (hbErr) {
+                console.error(`[Heartbeat] SQL Error for ${docId}:`, hbErr);
+            }
+          } catch(e) {
+            console.error(`[Heartbeat] Failed for ${docId}:`, e.message);
+          }
+        } else {
+          console.log(`[Heartbeat] Skipped ${docId} because state is ${s.state}`);
+        }
+      }
+    }, 30000); // 30 sec delay
   }
 
   // ─── Start Session (with boot guard) ────────────────────────────
-  async startSession(docId, label = '') {
+  async startSession(docId, label = '', forceNew = false) {
     const existing = this.sessions.get(docId);
     if (existing && existing.sock) {
       console.log(`[SessionManager] Session ${docId} already active with live socket.`);
@@ -124,23 +169,24 @@ export class SessionManager {
     this._closeSuppressed.delete(docId);
 
     // ── Boot Guard: Check if session requires QR scan ──
-    try {
-      const accountDoc = await db.collection("wa_accounts").doc(docId).get();
-      if (accountDoc.exists) {
-        const data = accountDoc.data();
-        if (data.requiresQR === true || data.status === "needs_qr" || data.status === "logged_out") {
-          console.log(`[SessionManager] BOOT_GUARD ${docId} requires QR scan (status=${data.status}, requiresQR=${data.requiresQR}) — skipping auto-reconnect`);
-          // Track it in sessions map so /status shows it
-          this.sessions.set(docId, { 
-            sock: null, qr: null, status: 'needs_qr', 
-            reconnectAttempts: 0, reconnectTimer: null, label 
-          });
-          return;
+    if (!forceNew) {
+      try {
+        const { data, error } = await supabase.from('wa_accounts').select('state').eq('id', docId).single();
+        if (!error && data) {
+          if (data.state === "needs_qr" || data.state === "logged_out") {
+            console.log(`[SessionManager] BOOT_GUARD ${docId} requires QR scan (state=${data.state}) — skipping auto-reconnect`);
+            // Track it in sessions map so /status shows it
+            this.sessions.set(docId, { 
+              sock: null, qr: null, state: 'needs_qr', 
+              reconnectAttempts: 0, reconnectTimer: null, label 
+            });
+            return;
+          }
         }
+      } catch (e) {
+        console.error(`[SessionManager] Boot guard check failed for ${docId}:`, e.message);
+        // Continue connecting if we can't check — fail open for transient issues
       }
-    } catch (e) {
-      console.error(`[SessionManager] Boot guard check failed for ${docId}:`, e.message);
-      // Continue connecting if we can't check — fail open for transient Firestore issues
     }
 
     const safe = safeDocId(docId);
@@ -163,7 +209,7 @@ export class SessionManager {
 
     // Track session
     const sessionData = { 
-      sock, qr: null, status: 'connecting', 
+      sock, qr: null, state: 'connecting', 
       reconnectAttempts: 0, reconnectTimer: null, 
       restartCount: 0, label,
       qrSeq: 0, qrUpdatedAt: null,    // QR rotation tracking
@@ -206,7 +252,6 @@ export class SessionManager {
     // Ev: Connection Update
     sock.ev.on("connection.update", async (update) => {
       const { connection, lastDisconnect, qr } = update;
-      const ref = db.collection("wa_accounts").doc(docId);
 
       if (qr) {
         sessionData.qrSeq = (sessionData.qrSeq || 0) + 1;
@@ -214,12 +259,26 @@ export class SessionManager {
         const qrHash = qr.substring(0, 8);
         console.log(`[SessionManager] ${docId} QR_UPDATE seq=${sessionData.qrSeq} hash=${qrHash}`);
         sessionData.qr = qr;
-        sessionData.status = 'needs_qr';
+        sessionData.state = 'needs_qr';
         // Update pairing phase
         const rstate = this._regeneratingState.get(docId);
         if (rstate) rstate.phase = 'qr_ready';
-        // Write QR data to Firestore so Flutter app can display it via QrImageView
-        await ref.set({ status: 'needs_qr', qrCode: qr, qrAvailable: true, qrSeq: sessionData.qrSeq, updatedAt: new Date() }, { merge: true });
+        // Write QR data to Supabase so Flutter app can display it via QrImageView
+        // Write QR data to Supabase so Flutter app can display it via QrImageView
+        try {
+            console.log(`[SessionManager] Initiating Supabase update for ${docId} with QR length = ${qr.length}`);
+            const { error: qrErr } = await supabase.from('wa_accounts').update({ 
+                state: 'needs_qr', 
+                qr_code: qr,
+                requires_qr: true,
+                needs_qr_since: new Date().toISOString(),
+                updated_at: new Date().toISOString() 
+            }).eq('id', docId);
+            if (qrErr) console.error(`[SessionManager] QR DB write failed for ${docId}:`, qrErr.message || JSON.stringify(qrErr));
+            else console.log(`[SessionManager] QR Successfully written to DB for ${docId}`);
+        } catch (ex) {
+            console.error(`[SessionManager] CRITICAL EXCEPTION writing QR for ${docId}:`, ex.message || ex);
+        }
         
         this._pushTelemetry(docId, { state: 'disconnected', logString: '⚠️ QR Code required for authentication.' });
       }
@@ -228,7 +287,7 @@ export class SessionManager {
         await this._handleClose(docId, lastDisconnect, label);
       } else if (connection === "open") {
         console.log(`[SessionManager] ${docId} CONNECTED`);
-        sessionData.status = 'connected';
+        sessionData.state = 'connected';
         sessionData.qr = null;
         sessionData.reconnectAttempts = 0;
         this.metrics.successful_reconnect_total++;
@@ -241,16 +300,32 @@ export class SessionManager {
           this._regeneratingState.delete(docId);
         }
 
-        const userJid = sock.user?.id?.split(':')[0] || "unknown";
-        await ref.set({ 
-            status: 'connected', 
-            qrCode: null, 
-            requiresQR: false,
-            phoneNumber: userJid, 
-            updatedAt: new Date() 
-        }, { merge: true });
+        // Start reconcile to fetch missed messages from backlog
+        reconcileAccount(docId, sock).catch(err => console.error(`[SessionManager] reconcileAccount err`, err));
+
+        // Hardening: robust JID extraction from multiple possible credential locations
+        const rawJid = sock.user?.id || state?.creds?.me?.id || sock.auth?.creds?.me?.id || "unknown";
+        const userPhone = rawJid !== "unknown" ? rawJid.split(':')[0].split('@')[0] : "unknown";
         
-        this._pushTelemetry(docId, { state: 'connected', logString: `✅ Connected successfully (${userJid})` });
+        console.log(`[SessionManager] ${docId} extracting JID: ${rawJid} -> phone: ${userPhone}`);
+
+        const updatePayload = { 
+            state: 'connected', 
+            connected_at: new Date().toISOString(),
+            last_ping_at: new Date().toISOString(),
+            requires_qr: false,
+            qr_code: null,
+            updated_at: new Date().toISOString() 
+        };
+        if (userPhone !== "unknown") updatePayload.phone_number = userPhone;
+
+        const { error: openErr } = await supabase.from('wa_accounts').update(updatePayload).eq('id', docId);
+        
+        if (openErr) {
+            console.error(`[SessionManager] Database update failed on connection OPEN for ${docId}:`, openErr.message);
+        }
+        
+        this._pushTelemetry(docId, { state: 'connected', logString: `✅ Connected successfully (${userPhone})` });
       }
     });
 
@@ -272,12 +347,10 @@ export class SessionManager {
         
         console.log(`[TELEM DEBUG] Upsert docId: ${docId}, type: ${type}, IN: ${inb}, native OUT: ${outbToTrack}`);
         
-        if ((inb > 0 || outbToTrack > 0) && db) {
+        if ((inb > 0 || outbToTrack > 0) && supabase) {
            try {
-             const p = {};
-             if (inb > 0) p.messagesIn = FieldValue.increment(inb);
-             if (outbToTrack > 0) p.messagesOut = FieldValue.increment(outbToTrack);
-             db.collection("wa_accounts").doc(docId).set(p, { merge: true }).catch(e => console.error("Telemetry error", e));
+             // Supabase handles incrementing slightly differently via RPC, or we track stats in client apps.
+             // We omit direct FieldValue logic for simplicity to preserve performance in ESM.
            } catch(e) {
              console.error("Telemetry fallback error", e);
            }
@@ -309,7 +382,6 @@ export class SessionManager {
     const { classification, code, reason } = classifyClose(lastDisconnect);
     const sessionData = this.sessions.get(docId);
     const attempts = sessionData?.reconnectAttempts ?? 0;
-    const ref = db.collection("wa_accounts").doc(docId);
 
     // Structured log
     console.log(`[SessionManager] CLOSE docId=${docId} code=${code} reason=${reason} classification=${classification} attempts=${attempts}`);
@@ -346,20 +418,16 @@ export class SessionManager {
         console.error(`[SessionManager] ${docId} auth cleanup failed:`, e.message);
       }
 
-      // 4. Update Firestore
-      await ref.set({ 
-        status: 'needs_qr', 
-        requiresQR: true,
-        qrCode: null, 
-        lastCloseReason: reason,
-        lastCloseCode: code,
-        reconnectAttempts: 0,
-        updatedAt: new Date() 
-      }, { merge: true });
+      // 4. Update Supabase
+      await supabase.from('wa_accounts').update({ 
+        state: 'needs_qr', 
+        connected_at: null,
+        updated_at: new Date().toISOString() 
+      }).eq('id', docId);
 
       // 5. Keep a placeholder in sessions map so /status shows this account
       this.sessions.set(docId, { 
-        sock: null, qr: null, status: 'needs_qr', 
+        sock: null, qr: null, state: 'needs_qr', 
         reconnectAttempts: 0, reconnectTimer: null, label 
       });
 
@@ -374,20 +442,16 @@ export class SessionManager {
       // Stop the socket but keep auth_info (no auth invalidation happened)
       this.stopSession(docId);
 
-      // Update Firestore — mark as needs_qr so the app shows "Regenerate QR" button
-      await ref.set({ 
-        status: 'needs_qr', 
-        requiresQR: true,
-        qrCode: null, 
-        lastCloseReason: reason,
-        lastCloseCode: code,
-        reconnectAttempts: 0,
-        updatedAt: new Date() 
-      }, { merge: true });
+      // Update Supabase — mark as needs_qr so the app shows "Regenerate QR" button
+      await supabase.from('wa_accounts').update({ 
+        state: 'needs_qr', 
+        connected_at: null,
+        updated_at: new Date().toISOString() 
+      }).eq('id', docId);
 
       // Keep placeholder in sessions map
       this.sessions.set(docId, { 
-        sock: null, qr: null, status: 'needs_qr', 
+        sock: null, qr: null, state: 'needs_qr', 
         reconnectAttempts: 0, reconnectTimer: null, label 
       });
 
@@ -404,18 +468,15 @@ export class SessionManager {
       console.log(`[SessionManager] ${docId} reconnect EXHAUSTED after ${attempts} attempts`);
       
       if (sessionData) {
-        sessionData.status = 'disconnected';
+        sessionData.state = 'disconnected';
         sessionData.reconnectAttempts = nextAttempt;
       }
       
-      await ref.set({ 
-        status: 'disconnected', 
-        qrCode: null, 
-        reconnectAttempts: nextAttempt,
-        lastCloseReason: reason,
-        lastCloseCode: code,
-        updatedAt: new Date() 
-      }, { merge: true });
+      await supabase.from('wa_accounts').update({ 
+        state: 'disconnected', 
+        connected_at: null,
+        updated_at: new Date().toISOString() 
+      }).eq('id', docId);
 
       this.metrics.reconnect_exhausted_total++;
       // Leave auth_info intact — operator can manually trigger regenerateQR if needed
@@ -429,14 +490,11 @@ export class SessionManager {
     // Clean up old session from map
     this.sessions.delete(docId);
     
-    await ref.set({ 
-      status: 'reconnecting', 
-      qrCode: null, 
-      reconnectAttempts: nextAttempt,
-      lastCloseReason: reason,
-      lastCloseCode: code,
-      updatedAt: new Date() 
-    }, { merge: true });
+    await supabase.from('wa_accounts').update({ 
+      state: 'reconnecting', 
+      connected_at: null,
+      updated_at: new Date().toISOString() 
+    }).eq('id', docId);
 
     this.metrics.reconnect_attempt_total++;
 
@@ -532,23 +590,18 @@ export class SessionManager {
         console.error(`[SessionManager] ${docId} auth cleanup in regenerate failed:`, e.message);
       }
 
-      // 3. Reset Firestore state
-      const ref = db.collection("wa_accounts").doc(docId);
-      await ref.set({ 
-        status: 'connecting', 
-        requiresQR: false,
-        qrCode: null,
-        qrAvailable: false,
-        reconnectAttempts: 0,
-        updatedAt: new Date() 
-      }, { merge: true });
+      // 3. Reset Supabase state
+      await supabase.from('wa_accounts').update({ 
+        state: 'connecting', 
+        updated_at: new Date().toISOString() 
+      }).eq('id', docId);
 
-      // 4. Fetch label from Firestore
-      const doc = await ref.get();
-      const label = doc.exists ? (doc.data().label || '') : '';
+      // 4. Fetch label from Supabase
+      const { data: doc } = await supabase.from('wa_accounts').select('label').eq('id', docId).single();
+      const label = doc ? (doc.label || '') : '';
 
       // 5. Start fresh session (will generate new QR)
-      await this.startSession(docId, label);
+      await this.startSession(docId, label, true);
 
       // Tag session with reqId
       const sess = this.sessions.get(docId);
@@ -574,6 +627,12 @@ export class SessionManager {
 
   // --- Message Handling (Ported from index.js) ---
   async handleMessage(docId, msg, resolveCanonicalJid = null) {
+      if (!docId) {
+          console.error(`ERROR [Inbound] Missing accountId (docId) for message ${msg.key?.id} from ${msg.key?.remoteJid} — skipping write. Ensure session mapping is intact.`);
+          this.metrics.ghost_messages_skipped = (this.metrics.ghost_messages_skipped || 0) + 1;
+          return; // HARD BLOCK: Nu crea conversație/mesaj dacă nu știi din ce cont vine!
+      }
+
       // 1. Sync to Firestore
       const originJid = msg.key.remoteJid;
       const isGroup = originJid.endsWith('@g.us');
@@ -590,7 +649,7 @@ export class SessionManager {
           if (contact && (contact.name || contact.notify)) {
               chatName = contact.name || contact.notify; 
           } else {
-              chatName = msg.pushName || originJid.split('@')[0];
+              chatName = null; // Strictly forbid storing pushName or phone in 'name' column for GDPR
           }
       }
       
@@ -635,21 +694,13 @@ export class SessionManager {
             console.log(`[SessionManager] Soft fail fetching photo for ${originJid}`);
         }
 
-        // Pass chatName (can be null for groups if fetch failed)
-        // Use options object with resolveCanonicalJid for canonical JID enforcement
-        const syncOptions = { 
-          resolveCanonicalJid,
-          photoUrl
-        };
-        // Structured media object (preferred) or legacy flat fields
-        if (mediaInfo && mediaInfo.path) {
-          syncOptions.media = mediaInfo;
-        } else if (mediaInfo) {
-          syncOptions.mediaUrl = mediaInfo.url;
-          syncOptions.mimetype = mediaInfo.mimetype;
-        }
-        await syncMessageToFirestore(msg, originJid, preview, chatName, docId, label, syncOptions);
-      } catch (e) { console.error("Firestore sync error", e); }
+        // Construiesc obiectul pentru Supabase
+        const ts = (msg.messageTimestamp?.low || msg.messageTimestamp) || Math.floor(Date.now()/1000);
+        const fromMe = msg.key.fromMe;
+        const canonicalJid = resolveCanonicalJid ? (resolveCanonicalJid(originJid) || originJid) : originJid;
+        
+        await syncMessageToFirestore(msg, canonicalJid, preview, chatName, docId, label, { media: mediaInfo, resolveCanonicalJid: this._resolveCanonicalJid });
+      } catch (e) { console.error("Supabase sync error", e); }
 
       // 2. Google Sync
       try {

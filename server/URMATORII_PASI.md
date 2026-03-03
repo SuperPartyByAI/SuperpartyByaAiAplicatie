@@ -21,7 +21,7 @@ git merge fix/wa-debug-backendstatus
 # Push main (auto-deploy pe legacy hosting pentru backend)
 git push origin main
 
-# Pentru Flutter: merge și deploy manual la Firebase dacă e cazul
+# Pentru Flutter: merge și deploy manual la Supabase dacă e cazul
 ```
 
 ### Opțiunea 2: Deploy Direct pe Branch (Testing)
@@ -50,7 +50,7 @@ curl -X DELETE -H "Authorization: Bearer $ADMIN_TOKEN" \
 
 ```bash
 # Trigger 401 (delete creds manually sau wait for disconnect)
-# Check account status în Firestore
+# Check account status în Database
 # Expected: status = "logged_out" (nu "needs_qr")
 ```
 
@@ -80,7 +80,7 @@ curl https://whats-app-ompro.ro/health | jq '.commit'
 ## Note Importante
 
 - **legacy hosting auto-deploy**: De obicei deploy automat pe `main` push
-- **Flutter deploy**: Poate necesita deploy manual la Firebase Functions
+- **Flutter deploy**: Poate necesita deploy manual la Supabase Functions
 - **Backward compatibility**: Fix-urile sunt defensive și compatibile cu codul existent
 
 ## Dacă Merge în Main

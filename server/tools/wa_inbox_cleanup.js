@@ -3,7 +3,7 @@
 const { execSync } = require('child_process');
 
 const ACTIVE_ACCOUNT_ID = process.env.ACTIVE_ACCOUNT_ID;
-const PROJECT_ID = process.env.FIREBASE_PROJECT_ID || 'superparty-frontend';
+const PROJECT_ID = process.env.SUPABASE_PROJECT_ID || 'superparty-frontend';
 const APPLY = process.argv.includes('--apply');
 
 if (!ACTIVE_ACCOUNT_ID) {
@@ -13,7 +13,7 @@ if (!ACTIVE_ACCOUNT_ID) {
 
 function getIdToken() {
   try {
-    const token = execSync('firebase auth:print-identity-token', {
+    const token = execSync('supabase auth:print-identity-token', {
       stdio: ['ignore', 'pipe', 'ignore'],
     })
       .toString()
@@ -57,7 +57,7 @@ async function fetchJson(url, token) {
 }
 
 async function deleteDoc(path, token) {
-  const url = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/${path}`;
+  const url = `https://database.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/${path}`;
   const res = await fetch(url, {
     method: 'DELETE',
     headers: token ? { Authorization: `Bearer ${token}` } : {},
@@ -73,7 +73,7 @@ async function listCollection(collectionPath, token) {
   let pageToken = null;
   do {
     const url = new URL(
-      `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/${collectionPath}`
+      `https://database.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents/${collectionPath}`
     );
     url.searchParams.set('pageSize', '1000');
     if (pageToken) url.searchParams.set('pageToken', pageToken);
@@ -85,7 +85,7 @@ async function listCollection(collectionPath, token) {
 }
 
 async function runQuery(parentPath, structuredQuery, token) {
-  const url = `https://firestore.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents:runQuery`;
+  const url = `https://database.googleapis.com/v1/projects/${PROJECT_ID}/databases/(default)/documents:runQuery`;
   const body = {
     parent: `projects/${PROJECT_ID}/databases/(default)/documents/${parentPath}`,
     structuredQuery,
@@ -118,7 +118,7 @@ function toIso(value) {
 async function main() {
   const token = getIdToken();
   if (!token) {
-    console.error('Unable to get Firebase ID token (run firebase login).');
+    console.error('Unable to get Supabase ID token (run supabase login).');
     process.exit(1);
   }
 

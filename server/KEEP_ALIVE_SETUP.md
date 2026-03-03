@@ -71,14 +71,14 @@ exports.keepAliveSmart = functions.pubsub
 ```bash
 cd functions
 npm install
-firebase deploy --only functions
+supabase deploy --only functions
 ```
 
 ### 3. Deploy Hosting
 
 ```bash
 cd kyc-app/kyc-app
-firebase deploy --only hosting
+supabase deploy --only hosting
 ```
 
 ---
@@ -96,25 +96,25 @@ Email: ursache.andrei1995@gmail.com
 - Browser va cere permisiune pentru notificări
 - Acceptă permisiunea
 
-### 3. Verifică Token în Firestore
+### 3. Verifică Token în Database
 
 ```
-Firestore → users → [userId] → fcmToken
+Database → users → [userId] → fcmToken
 ```
 
 Ar trebui să vezi un token salvat.
 
-### 4. Test Manual (Firebase Console)
+### 4. Test Manual (Supabase Console)
 
 ```
-Firebase Console → Cloud Messaging → Send test message
-Token: [token-ul din Firestore]
+Supabase Console → Cloud Messaging → Send test message
+Token: [token-ul din Database]
 ```
 
 ### 5. Verifică Logs
 
 ```bash
-firebase functions:log --only keepAlive1hour
+supabase functions:log --only keepAlive1hour
 ```
 
 Ar trebui să vezi:
@@ -152,7 +152,7 @@ F12 → Application → Service Workers
 → Push Messaging
 ```
 
-### Verifică Firestore
+### Verifică Database
 
 ```
 users/[userId]/
@@ -196,10 +196,10 @@ if (hour < 8 || hour > 20) {
 // exports.keepAlive1hour = ...
 ```
 
-**Opțiunea 2: Șterge funcția din Firebase**
+**Opțiunea 2: Șterge funcția din Supabase**
 
 ```bash
-firebase functions:delete keepAlive1hour
+supabase functions:delete keepAlive1hour
 ```
 
 ---
@@ -222,10 +222,10 @@ navigator.serviceWorker.getRegistration().then(reg => {
 });
 ```
 
-**3. Verifică token în Firestore:**
+**3. Verifică token în Database:**
 
 ```
-Firestore → users → [userId] → fcmToken
+Database → users → [userId] → fcmToken
 ```
 
 ### Consum baterie prea mare
@@ -238,7 +238,7 @@ Firestore → users → [userId] → fcmToken
 **2. Verifică logs pentru erori:**
 
 ```bash
-firebase functions:log
+supabase functions:log
 ```
 
 ### iOS nu primește notificări
@@ -265,7 +265,7 @@ firebase functions:log
 
 ```javascript
 // În App.jsx
-if (firebaseUser.email === 'ursache.andrei1995@gmail.com') {
+if (supabaseUser.email === 'ursache.andrei1995@gmail.com') {
   await initializePushNotifications();
 }
 ```
@@ -290,7 +290,7 @@ if (firebaseUser.email === 'ursache.andrei1995@gmail.com') {
 
 Probleme? Verifică:
 
-1. Logs: `firebase functions:log`
-2. Firestore: users/[userId]/fcmToken
+1. Logs: `supabase functions:log`
+2. Database: users/[userId]/fcmToken
 3. Browser Console: F12 → Console
 4. Service Worker: F12 → Application → Service Workers

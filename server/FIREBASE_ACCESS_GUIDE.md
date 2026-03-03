@@ -1,47 +1,47 @@
-# 🔐 Guide: Cum să-mi dai acces pentru modificări Firebase
+# 🔐 Guide: Cum să-mi dai acces pentru modificări Supabase
 
-**Status:** Nu pot accesa direct Firebase Console din Cursor, dar pot modifica **tot ce e necesar** prin fișiere locale + Firebase CLI.
+**Status:** Nu pot accesa direct Supabase Console din Cursor, dar pot modifica **tot ce e necesar** prin fișiere locale + Supabase CLI.
 
 ---
 
 ## ✅ **Ce Pot Face Eu (Fără acces direct la Console):**
 
-### 1. **Modificare Firestore Rules** ✅
-- **Fișier:** `firestore.rules`
+### 1. **Modificare Database Rules** ✅
+- **Fișier:** `database.rules`
 - Pot adăuga/șterge rules pentru `customers`, `orders`, `extractions`
-- Tu rulezi: `firebase deploy --only firestore:rules`
+- Tu rulezi: `supabase deploy --only database:rules`
 
-### 2. **Modificare Firestore Indexes** ✅
-- **Fișier:** `firestore.indexes.json` (dacă există în root sau în `firebase.json`)
+### 2. **Modificare Database Indexes** ✅
+- **Fișier:** `database.indexes.json` (dacă există în root sau în `supabase.json`)
 - Pot adăuga indexes pentru queries pe `customers`, `orders`
-- Tu rulezi: `firebase deploy --only firestore:indexes`
+- Tu rulezi: `supabase deploy --only database:indexes`
 
 ### 3. **Modificare Cod Backend (Admin SDK)** ✅
 - **Fișier:** `whatsapp-backend/server.js`
-- Pot adăuga logica de scriere în Firestore pentru CRM (`customers`, `orders`, `extractions`)
+- Pot adăuga logica de scriere în Database pentru CRM (`customers`, `orders`, `extractions`)
 - Admin SDK are acces complet (bypasses security rules)
-- Nu necesită deploy Firebase (e parte din backend Node.js)
+- Nu necesită deploy Supabase (e parte din backend Node.js)
 
-### 4. **Rulare Firebase CLI Comenzi (dacă ești autentificat)** ✅
-- Pot rula: `firebase deploy --only firestore:rules`
-- Pot rula: `firebase deploy --only firestore:indexes`
-- **Condiție:** Trebuie să fii autentificat local (`firebase login`)
+### 4. **Rulare Supabase CLI Comenzi (dacă ești autentificat)** ✅
+- Pot rula: `supabase deploy --only database:rules`
+- Pot rula: `supabase deploy --only database:indexes`
+- **Condiție:** Trebuie să fii autentificat local (`supabase login`)
 
 ---
 
 ## ⚠️ **Ce NU Pot Face (Fără acces direct):**
 
-- ❌ Nu pot accesa Firebase Console în browser (nu am browser automation aici)
+- ❌ Nu pot accesa Supabase Console în browser (nu am browser automation aici)
 - ❌ Nu pot verifica manual TTL policies în Console
-- ❌ Nu pot vedea/exporta date din Firestore prin UI
+- ❌ Nu pot vedea/exporta date din Database prin UI
 
 ---
 
 ## 🎯 **Plan de Acțiune (Ce Vreau Să Fac):**
 
-### **Phase 1: Firestore Rules (pentru CRM collections)**
+### **Phase 1: Database Rules (pentru CRM collections)**
 
-**Voi adăuga în `firestore.rules`:**
+**Voi adăuga în `database.rules`:**
 
 ```javascript
 // Customers collection - POLITICA: NEVER DELETE
@@ -73,9 +73,9 @@ match /threads/{threadId}/extractions/{messageId} {
 }
 ```
 
-### **Phase 2: Firestore Indexes**
+### **Phase 2: Database Indexes**
 
-**Voi adăuga în `firestore.indexes.json`:**
+**Voi adăuga în `database.indexes.json`:**
 
 ```json
 {
@@ -110,43 +110,43 @@ match /threads/{threadId}/extractions/{messageId} {
 }
 ```
 
-### **Phase 3: Cod Backend (Admin SDK - scriere în Firestore)**
+### **Phase 3: Cod Backend (Admin SDK - scriere în Database)**
 
 **Voi adăuga în `whatsapp-backend/server.js`:**
 - Funcția `upsertCustomerProfile()` (pentru CRM profile updates)
 - Funcția `extractAIIntentAndEntities()` (pentru AI extraction)
-- Handler pentru AI extraction (trigger după `saveMessageToFirestore()`)
+- Handler pentru AI extraction (trigger după `saveMessageToDatabase()`)
 - Endpoint nou: `GET /api/crm/customers/:customerId`
 
 ---
 
 ## 📋 **Checklist pentru Tine (Operator):**
 
-### **1. Verificare Firebase CLI (autentificat local)**
+### **1. Verificare Supabase CLI (autentificat local)**
 
 ```bash
 cd /Users/universparty/Aplicatie-SuperpartyByAi
-firebase projects:list
+supabase projects:list
 # Dacă apare lista de proiecte → OK, ești autentificat
-# Dacă apare eroare → rulează: firebase login
+# Dacă apare eroare → rulează: supabase login
 ```
 
-### **2. Verificare Firebase Config (firebase.json)**
+### **2. Verificare Supabase Config (supabase.json)**
 
 ```bash
-cat firebase.json
+cat supabase.json
 # Trebuie să conțină:
 # {
-#   "firestore": {
-#     "rules": "firestore.rules",
-#     "indexes": "firestore.indexes.json"
+#   "database": {
+#     "rules": "database.rules",
+#     "indexes": "database.indexes.json"
 #   }
 # }
 ```
 
-**Dacă nu există `firebase.json`:** Voi crea eu unul.
+**Dacă nu există `supabase.json`:** Voi crea eu unul.
 
-**Dacă nu există `firestore.indexes.json`:** Voi crea eu unul.
+**Dacă nu există `database.indexes.json`:** Voi crea eu unul.
 
 ### **3. După ce fac modificările (eu):**
 
@@ -154,13 +154,13 @@ cat firebase.json
 
 ```bash
 cd /Users/universparty/Aplicatie-SuperpartyByAi
-firebase use <PROJECT_ID>  # sau firebase use default
-firebase deploy --only firestore:rules
-firebase deploy --only firestore:indexes
+supabase use <PROJECT_ID>  # sau supabase use default
+supabase deploy --only database:rules
+supabase deploy --only database:indexes
 ```
 
 **Pentru backend (cod Node.js):**
-- Nu necesită deploy Firebase (e parte din backend)
+- Nu necesită deploy Supabase (e parte din backend)
 - Se deploy-ează normal pe legacy hosting (commit + push → legacy hosting redeploy)
 
 ---
@@ -171,7 +171,7 @@ firebase deploy --only firestore:indexes
 
 ```bash
 cd /Users/universparty/Aplicatie-SuperpartyByAi
-firebase deploy --only firestore
+supabase deploy --only database
 ```
 
 (Aceasta va deploy-a **atât rules, cât și indexes**)
@@ -180,26 +180,26 @@ firebase deploy --only firestore
 
 ## ❓ **Ce Trebuie Să-mi Spui Tu:**
 
-1. **Project ID Firebase:** Ce e `PROJECT_ID`-ul tău? (poți rula `firebase projects:list`)
-2. **Firebase CLI e autentificat?** (`firebase login` făcut?)
-3. **Există `firebase.json`?** (pot verifica eu, dar confirmă dacă știi)
+1. **Project ID Supabase:** Ce e `PROJECT_ID`-ul tău? (poți rula `supabase projects:list`)
+2. **Supabase CLI e autentificat?** (`supabase login` făcut?)
+3. **Există `supabase.json`?** (pot verifica eu, dar confirmă dacă știi)
 
 ---
 
 ## 📝 **Concluzie:**
 
 **Pot modifica:**
-- ✅ Firestore Rules (`firestore.rules`)
-- ✅ Firestore Indexes (`firestore.indexes.json`)
-- ✅ Cod Backend (Admin SDK scriere în Firestore)
+- ✅ Database Rules (`database.rules`)
+- ✅ Database Indexes (`database.indexes.json`)
+- ✅ Cod Backend (Admin SDK scriere în Database)
 - ✅ Endpoints noi pentru CRM (`/api/crm/customers/:customerId`)
 
 **Tu trebuie să:**
-1. Confirmi că Firebase CLI e autentificat (`firebase login`)
-2. Rulezi `firebase deploy --only firestore` după ce fac modificările
+1. Confirmi că Supabase CLI e autentificat (`supabase login`)
+2. Rulezi `supabase deploy --only database` după ce fac modificările
 
 **Nu pot:**
-- ❌ Accesa Firebase Console direct (nu am browser automation)
+- ❌ Accesa Supabase Console direct (nu am browser automation)
 - ❌ Verifica TTL policies manual (trebuie să verifici tu în Console)
 
 ---

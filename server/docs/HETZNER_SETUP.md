@@ -35,25 +35,25 @@ If you don't pass `--dart-define=WHATSAPP_BACKEND_URL`, the app will use the def
 
 In debug mode, the WhatsApp Inbox screen shows the effective backend URL in the app bar title. This helps verify which backend the app is using.
 
-## Firebase Functions Configuration
+## Supabase Functions Configuration
 
-Firebase Functions proxy needs to know where the backend is located.
+Supabase Functions proxy needs to know where the backend is located.
 
 ### Set Environment Variable
 
-### Using Firebase Secrets (Recommended for Production)
+### Using Supabase Secrets (Recommended for Production)
 
 ```bash
 # Set secret (more secure than config)
-firebase functions:secrets:set WHATSAPP_BACKEND_BASE_URL
+supabase functions:secrets:set WHATSAPP_BACKEND_BASE_URL
 # Paste: http://37.27.34.179:8080
 ```
 
-### Using Firebase Config (Fallback for Emulator/Local)
+### Using Supabase Config (Fallback for Emulator/Local)
 
 ```bash
 # Set config (for emulator/local development)
-firebase functions:config:set whatsapp.backend_base_url="http://37.27.34.179:8080"
+supabase functions:config:set whatsapp.backend_base_url="http://37.27.34.179:8080"
 ```
 
 ### Verify Configuration
@@ -61,7 +61,7 @@ firebase functions:config:set whatsapp.backend_base_url="http://37.27.34.179:808
 After setting the environment variable, redeploy functions:
 
 ```bash
-firebase deploy --only functions
+supabase deploy --only functions
 ```
 
 ## Verification Checklist
@@ -72,15 +72,15 @@ firebase deploy --only functions
    - [ ] Open WhatsApp Inbox → verify threads appear
    - [ ] Send message on phone → verify it appears in app within 10 seconds
 
-2. **Firebase Functions:**
+2. **Supabase Functions:**
    - [ ] Set `WHATSAPP_BACKEND_BASE_URL` secret or config
    - [ ] Redeploy functions
    - [ ] Test QR code generation (should connect to Hetzner backend)
 
 3. **Backend (Hetzner):**
    - [ ] Verify backend is running on `http://37.27.34.179:8080`
-   - [ ] Check logs show message saving to Firestore
-   - [ ] Verify `FIREBASE_SERVICE_ACCOUNT_JSON` is set correctly
+   - [ ] Check logs show message saving to Database
+   - [ ] Verify `SUPABASE_SERVICE_ACCOUNT_JSON` is set correctly
 
 ## Troubleshooting
 
@@ -95,11 +95,11 @@ firebase deploy --only functions
    ssh root@37.27.34.179
    sudo journalctl -u whatsapp-backend -f
    ```
-   - Look for "Message saved" or "message saved to Firestore" logs
+   - Look for "Message saved" or "message saved to Database" logs
    - If no logs appear, the backend might not be receiving messages
 
-3. **Check Firestore:**
-   - Open Firebase Console → Firestore
+3. **Check Database:**
+   - Open Supabase Console → Database
    - Check `threads` collection for new messages
    - Verify `lastMessageAt` and `lastMessageText` are updated
 
@@ -112,9 +112,9 @@ firebase deploy --only functions
 
 ### Functions proxy errors
 
-- If Firebase Functions can't reach Hetzner backend:
+- If Supabase Functions can't reach Hetzner backend:
   1. Verify `WHATSAPP_BACKEND_BASE_URL` secret is set correctly
-  2. Check Hetzner firewall allows connections from Firebase Functions
+  2. Check Hetzner firewall allows connections from Supabase Functions
   3. Verify backend is accessible: `curl http://37.27.34.179:8080/health`
 
 ## Notes

@@ -28,7 +28,7 @@
   - **Acțiuni**: ce trebuie făcut
   - **Tags**: etichete relevante
   - **Rezumat**: rezumat scurt
-- Salvează nota în Firestore
+- Salvează nota în Database
 - Actualizează metadata evenimentului
 
 **Exemplu:**
@@ -100,7 +100,7 @@ AI: "Am notat! DJ-ul a confirmat pentru nunta din 15 martie.
 
 ```dart
 // În aplicația Flutter
-final result = await FirebaseFunctions.instance
+final result = await SupabaseFunctions.instance
     .httpsCallable('noteazaEventeAutomat')
     .call({
       'userId': currentUserId,
@@ -166,7 +166,7 @@ final result = await FirebaseFunctions.instance
 1. **Nota automat fără input** - Trebuie să scrii ceva
 2. **Citi gândurile** - Trebuie să dai context
 3. **Lua decizii finale** - Tu decizi, AI sugerează
-4. **Accesa date externe** - Doar ce e în Firestore
+4. **Accesa date externe** - Doar ce e în Database
 
 ---
 
@@ -256,7 +256,7 @@ final result = await FirebaseFunctions.instance
 ```dart
 // Test funcție
 try {
-  final result = await FirebaseFunctions.instance
+  final result = await SupabaseFunctions.instance
       .httpsCallable('noteazaEventeAutomat')
       .call({'test': true});
   print('AI Functions active: ${result.data}');
@@ -287,7 +287,7 @@ ElevatedButton(
 ```dart
 // În chat AI
 if (message.contains('notează') || message.contains('adaugă notă')) {
-  final result = await FirebaseFunctions.instance
+  final result = await SupabaseFunctions.instance
       .httpsCallable('noteazaEventeAutomat')
       .call({
         'userId': userId,
@@ -308,9 +308,9 @@ if (message.contains('notează') || message.contains('adaugă notă')) {
 3. **Response Time** - Cât durează analiza
 4. **Errors** - Câte erori apar
 
-### Firebase Console
+### Supabase Console
 
-- **Functions**: https://console.firebase.google.com/project/superparty-frontend/functions
+- **Functions**: https://console.supabase.google.com/project/superparty-frontend/functions
 - **Logs**: Verifică logs pentru erori
 - **Usage**: Monitorizează invocations
 

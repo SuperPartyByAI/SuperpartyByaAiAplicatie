@@ -3,7 +3,7 @@
 ## Model ales: **email-only** pentru admin
 
 **Admin** = strict utilizatorul cu email `ursache.andrei1995@gmail.com`.  
-**Employee** = există `staffProfiles/{uid}` (Firestore).  
+**Employee** = există `staffProfiles/{uid}` (Database).  
 Nu se folosesc **claims** sau **users.role** pentru a defini admin în app / rules / functions.
 
 ---
@@ -13,7 +13,7 @@ Nu se folosesc **claims** sau **users.role** pentru a defini admin în app / rul
 | Locus | Ce se verifică |
 |-------|-----------------|
 | **Flutter** | `RoleService.isAdmin()` = `currentUser.email == adminEmail` (din `admin_config.dart`). `AdminService`, `AdminBootstrapService`, `ai_chat_screen` la fel. |
-| **Firestore rules** | `isAdminUser()` = `request.auth.token.email == 'ursache.andrei1995@gmail.com'`. |
+| **Database rules** | `isAdminUser()` = `request.auth.token.email == 'ursache.andrei1995@gmail.com'`. |
 | **Functions** | `SUPER_ADMIN_EMAIL` în whatsappProxy; bootstrap allowlist `['ursache.andrei1995@gmail.com']`. |
 | **Scripturi** | `ADMIN_EMAIL` în `scripts/_config.mjs`; `set_admin_claims` / `provision_staff_admin` permit `--admin` doar pentru acest email (sau `--force`). |
 

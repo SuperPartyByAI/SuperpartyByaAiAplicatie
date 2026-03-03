@@ -3,7 +3,7 @@
 ## Summary
 
 Implemented WhatsApp QR connect functionality from Flutter by adding:
-1. Proxy routes in Firebase Functions (`getAccounts`, `addAccount`, `regenerateQr`)
+1. Proxy routes in Supabase Functions (`getAccounts`, `addAccount`, `regenerateQr`)
 2. Flutter API service methods
 3. Flutter Accounts UI screen
 4. Tests for proxy routes
@@ -24,7 +24,7 @@ Implemented WhatsApp QR connect functionality from Flutter by adding:
 
 ### Proxy Routes
 
-All routes require Firebase ID token authentication:
+All routes require Supabase ID token authentication:
 
 1. **GET /whatsappProxyGetAccounts**
    - Auth: Super-admin required (exposes QR codes)
@@ -50,7 +50,7 @@ All routes require Firebase ID token authentication:
 - `addAccount(name, phone)`: Returns `{ success: bool, accountId?: string }`
 - `regenerateQr(accountId)`: Returns `{ success: bool, message?: string }`
 
-All methods attach Firebase ID token in `Authorization: Bearer <token>` header.
+All methods attach Supabase ID token in `Authorization: Bearer <token>` header.
 
 ### Flutter UI
 
@@ -69,7 +69,7 @@ All methods attach Firebase ID token in `Authorization: Bearer <token>` header.
    ```bash
    cd functions
    npm install
-   firebase deploy --only functions:whatsappProxyGetAccounts,functions:whatsappProxyAddAccount,functions:whatsappProxyRegenerateQr
+   supabase deploy --only functions:whatsappProxyGetAccounts,functions:whatsappProxyAddAccount,functions:whatsappProxyRegenerateQr
    ```
 
 2. Install Flutter dependencies:
@@ -121,8 +121,8 @@ All methods attach Firebase ID token in `Authorization: Bearer <token>` header.
 
 #### Test getAccounts
 ```bash
-# Get Firebase ID token (from Flutter app logs or Firebase Console)
-TOKEN="your-firebase-id-token"
+# Get Supabase ID token (from Flutter app logs or Supabase Console)
+TOKEN="your-supabase-id-token"
 
 curl -X GET \
   "https://us-central1-<project-id>.cloudfunctions.net/whatsappProxyGetAccounts" \
@@ -134,7 +134,7 @@ curl -X GET \
 
 #### Test addAccount (Super-admin only)
 ```bash
-TOKEN="super-admin-firebase-id-token"
+TOKEN="super-admin-supabase-id-token"
 
 curl -X POST \
   "https://us-central1-<project-id>.cloudfunctions.net/whatsappProxyAddAccount" \
@@ -147,7 +147,7 @@ curl -X POST \
 
 #### Test regenerateQr (Super-admin only)
 ```bash
-TOKEN="super-admin-firebase-id-token"
+TOKEN="super-admin-supabase-id-token"
 ACCOUNT_ID="account-id-from-previous-step"
 
 curl -X POST \
@@ -164,13 +164,13 @@ curl -X POST \
 - **Cause**: User email is not `ursache.andrei1995@gmail.com`
 - **Fix**: Login with super-admin account
 
-### "Missing or invalid Firebase ID token"
+### "Missing or invalid Supabase ID token"
 - **Cause**: Token expired or not attached
 - **Fix**: Re-login in Flutter app to get fresh token
 
 ### "Only employees can view accounts"
 - **Cause**: User doesn't have `staffProfiles/{uid}` document
-- **Fix**: Create staff profile in Firestore or use super-admin account
+- **Fix**: Create staff profile in Database or use super-admin account
 
 ### QR code not showing
 - **Cause**: Account status is not `qr_ready` or `qrCode` field is missing
@@ -182,9 +182,9 @@ curl -X POST \
 
 ## Environment Variables
 
-Set in Firebase Functions config:
+Set in Supabase Functions config:
 ```bash
-firebase functions:config:set whatsapp.backend_base_url="https://whats-app-ompro.ro"
+supabase functions:config:set whatsapp.backend_base_url="https://whats-app-ompro.ro"
 ```
 
 Or use `.env` file (for local development):

@@ -1,6 +1,6 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-import 'package:firebase_auth/firebase_auth.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/foundation.dart';
 
 class AiService {
@@ -13,9 +13,8 @@ class AiService {
   static const String _eventUrl = 'https://europe-west1-superparty-frontend.cloudfunctions.net/chatEventOpsV2';
 
   Future<String?> _getToken() async {
-    final user = FirebaseAuth.instance.currentUser;
-    if (user == null) return null;
-    return await user.getIdToken();
+    final session = Supabase.instance.client.auth.currentSession;
+    return session?.accessToken;
   }
 
   Future<Map<String, dynamic>> sendMessageToGeneralAI(String message, String sessionId) async {
@@ -76,7 +75,7 @@ class AiService {
     if (response.statusCode == 200) {
       try {
         final Map<String, dynamic> body = jsonDecode(response.body);
-        // Firebase onCall standard wraps the response in a 'result' or 'data' field natively sometimes,
+        // Supabase onCall standard wraps the response in a 'result' or 'data' field natively sometimes,
         // but since we are mirroring the exact structure, let's extract 'data' or 'result' if it exists.
         if (body.containsKey('result')) {
            return Map<String, dynamic>.from(body['result']);

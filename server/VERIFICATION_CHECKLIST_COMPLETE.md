@@ -34,12 +34,12 @@
 
 ### Test 1: Black Screen Fix (Auth Timeout)
 ```bash
-# 1. Start Flutter WITHOUT Firebase emulators
+# 1. Start Flutter WITHOUT Supabase emulators
 flutter run -d emulator-5554
 
 # 2. Verify: Should show "Connection Timeout" screen (NOT black)
 # - Orange icon (wifi_off)
-# - Message: "Firebase emulator may be down or unreachable"
+# - Message: "Supabase emulator may be down or unreachable"
 # - "Retry" button
 
 # 3. With emulators running:
@@ -49,7 +49,7 @@ flutter run -d emulator-5554 --dart-define=USE_EMULATORS=true
 
 ### Test 2: Black Screen Fix (Auth Error)
 ```bash
-# 1. Simulate auth error (e.g., invalid Firebase config)
+# 1. Simulate auth error (e.g., invalid Supabase config)
 # 2. Verify: Should show "Authentication Error" screen (NOT black)
 # - Red icon (error_outline)
 # - Error message displayed

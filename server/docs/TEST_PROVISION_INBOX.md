@@ -8,8 +8,8 @@
 cd /Users/universparty/Aplicatie-SuperpartyByAi
 
 # 1) Deploy rules
-firebase use superparty-frontend
-firebase deploy --only firestore:rules
+supabase use superparty-frontend
+supabase deploy --only database:rules
 
 # 2) Provision admin + employee (only ADMIN_EMAIL unless --force)
 node scripts/provision_staff_admin.mjs --project superparty-frontend --email ursache.andrei1995@gmail.com
@@ -18,7 +18,7 @@ node scripts/provision_staff_admin.mjs --project superparty-frontend --email urs
 cd superparty_flutter && flutter run
 ```
 
-Dacă `firebase deploy` dă "Not in a Firebase app directory": ești în `~` sau alt folder. Rulează `cd` la rădăcina proiectului înainte.
+Dacă `supabase deploy` dă "Not in a Supabase app directory": ești în `~` sau alt folder. Rulează `cd` la rădăcina proiectului înainte.
 
 ---
 
@@ -26,20 +26,20 @@ Dacă `firebase deploy` dă "Not in a Firebase app directory": ești în `~` sau
 
 **Rules:** Users can create **only** their own `users/{uid}` with restricted fields (`uid`, `email`, `phone`, `status`, `createdAt`, `updatedAt`). No `role`, `admin`, etc. Admin can still create any user.
 
-**Flutter:** On Firestore `permission-denied` during register, we show: *"Înregistrarea este permisă doar de administrator. Conturile sunt create de admin."*
+**Flutter:** On Database `permission-denied` during register, we show: *"Înregistrarea este permisă doar de administrator. Conturile sunt create de admin."*
 
 ### Verification
 
 1. **Self-register allowed (A1):**  
-   - Deploy rules: `firebase deploy --only firestore:rules`  
+   - Deploy rules: `supabase deploy --only database:rules`  
    - In app: Register with new email + phone + password.  
    - **Expected:** Account created, no error.  
-   - In Firestore: `users/{uid}` has only `uid`, `email`, `phone`, `status`, `createdAt`, `updatedAt`.
+   - In Database: `users/{uid}` has only `uid`, `email`, `phone`, `status`, `createdAt`, `updatedAt`.
 
 2. **Permission-denied (if you revert to admin-only create):**  
    - Register as new user.  
    - **Expected:** Message *"Înregistrarea este permisă doar de administrator…"* (no generic "eroare neașteptată").  
-   - Logs: `[Auth] Firestore error … code=permission-denied`.
+   - Logs: `[Auth] Database error … code=permission-denied`.
 
 ---
 
@@ -100,7 +100,7 @@ node scripts/revoke_admin.mjs --project superparty-frontend --email <EMAIL> --de
 
 | Flow | Log |
 |------|-----|
-| Register, Firestore permission-denied | `[Auth] Firestore error … code=permission-denied` |
+| Register, Database permission-denied | `[Auth] Database error … code=permission-denied` |
 | Staff Inbox open | `[AUTH] uid=… staffProfileExists=… staffProfileRole=…` |
 | getAccountsStaff | `[StaffInboxScreen] getAccountsStaff response: success=… accountsCount=…` |
 | RoleService gating | `canSeeAdminInbox` / `canSeeEmployeeInbox` from `inboxVisibility()` (debug if added). |
@@ -113,4 +113,4 @@ node scripts/revoke_admin.mjs --project superparty-frontend --email <EMAIL> --de
 - [ ] **A) Admin:** vede Manage Accounts, Inbox (All Accounts), Inbox Angajați; deschide Inbox Angajați, vede threads.
 - [ ] **B) Employee only:** vede **doar** Inbox Angajați; NU vede Manage Accounts / Inbox (All Accounts).
 - [ ] **C) Non-staff:** nu vede niciun tile admin/employee; `/whatsapp/inbox` → redirect `/home`.
-- [ ] `flutter analyze` fără erori; `firebase deploy --only firestore:rules` compilare OK.
+- [ ] `flutter analyze` fără erori; `supabase deploy --only database:rules` compilare OK.

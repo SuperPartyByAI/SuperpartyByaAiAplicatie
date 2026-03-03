@@ -44,8 +44,8 @@ Vezi `SETUP_CURSOR_REPO.md` pentru detalii complete.
 
 **Eroare tipică:**
 ```
-Execution failed for task ':cloud_firestore:compileDebugJavaWithJavac'.
-> java.io.IOException: Unable to delete directory '...\build\cloud_firestore\...'
+Execution failed for task ':cloud_database:compileDebugJavaWithJavac'.
+> java.io.IOException: Unable to delete directory '...\build\cloud_database\...'
 ```
 
 ### Soluția Recomandată: Mută Repo-ul din OneDrive
@@ -143,13 +143,13 @@ npm run emu
 
 **NOTĂ:** Terminalul T1 trebuie să rămână deschis - emulators trebuie să ruleze continuu.
 
-**PASS criteriu:** Emulators UI opens at http://127.0.0.1:4001, Firestore on 8082, Auth on 9098, Functions on 5002, mesaj "All emulators ready!" apare
+**PASS criteriu:** Emulators UI opens at http://127.0.0.1:4001, Database on 8082, Auth on 9098, Functions on 5002, mesaj "All emulators ready!" apare
 
 **FAIL semnal:** Port already in use, emulator crash, "ECONNREFUSED" errors, "All emulators ready!" never appears
 
-**Logs to collect:** Terminal output (T1) - full output, `firebase-debug.log` in root directory
+**Logs to collect:** Terminal output (T1) - full output, `supabase-debug.log` in root directory
 
-**Files to verify:** `firebase.json`, `package.json` (emulators script)
+**Files to verify:** `supabase.json`, `package.json` (emulators script)
 
 ---
 
@@ -189,7 +189,7 @@ node test-event-creation.js
 - test-event-creation.js: "Success" or event ID returned, no exceptions
 
 **FAIL semnal:** 
-- Seed: "Error", "Failed to seed", no documents visible in Firestore emulator UI
+- Seed: "Error", "Failed to seed", no documents visible in Database emulator UI
 - npm ci: Dependency conflicts, network errors, missing packages
 - npm test: Test failures, exceptions, timeouts, exit code non-zero
 - npm run build: TypeScript compilation errors, missing types
@@ -276,7 +276,7 @@ Testează manual în browser: deep links, refresh (F5), navigation.
 
 ## Android Emulator (adb reverse)
 
-Dacă folosești Android emulator și ai probleme cu conexiunea la Firebase emulators, configurează port forwarding:
+Dacă folosești Android emulator și ai probleme cu conexiunea la Supabase emulators, configurează port forwarding:
 
 ```powershell
 # Găsește adb.exe
@@ -290,8 +290,8 @@ if (-not (Test-Path $adbPath)) {
 # Verifică device-uri conectate
 & $adbPath devices
 
-# Configurează port forwarding pentru Firebase emulators
-& $adbPath reverse tcp:8082 tcp:8082  # Firestore
+# Configurează port forwarding pentru Supabase emulators
+& $adbPath reverse tcp:8082 tcp:8082  # Database
 & $adbPath reverse tcp:9098 tcp:9098  # Auth
 & $adbPath reverse tcp:5002 tcp:5002  # Functions
 & $adbPath reverse tcp:4001 tcp:4001  # Emulator UI
@@ -323,16 +323,16 @@ Write-Host "✓ Port forwarding configured" -ForegroundColor Green
 - Login succeeds, redirects to home screen
 - User data loaded correctly (name, role visible)
 - No "permission-denied" errors in console
-- Firestore queries succeed
+- Database queries succeed
 
 **FAIL semnal:** 
 - Login fails with wrong error message
 - Infinite loading spinner
 - Redirects to wrong screen
-- Firestore permission-denied errors in console
+- Database permission-denied errors in console
 - User data not displayed
 
-**Logs to check:** Flutter run output (T3), browser console (web), Firebase Auth logs in emulator UI (T1), Firestore emulator UI
+**Logs to check:** Flutter run output (T3), browser console (web), Supabase Auth logs in emulator UI (T1), Database emulator UI
 
 **Files to verify:** `superparty_flutter/lib/screens/auth/*.dart`, `superparty_flutter/lib/core/routing/*.dart`
 
@@ -355,9 +355,9 @@ Write-Host "✓ Port forwarding configured" -ForegroundColor Green
 - Navigation error
 - Data not loading
 
-**Logs to check:** Flutter run output (T3), Firestore rules violations in emulator UI (T1)
+**Logs to check:** Flutter run output (T3), Database rules violations in emulator UI (T1)
 
-**Files to verify:** `superparty_flutter/lib/screens/staff_settings_screen.dart`, `firestore.rules`
+**Files to verify:** `superparty_flutter/lib/screens/staff_settings_screen.dart`, `database.rules`
 
 ---
 
@@ -367,19 +367,19 @@ Write-Host "✓ Port forwarding configured" -ForegroundColor Green
 
 **PASS criteriu:** 
 - Only one action executes
-- No duplicate documents in Firestore
+- No duplicate documents in Database
 - UI shows single loading state
 - Success message appears once
 - Button disabled during processing
 
 **FAIL semnal:** 
-- Multiple documents created (check Firestore emulator UI)
+- Multiple documents created (check Database emulator UI)
 - Duplicate entries in UI list
 - Multiple loading spinners
 - "Duplicate key" or "already exists" errors in logs
 - Button remains enabled during processing
 
-**Logs to check:** Firestore emulator UI (check document count), Flutter run output for duplicate function calls
+**Logs to check:** Database emulator UI (check document count), Flutter run output for duplicate function calls
 
 **Files to verify:** `superparty_flutter/lib/screens/evenimente/*.dart` (check for debouncing/loading guards), `superparty_flutter/lib/services/*.dart`
 
@@ -403,9 +403,9 @@ Write-Host "✓ Port forwarding configured" -ForegroundColor Green
 - No redirect happens
 - Blank screen
 
-**Logs to check:** Router logs in Flutter run output (T3), Firestore permission checks
+**Logs to check:** Router logs in Flutter run output (T3), Database permission checks
 
-**Files to verify:** `superparty_flutter/lib/core/routing/*.dart`, `superparty_flutter/lib/screens/admin/*.dart`, `firestore.rules`
+**Files to verify:** `superparty_flutter/lib/core/routing/*.dart`, `superparty_flutter/lib/screens/admin/*.dart`, `database.rules`
 
 ---
 
@@ -435,7 +435,7 @@ Write-Host "✓ Port forwarding configured" -ForegroundColor Green
 
 ---
 
-### 6. Firestore Rules - Permission Denied Handling
+### 6. Database Rules - Permission Denied Handling
 
 **Action:** 
 - Try to read/write data that should be denied by rules (e.g., non-admin accessing admin collection)
@@ -454,9 +454,9 @@ Write-Host "✓ Port forwarding configured" -ForegroundColor Green
 - No error message shown
 - App becomes unresponsive
 
-**Logs to check:** Flutter run output (T3) for "permission-denied" errors, Firestore emulator UI (T1) for rule violations
+**Logs to check:** Flutter run output (T3) for "permission-denied" errors, Database emulator UI (T1) for rule violations
 
-**Files to verify:** `firestore.rules`, error handling in `superparty_flutter/lib/services/*.dart`
+**Files to verify:** `database.rules`, error handling in `superparty_flutter/lib/services/*.dart`
 
 ---
 
@@ -502,13 +502,13 @@ Write-Host "✓ Port forwarding configured" -ForegroundColor Green
 - Form resets after creation
 
 **FAIL semnal:** 
-- Event not created (check Firestore emulator UI)
+- Event not created (check Database emulator UI)
 - Duplicate events created
 - Validation errors not shown
 - Crash on submit
 - Event doesn't appear in list
 
-**Logs to check:** Firestore emulator UI (T1) - new document created, Functions logs (T2) if using callable, Flutter run output (T3)
+**Logs to check:** Database emulator UI (T1) - new document created, Functions logs (T2) if using callable, Flutter run output (T3)
 
 **Files to verify:** `superparty_flutter/lib/screens/evenimente/*.dart`, `functions/test-event-creation.js`
 
@@ -585,16 +585,16 @@ taskkill /PID <PID> /F
 Repetă pentru 9098, 5002, 4001.
 
 **Problem:** Emulator won't start
-- Check Firebase CLI: `firebase --version`
+- Check Supabase CLI: `supabase --version`
 - Check Java installed: `java --version`
-- Verify `firebase.json` exists and is valid
+- Verify `supabase.json` exists and is valid
 - Restart terminal, try again
 
 **Logs to collect:** 
 - Emulator terminal output (T1) - full output
-- `firebase-debug.log` in root directory
+- `supabase-debug.log` in root directory
 
-**Files to verify:** `firebase.json`, `package.json` (emulators script)
+**Files to verify:** `supabase.json`, `package.json` (emulators script)
 
 ---
 
@@ -602,13 +602,13 @@ Repetă pentru 9098, 5002, 4001.
 
 **Problem:** Seed fails
 - Verify emulators are running (T1) - check http://127.0.0.1:4001
-- Check Firestore emulator is accessible on port 8082
-- Verify seed script exists: `tools/seed_firestore.js`
+- Check Database emulator is accessible on port 8082
+- Verify seed script exists: `tools/seed_database.js`
 - Check project ID matches: `demo-test`
 
 **Problem:** Tests fail
 - Check if emulators are running (T1)
-- Verify Firestore connection in test files
+- Verify Database connection in test files
 - Check for hardcoded project IDs in tests
 - Run single test: `npm test -- test-name.test.js`
 
@@ -645,8 +645,8 @@ Repetă pentru 9098, 5002, 4001.
 
 **Eroare tipică:**
 ```
-Execution failed for task ':cloud_firestore:compileDebugJavaWithJavac'.
-> java.io.IOException: Unable to delete directory '...\build\cloud_firestore\...'
+Execution failed for task ':cloud_database:compileDebugJavaWithJavac'.
+> java.io.IOException: Unable to delete directory '...\build\cloud_database\...'
   Failed to delete some children. This might happen because a process has files open.
 ```
 
@@ -662,7 +662,7 @@ Get-Process -Name "java" | Stop-Process -Force
 
 # 2. Șterge folderul problematic
 $root = git rev-parse --show-toplevel
-$buildPath = "$root\superparty_flutter\build\cloud_firestore"
+$buildPath = "$root\superparty_flutter\build\cloud_database"
 Remove-Item -Path $buildPath -Recurse -Force
 
 # 3. Flutter clean
@@ -701,18 +701,18 @@ flutter clean
 
 **Problem:** Seed doesn't create documents
 - Verify emulators are running (T1)
-- Check Firestore emulator UI: http://127.0.0.1:4001
-- Verify seed script: `tools/seed_firestore.js`
+- Check Database emulator UI: http://127.0.0.1:4001
+- Verify seed script: `tools/seed_database.js`
 - Check project ID: `demo-test` (should match emulator project)
 
 **Logs to collect:**
 - Seed output from T2 terminal
-- Firestore emulator UI (check if documents appear)
+- Database emulator UI (check if documents appear)
 
 **Files to verify:**
-- `tools/seed_firestore.js`
+- `tools/seed_database.js`
 - `package.json` (seed:emu script)
-- `firebase.json` (emulator configuration)
+- `supabase.json` (emulator configuration)
 
 ---
 
@@ -747,19 +747,19 @@ If any step fails, collect:
    - `flutter analyze` output (full)
    - `flutter test --verbose` output (full)
 
-3. **Firebase logs:**
-   - Emulator UI screenshots (Firestore, Auth tabs)
-   - Firestore data snapshot (export from emulator UI)
+3. **Supabase logs:**
+   - Emulator UI screenshots (Database, Auth tabs)
+   - Database data snapshot (export from emulator UI)
    - Functions logs from emulator UI
 
 4. **System info:**
    - Node version: `node --version`
    - Flutter version: `flutter --version`
-   - Firebase CLI version: `firebase --version`
+   - Supabase CLI version: `supabase --version`
    - PowerShell version: `$PSVersionTable.PSVersion`
 
 5. **Error files:**
-   - `firebase-debug.log` (root directory)
+   - `supabase-debug.log` (root directory)
    - `functions/npm-debug.log` (if exists)
    - `superparty_flutter/flutter_run.log` (if exists)
    - `superparty_flutter/build/` error files

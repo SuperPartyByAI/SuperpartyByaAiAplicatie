@@ -9,19 +9,19 @@ cd C:\Users\ursac\Aplicatie-SuperpartyByAi
 OPTIUNEA 1: Deploy COMPLET (Recomandat)
 ========================================
 
-cd C:\Users\ursac\Aplicatie-SuperpartyByAi\kyc-app\kyc-app && npm run build && cd ..\.. && firebase deploy
+cd C:\Users\ursac\Aplicatie-SuperpartyByAi\kyc-app\kyc-app && npm run build && cd ..\.. && supabase deploy
 
 ========================================
 OPTIUNEA 2: Deploy DOAR Hosting
 ========================================
 
-cd C:\Users\ursac\Aplicatie-SuperpartyByAi\kyc-app\kyc-app && npm run build && cd ..\.. && firebase deploy --only hosting
+cd C:\Users\ursac\Aplicatie-SuperpartyByAi\kyc-app\kyc-app && npm run build && cd ..\.. && supabase deploy --only hosting
 
 ========================================
-OPTIUNEA 3: Deploy DOAR Firestore Rules
+OPTIUNEA 3: Deploy DOAR Database Rules
 ========================================
 
-cd C:\Users\ursac\Aplicatie-SuperpartyByAi && firebase deploy --only firestore
+cd C:\Users\ursac\Aplicatie-SuperpartyByAi && supabase deploy --only database
 
 ========================================
 PAS CU PAS (daca vrei sa vezi fiecare pas):
@@ -35,11 +35,11 @@ npm run build
 cd C:\Users\ursac\Aplicatie-SuperpartyByAi
 
 3. Deploy:
-firebase deploy
+supabase deploy
 
 ========================================
 VERIFICARE DUPA DEPLOY:
 ========================================
 
 Aplicatie LIVE: https://superparty-frontend.web.app/home
-Firestore Rules: https://console.firebase.google.com/project/superparty-frontend/firestore/rules
+Database Rules: https://console.supabase.google.com/project/superparty-frontend/database/rules

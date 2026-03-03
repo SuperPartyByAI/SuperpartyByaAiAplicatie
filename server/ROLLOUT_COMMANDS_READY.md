@@ -12,25 +12,25 @@
 ```bash
 curl -sS https://whats-app-ompro.ro/health | jq
 ```
-**Expected**: `status: "healthy"`, `firestore.status: "connected"`, `accounts.max: 30`
+**Expected**: `status: "healthy"`, `database.status: "connected"`, `accounts.max: 30`
 
 **Current Status**: ✅ HEALTHY
 
-### Firebase Functions Deployed (us-central1)
+### Supabase Functions Deployed (us-central1)
 ```bash
-firebase functions:list | grep -E "whatsapp|client|aggregate"
+supabase functions:list | grep -E "whatsapp|client|aggregate"
 ```
 
 **Critical Functions**:
 - ✅ `whatsappExtractEventFromThread` (v2, callable, us-central1)
 - ✅ `clientCrmAsk` (v2, callable, us-central1)
-- ✅ `aggregateClientStats` (v2, firestore.written trigger, us-central1)
+- ✅ `aggregateClientStats` (v2, database.written trigger, us-central1)
 - ✅ `whatsappProxyGetAccounts`, `whatsappProxyAddAccount`, `whatsappProxySend`, etc.
 
 ⚠️ **BLOCKER**: Old v1 "whatsapp" function exists (2048MB, us-central1).  
-**ACTION REQUIRED**: Delete manually from Firebase Console:
+**ACTION REQUIRED**: Delete manually from Supabase Console:
 ```
-https://console.firebase.google.com/project/superparty-frontend/functions
+https://console.supabase.google.com/project/superparty-frontend/functions
 → Filter: "1st gen" → Find "whatsapp" → Delete → Confirm
 ```
 
@@ -39,8 +39,8 @@ https://console.firebase.google.com/project/superparty-frontend/functions
 ✅ **VERIFIED**: `clientCrmAsk` calls `us-central1`  
 ✅ **VERIFIED**: All other callables use `us-central1`
 
-### Firebase Deploy Hooks
-✅ **ADDED**: `firebase.json` now includes predeploy hooks:
+### Supabase Deploy Hooks
+✅ **ADDED**: `supabase.json` now includes predeploy hooks:
 ```json
 "functions": {
   "source": "functions",
@@ -61,18 +61,18 @@ https://console.firebase.google.com/project/superparty-frontend/functions
 
 **Before**:
 ```dart
-final functions = FirebaseFunctions.instanceFor(region: 'europe-west1');
+final functions = SupabaseFunctions.instanceFor(region: 'europe-west1');
 ```
 
 **After**:
 ```dart
-final functions = FirebaseFunctions.instanceFor(region: 'us-central1');
+final functions = SupabaseFunctions.instanceFor(region: 'us-central1');
 ```
 
 **Impact**: CRM "Extract Event" will now work (was 404 NOT FOUND).
 
-### 2. Firebase.json Predeploy Hooks
-**File**: `firebase.json`  
+### 2. Supabase.json Predeploy Hooks
+**File**: `supabase.json`  
 **Added**: Build step before deploy to prevent "dist/index.js missing" warnings
 
 ---
@@ -81,12 +81,12 @@ final functions = FirebaseFunctions.instanceFor(region: 'us-central1');
 
 ### Prerequisites
 1. **Admin User Setup** (REQUIRED FIRST):
-   - Go to: https://console.firebase.google.com/project/superparty-frontend/firestore/data/~2Fusers~2FFBQUjlK2dFNjv9uvUOseV85uXmE3
+   - Go to: https://console.supabase.google.com/project/superparty-frontend/database/data/~2Fusers~2FFBQUjlK2dFNjv9uvUOseV85uXmE3
    - Add/Edit field: `role` = `admin` (string)
    - Save
 
 2. **Delete Old v1 Function** (if exists):
-   - Go to: https://console.firebase.google.com/project/superparty-frontend/functions
+   - Go to: https://console.supabase.google.com/project/superparty-frontend/functions
    - Filter: "1st gen"
    - Find "whatsapp" (2048MB) → Delete
 
@@ -138,7 +138,7 @@ flutter run -d emulator-5554
 
 **Logs to check** (if failure):
 ```bash
-firebase functions:log --only whatsappProxyAddAccount --lines 200
+supabase functions:log --only whatsappProxyAddAccount --lines 200
 ```
 
 ---
@@ -171,7 +171,7 @@ firebase functions:log --only whatsappProxyAddAccount --lines 200
    - **Verify**: Message visible
 
 3. **Expected Result**:
-   - Message persisted in Firestore:
+   - Message persisted in Database:
      - `threads/{accountId}__{remoteJid}` exists
      - `threads/{threadId}/messages/{messageId}` exists
      - direction: "inbound"
@@ -182,9 +182,9 @@ firebase functions:log --only whatsappProxyAddAccount --lines 200
 - [ ] messageId: `_______________`
 - [ ] Client phone (E.164): `_______________`
 
-**Firestore Verification**:
+**Database Verification**:
 ```
-Firebase Console → Firestore → threads/{threadId}/messages
+Supabase Console → Database → threads/{threadId}/messages
 ```
 
 ---
@@ -201,18 +201,18 @@ Firebase Console → Firestore → threads/{threadId}/messages
    - **Verify**: Message received ✅
 
 3. **Expected Result**:
-   - Firestore: message with direction="outbound", status="sent"/"delivered"
+   - Database: message with direction="outbound", status="sent"/"delivered"
    - legacy hosting logs show send success
 
 **Evidence**:
 - [ ] Screenshot: Sent message in app
 - [ ] Screenshot: Received on client phone
 - [ ] messageId: `_______________`
-- [ ] Status in Firestore: `_______________`
+- [ ] Status in Database: `_______________`
 
 **Logs to check** (if failure):
 ```bash
-firebase functions:log --only whatsappProxySend --lines 200
+supabase functions:log --only whatsappProxySend --lines 200
 ```
 
 ---
@@ -242,7 +242,7 @@ firebase functions:log --only whatsappProxySend --lines 200
 
 4. **Expected Result**:
    - ✅ Account reconnects automatically
-   - ✅ Old messages preserved (Firestore = source of truth)
+   - ✅ Old messages preserved (Database = source of truth)
    - ✅ New messages work
 
 **Evidence**:
@@ -268,7 +268,7 @@ firebase functions:log --only whatsappProxySend --lines 200
 
 **Logs to check** (if failure):
 ```bash
-firebase functions:log --only whatsappExtractEventFromThread --lines 200
+supabase functions:log --only whatsappExtractEventFromThread --lines 200
 ```
 
 ---
@@ -285,7 +285,7 @@ firebase functions:log --only whatsappExtractEventFromThread --lines 200
 
 **Evidence**:
 - [ ] eventId: `_______________`
-- [ ] Firestore path: `evenimente/{eventId}`
+- [ ] Database path: `evenimente/{eventId}`
 
 ---
 
@@ -293,19 +293,19 @@ firebase functions:log --only whatsappExtractEventFromThread --lines 200
 **AUTOMATED TRIGGER** (Cloud Function)
 
 1. **After Test 7**, verify:
-   - Firebase Function `aggregateClientStats` triggered
+   - Supabase Function `aggregateClientStats` triggered
    - `clients/{phoneE164}` updated:
      - `eventsCount` incremented
      - `lifetimeSpend*` updated
 
 **Evidence**:
-- [ ] Firestore path: `clients/{phoneE164}`
+- [ ] Database path: `clients/{phoneE164}`
 - [ ] eventsCount: `_______________`
 - [ ] lifetimeSpend: `_______________`
 
 **Logs to check** (if not updated):
 ```bash
-firebase functions:log --only aggregateClientStats --lines 200
+supabase functions:log --only aggregateClientStats --lines 200
 ```
 
 ---
@@ -325,11 +325,11 @@ firebase functions:log --only aggregateClientStats --lines 200
 
 **Evidence**:
 - [ ] Screenshot: AI answer
-- [ ] Matches Firestore: YES/NO
+- [ ] Matches Database: YES/NO
 
 **Logs to check** (if failure):
 ```bash
-firebase functions:log --only clientCrmAsk --lines 200
+supabase functions:log --only clientCrmAsk --lines 200
 ```
 
 ---
@@ -338,7 +338,7 @@ firebase functions:log --only clientCrmAsk --lines 200
 
 ### Infrastructure
 - [ ] legacy hosting backend: HEALTHY
-- [ ] Firebase Functions: all deployed us-central1
+- [ ] Supabase Functions: all deployed us-central1
 - [ ] Old v1 "whatsapp" function: DELETED
 - [ ] Flutter region: us-central1 (fixed)
 - [ ] Admin user: role=admin set
@@ -360,16 +360,16 @@ firebase functions:log --only clientCrmAsk --lines 200
 
 ### CRITICAL (Must fix before testing)
 1. ❌ **Old v1 "whatsapp" function exists** (may cause conflicts)
-   - **Fix**: Delete manually from Firebase Console
-   - **URL**: https://console.firebase.google.com/project/superparty-frontend/functions
+   - **Fix**: Delete manually from Supabase Console
+   - **URL**: https://console.supabase.google.com/project/superparty-frontend/functions
 
 2. ❌ **Admin user not set** (cannot access Accounts screen)
    - **Fix**: Set `users/FBQUjlK2dFNjv9uvUOseV85uXmE3` with `role: "admin"`
-   - **URL**: https://console.firebase.google.com/project/superparty-frontend/firestore
+   - **URL**: https://console.supabase.google.com/project/superparty-frontend/database
 
 ### RESOLVED
 - ✅ Region mismatch: FIXED (whatsappExtractEventFromThread now us-central1)
-- ✅ Firebase.json predeploy hooks: ADDED
+- ✅ Supabase.json predeploy hooks: ADDED
 - ✅ Flutter analysis: PASSED (1 deprecation warning, non-blocking)
 
 ---
@@ -381,15 +381,15 @@ firebase functions:log --only clientCrmAsk --lines 200
 **Impact**: Emulator uses placeholder token (functional, but less secure)  
 **Action**: Safe to ignore for testing; enable in production later
 
-### Firebase CLI Log Commands
+### Supabase CLI Log Commands
 **CORRECT**:
 ```bash
-firebase functions:log --only <functionName> --lines 200
+supabase functions:log --only <functionName> --lines 200
 ```
 
 **INCORRECT** (will fail):
 ```bash
-firebase functions:log --only <functionName> --lines 200  # ❌ Invalid flag
+supabase functions:log --only <functionName> --lines 200  # ❌ Invalid flag
 ```
 
 ---

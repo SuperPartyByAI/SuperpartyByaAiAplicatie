@@ -1,19 +1,19 @@
-# 📥 Download Direct din Firebase Storage
+# 📥 Download Direct din Supabase Storage
 
 ## 🎯 OBIECTIV
 
-În loc să descarce APK-ul de pe Play Store sau din mail, userii vor descărca **DIRECT din Firebase Storage**.
+În loc să descarce APK-ul de pe Play Store sau din mail, userii vor descărca **DIRECT din Supabase Storage**.
 
 ---
 
-## 📋 CONFIGURARE FIRESTORE
+## 📋 CONFIGURARE DATABASE
 
-### Pasul 1: Creează documentul în Firestore
+### Pasul 1: Creează documentul în Database
 
-**În Firebase Console (link-ul tău):**
+**În Supabase Console (link-ul tău):**
 
 ```
-https://console.firebase.google.com/project/superparty-frontend/firestore
+https://console.supabase.google.com/project/superparty-frontend/database
 ```
 
 **Collection:** `app_config`  
@@ -26,10 +26,10 @@ https://console.firebase.google.com/project/superparty-frontend/firestore
   "min_version": "1.0.1",
   "min_build_number": 999,
   "force_update": true,
-  "update_message": "🎉 Versiune nouă disponibilă! Descarcă direct din Firebase.",
+  "update_message": "🎉 Versiune nouă disponibilă! Descarcă direct din Supabase.",
 
-  // Link direct Firebase Storage
-  "android_download_url": "https://firebasestorage.googleapis.com/v0/b/superparty-frontend.appspot.com/o/apk%2Fsuperparty-v1.0.1.apk?alt=media",
+  // Link direct Supabase Storage
+  "android_download_url": "https://supabasestorage.googleapis.com/v0/b/superparty-frontend.appspot.com/o/apk%2Fsuperparty-v1.0.1.apk?alt=media",
 
   "ios_download_url": "https://apps.apple.com/app/superparty/id123456789"
 }
@@ -37,14 +37,14 @@ https://console.firebase.google.com/project/superparty-frontend/firestore
 
 ---
 
-## 📤 UPLOAD APK ÎN FIREBASE STORAGE
+## 📤 UPLOAD APK ÎN SUPABASE STORAGE
 
 ### Pasul 2: Upload APK
 
-**Mergi la Firebase Storage:**
+**Mergi la Supabase Storage:**
 
 ```
-https://console.firebase.google.com/project/superparty-frontend/storage
+https://console.supabase.google.com/project/superparty-frontend/storage
 ```
 
 **Pași:**
@@ -69,8 +69,8 @@ https://console.firebase.google.com/project/superparty-frontend/storage
    - Click **"Get download URL"** (sau "Copy download URL")
    - Copiază URL-ul
 
-5. **Actualizează Firestore:**
-   - Mergi înapoi la Firestore
+5. **Actualizează Database:**
+   - Mergi înapoi la Database
    - Deschide documentul `app_config/version`
    - Editează câmpul `android_download_url`
    - Lipește URL-ul copiat
@@ -85,14 +85,14 @@ https://console.firebase.google.com/project/superparty-frontend/storage
 **Mergi la Storage Rules:**
 
 ```
-https://console.firebase.google.com/project/superparty-frontend/storage/rules
+https://console.supabase.google.com/project/superparty-frontend/storage/rules
 ```
 
 **Adaugă regula:**
 
 ```javascript
 rules_version = '2';
-service firebase.storage {
+service supabase.storage {
   match /b/{bucket}/o {
     // Permite download public pentru APK-uri
     match /apk/{fileName} {
@@ -141,12 +141,12 @@ service firebase.storage {
 ### Ce se întâmplă când user deschide app:
 
 ```
-1. App verifică versiune în Firestore
+1. App verifică versiune în Database
    ↓
 2. Detectează: build 1 < 999
    ↓
 3. Afișează dialog:
-   "🎉 Versiune nouă disponibilă! Descarcă direct din Firebase."
+   "🎉 Versiune nouă disponibilă! Descarcă direct din Supabase."
    [Actualizează Acum]
    ↓
 4. User apasă "Actualizează Acum"
@@ -157,9 +157,9 @@ service firebase.storage {
    ↓
 7. User apasă "Actualizează Acum"
    ↓
-8. Se deschide browser cu URL Firebase Storage
+8. Se deschide browser cu URL Supabase Storage
    ↓
-9. Începe download APK (direct din Firebase!)
+9. Începe download APK (direct din Supabase!)
    ↓
 10. User instalează APK manual
    ↓
@@ -170,9 +170,9 @@ service firebase.storage {
 
 ---
 
-## 🔧 AVANTAJE FIREBASE STORAGE
+## 🔧 AVANTAJE SUPABASE STORAGE
 
-### De ce Firebase Storage vs Play Store/Mail?
+### De ce Supabase Storage vs Play Store/Mail?
 
 ✅ **Control complet:**
 
@@ -194,13 +194,13 @@ service firebase.storage {
 
 ✅ **Gratuit:**
 
-- Firebase Storage: 5GB gratuit
+- Supabase Storage: 5GB gratuit
 - Bandwidth: 1GB/zi gratuit
 - Suficient pentru 20-50 download-uri/zi
 
 ---
 
-## 📊 STRUCTURA FIREBASE STORAGE
+## 📊 STRUCTURA SUPABASE STORAGE
 
 ### Organizare recomandată:
 
@@ -217,10 +217,10 @@ service firebase.storage {
 
 ```
 Versiune 1.0.1:
-https://firebasestorage.googleapis.com/v0/b/superparty-frontend.appspot.com/o/apk%2Fsuperparty-v1.0.1.apk?alt=media
+https://supabasestorage.googleapis.com/v0/b/superparty-frontend.appspot.com/o/apk%2Fsuperparty-v1.0.1.apk?alt=media
 
 Versiune latest (redirect):
-https://firebasestorage.googleapis.com/v0/b/superparty-frontend.appspot.com/o/apk%2Fsuperparty-latest.apk?alt=media
+https://supabasestorage.googleapis.com/v0/b/superparty-frontend.appspot.com/o/apk%2Fsuperparty-latest.apk?alt=media
 ```
 
 ---
@@ -240,7 +240,7 @@ match /apk/{fileName} {
 }
 ```
 
-**Firestore Rules:**
+**Database Rules:**
 
 ```javascript
 // Configurație versiune: public read, admin write
@@ -255,7 +255,7 @@ match /app_config/version {
 
 ## 📈 MONITORING
 
-### Verifică download-uri în Firebase Console:
+### Verifică download-uri în Supabase Console:
 
 **Storage → Usage:**
 
@@ -263,7 +263,7 @@ match /app_config/version {
 - Download bandwidth
 - Number of operations
 
-**Firestore → Usage:**
+**Database → Usage:**
 
 - Document reads (câte verificări de versiune)
 
@@ -295,7 +295,7 @@ match /apk/{fileName} {
 
 ### Problema: Download-ul e lent
 
-**Cauză:** Firebase Storage bandwidth limit
+**Cauză:** Supabase Storage bandwidth limit
 
 **Soluție:**
 
@@ -306,7 +306,7 @@ match /apk/{fileName} {
 
 ## 💰 COSTURI
 
-### Firebase Storage Pricing:
+### Supabase Storage Pricing:
 
 **Spark Plan (Gratuit):**
 
@@ -332,9 +332,9 @@ match /apk/{fileName} {
 
 ### După configurare:
 
-1. ✅ Upload APK în Firebase Storage
+1. ✅ Upload APK în Supabase Storage
 2. ✅ Obține URL de download
-3. ✅ Actualizează Firestore cu URL-ul
+3. ✅ Actualizează Database cu URL-ul
 4. ✅ Setează Storage Rules (public read)
 5. ✅ Testează download-ul în browser
 6. ✅ Testează în app
@@ -342,14 +342,14 @@ match /apk/{fileName} {
 ### Pentru versiuni viitoare:
 
 1. Build APK nou: `flutter build apk --release`
-2. Upload în Firebase Storage: `apk/superparty-v1.0.2.apk`
+2. Upload în Supabase Storage: `apk/superparty-v1.0.2.apk`
 3. Obține URL nou
-4. Actualizează Firestore:
+4. Actualizează Database:
    ```javascript
    {
      "min_version": "1.0.2",
      "min_build_number": 2,
-     "android_download_url": "https://firebasestorage.googleapis.com/.../v1.0.2.apk?alt=media"
+     "android_download_url": "https://supabasestorage.googleapis.com/.../v1.0.2.apk?alt=media"
    }
    ```
 5. Userii vor primi update automat!
@@ -358,9 +358,9 @@ match /apk/{fileName} {
 
 ## ✅ CHECKLIST FINAL
 
-- [ ] Documentul `app_config/version` creat în Firestore
-- [ ] APK uploadat în Firebase Storage (`apk/` folder)
-- [ ] URL de download copiat și pus în Firestore
+- [ ] Documentul `app_config/version` creat în Database
+- [ ] APK uploadat în Supabase Storage (`apk/` folder)
+- [ ] URL de download copiat și pus în Database
 - [ ] Storage Rules setate (public read pentru `apk/`)
 - [ ] Testat download în browser (funcționează)
 - [ ] Testat în app (dialog apare, download începe)
@@ -369,9 +369,9 @@ match /apk/{fileName} {
 
 **Link-uri utile:**
 
-- Firestore: https://console.firebase.google.com/project/superparty-frontend/firestore
-- Storage: https://console.firebase.google.com/project/superparty-frontend/storage
-- Storage Rules: https://console.firebase.google.com/project/superparty-frontend/storage/rules
+- Database: https://console.supabase.google.com/project/superparty-frontend/database
+- Storage: https://console.supabase.google.com/project/superparty-frontend/storage
+- Storage Rules: https://console.supabase.google.com/project/superparty-frontend/storage/rules
 
 **Status:** ✅ Gata de configurare  
 **Timp estimat:** 10 minute  

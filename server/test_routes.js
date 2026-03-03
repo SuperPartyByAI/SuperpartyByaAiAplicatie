@@ -2,12 +2,12 @@ const https = require('https');
 const fs = require('fs');
 
 async function testMaps() {
-  const firebaseOptionsPath = '/Users/universparty/AplicatieSuperParty/Superparty-App/lib/firebase_options.dart';
-  const dartCode = fs.readFileSync(firebaseOptionsPath, 'utf8');
+  const supabaseOptionsPath = '/Users/universparty/AplicatieSuperParty/Superparty-App/lib/supabase_options.dart';
+  const dartCode = fs.readFileSync(supabaseOptionsPath, 'utf8');
   const apiKeyMatch = dartCode.match(/apiKey:\s*'([^']+)'/);
   
   if (!apiKeyMatch) {
-    console.log("No API key found in firebase_options.dart");
+    console.log("No API key found in supabase_options.dart");
     return;
   }
   

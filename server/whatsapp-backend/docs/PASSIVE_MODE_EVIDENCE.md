@@ -28,7 +28,7 @@ date: Tue, 30 Dec 2025 01:30:07 GMT
   "uptime": 88,
   "timestamp": "2025-12-30T01:30:07.773Z",
   "accounts": {"total": 4, "connected": 4},
-  "firestore": "connected"
+  "database": "connected"
 }
 ```
 
@@ -149,7 +149,7 @@ let waStatus = null;
 if (this.waBootstrap) {
   waStatus = await this.waBootstrap.getWAStatus();
 } else {
-  // Fallback: read from Firestore directly
+  // Fallback: read from Database directly
   ...
 }
 
@@ -283,7 +283,7 @@ async checkInboundDedupe(waMessageId) {
 
 ---
 
-## 9. FIRESTORE LOCK DOCUMENT
+## 9. DATABASE LOCK DOCUMENT
 
 **Path**: `wa_metrics/longrun/locks/wa_connection`
 

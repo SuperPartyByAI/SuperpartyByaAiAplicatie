@@ -17,7 +17,7 @@ function WhatsAppAccounts() {
   useEffect(() => {
     loadAccounts();
 
-    // Polling pentru QR codes (Firebase Functions nu suportă Socket.io persistent)
+    // Polling pentru QR codes (Supabase Functions nu suportă Socket.io persistent)
     const pollInterval = setInterval(() => {
       loadAccounts();
     }, 3000); // Refresh la fiecare 3 secunde

@@ -3,7 +3,7 @@ const cors = require('cors');
 require('dotenv').config();
 
 const { initSessions } = require('./whatsapp/sessionManager');
-const requireFirebaseAuth = require('./middleware/auth');
+const requireSupabaseAuth = require('./middleware/auth');
 const requireApprovedEmployee = require('./middleware/requireApprovedEmployee');
 const waAccountsParam = require('./routes/waAccounts');
 const conversationsParam = require('./routes/conversations');
@@ -19,7 +19,7 @@ app.use(express.json());
 app.get('/health', (req, res) => res.send('OK'));
 
 // Protected API Routes
-app.use('/api', requireFirebaseAuth);
+app.use('/api', requireSupabaseAuth);
 
 // Modular Routes
 app.use('/api/employees', employeesRoutes); // Auth required, Approval dependent on route (request vs others)

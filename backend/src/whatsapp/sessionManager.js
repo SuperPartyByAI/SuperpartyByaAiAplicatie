@@ -1,5 +1,5 @@
 const { makeWASocket, useMultiFileAuthState, DisconnectReason } = require('@whiskeysockets/baileys');
-const { db, FieldValue } = require('../firebase');
+const { db, FieldValue } = require('../supabase');
 const path = require('path');
 const fs = require('fs');
 const pino = require('pino');

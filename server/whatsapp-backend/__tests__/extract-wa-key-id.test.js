@@ -80,7 +80,7 @@ describe('extractWaMetadata', () => {
     expect(result.waFromMe).toBe(true);
   });
 
-  test('handles Firestore Timestamp', () => {
+  test('handles Database Timestamp', () => {
     const docData = {
       key: { id: '3EB0ABC123' },
       tsClient: { seconds: 1769290625, nanoseconds: 500000 },

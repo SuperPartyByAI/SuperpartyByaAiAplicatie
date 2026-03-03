@@ -2,24 +2,24 @@
 
 ## Objective
 
-Make Flutter app run on web (Chrome/Edge) with hot reload, no Firebase/ForceUpdate/BackgroundService errors.
+Make Flutter app run on web (Chrome/Edge) with hot reload, no Supabase/ForceUpdate/BackgroundService errors.
 
 ## Problems Fixed
 
-### 1. ❌ [core/no-app] No Firebase App '[DEFAULT]' has been created
-**Root Cause:** Firebase instances accessed before `Firebase.initializeApp()`
+### 1. ❌ [core/no-app] No Supabase App '[DEFAULT]' has been created
+**Root Cause:** Supabase instances accessed before `Supabase.initializeApp()`
 
 **Solution:**
-- ✅ `FirebaseService` uses lazy getters instead of static finals
-- ✅ `Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform)` called before `runApp()`
-- ✅ All services use `FirebaseService.auth` / `FirebaseService.firestore`
+- ✅ `SupabaseService` uses lazy getters instead of static finals
+- ✅ `Supabase.initializeApp(options: DefaultSupabaseOptions.currentPlatform)` called before `runApp()`
+- ✅ All services use `SupabaseService.auth` / `SupabaseService.database`
 
-### 2. ❌ FirebaseOptions cannot be null
-**Root Cause:** Missing `firebase_options.dart` or not using platform-specific options
+### 2. ❌ SupabaseOptions cannot be null
+**Root Cause:** Missing `supabase_options.dart` or not using platform-specific options
 
 **Solution:**
-- ✅ Created `lib/firebase_options.dart` with web, Android, iOS, macOS configs
-- ✅ `FirebaseService.initialize()` uses `DefaultFirebaseOptions.currentPlatform`
+- ✅ Created `lib/supabase_options.dart` with web, Android, iOS, macOS configs
+- ✅ `SupabaseService.initialize()` uses `DefaultSupabaseOptions.currentPlatform`
 
 ### 3. ❌ MissingPluginException ... flutter_foreground_task
 **Root Cause:** Background service plugin not available on web
@@ -36,10 +36,10 @@ Make Flutter app run on web (Chrome/Edge) with hot reload, no Firebase/ForceUpda
 - ✅ Added `return false;` in `BackgroundService.startService().catchError()`
 
 ### 5. ❌ FormatException: Missing required field: min_version
-**Root Cause:** Firestore config uses legacy schema (`latest_version`)
+**Root Cause:** Database config uses legacy schema (`latest_version`)
 
 **Solution:**
-- ✅ `AppVersionConfig.fromFirestore()` supports both schemas
+- ✅ `AppVersionConfig.fromDatabase()` supports both schemas
 - ✅ Returns safe default if fields missing
 - ✅ Never throws on missing config
 
@@ -55,12 +55,12 @@ Make Flutter app run on web (Chrome/Edge) with hot reload, no Firebase/ForceUpda
 
 ### Core Fixes
 
-1. **`lib/firebase_options.dart`** (created)
-   - Platform-specific Firebase configuration
+1. **`lib/supabase_options.dart`** (created)
+   - Platform-specific Supabase configuration
    - Web, Android, iOS, macOS support
    - Uses project: `superparty-frontend`
 
-2. **`lib/services/firebase_service.dart`**
+2. **`lib/services/supabase_service.dart`**
    - Lazy getters instead of static finals
    - Platform-specific initialization
    - Initialization check with clear errors
@@ -78,16 +78,16 @@ Make Flutter app run on web (Chrome/Edge) with hot reload, no Firebase/ForceUpda
    - Web-safe platform checks
 
 5. **`lib/services/role_service.dart`**
-   - Uses `FirebaseService.auth` / `FirebaseService.firestore`
+   - Uses `SupabaseService.auth` / `SupabaseService.database`
    - Lazy getters instead of instance fields
 
 6. **`lib/services/auto_update_service.dart`**
-   - Uses `FirebaseService.firestore` instead of direct instance
+   - Uses `SupabaseService.database` instead of direct instance
 
 ### Documentation
 
-7. **`WEB_FIREBASE_SETUP.md`** (created)
-   - Firebase web app registration instructions
+7. **`WEB_SUPABASE_SETUP.md`** (created)
+   - Supabase web app registration instructions
    - Configuration guide
    - Troubleshooting
 
@@ -150,17 +150,17 @@ flutter run -d web-server --web-hostname=127.0.0.1 --web-port=5051
 ### ✅ Expected Console Output (Good)
 
 ```
-[Main] Initializing Firebase...
-[FirebaseService] Initializing Firebase...
-[FirebaseService] ✅ Firebase initialized successfully
-[Main] ✅ Firebase initialized successfully
+[Main] Initializing Supabase...
+[SupabaseService] Initializing Supabase...
+[SupabaseService] ✅ Supabase initialized successfully
+[Main] ✅ Supabase initialized successfully
 [Main] ℹ️ Background service skipped (not supported on web)
 [Main] ℹ️ Push notifications skipped (not supported on web)
 [Main] Starting app...
 [UpdateGate] Starting force update check...
 [UpdateGate] Current app version: 1.2.2
 [UpdateGate] Current build number: 22
-[ForceUpdateChecker] Reading from Firestore: app_config/version
+[ForceUpdateChecker] Reading from Database: app_config/version
 [ForceUpdateChecker] Force update disabled in config
 [UpdateGate] No force update needed
 ```
@@ -168,8 +168,8 @@ flutter run -d web-server --web-hostname=127.0.0.1 --web-port=5051
 ### ❌ Should NOT See (Bad)
 
 ```
-❌ [core/no-app] No Firebase App '[DEFAULT]' has been created
-❌ FirebaseOptions cannot be null
+❌ [core/no-app] No Supabase App '[DEFAULT]' has been created
+❌ SupabaseOptions cannot be null
 ❌ FormatException: Missing required field: min_version
 ❌ MissingPluginException ... flutter_foreground_task
 ❌ Future.catchError must return a value of the future's type
@@ -192,13 +192,13 @@ flutter run -d web-server --web-hostname=127.0.0.1 --web-port=5051
 1. **Click login** in app
 2. **Enter credentials**
 3. **Verify** login works
-4. **Check console** for Firebase Auth logs
+4. **Check console** for Supabase Auth logs
 
-### ✅ Test Firestore
+### ✅ Test Database
 
-1. **Navigate** to a page that reads Firestore
+1. **Navigate** to a page that reads Database
 2. **Verify** data loads
-3. **Check console** for Firestore logs
+3. **Check console** for Database logs
 
 ## Acceptance Criteria
 
@@ -212,7 +212,7 @@ flutter run -d web-server --web-hostname=127.0.0.1 --web-port=5051
 ### ✅ AC2: No Console Errors
 Open F12 → Console:
 - ✅ No `[core/no-app]` error
-- ✅ No `FirebaseOptions cannot be null` error
+- ✅ No `SupabaseOptions cannot be null` error
 - ✅ No `FormatException: Missing required field` error
 - ✅ No `MissingPluginException ... flutter_foreground_task` error
 - ✅ No `Future.catchError must return a value` error
@@ -228,9 +228,9 @@ Open F12 → Console:
 ```
 App Start
   ↓
-Class Load → FirebaseAuth.instance (❌ before init)
+Class Load → SupabaseAuth.instance (❌ before init)
   ↓
-main() → Firebase.initializeApp() (too late!)
+main() → Supabase.initializeApp() (too late!)
   ↓
 BackgroundService.initialize() (❌ on web)
   ↓
@@ -244,7 +244,7 @@ App Start
   ↓
 main() → WidgetsFlutterBinding.ensureInitialized()
   ↓
-main() → FirebaseService.initialize() ✅
+main() → SupabaseService.initialize() ✅
   ↓
 main() → if (!kIsWeb) BackgroundService.initialize() ✅
   ↓
@@ -252,7 +252,7 @@ main() → if (!kIsWeb) PushNotificationService.initialize() ✅
   ↓
 main() → runApp()
   ↓
-Services → FirebaseService.auth (✅ lazy, after init)
+Services → SupabaseService.auth (✅ lazy, after init)
 ```
 
 ## Web-Specific Considerations
@@ -265,9 +265,9 @@ Services → FirebaseService.auth (✅ lazy, after init)
 - ❌ Platform class (dart:io)
 
 ### Available on Web
-- ✅ Firebase Auth
-- ✅ Firestore
-- ✅ Firebase Storage
+- ✅ Supabase Auth
+- ✅ Database
+- ✅ Supabase Storage
 - ✅ Cloud Functions
 - ✅ Most UI components
 - ✅ Hot reload/restart
@@ -298,9 +298,9 @@ flutter run -d web-server --web-hostname=127.0.0.1 --web-port=5051
 flutter build web --release
 ```
 
-### Deploy to Firebase Hosting
+### Deploy to Supabase Hosting
 ```bash
-firebase deploy --only hosting
+supabase deploy --only hosting
 ```
 
 ## Rollback Plan
@@ -324,11 +324,11 @@ git pull
 
 ### Key Metrics
 - ✅ App starts without errors
-- ✅ Firebase initializes successfully
+- ✅ Supabase initializes successfully
 - ✅ No console errors in browser
 - ✅ Hot reload works
 - ✅ Authentication works
-- ✅ Firestore operations work
+- ✅ Database operations work
 
 ### Log Monitoring
 
@@ -340,21 +340,21 @@ flutter logs
 **Browser Console (F12):**
 - Check for errors (red)
 - Check for warnings (yellow)
-- Verify Firebase initialization logs
+- Verify Supabase initialization logs
 
 ## Known Limitations
 
-1. **Web App ID:** Currently using Android app ID as placeholder. For production, register a proper web app in Firebase Console.
+1. **Web App ID:** Currently using Android app ID as placeholder. For production, register a proper web app in Supabase Console.
 
 2. **Background Services:** Not available on web. Features requiring background tasks won't work.
 
-3. **Push Notifications:** Native push notifications not available on web. Use Firebase Cloud Messaging for web instead.
+3. **Push Notifications:** Native push notifications not available on web. Use Supabase Cloud Messaging for web instead.
 
 4. **File System:** `dart:io` not available on web. Use `dart:html` or web-compatible packages.
 
 ## Future Enhancements
 
-- [ ] Register proper web app in Firebase Console
+- [ ] Register proper web app in Supabase Console
 - [ ] Implement web-specific push notifications (FCM Web)
 - [ ] Add service worker for offline support
 - [ ] Optimize web bundle size
@@ -368,7 +368,7 @@ For issues:
 2. Check browser console (F12) for errors
 3. Check Flutter logs in terminal
 4. Run `flutter doctor -v`
-5. Verify Firebase Console configuration
+5. Verify Supabase Console configuration
 
 ## Status
 
@@ -398,7 +398,7 @@ For issues:
    - Check F12 console for errors
    - Test hot reload (r)
    - Test authentication
-   - Test Firestore operations
+   - Test Database operations
 
 4. **Report:**
    - ✅ If working: Ready for production

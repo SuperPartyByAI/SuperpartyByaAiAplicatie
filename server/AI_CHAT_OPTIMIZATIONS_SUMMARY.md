@@ -36,13 +36,13 @@
   - Frequent questions tracking
   - Cache statistics
 
-### 2. Firebase Functions
+### 2. Supabase Functions
 
 - ✅ `functions/index.js` (145 linii modificate)
   - Connection pooling
   - Reduced timeout (30s)
   - Increased memory (512MB)
-  - Eliminated Firestore query
+  - Eliminated Database query
   - Async saves
   - Memory cache
   - Smaller payload (5 msgs)
@@ -62,11 +62,11 @@
 2. ✅ **Placeholder animat** - "Scriu..." cu spinner
 3. ✅ **Timeout redus** - 30s în loc de 60s
 4. ✅ **Memorie crescută** - 512MB pentru procesare rapidă
-5. ✅ **Salvare asincronă** - nu așteaptă Firestore
+5. ✅ **Salvare asincronă** - nu așteaptă Database
 
 ### Level 2: Advanced Optimizations
 
-6. ✅ **Eliminat query Firestore** - folosește doar mesaje din request
+6. ✅ **Eliminat query Database** - folosește doar mesaje din request
 7. ✅ **Cache în memorie** (backend) - întrebări frecvente
 8. ✅ **Token limit redus** - 200 în loc de 500
 9. ✅ **ListView optimizat** - scroll fluid, auto-scroll
@@ -113,7 +113,7 @@ User: "întrebare nouă" → Send
 ├─ Display placeholder "..." (100ms) ⚡
 ├─ Check cache - MISS (25ms)
 ├─ Prepare payload - 5 msgs (20ms)
-├─ Firebase Function (200ms)
+├─ Supabase Function (200ms)
 ├─ Groq pooled client (50ms)
 ├─ AI processing - 200 tokens (800ms)
 ├─ Response back (200ms)
@@ -140,11 +140,11 @@ TOTAL: ~1.5s ⚡⚡
 
 ## 🚀 Deployment
 
-### 1. Deploy Firebase Function
+### 1. Deploy Supabase Function
 
 ```bash
 cd functions
-firebase deploy --only functions:chatWithAI
+supabase deploy --only functions:chatWithAI
 ```
 
 ### 2. Build Flutter App
@@ -168,7 +168,7 @@ flutter run --release
 
 ## 📈 Expected Metrics
 
-### Firebase Console
+### Supabase Console
 
 - **Execution time**: 1-3s (down from 5-15s)
 - **Memory usage**: 200-300MB (within 512MB)
@@ -232,7 +232,7 @@ flutter run --release
 - [ ] Measure response time cu DevTools
 - [ ] Verifică memory usage <10MB overhead
 - [ ] Verifică network payload <5KB per request
-- [ ] Verifică Firebase execution time <3s
+- [ ] Verifică Supabase execution time <3s
 
 ### Edge Cases
 
@@ -263,10 +263,10 @@ flutter run --release
 
 **Next Steps:**
 
-1. Deploy Firebase Function
+1. Deploy Supabase Function
 2. Build Flutter APK
 3. Test pe device real
-4. Monitor metrics în Firebase Console
+4. Monitor metrics în Supabase Console
 
 ---
 

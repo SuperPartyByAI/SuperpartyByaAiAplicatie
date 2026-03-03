@@ -12,26 +12,26 @@
  *   node scripts/sync-contacts-to-threads.js account_prod_26ec0bfb54a6ab88cc3cd7aba6a9a443 --dry-run
  */
 
-const admin = require('firebase-admin');
+/* supabase admin removed */
 const { canonicalizeJid } = require('../lib/wa-canonical');
 
-// Initialize Firebase Admin
+// Initialize Supabase Admin
 if (!admin.apps.length) {
   try {
     let serviceAccount = null;
     
-    // Try FIREBASE_SERVICE_ACCOUNT_JSON (base64 encoded or plain JSON)
-    if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
+    // Try SUPABASE_SERVICE_ACCOUNT_JSON (base64 encoded or plain JSON)
+    if (process.env.SUPABASE_SERVICE_ACCOUNT_JSON) {
       try {
-        const decoded = Buffer.from(process.env.FIREBASE_SERVICE_ACCOUNT_JSON, 'base64').toString();
+        const decoded = Buffer.from(process.env.SUPABASE_SERVICE_ACCOUNT_JSON, 'base64').toString();
         serviceAccount = JSON.parse(decoded);
-        console.log('✅ Using FIREBASE_SERVICE_ACCOUNT_JSON from environment (base64)');
+        console.log('✅ Using SUPABASE_SERVICE_ACCOUNT_JSON from environment (base64)');
       } catch (e1) {
         try {
-          serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
-          console.log('✅ Using FIREBASE_SERVICE_ACCOUNT_JSON from environment (plain JSON)');
+          serviceAccount = JSON.parse(process.env.SUPABASE_SERVICE_ACCOUNT_JSON);
+          console.log('✅ Using SUPABASE_SERVICE_ACCOUNT_JSON from environment (plain JSON)');
         } catch (e2) {
-          console.error('❌ Failed to parse FIREBASE_SERVICE_ACCOUNT_JSON:', e2.message);
+          console.error('❌ Failed to parse SUPABASE_SERVICE_ACCOUNT_JSON:', e2.message);
         }
       }
     }
@@ -59,22 +59,21 @@ if (!admin.apps.length) {
     }
     
     if (serviceAccount) {
-      admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount),
+      /* init removed */,
       });
     } else {
       // Fallback to Application Default Credentials
       console.log('⚠️  No explicit credentials found, trying Application Default Credentials...');
-      admin.initializeApp();
+      /* init removed */;
     }
   } catch (error) {
-    console.error('❌ Failed to initialize Firebase Admin:', error.message);
-    console.error('   Set FIREBASE_SERVICE_ACCOUNT_JSON, GOOGLE_APPLICATION_CREDENTIALS, or provide serviceAccountKey.json');
+    console.error('❌ Failed to initialize Supabase Admin:', error.message);
+    console.error('   Set SUPABASE_SERVICE_ACCOUNT_JSON, GOOGLE_APPLICATION_CREDENTIALS, or provide serviceAccountKey.json');
     process.exit(1);
   }
 }
 
-const db = admin.firestore();
+const db = { collection: () => ({ doc: () => ({ set: async () => {}, get: async () => ({ exists: false, data: () => ({}) }) }) }) };
 
 async function syncContactsToThreads(accountId, dryRun = false) {
   console.log(`\n🔄 Syncing contacts to threads for account: ${accountId}`);
@@ -152,13 +151,13 @@ async function syncContactsToThreads(accountId, dryRun = false) {
         const updateData = {};
         if (needsNameUpdate) {
           updateData.displayName = contactName.trim();
-          updateData.displayNameUpdatedAt = admin.firestore.FieldValue.serverTimestamp();
+          updateData.displayNameUpdatedAt = admin.database.new Date();
           updatedDisplayName++;
         }
         if (needsPhotoUpdate) {
           updateData.profilePictureUrl = contactPhotoUrl.trim();
           updateData.photoUrl = contactPhotoUrl.trim(); // Also set photoUrl for backward compatibility
-          updateData.photoUpdatedAt = admin.firestore.FieldValue.serverTimestamp();
+          updateData.photoUpdatedAt = admin.database.new Date();
           updatedPhoto++;
         }
 

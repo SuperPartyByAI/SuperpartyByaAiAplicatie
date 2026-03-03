@@ -335,8 +335,8 @@ class ProxyRotator {
 
 **Problema:**
 
-- Firestore poate cădea (0.01%)
-- Mesaje pierdute dacă Firestore down
+- Database poate cădea (0.01%)
+- Mesaje pierdute dacă Database down
 - Single point of failure
 
 **Soluție:**
@@ -346,8 +346,8 @@ class MultiLocationBackup {
   async saveMessage(accountId, chatId, messageData) {
     // Save to multiple locations in parallel
     await Promise.allSettled([
-      // 1. Firestore (primary)
-      firestore.saveMessage(accountId, chatId, messageData),
+      // 1. Database (primary)
+      database.saveMessage(accountId, chatId, messageData),
 
       // 2. Local file (backup)
       this.saveToLocalFile(accountId, chatId, messageData),
@@ -362,7 +362,7 @@ class MultiLocationBackup {
 
   async getMessage(accountId, chatId, messageId) {
     // Try multiple sources
-    let message = await firestore.getMessage(accountId, chatId, messageId);
+    let message = await database.getMessage(accountId, chatId, messageId);
     if (message) return message;
 
     message = await this.getFromRedis(accountId, chatId, messageId);
@@ -691,7 +691,7 @@ Uptime:             99.99% (+5%) ⬆️⬆️⬆️⬆️⬆️
 | **Rate limit**        | 5%            | MEDIU  | ✅ Da                |
 | **Session expire**    | 5%            | MEDIU  | ✅ Da                |
 | **legacy hosting down**      | 0.1%          | MARE   | ✅ Da (multi-region) |
-| **Firestore down**    | 0.01%         | MARE   | ❌ Parțial           |
+| **Database down**    | 0.01%         | MARE   | ❌ Parțial           |
 | **Network issues**    | 1%            | MEDIU  | ✅ Da                |
 
 ### Riscuri După ULTIMATE:
@@ -706,7 +706,7 @@ Uptime:             99.99% (+5%) ⬆️⬆️⬆️⬆️⬆️
 | **Rate limit**        | 0.5%          | MEDIU  | ✅ Da (intelligent limiting) |
 | **Session expire**    | 2%            | MEDIU  | ✅ Da (rotation)             |
 | **legacy hosting down**      | 0.1%          | MARE   | ✅ Da (multi-region)         |
-| **Firestore down**    | 0.01%         | MARE   | ✅ Da (multiple backups)     |
+| **Database down**    | 0.01%         | MARE   | ✅ Da (multiple backups)     |
 | **Network issues**    | 0.5%          | MEDIU  | ✅ Da (predictive health)    |
 
 ---

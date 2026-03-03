@@ -11,7 +11,7 @@
 
 ### 1. `functions/shortCodeGenerator.js` - Lazy Initialization
 
-**Problemă**: `const defaultGenerator = new ShortCodeGenerator()` la top-level declanșa `admin.firestore()` la import, ceea ce crăpa testele.
+**Problemă**: `const defaultGenerator = new ShortCodeGenerator()` la top-level declanșa `admin.database()` la import, ceea ce crăpa testele.
 
 **Fix**: Lazy initialization prin `getDefaultGenerator()` (generatorul se creează doar când e folosit).
 
@@ -21,7 +21,7 @@
 ```bash
 cd functions
 npm test
-# ✅ ShortCodeGenerator tests trec fără eroare de initializeApp / admin.firestore() la import
+# ✅ ShortCodeGenerator tests trec fără eroare de initializeApp / admin.database() la import
 ```
 
 ---
@@ -50,10 +50,10 @@ npm test
 
 ### 3. `functions/test/whatsappProxy.test.js` - Mock Consistency
 
-**Problemă**: Mock-urile Firestore/transaction nu returnau obiecte cu `.exists` și `.data()`, ducând la erori în testele pentru handler-e.
+**Problemă**: Mock-urile Database/transaction nu returnau obiecte cu `.exists` și `.data()`, ducând la erori în testele pentru handler-e.
 
 **Fix**:
-- Mock-uri globale persistente pentru `mockVerifyIdToken`, `mockFirestore`, `mockFirestoreRunTransaction`
+- Mock-uri globale persistente pentru `mockVerifyIdToken`, `mockDatabase`, `mockDatabaseRunTransaction`
 - Mock-uri locale în testele `/send` pentru `mockThreadRef`, `mockOutboxRef`, `mockStaffCollection`
 
 **Impact**: Testele pot accesa handler-ele direct fără erori de mock.
@@ -99,7 +99,7 @@ npm test
 - ✅ WhatsApp Proxy: `/getAccounts`, `/addAccount`, `/regenerateQr`, `/send` — toate trec
 - ✅ WhatsApp Proxy - Lazy Loading — trec
 - ✅ RoleDetector `parseDuration` — trec (toate cazurile)
-- ✅ ShortCodeGenerator — trec (fără eroare de `initializeApp` / `admin.firestore()` la import)
+- ✅ ShortCodeGenerator — trec (fără eroare de `initializeApp` / `admin.database()` la import)
 
 ---
 
@@ -109,7 +109,7 @@ npm test
 ```powershell
 cd "C:\Users\ursac\OneDrive\Desktop\Aplicatie-SuperpartyByAi"
 $env:WHATSAPP_BACKEND_BASE_URL = "https://whats-app-ompro.ro"
-firebase.cmd emulators:start --config .\firebase.json --only firestore,functions,auth --project superparty-frontend
+supabase.cmd emulators:start --config .\supabase.json --only database,functions,auth --project superparty-frontend
 ```
 
 **Terminal 2: Get Token + Test Endpoint**
@@ -139,9 +139,9 @@ cd "C:\Users\ursac\OneDrive\Desktop\Aplicatie-SuperpartyByAi"
 
 ## ✅ Verificări Finale
 
-- [x] `shortCodeGenerator.js` nu mai cere `admin.firestore()` la import
+- [x] `shortCodeGenerator.js` nu mai cere `admin.database()` la import
 - [x] `roleDetector.js` suportă cazurile de durată și `loadOverrides()` e sigur când DB nu e inițializat
-- [x] Mock-urile Jest pentru Firestore/transaction sunt consistente
+- [x] Mock-urile Jest pentru Database/transaction sunt consistente
 - [x] Scriptul PowerShell returnează token-ul pe stdout
 - [x] Toate modificările sunt commit-uite și push-uite
 - [x] `git status` curat (0 modified / 0 untracked relevante)

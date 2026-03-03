@@ -1,8 +1,8 @@
-# Firestore Indexes Required
+# Database Indexes Required
 
 ## Index pentru Recent-Sync (THREADS)
 
-Recent-sync folosește un query compus care necesită un index Firestore:
+Recent-sync folosește un query compus care necesită un index Database:
 
 ### Query-ul care necesită index:
 
@@ -31,7 +31,7 @@ db
 
 Când vezi eroarea în logs:
 ```
-FAILED_PRECONDITION: The query requires an index. You can create it here: https://console.firebase.google.com/...
+FAILED_PRECONDITION: The query requires an index. You can create it here: https://console.supabase.google.com/...
 ```
 
 1. Copiază link-ul complet din log
@@ -39,11 +39,11 @@ FAILED_PRECONDITION: The query requires an index. You can create it here: https:
 3. Click pe "Create Index"
 4. Așteaptă ca indexul să fie creat (poate dura câteva minute)
 
-#### Opțiunea 2: Manual în Firebase Console
+#### Opțiunea 2: Manual în Supabase Console
 
-1. Deschide [Firebase Console](https://console.firebase.google.com/)
+1. Deschide [Supabase Console](https://console.supabase.google.com/)
 2. Selectează proiectul `superparty-frontend`
-3. Mergi la **Firestore Database** → **Indexes**
+3. Mergi la **Database Database** → **Indexes**
 4. Click pe **Create Index**
 5. Completează:
    - **Collection ID**: `threads`
@@ -53,9 +53,9 @@ FAILED_PRECONDITION: The query requires an index. You can create it here: https:
      - `lastMessageAt` - Descending
 6. Click **Create**
 
-#### Opțiunea 3: Folosind firestore.indexes.json
+#### Opțiunea 3: Folosind database.indexes.json
 
-Creează sau actualizează `firestore.indexes.json` în root-ul proiectului:
+Creează sau actualizează `database.indexes.json` în root-ul proiectului:
 
 ```json
 {
@@ -84,7 +84,7 @@ Creează sau actualizează `firestore.indexes.json` în root-ul proiectului:
 
 Apoi deploy:
 ```bash
-firebase deploy --only firestore:indexes
+supabase deploy --only database:indexes
 ```
 
 ### Verificare

@@ -18,7 +18,7 @@ import { readFileSync, existsSync } from 'fs';
 import path from 'path';
 
 const require = createRequire(import.meta.url);
-const admin = require('firebase-admin');
+const admin = require('supabase-admin');
 
 function loadServiceAccount() {
   const cwd = process.cwd();
@@ -40,13 +40,13 @@ function loadServiceAccount() {
   };
   const gac = process.env.GOOGLE_APPLICATION_CREDENTIALS;
   if (gac) { const v = tryPath(gac); if (v) return { serviceAccount: v, source: 'GOOGLE_APPLICATION_CREDENTIALS' }; }
-  const fpath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH;
-  if (fpath) { const v = tryPath(fpath); if (v) return { serviceAccount: v, source: 'FIREBASE_SERVICE_ACCOUNT_PATH' }; }
-  const fjson = process.env.FIREBASE_SERVICE_ACCOUNT_JSON;
+  const fpath = process.env.SUPABASE_SERVICE_ACCOUNT_PATH;
+  if (fpath) { const v = tryPath(fpath); if (v) return { serviceAccount: v, source: 'SUPABASE_SERVICE_ACCOUNT_PATH' }; }
+  const fjson = process.env.SUPABASE_SERVICE_ACCOUNT_JSON;
   if (fjson) {
     const s = fjson.trim();
     const v = (s.startsWith('{') || s.startsWith('[')) ? tryJson(s) : tryPath(s);
-    if (v) return { serviceAccount: v, source: 'FIREBASE_SERVICE_ACCOUNT_JSON' };
+    if (v) return { serviceAccount: v, source: 'SUPABASE_SERVICE_ACCOUNT_JSON' };
   }
   for (const rel of ['functions/serviceAccountKey.json', 'whatsapp-backend/serviceAccountKey.json', 'serviceAccountKey.json']) {
     const v = tryPath(path.join(cwd, rel));
@@ -83,7 +83,7 @@ function parseArgs() {
   return out;
 }
 
-function isFirestoreTimestamp(v) {
+function isDatabaseTimestamp(v) {
   return v != null && typeof v.toMillis === 'function';
 }
 
@@ -115,7 +115,7 @@ async function getLatestMessageTimestamp(db, threadId) {
   }
   if (snap.empty) return { ts: null };
   const d = snap.docs[0].data();
-  const ts = isFirestoreTimestamp(d.tsClient) ? d.tsClient : (isFirestoreTimestamp(d.createdAt) ? d.createdAt : null);
+  const ts = isDatabaseTimestamp(d.tsClient) ? d.tsClient : (isDatabaseTimestamp(d.createdAt) ? d.createdAt : null);
   return { ts };
 }
 
@@ -146,13 +146,13 @@ async function run() {
       });
     }
   } catch (e) {
-    console.error('❌ Firebase Admin init failed:', e.message);
+    console.error('❌ Supabase Admin init failed:', e.message);
     console.error('');
     console.error('Use one of: GOOGLE_APPLICATION_CREDENTIALS / serviceAccountKey.json or gcloud ADC. See VERIFICATION_WHATSAPP_INBOX.md.');
     process.exit(1);
   }
 
-  const db = admin.firestore();
+  const db = admin.database();
   const stats = { scannedThreads: 0, wouldUpdate: 0, updated: 0, skipped: [] };
 
   console.log('🔄 Migrate threads: backfill lastMessageAt');
@@ -198,7 +198,7 @@ See VERIFICATION_WHATSAPP_INBOX.md for full details.
       const d = td.data();
       stats.scannedThreads += 1;
 
-      const hasValidLastMessageAt = isFirestoreTimestamp(d.lastMessageAt);
+      const hasValidLastMessageAt = isDatabaseTimestamp(d.lastMessageAt);
       const hasValidLastMessageAtMs = typeof d.lastMessageAtMs === 'number' && d.lastMessageAtMs > 0;
       if (hasValidLastMessageAt && hasValidLastMessageAtMs) {
         continue; // nothing to do

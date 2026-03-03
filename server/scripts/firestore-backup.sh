@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
-# SuperParty — Firestore Backup Script
-# Export Firestore zilnic în Cloud Storage bucket
+# SuperParty — Database Backup Script
+# Export Database zilnic în Cloud Storage bucket
 #
 # PREREQ:
 #   gcloud auth login
@@ -19,12 +19,12 @@
 #   }
 #
 # CRON (pe server sau Cloud Scheduler):
-#   0 2 * * * /opt/superparty/scripts/firestore-backup.sh >> /var/log/firestore-backup.log 2>&1
+#   0 2 * * * /opt/superparty/scripts/database-backup.sh >> /var/log/database-backup.log 2>&1
 #
 # SAU Cloud Scheduler (GCP Console):
-#   gcloud scheduler jobs create http firestore-daily-backup \
+#   gcloud scheduler jobs create http database-daily-backup \
 #     --schedule="0 2 * * *" \
-#     --uri="https://firestore.googleapis.com/v1/projects/superparty-frontend/databases/(default)/exportDocuments" \
+#     --uri="https://database.googleapis.com/v1/projects/superparty-frontend/databases/(default)/exportDocuments" \
 #     --http-method=POST \
 #     --message-body='{"outputUriPrefix":"gs://superparty-frontend-backups/'$(date +%Y-%m-%d)'"}' \
 #     --oauth-service-account-email=your-service-account@superparty-frontend.iam.gserviceaccount.com \
@@ -37,20 +37,20 @@ BUCKET="gs://${PROJECT}-backups"
 DATE=$(date +%Y-%m-%d_%H%M)
 EXPORT_PATH="${BUCKET}/${DATE}"
 
-echo "=== Firestore Backup ==="
+echo "=== Database Backup ==="
 echo "Project: ${PROJECT}"
 echo "Destination: ${EXPORT_PATH}"
 echo "Date: $(date)"
 echo ""
 
 # Run export
-gcloud firestore export "${EXPORT_PATH}" \
+gcloud database export "${EXPORT_PATH}" \
   --project="${PROJECT}" \
   --async
 
 echo ""
 echo "✅ Export started: ${EXPORT_PATH}"
-echo "Check status: gcloud firestore operations list --project=${PROJECT}"
+echo "Check status: gcloud database operations list --project=${PROJECT}"
 echo ""
 
 # Optional: Clean up old backups (if lifecycle rule not set)

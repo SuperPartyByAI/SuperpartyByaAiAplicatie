@@ -11,7 +11,7 @@
 
 **Possible Causes:**
 - Backend in PASSIVE mode (lock not acquired)
-- Account not found in memory or Firestore
+- Account not found in memory or Database
 - Error in `createConnection()` during QR regeneration
 - Exception thrown in regenerate QR endpoint
 
@@ -26,7 +26,7 @@
 **Possible Causes:**
 - Backend cleanup marking account as disconnected
 - Connection closes with "unknown" reason and account is removed
-- Firestore query filtering out disconnected accounts
+- Database query filtering out disconnected accounts
 
 ### 3. Connection Closes with "Unknown" Reason
 **Symptom:**
@@ -51,17 +51,17 @@ curl -sS https://whats-app-ompro.ro/health | jq '.lock, .waMode'
 - `lock.owner` should match current deployment
 - `waMode` should be "active" (not "passive")
 
-### Step 2: Check Account in Firestore
+### Step 2: Check Account in Database
 ```bash
 # List all accounts
-firebase firestore:get accounts --limit 10
+supabase database:get accounts --limit 10
 
 # Check specific account
-firebase firestore:get accounts/account_dev_dde908a65501c63b124cb94c627e551d
+supabase database:get accounts/account_dev_dde908a65501c63b124cb94c627e551d
 ```
 
 **Check for:**
-- Account exists in Firestore
+- Account exists in Database
 - Status field value
 - `lastDisconnectReason` field
 - `requiresQR` field
@@ -71,12 +71,12 @@ In legacy hosting dashboard, check logs for:
 - `PASSIVE mode` messages
 - `Regenerate QR error` messages
 - `Connection update: close` with reason details
-- `Marking old Firestore account as disconnected`
+- `Marking old Database account as disconnected`
 
 ### Step 4: Test Regenerate QR Endpoint Directly
 ```bash
-# Get auth token first (from Flutter app logs or Firebase)
-TOKEN="your-firebase-id-token"
+# Get auth token first (from Flutter app logs or Supabase)
+TOKEN="your-supabase-id-token"
 ACCOUNT_ID="account_dev_dde908a65501c63b124cb94c627e551d"
 
 curl -X POST \
@@ -136,9 +136,9 @@ Look for:
 - `Regenerate QR error` with stack traces
 - `Connection update: close` with full error details
 
-### 2. Verify Account in Firestore
+### 2. Verify Account in Database
 ```bash
-firebase firestore:get accounts/account_dev_dde908a65501c63b124cb94c627e551d
+supabase database:get accounts/account_dev_dde908a65501c63b124cb94c627e551d
 ```
 
 Check:
@@ -181,7 +181,7 @@ Check:
 // Only mark as disconnected if account is NOT in pairing phase
 const isPairing = ['qr_ready', 'awaiting_scan', 'pairing', 'connecting'].includes(data.status);
 if (existingPhone && existingPhone === normalizedPhone && doc.id !== accountId && !isPairing) {
-  console.log(`🗑️ [${doc.id}] Marking old Firestore account as disconnected`);
+  console.log(`🗑️ [${doc.id}] Marking old Database account as disconnected`);
   // ... mark as disconnected
 }
 ```
@@ -200,14 +200,14 @@ console.error(`🔌 [${accountId}] connection.update: close`, {
 
 1. **Run diagnostic commands** above to gather more information
 2. **Check legacy hosting logs** for detailed error messages
-3. **Verify Firestore** account state
+3. **Verify Database** account state
 4. **Test with fresh account** to isolate the issue
 5. **Apply fixes** based on findings
 
 ## Questions to Answer
 
 1. Is backend in PASSIVE mode? (Check health endpoint)
-2. Does account exist in Firestore after creation?
+2. Does account exist in Database after creation?
 3. What is the exact error in legacy hosting logs when regenerate QR fails?
 4. Why does connection close with "unknown" reason?
 5. Is account being incorrectly marked as "old" and disconnected?

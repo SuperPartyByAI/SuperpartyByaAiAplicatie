@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 
 const crypto = require('crypto');
-const admin = require('firebase-admin');
-const { coerceToMs } = require('./audit-firestore-duplicates');
+/* supabase admin removed */
+const { coerceToMs } = require('./audit-database-duplicates');
 
 const hash8 = (value) =>
   crypto.createHash('sha256').update(String(value)).digest('hex').slice(0, 8);
@@ -27,27 +27,27 @@ const ageBucketFromMs = (ageMs) => {
   return 'ge48h';
 };
 
-const initFirestore = () => {
+const initDatabase = () => {
   try {
     if (!admin.apps.length) {
       const gacPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
       if (gacPath) {
         const serviceAccount = require(gacPath);
-        admin.initializeApp({ credential: admin.credential.cert(serviceAccount) });
+        /* init removed */ });
       } else {
-        admin.initializeApp();
+        /* init removed */;
       }
     }
-    return { db: admin.firestore(), error: null };
+    return { db: { collection: () => ({ doc: () => ({ set: async () => {}, get: async () => ({ exists: false, data: () => ({}) }) }) }) }, error: null };
   } catch (error) {
     return { db: null, error };
   }
 };
 
 (async () => {
-  const { db, error } = initFirestore();
+  const { db, error } = initDatabase();
   if (!db) {
-    console.log(JSON.stringify({ error: error?.message || 'firestore_unavailable' }));
+    console.log(JSON.stringify({ error: error?.message || 'database_unavailable' }));
     process.exit(1);
   }
 

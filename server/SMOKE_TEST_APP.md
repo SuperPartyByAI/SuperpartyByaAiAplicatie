@@ -18,7 +18,7 @@ Verificare end-to-end a funcționalității de messaging în aplicație:
 ## Pre-requisites
 
 1. ✅ Backend legacy hosting deploiat: https://whats-app-ompro.ro
-2. ✅ Frontend Firebase deploiat: https://superparty-frontend.web.app
+2. ✅ Frontend Supabase deploiat: https://superparty-frontend.web.app
 3. ✅ Cont WhatsApp conectat (status: connected)
 4. ✅ Telefon secundar pentru trimitere mesaje test
 
@@ -218,11 +218,11 @@ Verificare end-to-end a funcționalității de messaging în aplicație:
 
 ---
 
-### 11. Verificare Firestore Data
+### 11. Verificare Database Data
 
 **Pași:**
 
-1. Deschide Firebase Console → Firestore
+1. Deschide Supabase Console → Database
 2. Verifică colecțiile:
    - `threads` - conversații
    - `threads/{threadId}/messages` - mesaje
@@ -257,7 +257,7 @@ Verificare end-to-end a funcționalității de messaging în aplicație:
     "connecting": 0,
     "disconnected": 0
   },
-  "firestore": {
+  "database": {
     "status": "connected"
   }
 }
@@ -297,7 +297,7 @@ Pentru a marca Issue #6 ca DONE, postează în issue:
    - Trimitere mesaj outbound cu status update
    - Restart backend + continuare funcționare
 
-3. **Firestore proof:**
+3. **Database proof:**
    - Screenshot threads collection
    - Screenshot messages subcollection
    - Screenshot outbox cu status "sent"
@@ -308,7 +308,7 @@ Pentru a marca Issue #6 ca DONE, postează în issue:
 
 ## Notes
 
-- **Real-time**: Folosește Firestore `onSnapshot` (nu polling)
+- **Real-time**: Folosește Database `onSnapshot` (nu polling)
 - **Outbox**: Worker procesează la 5 secunde
 - **Idempotent**: `requestId` previne duplicate
 - **Status tracking**: queued → sending → sent/failed
@@ -318,19 +318,19 @@ Pentru a marca Issue #6 ca DONE, postează în issue:
 
 **Mesajele nu apar real-time:**
 
-- Verifică Firestore security rules (allow read pentru authenticated users)
+- Verifică Database security rules (allow read pentru authenticated users)
 - Check console pentru erori onSnapshot
 - Verifică că threads au `lastMessageAt` timestamp
 
 **Outbox nu procesează:**
 
 - Verifică backend logs pentru "Outbox worker"
-- Check Firestore outbox collection pentru status "queued"
+- Check Database outbox collection pentru status "queued"
 - Verifică că accountId există și este connected
 
 **QR nu se afișează:**
 
-- Verifică că account.qrCode există în Firestore
+- Verifică că account.qrCode există în Database
 - Check că status este "qr_ready" sau "needs_qr"
 - Refresh pagina după 3 secunde (polling interval)
 

@@ -1,4 +1,4 @@
-# Test protected Firebase Functions endpoint with Auth Emulator token
+# Test protected Supabase Functions endpoint with Auth Emulator token
 # Usage: .\scripts\test-protected-endpoint.ps1 [endpoint_path]
 
 param(

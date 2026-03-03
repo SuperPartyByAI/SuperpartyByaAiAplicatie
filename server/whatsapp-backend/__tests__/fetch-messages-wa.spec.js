@@ -29,7 +29,7 @@ describe('fetchMessagesFromWA', () => {
     ).rejects.toThrow('sock.fetchMessageHistory is not a function');
   });
 
-  test('returns [] when opts.db or opts.accountId missing (no Firestore lookup)', async () => {
+  test('returns [] when opts.db or opts.accountId missing (no Database lookup)', async () => {
     const sock = {
       fetchMessageHistory: jest.fn(),
       ev: { on: jest.fn(), off: jest.fn() },

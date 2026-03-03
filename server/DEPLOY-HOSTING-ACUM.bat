@@ -1,12 +1,12 @@
 @echo off
 echo ========================================
-echo Deploy Aplicatie pe Firebase Hosting
+echo Deploy Aplicatie pe Supabase Hosting
 echo ========================================
 echo.
 
 REM Verifica daca suntem in directorul corect
-if not exist firebase.json (
-    echo EROARE: firebase.json nu exista!
+if not exist supabase.json (
+    echo EROARE: supabase.json nu exista!
     echo Ruleaza din: C:\Users\ursac\Aplicatie-SuperpartyByAi\
     echo.
     pause
@@ -33,9 +33,9 @@ echo.
 
 cd ..\..
 
-echo [3/3] Deploy pe Firebase Hosting...
+echo [3/3] Deploy pe Supabase Hosting...
 echo.
-firebase deploy --only hosting
+supabase deploy --only hosting
 
 if %ERRORLEVEL% EQU 0 (
     echo.

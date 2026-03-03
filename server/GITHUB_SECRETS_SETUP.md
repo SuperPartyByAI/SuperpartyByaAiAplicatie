@@ -43,21 +43,21 @@ SuperParty2024!
 
 ---
 
-#### Secret 3: `FIREBASE_SERVICE_ACCOUNT`
+#### Secret 3: `SUPABASE_SERVICE_ACCOUNT`
 
-**Nume:** `FIREBASE_SERVICE_ACCOUNT`
+**Nume:** `SUPABASE_SERVICE_ACCOUNT`
 
-**Valoare:** (copiază din fișierul `/tmp/firebase_service_account.json`)
+**Valoare:** (copiază din fișierul `/tmp/supabase_service_account.json`)
 
 ```bash
 # Pentru a vedea valoarea:
-cat /tmp/firebase_service_account.json
+cat /tmp/supabase_service_account.json
 ```
 
 Sau folosește această comandă pentru a copia în clipboard:
 
 ```bash
-cat /tmp/firebase_service_account.json | xclip -selection clipboard
+cat /tmp/supabase_service_account.json | xclip -selection clipboard
 ```
 
 ---
@@ -68,7 +68,7 @@ După ce ai adăugat toate cele 3 secrete, verifică că sunt listate în pagina
 
 - ✅ KEYSTORE_BASE64
 - ✅ KEYSTORE_PASSWORD
-- ✅ FIREBASE_SERVICE_ACCOUNT
+- ✅ SUPABASE_SERVICE_ACCOUNT
 
 ## 4. Trigger GitHub Action
 
@@ -94,19 +94,19 @@ Build-ul va:
 3. ✅ Decode keystore din KEYSTORE_BASE64
 4. ✅ Create key.properties cu credențialele
 5. ✅ Build APK semnat
-6. ✅ Upload APK în Firebase Storage la `apk/superparty-signed.apk`
+6. ✅ Upload APK în Supabase Storage la `apk/superparty-signed.apk`
 
 ## 6. Verificare Finală
 
 După ce build-ul se termină cu succes:
 
-1. **Verifică APK în Firebase Storage:**
-   - URL: `https://firebasestorage.googleapis.com/v0/b/superparty-ai.appspot.com/o/apk%2Fsuperparty-signed.apk?alt=media`
+1. **Verifică APK în Supabase Storage:**
+   - URL: `https://supabasestorage.googleapis.com/v0/b/superparty-ai.appspot.com/o/apk%2Fsuperparty-signed.apk?alt=media`
 
-2. **Actualizează Firestore:**
+2. **Actualizează Database:**
 
    ```bash
-   # Rulează scriptul de actualizare (sau manual în Firebase Console)
+   # Rulează scriptul de actualizare (sau manual în Supabase Console)
    node scripts/update-apk-url.js
    ```
 
@@ -131,13 +131,13 @@ Dacă întâmpini probleme:
 # 1. Copiază valorile secretelor
 cat /tmp/keystore_base64.txt          # Pentru KEYSTORE_BASE64
 echo "SuperParty2024!"                # Pentru KEYSTORE_PASSWORD
-cat /tmp/firebase_service_account.json # Pentru FIREBASE_SERVICE_ACCOUNT
+cat /tmp/supabase_service_account.json # Pentru SUPABASE_SERVICE_ACCOUNT
 
 # 2. Adaugă-le manual în GitHub la:
 # https://github.com/SuperPartyByAI/Aplicatie-SuperpartyByAi/settings/secrets/actions
 
 # 3. Trigger build manual sau așteaptă următorul push
 
-# 4. După build, actualizează Firestore:
+# 4. După build, actualizează Database:
 node scripts/update-apk-url.js
 ```

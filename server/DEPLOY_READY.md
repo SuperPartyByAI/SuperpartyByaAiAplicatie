@@ -28,26 +28,26 @@
 
 ## 🎯 Pași Următori (În Ordine)
 
-### 1️⃣ Deploy Firebase Functions
+### 1️⃣ Deploy Supabase Functions
 
 **Opțiune A - Login Interactiv (Recomandat pentru prima dată)**
 ```bash
 cd functions
-firebase login
-firebase deploy --only functions
+supabase login
+supabase deploy --only functions
 ```
 
 **Opțiune B - CI Token (Pentru automatizare)**
 ```bash
 # Generează token (o singură dată)
-firebase login:ci
+supabase login:ci
 
 # Salvează token-ul și folosește-l
-firebase deploy --only functions --token "YOUR_TOKEN_HERE"
+supabase deploy --only functions --token "YOUR_TOKEN_HERE"
 ```
 
 **Verificare:**
-- Accesează: https://console.firebase.google.com/project/superparty-frontend/functions
+- Accesează: https://console.supabase.google.com/project/superparty-frontend/functions
 - Verifică că toate cele 8 funcții sunt deployed și active
 
 ---
@@ -125,14 +125,14 @@ Versiune: 1.2.0 (Build 14)
 
 ## 📋 Checklist Pre-Deploy
 
-### Firebase Functions
-- [ ] Firebase CLI instalat (`npm install -g firebase-tools`)
-- [ ] Autentificat cu Firebase (`firebase login`)
+### Supabase Functions
+- [ ] Supabase CLI instalat (`npm install -g supabase-tools`)
+- [ ] Autentificat cu Supabase (`supabase login`)
 - [ ] Toate funcțiile AI create în `functions/`
 - [ ] `index.js` actualizat cu export-uri
-- [ ] Secrets configurate în Firebase (GROQ_API_KEY)
+- [ ] Secrets configurate în Supabase (GROQ_API_KEY)
 - [ ] Deploy executat cu succes
-- [ ] Funcțiile verificate în Firebase Console
+- [ ] Funcțiile verificate în Supabase Console
 
 ### Flutter AAB
 - [ ] Flutter SDK instalat și în PATH
@@ -155,7 +155,7 @@ Versiune: 1.2.0 (Build 14)
 
 ## 🔍 Verificări Post-Deploy
 
-### Firebase Functions
+### Supabase Functions
 ```bash
 # Test funcție
 curl -X POST https://us-central1-superparty-frontend.cloudfunctions.net/getChatAI \
@@ -163,36 +163,36 @@ curl -X POST https://us-central1-superparty-frontend.cloudfunctions.net/getChatA
   -d '{"data":{"message":"test"}}'
 
 # Verifică logs
-firebase functions:log --only getChatAI
+supabase functions:log --only getChatAI
 ```
 
 ### Play Store
 - Verifică status review în Play Console
-- Monitorizează crash reports în Firebase Crashlytics
-- Verifică analytics în Firebase Analytics
+- Monitorizează crash reports în Supabase Crashlytics
+- Verifică analytics în Supabase Analytics
 - Răspunde la review-uri utilizatori
 
 ---
 
 ## 🆘 Troubleshooting
 
-### Firebase Deploy Errors
+### Supabase Deploy Errors
 
 **Error: Failed to authenticate**
 ```bash
-firebase logout
-firebase login --reauth
+supabase logout
+supabase login --reauth
 ```
 
 **Error: Permission denied**
-- Verifică că ai rol de Editor/Owner în Firebase project
-- Verifică în Firebase Console → Project Settings → Users and permissions
+- Verifică că ai rol de Editor/Owner în Supabase project
+- Verifică în Supabase Console → Project Settings → Users and permissions
 
 **Error: Function deployment timeout**
 ```bash
 # Deploy funcții individual
-firebase deploy --only functions:noteazaEventeAutomat
-firebase deploy --only functions:getEventeAI
+supabase deploy --only functions:noteazaEventeAutomat
+supabase deploy --only functions:getEventeAI
 # etc.
 ```
 
@@ -251,10 +251,10 @@ EOF
 
 ## 📊 Monitoring Post-Launch
 
-### Firebase Console
-- **Functions**: https://console.firebase.google.com/project/superparty-frontend/functions
-- **Crashlytics**: https://console.firebase.google.com/project/superparty-frontend/crashlytics
-- **Analytics**: https://console.firebase.google.com/project/superparty-frontend/analytics
+### Supabase Console
+- **Functions**: https://console.supabase.google.com/project/superparty-frontend/functions
+- **Crashlytics**: https://console.supabase.google.com/project/superparty-frontend/crashlytics
+- **Analytics**: https://console.supabase.google.com/project/superparty-frontend/analytics
 
 ### Play Console
 - **Release Dashboard**: https://play.google.com/console/u/0/developers/[YOUR_DEV_ID]/app/[APP_ID]/tracks/production
@@ -280,8 +280,8 @@ EOF
 
 ### Logs & Debugging
 ```bash
-# Firebase Functions logs
-firebase functions:log
+# Supabase Functions logs
+supabase functions:log
 
 # Flutter logs (device connected)
 flutter logs
@@ -296,7 +296,7 @@ adb logcat | grep SuperParty
 
 Deploy-ul este considerat reușit când:
 
-1. ✅ Toate cele 8 funcții AI sunt active în Firebase
+1. ✅ Toate cele 8 funcții AI sunt active în Supabase
 2. ✅ AAB-ul este uploaded pe Play Store
 3. ✅ Release-ul este în review sau live
 4. ✅ Nu există crash-uri critice în primele 24h

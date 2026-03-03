@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Script pentru a obține Firebase ID token și a-l folosi pentru request-uri API
+# Script pentru a obține Supabase ID token și a-l folosi pentru request-uri API
 # Usage: ./scripts/get-and-use-token.sh <email> [command] [args...]
 
 EMAIL="$1"
@@ -19,9 +19,9 @@ if [ -z "$EMAIL" ]; then
 fi
 
 # Setează API key-ul
-export FIREBASE_API_KEY="AIzaSyDcMXO6XdFZE_tVnJ1M4Wrt8Aw7Yh1o0K0"
+export SUPABASE_API_KEY="AIzaSyDcMXO6XdFZE_tVnJ1M4Wrt8Aw7Yh1o0K0"
 
-echo "🔑 Obținere Firebase ID Token pentru: $EMAIL"
+echo "🔑 Obținere Supabase ID Token pentru: $EMAIL"
 echo ""
 
 # Obține token-ul

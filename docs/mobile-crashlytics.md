@@ -42,7 +42,7 @@ flutter build appbundle --release \
 ### ProGuard / R8 mapping upload
 
 Crashlytics Gradle plugin uploadează automat `mapping.txt` la build time.
-Verificare: Firebase Console → Crashlytics → breadcrumb „Upload mapping file".
+Verificare: Supabase Console → Crashlytics → breadcrumb „Upload mapping file".
 
 ### Native symbols (NDK crashes)
 
@@ -50,7 +50,7 @@ Dacă ai native crashes:
 
 ```bash
 # Upload NDK symbols manual
-firebase crashlytics:symbols:upload --app=1:YOUR_APP_ID:android:YOUR_HASH \
+supabase crashlytics:symbols:upload --app=1:YOUR_APP_ID:android:YOUR_HASH \
   build/app/intermediates/merged_native_libs/release/out/lib/
 ```
 
@@ -71,7 +71,7 @@ Xcode uploadează automat dSYMs dacă ai configurat run script phase:
 2. Script:
 
 ```bash
-"${PODS_ROOT}/FirebaseCrashlytics/run"
+"${PODS_ROOT}/SupabaseCrashlytics/run"
 ```
 
 3. Input Files:
@@ -84,7 +84,7 @@ ${DWARF_DSYM_FOLDER_PATH}/${DWARF_DSYM_FILE_NAME}/Contents/Resources/DWARF/${TAR
 ### Upload manual dSYM
 
 ```bash
-firebase crashlytics:symbols:upload --app=1:YOUR_APP_ID:ios:YOUR_HASH \
+supabase crashlytics:symbols:upload --app=1:YOUR_APP_ID:ios:YOUR_HASH \
   build/ios/archive/Runner.xcarchive/dSYMs/
 ```
 
@@ -97,9 +97,9 @@ firebase crashlytics:symbols:upload --app=1:YOUR_APP_ID:ios:YOUR_HASH \
 throw Exception("Test Crash from SuperParty");
 ```
 
-### Verificare în Firebase Console
+### Verificare în Supabase Console
 
-1. Firebase Console → Crashlytics
+1. Supabase Console → Crashlytics
 2. Ar trebui să apară crash-ul în ~5 minute
 3. Click pe crash → verifică:
    - `userId` ✅
@@ -115,7 +115,7 @@ throw Exception("Test Crash from SuperParty");
 1. User face un request → backend generează `X-Request-Id: abc123`
 2. Flutter interceptor (în `backend_service.dart`) citește header-ul
 3. Setează ca Crashlytics custom key: `lastRequestId = abc123`
-4. Dacă app-ul crashează → în Firebase Console vezi `lastRequestId = abc123`
+4. Dacă app-ul crashează → în Supabase Console vezi `lastRequestId = abc123`
 5. Caută `abc123` în Grafana Loki: `{service="superparty-backend"} |= "abc123"`
 6. Găsești log-ul exact cu path, status, latency, și mai mult context
 

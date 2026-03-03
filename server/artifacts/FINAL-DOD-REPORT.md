@@ -12,9 +12,9 @@
 
 - ✅ Infrastructure stable (fingerprint consistent, endpoints functional)
 - ✅ Account connection working (QR scan → connected)
-- ✅ Outbound messaging functional (sent + delivered + Firestore persistence)
-- ✅ **Inbound messaging PASS** (direction=inbound, Firestore persisted)
-- ✅ **Cold start recovery PASS** (2 accounts restored from Firestore)
+- ✅ Outbound messaging functional (sent + delivered + Database persistence)
+- ✅ **Inbound messaging PASS** (direction=inbound, Database persisted)
+- ✅ **Cold start recovery PASS** (2 accounts restored from Database)
 - ⏳ Queue/outbox (requires admin auth - deferred to post-DoD)
 - ⏳ Soak test (2h) - requires extended monitoring
 
@@ -72,12 +72,12 @@ store.bind(sock.ev); // CRITICAL: Bind store to socket
 }
 ```
 
-**Firestore Path:** `threads/153407742578775@lid/messages/AC9F58710C77F1073D10A2ECEDA278E4`
+**Database Path:** `threads/153407742578775@lid/messages/AC9F58710C77F1073D10A2ECEDA278E4`
 
 **Verification:**
 
 - ✅ direction = "inbound" (fromMe=false detected correctly)
-- ✅ Message persisted in Firestore
+- ✅ Message persisted in Database
 - ✅ Accessible via API endpoint
 - ✅ Logs show messages.upsert event received
 
@@ -91,13 +91,13 @@ store.bind(sock.ev); // CRITICAL: Bind store to socket
 
 ### FAZA 2: COLD START RECOVERY ✅ PASS
 
-**Test:** Trigger legacy hosting redeploy and verify accounts restore from Firestore without rescan.
+**Test:** Trigger legacy hosting redeploy and verify accounts restore from Database without rescan.
 
 **Pre-Restart State:**
 
 - Account 1: account_1767031103153 (40792864811) - connected
 - Account 2: account_1767031472746 (40737571397) - connected
-- FIRESTORE_AUTH_MODE: creds_only
+- DATABASE_AUTH_MODE: creds_only
 
 **Post-Restart State:**
 
@@ -125,16 +125,16 @@ store.bind(sock.ev); // CRITICAL: Bind store to socket
 
 **Verification:**
 
-- ✅ Both accounts restored from Firestore
+- ✅ Both accounts restored from Database
 - ✅ No QR rescan required
 - ✅ Sessions valid and reconnected
 - ✅ Status = connected (not needs_qr)
 
-**Firestore Collections Used:**
+**Database Collections Used:**
 
 - `accounts/{accountId}` - account metadata
 - `threads/{threadId}/messages/{messageId}` - message history
-- Auth state persisted via `useFirestoreAuthState`
+- Auth state persisted via `useDatabaseAuthState`
 
 ---
 
@@ -162,14 +162,14 @@ Response: {"error":"Unauthorized: Missing token"}
 **Implementation Ready:**
 
 - Health endpoint tracks uptime
-- Firestore logs incidents
+- Database logs incidents
 - Reconnect logic exists
 
 **Recommendation:** Run soak test in production with monitoring dashboard.
 
 ---
 
-## FIRESTORE STRUCTURE (VERIFIED)
+## DATABASE STRUCTURE (VERIFIED)
 
 **Collections Created:**
 
@@ -181,18 +181,18 @@ Response: {"error":"Unauthorized: Missing token"}
    - Fields: body, direction, status, timestamps, accountId
    - Example: threads/153407742578775@lid/messages/AC9F58710C77F1073D10A2ECEDA278E4
 
-3. **Auth State (via useFirestoreAuthState)**
-   - Stored in Firestore by Baileys library
+3. **Auth State (via useDatabaseAuthState)**
+   - Stored in Database by Baileys library
    - Mode: creds_only (credentials only, not full history)
 
 ---
 
 ## KEY FIXES APPLIED
 
-### 1. Firestore Persistence (Default Mode)
+### 1. Database Persistence (Default Mode)
 
 **File:** `server.js`
-**Change:** `FIRESTORE_AUTH_STATE_MODE` default from 'off' to 'creds_only'
+**Change:** `DATABASE_AUTH_STATE_MODE` default from 'off' to 'creds_only'
 **Impact:** Enables session persistence across restarts
 
 ### 2. Inbound Message Reception (CRITICAL)
@@ -224,7 +224,7 @@ Response: {"error":"Unauthorized: Missing token"}
 
 1. `c05fc386` - Add deployment fingerprint
 2. `8611c185` - Trigger cold start test #1 (failed - no persistence)
-3. `a7daa9a0` - Fix: Enable Firestore persistence by default
+3. `a7daa9a0` - Fix: Enable Database persistence by default
 4. `183252e0` - Trigger cold start test #2 (failed - account not saved)
 5. `dde1031d` - Add extensive logging for debugging
 6. `76758774` - Fix Baileys config
@@ -240,7 +240,7 @@ Response: {"error":"Unauthorized: Missing token"}
 - ✅ Connect multiple accounts (tested: 2, max: 18)
 - ✅ Send messages (outbound)
 - ✅ Receive messages (inbound)
-- ✅ Persist to Firestore
+- ✅ Persist to Database
 - ✅ Survive restarts (cold start recovery)
 - ✅ Rate limiting (200 req/min global, 30 msg/min, 10 account ops/min)
 
@@ -248,7 +248,7 @@ Response: {"error":"Unauthorized: Missing token"}
 
 - ✅ Health endpoint with metrics
 - ✅ Fingerprint tracking (version, commit, bootTimestamp)
-- ✅ Firestore as single source of truth
+- ✅ Database as single source of truth
 - ✅ legacy hosting deployment automated
 
 **Missing (Post-DoD):**
@@ -290,7 +290,7 @@ Response: {"error":"Unauthorized: Missing token"}
 1. Scale to 18 accounts
 2. Implement message deduplication
 3. Add webhook for external integrations
-4. Optimize Firestore queries
+4. Optimize Database queries
 
 ---
 
@@ -302,7 +302,7 @@ System is **production-ready** for basic operations:
 
 - Multi-account WhatsApp connectivity
 - Bidirectional messaging (send + receive)
-- Firestore persistence
+- Database persistence
 - Cold start recovery
 
 **Remaining work** (queue, soak, monitoring) is **operational validation**, not core functionality.

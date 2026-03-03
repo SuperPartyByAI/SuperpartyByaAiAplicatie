@@ -5,7 +5,7 @@
 
 set -e
 
-echo "🚀 FIREBASE DEPLOY - V3 Complete Implementation"
+echo "🚀 SUPABASE DEPLOY - V3 Complete Implementation"
 echo "═══════════════════════════════════════════════════════════"
 echo ""
 
@@ -24,16 +24,16 @@ echo ""
 # Set project
 PROJECT_ID="superparty-frontend"
 echo "📋 Project: $PROJECT_ID"
-firebase use $PROJECT_ID --token "$(gcloud auth application-default print-access-token 2>/dev/null || echo '')"
+supabase use $PROJECT_ID --token "$(gcloud auth application-default print-access-token 2>/dev/null || echo '')"
 
 echo ""
 echo "─────────────────────────────────────────────────────────────"
-echo "📜 STEP 1: Deploy Firestore Rules"
+echo "📜 STEP 1: Deploy Database Rules"
 echo "─────────────────────────────────────────────────────────────"
 echo ""
 
-firebase deploy --only firestore:rules --project $PROJECT_ID --non-interactive || {
-    echo "⚠️  Firestore rules deploy failed, continuing..."
+supabase deploy --only database:rules --project $PROJECT_ID --non-interactive || {
+    echo "⚠️  Database rules deploy failed, continuing..."
 }
 
 echo ""
@@ -46,13 +46,13 @@ cd functions
 npm install --production
 
 cd ..
-firebase deploy --only functions --project $PROJECT_ID --non-interactive || {
+supabase deploy --only functions --project $PROJECT_ID --non-interactive || {
     echo "⚠️  Functions deploy failed"
     echo ""
     echo "Manual deploy required:"
-    echo "  1. Install Firebase CLI: npm install -g firebase-tools"
-    echo "  2. Login: firebase login"
-    echo "  3. Deploy: firebase deploy --only functions"
+    echo "  1. Install Supabase CLI: npm install -g supabase-tools"
+    echo "  2. Login: supabase login"
+    echo "  3. Deploy: supabase deploy --only functions"
     exit 1
 }
 
@@ -63,11 +63,11 @@ echo "════════════════════════�
 echo ""
 echo "Next steps:"
 echo "  1. Set GROQ_API_KEY secret:"
-echo "     firebase functions:secrets:set GROQ_API_KEY"
+echo "     supabase functions:secrets:set GROQ_API_KEY"
 echo ""
 echo "  2. Verify deployment:"
-echo "     firebase functions:list"
+echo "     supabase functions:list"
 echo ""
 echo "  3. Check logs:"
-echo "     firebase functions:log"
+echo "     supabase functions:log"
 echo ""

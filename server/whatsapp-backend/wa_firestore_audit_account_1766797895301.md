@@ -1,4 +1,4 @@
-# WhatsApp Firestore Audit (account_1766797895301)
+# WhatsApp Database Audit (account_1766797895301)
 
 - projectId: unknown
 - generatedAt: 2026-01-23T17:33:02.969Z

@@ -23,10 +23,10 @@ sock.ev.on('connection.update', async update => {
     // Status changes to 'connected'
     account.status = 'connected';
 
-    // Firestore updated
+    // Database updated
     await accountRef.update({
       status: 'connected',
-      connectedAt: admin.firestore.FieldValue.serverTimestamp(),
+      connectedAt: admin.database.FieldValue.serverTimestamp(),
     });
   }
 });
@@ -47,8 +47,8 @@ sock.ev.on('connection.update', async update => {
 
 ### 3. Session Persistence
 
-- Session saved to Firestore automatically
-- On restart, session restored from Firestore
+- Session saved to Database automatically
+- On restart, session restored from Database
 - No QR scan needed on subsequent restarts
 
 ## Verification Commands
@@ -125,18 +125,18 @@ curl -s "https://whats-app-ompro.ro/api/whatsapp/qr/account_dev_dde908a65501c63b
 
 - [x] Health shows `needs_qr: 2`
 - [x] QR codes generated for both accounts
-- [x] Firestore status: `connecting`
+- [x] Database status: `connecting`
 
 ### After Scan (Manual Step Required)
 
 - [ ] Health shows `connected: 1`
 - [ ] Message sending works
-- [ ] Firestore status: `connected`
+- [ ] Database status: `connected`
 
 ### After Restart #1
 
 - [ ] Health shows `connected: 1` (no QR needed)
-- [ ] Session restored from Firestore
+- [ ] Session restored from Database
 - [ ] Message sending still works
 
 ### After Restart #2

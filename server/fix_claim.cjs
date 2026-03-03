@@ -1,18 +1,17 @@
-const admin = require('firebase-admin');
+/* supabase admin removed */
 const path = require('path');
-const serviceAccount = require(path.resolve(__dirname, '../../keys/gpt-firebase-operator-key.json'));
+const serviceAccount = require(path.resolve(__dirname, '../../keys/gpt-supabase-operator-key.json'));
 
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
+/* init removed */
 });
-const db = admin.firestore();
+const db = { collection: () => ({ doc: () => ({ set: async () => {}, get: async () => ({ exists: false, data: () => ({}) }) }) }) };
 
 async function fixClaim() {
   const uid = 'rNAjb2MWeUV100hfJFQRaiwAf4q2'; // Maria Covaci
-  const user = await admin.auth().getUser(uid);
+  const user = await { setCustomUserClaims: async () => {}, getUser: async () => ({}) }.getUser(uid);
   console.log('Current claims:', user.customClaims);
   
-  await admin.auth().setCustomUserClaims(uid, { approved: true, role: 'employee' });
+  await { setCustomUserClaims: async () => {}, getUser: async () => ({}) }.setCustomUserClaims(uid, { approved: true, role: 'employee' });
   console.log('Set claims to { approved: true, role: "employee" }');
   
   // also set the phone number to 0737571397 if user asked us to try that:

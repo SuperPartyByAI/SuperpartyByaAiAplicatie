@@ -1,8 +1,8 @@
-const { db } = require('../firebase');
+const { db } = require('../supabase');
 
 const requireApprovedEmployee = async (req, res, next) => {
   try {
-    const user = req.user; // Set by requireFirebaseAuth
+    const user = req.user; // Set by requireSupabaseAuth
 
     if (!user) {
       return res.status(401).json({ error: 'Unauthorized' });
@@ -13,7 +13,7 @@ const requireApprovedEmployee = async (req, res, next) => {
       return next();
     }
 
-    // 2. Check Firestore (Fallback/Source of Truth)
+    // 2. Check Database (Fallback/Source of Truth)
     const employeeDoc = await db.collection('employees').doc(user.uid).get();
 
     if (!employeeDoc.exists) {

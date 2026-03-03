@@ -85,7 +85,7 @@ cat > "$SESSION_FILE" <<EOF
 - package.json: $(blob_link "package.json")
 - main.jsx: $(blob_link "kyc-app/kyc-app/src/main.jsx")
 - App.jsx (router): $(blob_link "kyc-app/kyc-app/src/App.jsx")
-- firebase.js: $(blob_link "kyc-app/kyc-app/src/firebase.js")
+- supabase.js: $(blob_link "kyc-app/kyc-app/src/supabase.js")
 - EvenimenteScreen.jsx: $(blob_link "kyc-app/kyc-app/src/screens/EvenimenteScreen.jsx")
 - coqui/app.py: $(blob_link "coqui/app.py")
 

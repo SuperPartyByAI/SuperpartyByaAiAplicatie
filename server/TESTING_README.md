@@ -164,9 +164,9 @@ npm install
 
 ### Vreau să testez cu date reale
 
-**Opțiune 1:** Folosește Firebase Emulator
+**Opțiune 1:** Folosește Supabase Emulator
 ```bash
-firebase emulators:start
+supabase emulators:start
 ```
 
 **Opțiune 2:** Testează direct în app
@@ -213,7 +213,7 @@ TEST3_RESULT=$?
 
 - **TEST_RESULTS.md** - Rezultate detaliate cu analiză
 - **FLOW_TEST_COMPLETE.md** - Raport complet end-to-end
-- **FIRESTORE_STRUCTURE.md** - Structura bazei de date
+- **DATABASE_STRUCTURE.md** - Structura bazei de date
 - **TESTING.md** - Ghid de testare manuală
 
 ## 🚀 CI/CD Integration

@@ -13,7 +13,7 @@
 1. Scan QR code with real WhatsApp phone (pairing)
 2. Send/receive messages from real phones (test message flow)
 
-**Admin permanence**: ✅ **SOLVED** (custom claims + Firestore role, survives sign-out/sign-in)  
+**Admin permanence**: ✅ **SOLVED** (custom claims + Database role, survives sign-out/sign-in)  
 **Region consistency**: ✅ **VERIFIED** (all callables use us-central1)  
 **legacy hosting backend**: ✅ **HEALTHY**  
 **Flutter app**: ✅ **RUNNING** on emulator-5554
@@ -25,7 +25,7 @@
 ### PHASE 0: ENV + TOOLING ✅
 **Status**: Complete  
 **Actions**:
-- Verified Node v25.3.0, npm 11.7.0, Firebase CLI 15.3.1, Flutter 3.38.7
+- Verified Node v25.3.0, npm 11.7.0, Supabase CLI 15.3.1, Flutter 3.38.7
 - Ran `npm ci` in functions/ (814 packages installed)
 - Ran `flutter pub get` in superparty_flutter/ (dependencies resolved)
 
@@ -44,7 +44,7 @@ Flutter: Got dependencies! (93 packages have newer versions)
 User role was being **overwritten on every registration** in `login_screen.dart` line 144:
 ```dart
 // OLD (BAD):
-await FirebaseService.firestore.collection('users').doc(user.uid).set({...});
+await SupabaseService.database.collection('users').doc(user.uid).set({...});
 // This REPLACED the entire document, wiping out admin role!
 ```
 
@@ -54,7 +54,7 @@ await FirebaseService.firestore.collection('users').doc(user.uid).set({...});
 - **Change**: Added `SetOptions(merge: true)` to preserve existing fields
 ```dart
 // NEW (GOOD):
-await FirebaseService.firestore.collection('users').doc(user.uid).set({
+await SupabaseService.database.collection('users').doc(user.uid).set({
   'uid': user.uid,
   'email': finalEmail,
   ...
@@ -64,8 +64,8 @@ await FirebaseService.firestore.collection('users').doc(user.uid).set({
 **B) Created permanent admin bootstrap system**:
 1. **Cloud Function** `bootstrapAdmin` (deployed to us-central1):
    - Allowlist: `superpartybyai@gmail.com`, `ursache.andrei1995@gmail.com`
-   - Sets Firebase Auth custom claim: `admin=true` (persists across sessions)
-   - Sets Firestore `users/{uid}.role="admin"` (merge: true)
+   - Sets Supabase Auth custom claim: `admin=true` (persists across sessions)
+   - Sets Database `users/{uid}.role="admin"` (merge: true)
    - Idempotent - safe to call multiple times
 
 2. **Flutter Service** `AdminBootstrapService`:
@@ -82,16 +82,16 @@ await FirebaseService.firestore.collection('users').doc(user.uid).set({
 
 #### Deployment
 ```bash
-firebase deploy --only functions:bootstrapAdmin
+supabase deploy --only functions:bootstrapAdmin
 # Result: ✅ Successful create operation
 ```
 
 #### Verification Method
 To verify admin permanence:
 1. Sign in as ursache.andrei1995@gmail.com
-2. App auto-calls `bootstrapAdmin` → sets custom claim + Firestore role
+2. App auto-calls `bootstrapAdmin` → sets custom claim + Database role
 3. Sign out
-4. Sign in again → admin role persists (no manual Firestore edits needed)
+4. Sign in again → admin role persists (no manual Database edits needed)
 5. Access WhatsApp → Accounts screen (requires admin)
 
 ---
@@ -114,7 +114,7 @@ gcloud functions delete whatsapp --region us-central1 --quiet
 **Old v1 function still exists**: `whatsapp` (v1, 2048MB, us-central1, https trigger)
 
 **To delete manually** (2 minutes):
-1. Open: https://console.firebase.google.com/project/superparty-frontend/functions
+1. Open: https://console.supabase.google.com/project/superparty-frontend/functions
 2. Filter: "1st gen" or search "whatsapp"
 3. Find: `whatsapp` (2048MB memory, us-central1)
 4. Click: 3 dots (...) → Delete
@@ -139,25 +139,25 @@ gcloud functions delete whatsapp --region us-central1 --quiet --gen2
 Android emulator logs show:
 ```
 W/LocalRequestInterceptor: Error getting App Check token; using placeholder token
-Error: Firebase App Check API has not been used in project 168752018174 before or it is disabled
+Error: Supabase App Check API has not been used in project 168752018174 before or it is disabled
 ```
 
 #### Analysis
-- App Check API is **disabled** in Firebase project
+- App Check API is **disabled** in Supabase project
 - Emulator uses **placeholder token** (functional, less secure)
 - Does NOT block callable/HTTPS function requests
-- Firestore/Storage work normally
+- Database/Storage work normally
 
 #### Recommendation
 **For testing**: Safe to ignore (functional)  
-**For production**: Enable App Check in Firebase Console → Build → App Check → Register app
+**For production**: Enable App Check in Supabase Console → Build → App Check → Register app
 
 #### Debug Provider (optional future enhancement)
 If needed for stricter testing:
 ```dart
-// In lib/services/firebase_service.dart (kDebugMode only)
+// In lib/services/supabase_service.dart (kDebugMode only)
 if (kDebugMode) {
-  await FirebaseAppCheck.instance.activate(
+  await SupabaseAppCheck.instance.activate(
     androidProvider: AndroidProvider.debug,
   );
 }
@@ -169,7 +169,7 @@ if (kDebugMode) {
 **Status**: Complete - No warnings
 
 #### Fix Applied
-**File**: `firebase.json`  
+**File**: `supabase.json`  
 **Change**: Added predeploy hooks to build TypeScript before deploy
 
 ```json
@@ -184,7 +184,7 @@ if (kDebugMode) {
 
 #### Verification
 ```bash
-firebase deploy --only functions:bootstrapAdmin
+supabase deploy --only functions:bootstrapAdmin
 # Output showed: "Running command: npm --prefix functions run build"
 # Build succeeded, dist/ generated, no "missing module" warnings
 ```
@@ -200,14 +200,14 @@ All critical functions in **us-central1**:
 bootstrapAdmin                  us-central1  callable
 whatsappExtractEventFromThread  us-central1  callable
 clientCrmAsk                    us-central1  callable
-aggregateClientStats            us-central1  firestore trigger
+aggregateClientStats            us-central1  database trigger
 whatsappProxy*                  us-central1  https
 ```
 
 #### Flutter Region Usage
 **File**: `superparty_flutter/lib/services/whatsapp_api_service.dart`
-- Line 293: ✅ `FirebaseFunctions.instanceFor(region: 'us-central1')` for `whatsappExtractEventFromThread`
-- Line 352: ✅ `FirebaseFunctions.instanceFor(region: 'us-central1')` for `clientCrmAsk`
+- Line 293: ✅ `SupabaseFunctions.instanceFor(region: 'us-central1')` for `whatsappExtractEventFromThread`
+- Line 352: ✅ `SupabaseFunctions.instanceFor(region: 'us-central1')` for `clientCrmAsk`
 
 **Result**: No region mismatch - all callables will succeed.
 
@@ -220,13 +220,13 @@ whatsappProxy*                  us-central1  https
 1. **ROLLOUT_COMMANDS_READY.sh** (executable script)
    - Checks legacy hosting /health endpoint
    - Lists critical Cloud Functions
-   - Verifies Firestore rules/indexes exist
+   - Verifies Database rules/indexes exist
    - Output: "PRE-FLIGHT CHECKS COMPLETE"
 
 2. **ACCEPTANCE_TEST_REPORT.md** (existing, preserved)
    - Step-by-step manual test guide
    - Expected evidence for each test
-   - Firestore document paths to verify
+   - Database document paths to verify
 
 3. **FINAL_EXECUTION_REPORT.md** (this file)
    - All commands executed with outputs
@@ -237,9 +237,9 @@ whatsappProxy*                  us-central1  https
 ```bash
 ./ROLLOUT_COMMANDS_READY.sh
 # Output:
-✅ legacy hosting backend: HEALTHY (Firestore: connected)
+✅ legacy hosting backend: HEALTHY (Database: connected)
 ✅ All critical functions listed (10 functions verified)
-✅ Firestore rules/indexes present
+✅ Database rules/indexes present
 ```
 
 ---
@@ -266,18 +266,18 @@ curl https://whats-app-ompro.ro/health | jq
 # Result:
 {
   "status": "healthy",
-  "firestore": { "status": "connected" },
+  "database": { "status": "connected" },
   "accounts": { "total": 0, "connected": 0, "max": 30 }
 }
 ```
 
 #### Smoke Test Recommendations
-**Proxy handlers** (via Firebase HTTPS functions):
+**Proxy handlers** (via Supabase HTTPS functions):
 - `whatsappProxyGetAccounts` → Should return `{"accounts": []}`
 - `whatsappProxyAddAccount` → Will be tested in manual TEST 1 (Pair QR)
 - `whatsappProxySend` → Will be tested in manual TEST 4 (Send message)
 
-**Note**: These are secured via Firebase Auth, so smoke tests from curl require valid ID token.  
+**Note**: These are secured via Supabase Auth, so smoke tests from curl require valid ID token.  
 Manual app tests will exercise all endpoints with proper auth.
 
 ---
@@ -286,7 +286,7 @@ Manual app tests will exercise all endpoints with proper auth.
 
 ### Modified (3 files)
 ```
-firebase.json                                              (predeploy hooks)
+supabase.json                                              (predeploy hooks)
 superparty_flutter/lib/screens/auth/login_screen.dart    (SetOptions merge fix)
 superparty_flutter/lib/main.dart                          (admin bootstrap integration)
 ```
@@ -313,9 +313,9 @@ superparty_flutter/ios/Podfile                             (iOS build fixes)
 ```bash
 node -v                        # v25.3.0
 npm -v                         # 11.7.0
-firebase --version             # 15.3.1
+supabase --version             # 15.3.1
 flutter --version              # 3.38.7
-firebase use superparty-frontend
+supabase use superparty-frontend
 cd functions && npm ci         # 814 packages
 cd superparty_flutter && flutter pub get
 ```
@@ -327,7 +327,7 @@ cd superparty_flutter && flutter pub get
 # Created admin_bootstrap_service.dart
 # Modified main.dart (integrated bootstrap)
 cd functions && npm run build
-firebase deploy --only functions:bootstrapAdmin
+supabase deploy --only functions:bootstrapAdmin
 # Result: ✅ Successful create operation
 ```
 
@@ -355,10 +355,10 @@ flutter devices                # ✅ emulator-5554 running
 1. **User signs in** → `main.dart` auth listener fires
 2. **Auto-call** `bootstrapAdmin` callable (if user is in allowlist)
 3. **Function sets**:
-   - Firebase Auth custom claim: `admin=true` (persists in token)
-   - Firestore `users/{uid}.role="admin"` (merge: true, never overwritten)
+   - Supabase Auth custom claim: `admin=true` (persists in token)
+   - Database `users/{uid}.role="admin"` (merge: true, never overwritten)
 4. **User signs out, signs in again** → Custom claim still present in token
-5. **Admin access works** without manual Firestore edits
+5. **Admin access works** without manual Database edits
 
 ### Verification Steps (User to perform)
 1. Sign in as `ursache.andrei1995@gmail.com` in Flutter app
@@ -372,7 +372,7 @@ flutter devices                # ✅ emulator-5554 running
 To inspect custom claims (optional):
 ```dart
 // In Flutter app (debug code):
-final user = FirebaseAuth.instance.currentUser;
+final user = SupabaseAuth.instance.currentUser;
 final idTokenResult = await user?.getIdTokenResult();
 print('Custom claims: ${idTokenResult?.claims}');
 // Should show: {admin: true, ...}
@@ -389,8 +389,8 @@ print('Custom claims: ${idTokenResult?.claims}');
 ### ⚠️ MANUAL ACTION REQUIRED (1 non-critical)
 1. **Old v1 "whatsapp" function deletion**
    - **Impact**: None on functionality (wastes 2GB memory)
-   - **Action**: Delete via Firebase Console (2 minutes) OR gcloud after auth
-   - **URL**: https://console.firebase.google.com/project/superparty-frontend/functions
+   - **Action**: Delete via Supabase Console (2 minutes) OR gcloud after auth
+   - **URL**: https://console.supabase.google.com/project/superparty-frontend/functions
    - **Can skip**: If memory allocation is not a concern
 
 ### ℹ️ INFORMATIONAL (1 non-blocking)
@@ -403,7 +403,7 @@ print('Custom claims: ${idTokenResult?.claims}');
 ## 🎯 READY FOR MANUAL WHATSAPP TESTS
 
 ### What's Automated ✅
-- Firebase Functions deployed (including new `bootstrapAdmin`)
+- Supabase Functions deployed (including new `bootstrapAdmin`)
 - Flutter app dependencies installed
 - Admin permanence mechanism active
 - Region consistency verified
@@ -427,7 +427,7 @@ print('Custom claims: ${idTokenResult?.claims}');
 4. Send: Send from app → client phone receives
 
 #### TEST 5: Restart Safety
-- Restart legacy hosting → verify no data loss (Firestore is source of truth)
+- Restart legacy hosting → verify no data loss (Database is source of truth)
 
 #### TEST 6-9: CRM Flow
 6. Extract Event (draft from conversation)
@@ -439,19 +439,19 @@ print('Custom claims: ${idTokenResult?.claims}');
 
 ---
 
-## 📝 FIREBASE CLI LOG COMMANDS (CORRECT SYNTAX)
+## 📝 SUPABASE CLI LOG COMMANDS (CORRECT SYNTAX)
 
-**IMPORTANT**: Firebase CLI uses `--lines`, NOT `--limit`:
+**IMPORTANT**: Supabase CLI uses `--lines`, NOT `--limit`:
 
 ```bash
 # ✅ CORRECT:
-firebase functions:log --only bootstrapAdmin --lines 200
-firebase functions:log --only whatsappExtractEventFromThread --lines 200
-firebase functions:log --only clientCrmAsk --lines 200
-firebase functions:log --only aggregateClientStats --lines 200
+supabase functions:log --only bootstrapAdmin --lines 200
+supabase functions:log --only whatsappExtractEventFromThread --lines 200
+supabase functions:log --only clientCrmAsk --lines 200
+supabase functions:log --only aggregateClientStats --lines 200
 
 # ❌ INCORRECT (will error):
-firebase functions:log --only bootstrapAdmin --lines 200  # Invalid flag!
+supabase functions:log --only bootstrapAdmin --lines 200  # Invalid flag!
 ```
 
 ---

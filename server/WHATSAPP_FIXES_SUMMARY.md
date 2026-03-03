@@ -12,7 +12,7 @@
   - Only auto-regenerate if account status explicitly requires it
   - RequestId passed through all layers for correlation
 
-#### 2. Firebase Functions Proxy ✅
+#### 2. Supabase Functions Proxy ✅
 - **File:** `functions/whatsappProxy.js`
 - **Fixes:**
   - Logs upstream status code + short error ID (not full body)
@@ -40,7 +40,7 @@
   - Preserves account during pairing phase
   - Handles 515 as transient error (reconnects automatically)
 
-#### 5. Firestore Backup Error Handling ✅
+#### 5. Database Backup Error Handling ✅
 - **File:** `whatsapp-backend/server.js:1067-1098`
 - **Fixes:**
   - Wrapped backup in `setImmediate` (fire-and-forget)
@@ -84,7 +84,7 @@
 - **Status:** Could not locate rating computation code
 - **Action Required:** Search codebase for:
   - `computeRating`, `calculateRating`, `modul de notare`
-  - Firebase Functions related to rating
+  - Supabase Functions related to rating
   - Flutter screens with rating UI
 
 ## Files Modified

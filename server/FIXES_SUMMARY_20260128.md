@@ -7,7 +7,7 @@
 **Problema:** Testele CI așteptau `error: "missing_auth_token"` dar codul returna `error: "unauthorized"` pentru missing token.
 
 **Fix Aplicat:**
-- `whatsapp-backend/server.js:2481` - `requireFirebaseAuth` returnează acum `missing_auth_token` pentru missing token
+- `whatsapp-backend/server.js:2481` - `requireSupabaseAuth` returnează acum `missing_auth_token` pentru missing token
 - `functions/whatsappProxy.js:151` - `requireAuth` returnează `missing_auth_token` pentru missing token
 - `unauthorized` rămâne pentru token invalid/expired (corect)
 
@@ -53,19 +53,19 @@
 
 ---
 
-### 4. ✅ Firestore Query Fix (Employee Inbox)
+### 4. ✅ Database Query Fix (Employee Inbox)
 
-**Problema:** Query-ul Firestore folosea `orderBy('lastMessageAt')` cu `where('accountId')`, necesitând index compus care lipsea, cauzând erori.
+**Problema:** Query-ul Database folosea `orderBy('lastMessageAt')` cu `where('accountId')`, necesitând index compus care lipsea, cauzând erori.
 
 **Fix Aplicat:**
-- Eliminat `orderBy` din query Firestore
+- Eliminat `orderBy` din query Database
 - Implementat sortare în memorie în `_rebuildThreads()` cu `_threadTimeMs()` helper
 - Sortare stabilă cu tie-breaker pe threadId
 
 **Fișiere Modificate:**
 - `superparty_flutter/lib/screens/whatsapp/employee_inbox_screen.dart`
 
-**Status:** ✅ Nu mai necesită index compus Firestore
+**Status:** ✅ Nu mai necesită index compus Database
 
 ---
 
@@ -87,7 +87,7 @@
 
 **Verificare:**
 ```bash
-firebase functions:list | grep -E "whatsappProxyGetAccountsStaff|whatsappProxySend"
+supabase functions:list | grep -E "whatsappProxyGetAccountsStaff|whatsappProxySend"
 # Ar trebui să vezi: 256 (nu 128)
 ```
 
@@ -113,7 +113,7 @@ FIX_REVIEW_COMPLETE.md (nou)                      |   documentație
 - [x] Contract eroare autentificare aliniat cu testele CI
 - [x] ThreadModel.initial extrage prima cifră corect
 - [x] Auto-backfill implementat pentru employee inbox
-- [x] Firestore query fix (nu mai necesită index compus)
+- [x] Database query fix (nu mai necesită index compus)
 - [x] Memory OOM fix pentru `whatsappProxySend` (256MiB)
 - [x] Memory OOM fix pentru `whatsappProxyGetAccountsStaff` (256MiB)
 - [x] Deploy completat pentru ambele funcții
@@ -132,7 +132,7 @@ FIX_REVIEW_COMPLETE.md (nou)                      |   documentație
 1. Deschide aplicația pe iOS
 2. Navighează la: WhatsApp → Employee Inbox
 3. Verifică:
-   - [ ] Se încarcă conversațiile (fără eroare Firestore)
+   - [ ] Se încarcă conversațiile (fără eroare Database)
    - [ ] Auto-backfill pornește (caută log-uri `[EmployeeInboxScreen] Auto-backfill started`)
    - [ ] Nu apare eroarea 500
 
@@ -152,7 +152,7 @@ FIX_REVIEW_COMPLETE.md (nou)                      |   documentație
 - `whatsappProxySend` are și configurație explicită în `functions/whatsappProxy.js` (pentru siguranță)
 - Limita: 256 MiB (suficient pentru 130-139 MiB usage actual)
 
-### Firestore Indexes
+### Database Indexes
 - Employee inbox nu mai necesită index compus `(accountId, lastMessageAt)`
 - Sortarea se face în memorie după ce datele sunt primite
 

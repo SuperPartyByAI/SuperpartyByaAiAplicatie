@@ -17,7 +17,7 @@ Refactor app for long-term stability with zero blank screens, robust routing, an
 1. **AppShell Widget**
    - Shows Loading/Error/Success states immediately
    - Never blocks runApp()
-   - Timeout + retry for Firebase init
+   - Timeout + retry for Supabase init
    - Error screen with "Retry" button
 
 2. **Global Error Handlers** (already done, verify)
@@ -34,7 +34,7 @@ Refactor app for long-term stability with zero blank screens, robust routing, an
 
 - `lib/main.dart` - Add AppShell
 - `lib/widgets/app_shell.dart` - NEW
-- `lib/services/firebase_service.dart` - Add retry logic
+- `lib/services/supabase_service.dart` - Add retry logic
 - `ARCHITECTURE_STABILITY_RULES.md` - NEW
 
 ### Tests
@@ -54,7 +54,7 @@ Refactor app for long-term stability with zero blank screens, robust routing, an
 
 - ✅ No blank screen on web
 - ✅ Error states have UI
-- ✅ Firebase init timeout works
+- ✅ Supabase init timeout works
 - ✅ All existing features work
 
 ---
@@ -112,7 +112,7 @@ Refactor app for long-term stability with zero blank screens, robust routing, an
 
 ---
 
-## PR3: Safety - Null Safety + Firestore Parsing + Tests
+## PR3: Safety - Null Safety + Database Parsing + Tests
 
 ### Scope
 
@@ -121,7 +121,7 @@ Refactor app for long-term stability with zero blank screens, robust routing, an
    - Replace with safe checks + fallbacks
    - Add guards: `if (user == null) return LoginScreen();`
 
-2. **Firestore Safe Parsing**
+2. **Database Safe Parsing**
    - Review all `fromMap` methods
    - Add default values for missing fields
    - Log warnings for invalid schema
@@ -152,7 +152,7 @@ Refactor app for long-term stability with zero blank screens, robust routing, an
 - [ ] `flutter test` passes
 - [ ] `flutter analyze` 0 errors
 - [ ] Grep: `grep -r "currentUser!" lib/ | wc -l` = 0
-- [ ] Web: Bad Firestore data doesn't crash
+- [ ] Web: Bad Database data doesn't crash
 - [ ] Web: Null user shows Login screen
 
 ### Risks
@@ -164,7 +164,7 @@ Refactor app for long-term stability with zero blank screens, robust routing, an
 ### Success Criteria
 
 - ✅ Zero `!` operators on nullable types
-- ✅ Firestore parsing never crashes
+- ✅ Database parsing never crashes
 - ✅ All tests pass
 - ✅ flutter analyze clean
 

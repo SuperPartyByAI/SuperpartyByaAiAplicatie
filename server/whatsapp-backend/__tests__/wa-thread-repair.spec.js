@@ -8,7 +8,7 @@ const { deriveLastActivityFromMessage } = require('../lib/wa-thread-repair');
 
 function mockAdmin() {
   return {
-    firestore: {
+    database: {
       Timestamp: {
         fromMillis: (ms) => ({ _ms: ms, toMillis: () => ms }),
       },

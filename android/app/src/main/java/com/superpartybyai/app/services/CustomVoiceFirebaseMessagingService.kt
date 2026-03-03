@@ -199,7 +199,7 @@ class CustomVoiceFirebaseMessagingService : FirebaseMessagingService(), MessageL
     }
 
     // ── MessageListener implementation ──────────────────────────────────────
-    // Replicates the logic from twilio_voice plugin's VoiceFirebaseMessagingService
+    // Replicates the logic from twilio_voice plugin's VoiceSupabaseMessagingService
 
     override fun onCallInvite(callInvite: CallInvite) {
         Log.d(TAG, "✅ onCallInvite: sid=${callInvite.callSid} from=${callInvite.from} to=${callInvite.to}")

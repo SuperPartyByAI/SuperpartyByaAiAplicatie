@@ -6,7 +6,7 @@ This document captures the latest improvements to the WhatsApp integration, spec
 
 ### 1. Seed Empty Threads Logic
 
-- **Objective**: Ensure that threads with no previous messages in Firestore are "seeded" with their initial history from WhatsApp when first accessed.
+- **Objective**: Ensure that threads with no previous messages in Database are "seeded" with their initial history from WhatsApp when first accessed.
 - **Implementation**: Located in [fetch-messages-wa.js](file:///Users/universparty/Aplicatie-SuperpartyByAi/Aplicatie-SuperpartyByAi/whatsapp-backend/lib/fetch-messages-wa.js). It detects empty threads and uses Baileys `fetchMessageHistory` without an anchor message to pull the latest batch of messages.
 
 ### 2. Force-Sync Endpoint
@@ -40,7 +40,6 @@ This document captures the latest improvements to the WhatsApp integration, spec
     curl -X POST https://your-backend-url/admin/sync-thread/ACCOUNT_ID__JID
     ```
 4.  **Environment Variables**:
-    Ensure `BACKEND_URL` and `FIREBASE_PROJECT_ID` are correctly set in the environment.
 
 ### Frontend Verification
 

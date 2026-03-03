@@ -3,12 +3,12 @@
 ## Probleme Identificate
 
 ### 1. Account Restore - Doar "connected" ✅ FIXAT
-**Problema:** `restoreAccountsFromFirestore()` restaura doar accounts cu status='connected', ignorând accounts în pairing phase (qr_ready, connecting, awaiting_scan).
+**Problema:** `restoreAccountsFromDatabase()` restaura doar accounts cu status='connected', ignorând accounts în pairing phase (qr_ready, connecting, awaiting_scan).
 
 **Impact:** După restart/redeploy, accounts în pairing phase dispar → getAccounts returnează 0 → regenerateQr dă 500 "Account not found".
 
 **Fix Aplicat:**
-- ✅ `restoreAccountsFromFirestore()` restaura acum TOATE accounts în pairing phase + connected
+- ✅ `restoreAccountsFromDatabase()` restaura acum TOATE accounts în pairing phase + connected
 - ✅ `restoreSingleAccount()` restaura acum TOATE accounts în pairing phase + connected
 
 **Before:**
@@ -104,7 +104,7 @@ if (!restorableStatuses.includes(data.status)) {
 # 1. Add account → QR apare (status: qr_ready)
 # 2. Restart legacy hosting backend
 # 3. Verifică legacy hosting logs:
-# Expected: 📦 Found X accounts in Firestore (statuses: qr_ready, connecting, awaiting_scan, connected)
+# Expected: 📦 Found X accounts in Database (statuses: qr_ready, connecting, awaiting_scan, connected)
 # Expected: 🔄 [account_xxx] Restoring account (status: qr_ready)
 # Expected: Account rămâne vizibil după restart
 ```
@@ -132,8 +132,8 @@ if (!restorableStatuses.includes(data.status)) {
 
 ### legacy hosting Backend (După Restart)
 ```
-🔄 Restoring accounts from Firestore...
-📦 Found 1 accounts in Firestore (statuses: qr_ready, connecting, awaiting_scan, connected)
+🔄 Restoring accounts from Database...
+📦 Found 1 accounts in Database (statuses: qr_ready, connecting, awaiting_scan, connected)
 🔄 [account_xxx] Restoring account (status: qr_ready)
 ✅ Account restore complete: 1 accounts loaded
 ```
@@ -141,7 +141,7 @@ if (!restorableStatuses.includes(data.status)) {
 ### getAccounts (După Restart)
 ```
 📋 [GET /accounts/req_xxx] In-memory accounts: 1
-📋 [GET /accounts/req_xxx] Firestore accounts: 1 total
+📋 [GET /accounts/req_xxx] Database accounts: 1 total
 📋 [GET /accounts/req_xxx] Total accounts: 1
 ✅ [GET /accounts/req_xxx] Response: 1 accounts, waMode=active
 ```

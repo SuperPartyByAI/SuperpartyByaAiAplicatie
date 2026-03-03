@@ -1,11 +1,11 @@
 # Smoke test autorun (NO Flutter) — PR #34
 
-This guide lets you validate the **Staff Settings + Admin + Callables + Rules** work end-to-end using **Node + Firebase emulators** only.
+This guide lets you validate the **Staff Settings + Admin + Callables + Rules** work end-to-end using **Node + Supabase emulators** only.
 
 ## Prerequisites
 
 - Node.js installed (`node --version`)
-- Firebase CLI installed (`firebase --version`) and logged in if needed (`firebase login`)
+- Supabase CLI installed (`supabase --version`) and logged in if needed (`supabase login`)
 - Functions build exists: `functions/dist/index.js` (run build once if missing)
 
 ## Start emulators
@@ -13,13 +13,13 @@ This guide lets you validate the **Staff Settings + Admin + Callables + Rules** 
 From repo root:
 
 ```powershell
-firebase emulators:start --only firestore,functions
+supabase emulators:start --only database,functions
 ```
 
 ### Ports / URLs (defaults)
 
 - **Emulator UI**: `http://127.0.0.1:4000`
-- **Firestore**: `127.0.0.1:8080`
+- **Database**: `127.0.0.1:8080`
 - **Functions**: `127.0.0.1:5001`
 
 ## Build functions (only if needed)
@@ -54,12 +54,12 @@ You will get **PASS/FAIL** for:
 
 ## Troubleshooting
 
-### “Firestore emulator not reachable”
+### “Database emulator not reachable”
 
 - Ensure emulators are running:
 
 ```powershell
-firebase emulators:start --only firestore,functions
+supabase emulators:start --only database,functions
 ```
 
 ### “Missing functions/dist/index.js”
@@ -86,7 +86,7 @@ If you manually changed these docs, delete them in Emulator UI and rerun the scr
 Set env vars before running:
 
 ```powershell
-$env:FIRESTORE_EMULATOR_HOST="127.0.0.1:8080"
+$env:DATABASE_EMULATOR_HOST="127.0.0.1:8080"
 $env:FUNCTIONS_EMULATOR_HOST="127.0.0.1:5001"
 node tools/smoke_run_emulator.js
 ```

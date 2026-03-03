@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Script simplu pentru a obține Firebase ID token de pe server
+# Script simplu pentru a obține Supabase ID token de pe server
 
 EMAIL="$1"
 
@@ -12,15 +12,15 @@ if [ -z "$EMAIL" ]; then
   exit 1
 fi
 
-echo "🔑 Obținere Firebase ID Token..."
+echo "🔑 Obținere Supabase ID Token..."
 echo "📧 Email: $EMAIL"
 echo "🖥️  Conectare la server..."
 echo ""
 
 # Creează și rulează scriptul pe server
-ssh root@37.27.34.179 "cd /opt/whatsapp/Aplicatie-SuperpartyByAi/whatsapp-backend && GOOGLE_APPLICATION_CREDENTIALS=/etc/whatsapp-backend/firebase-sa.json cat > get-token-temp.js << 'NODE_SCRIPT'
-const admin = require('firebase-admin');
-const { loadServiceAccount } = require('./firebaseCredentials');
+ssh root@37.27.34.179 "cd /opt/whatsapp/Aplicatie-SuperpartyByAi/whatsapp-backend && GOOGLE_APPLICATION_CREDENTIALS=/etc/whatsapp-backend/supabase-sa.json cat > get-token-temp.js << 'NODE_SCRIPT'
+const admin = require('supabase-admin');
+const { loadServiceAccount } = require('./supabaseCredentials');
 
 async function getToken() {
   try {
@@ -60,7 +60,7 @@ async function getToken() {
 
 getToken();
 NODE_SCRIPT
-GOOGLE_APPLICATION_CREDENTIALS=/etc/whatsapp-backend/firebase-sa.json node get-token-temp.js '$EMAIL' && rm -f get-token-temp.js" 2>&1 | while IFS= read -r line; do
+GOOGLE_APPLICATION_CREDENTIALS=/etc/whatsapp-backend/supabase-sa.json node get-token-temp.js '$EMAIL' && rm -f get-token-temp.js" 2>&1 | while IFS= read -r line; do
   if [[ $line == CUSTOM_TOKEN:* ]]; then
     TOKEN="${line#CUSTOM_TOKEN:}"
     echo ""
@@ -79,14 +79,14 @@ GOOGLE_APPLICATION_CREDENTIALS=/etc/whatsapp-backend/firebase-sa.json node get-t
     echo "   2. Apasă F12 (sau Cmd+Option+I pe Mac)"
     echo "   3. Click pe tab-ul 'Console'"
     echo "   4. Copiază și lipește:"
-    echo "      firebase.auth().currentUser.getIdToken().then(token => console.log(token));"
+    echo "      supabase.auth().currentUser.getIdToken().then(token => console.log(token));"
     echo "   5. Apasă Enter și copiază token-ul"
   elif [[ $line == ERROR:* ]]; then
     ERROR="${line#ERROR:}"
     echo "❌ Eroare: $ERROR"
     if [[ $ERROR == *"User not found"* ]]; then
       echo ""
-      echo "💡 User-ul nu există. Creează-l în Firebase Console → Authentication → Users"
+      echo "💡 User-ul nu există. Creează-l în Supabase Console → Authentication → Users"
     fi
   elif [[ $line == NOTE:* ]]; then
     # Ignoră note-ul

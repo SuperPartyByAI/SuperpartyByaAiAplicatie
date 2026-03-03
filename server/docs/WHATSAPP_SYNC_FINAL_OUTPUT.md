@@ -21,7 +21,7 @@
 ### Backend (existing – verified)
 
 **`whatsapp-backend/lib/wa-auto-backfill.js`**
-- Lease: `acquireBackfillLease` / `releaseBackfillLease` via Firestore transaction; fields `autoBackfillLeaseUntil`, `autoBackfillLeaseHolder`, `autoBackfillLeaseAcquiredAt`.
+- Lease: `acquireBackfillLease` / `releaseBackfillLease` via Database transaction; fields `autoBackfillLeaseUntil`, `autoBackfillLeaseHolder`, `autoBackfillLeaseAcquiredAt`.
 - Eligibility: connected accounts only; sort by `lastAutoBackfillAt` asc; `AUTO_BACKFILL_MAX_ACCOUNTS_PER_TICK` (default 3), `AUTO_BACKFILL_MAX_CONCURRENCY` (default 1).
 - Throttle: success cooldown 6 h; attempt backoff 10 min.
 - Status: `lastAutoBackfillStatus` → `running` → `ok` / `error`; set `lastAutoBackfillSuccessAt` / `lastAutoBackfillAt` only on success.
@@ -63,7 +63,7 @@ AUTO_BACKFILL_MAX_CONCURRENCY=1
 INSTANCE_ID=hetzner-1
 ```
 
-Also ensure: `SESSIONS_PATH`, Firebase credentials (`GOOGLE_APPLICATION_CREDENTIALS` or service account), `ADMIN_TOKEN`, etc. (see RUNBOOK).
+Also ensure: `SESSIONS_PATH`, Supabase credentials (`GOOGLE_APPLICATION_CREDENTIALS` or service account), `ADMIN_TOKEN`, etc. (see RUNBOOK).
 
 ### systemd
 
@@ -86,13 +86,13 @@ Also ensure: `SESSIONS_PATH`, Firebase credentials (`GOOGLE_APPLICATION_CREDENTI
 
 - `curl -fsS http://127.0.0.1:8080/ready`
 - `journalctl -u whatsapp-backend -n 200` (or pm2/Docker logs) for `[wa-auto-backfill]` tick / start/end.
-- Firestore `accounts/{accountId}`: `lastAutoBackfillStatus`, `lastAutoBackfillAt`, lease fields when running.
+- Database `accounts/{accountId}`: `lastAutoBackfillStatus`, `lastAutoBackfillAt`, lease fields when running.
 
 ---
 
 ## 4. Acceptance
 
-- [ ] Connect account → within minutes, Firestore `threads` / `messages` exist; Inbox shows history.
+- [ ] Connect account → within minutes, Database `threads` / `messages` exist; Inbox shows history.
 - [ ] With 2 backend instances, only one holds lease per account.
 - [ ] No Flutter automatic backfill calls.
-- [ ] Logs + Firestore show `lastAutoBackfillStatus` transitions (running → ok/error).
+- [ ] Logs + Database show `lastAutoBackfillStatus` transitions (running → ok/error).

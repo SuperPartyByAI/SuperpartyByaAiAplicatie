@@ -18,10 +18,10 @@ The WhatsApp backend was entering an **infinite reconnect loop** when accounts r
 ## Solution
 
 ### 1. **Created `clearAccountSession()` Function** (lines 886-909)
-- **Purpose**: Clear both disk session and Firestore backup before re-pairing
+- **Purpose**: Clear both disk session and Database backup before re-pairing
 - **Implementation**:
   - Deletes session directory: `/app/sessions/{accountId}` (using `fs.rmSync`)
-  - Deletes Firestore backup: `wa_sessions/{accountId}` collection doc
+  - Deletes Database backup: `wa_sessions/{accountId}` collection doc
 - **Result**: Next pairing starts with clean slate (no stale credentials)
 
 ### 2. **Created `isTerminalLogout()` Helper** (lines 911-923)
@@ -97,9 +97,9 @@ node scripts/verify_terminal_logout.js
   ```
   ❌ [account_xxx] Explicit cleanup (401), terminal logout - clearing session
   🗑️  [account_xxx] Session directory deleted: /app/sessions/account_xxx
-  🗑️  [account_xxx] Firestore session backup deleted
+  🗑️  [account_xxx] Database session backup deleted
   ```
-- Account status should become `needs_qr` in Firestore
+- Account status should become `needs_qr` in Database
 - **No reconnect attempts** should appear in logs (loop stopped)
 
 ### 4. **Regenerate QR**
@@ -118,7 +118,7 @@ node scripts/verify_terminal_logout.js
 ## What is Preserved
 
 ✅ **Conversations (threads/messages)**: NEVER deleted - only session is cleared
-✅ **Account document**: Preserved in Firestore (status updated, not deleted)
+✅ **Account document**: Preserved in Database (status updated, not deleted)
 ✅ **Client data**: All `clients/` and `threads/` collections untouched
 ✅ **CRM data**: Events (`evenimente/`), extractions, stats preserved
 
@@ -127,7 +127,7 @@ node scripts/verify_terminal_logout.js
 ## What is Cleared (On Terminal Logout)
 
 🗑️ **Session directory**: `/app/sessions/{accountId}` (disk)
-🗑️ **Firestore session backup**: `wa_sessions/{accountId}` (collection doc)
+🗑️ **Database session backup**: `wa_sessions/{accountId}` (collection doc)
 
 **Why**: Corrupted/invalid credentials must be removed for fresh pairing.
 

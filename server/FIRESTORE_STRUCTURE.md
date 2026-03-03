@@ -1,4 +1,4 @@
-# Structura Firestore pentru Evenimente
+# Structura Database pentru Evenimente
 
 ## Colecție: `evenimente`
 
@@ -188,7 +188,7 @@
 // Input (din AI)
 requireEmployee: ["animator", "vata", "popcorn"]
 
-// Output (în Firestore)
+// Output (în Database)
 staffProfiles: {
   "animator": null,      // nealocat
   "vata": null,          // nealocat
@@ -230,7 +230,7 @@ staffProfiles: {
    - Afișează date în format DD-MM-YYYY
    - Conversie v1 (Timestamp) → DD-MM-YYYY pentru backward compatibility
 
-## Queries Firestore
+## Queries Database
 
 ### Găsește evenimente nearhivate
 ```javascript
@@ -302,9 +302,9 @@ if (data.containsKey('roles') && data['roles'] is List) {
 }
 ```
 
-## Indexuri Firestore
+## Indexuri Database
 
-### Indexuri necesare (firestore.indexes.json)
+### Indexuri necesare (database.indexes.json)
 ```json
 {
   "indexes": [

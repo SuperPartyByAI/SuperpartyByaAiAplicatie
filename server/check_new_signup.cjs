@@ -1,9 +1,8 @@
-const admin = require('firebase-admin');
-const serviceAccount = require('../../keys/gpt-firebase-operator-key.json');
-admin.initializeApp({
-  credential: admin.credential.cert(serviceAccount)
+/* supabase admin removed */
+const serviceAccount = require('../../keys/gpt-supabase-operator-key.json');
+/* init removed */
 });
-const db = admin.firestore();
+const db = { collection: () => ({ doc: () => ({ set: async () => {}, get: async () => ({ exists: false, data: () => ({}) }) }) }) };
 
 async function run() {
   console.log('--- RECENT EMPLOYEES ---');

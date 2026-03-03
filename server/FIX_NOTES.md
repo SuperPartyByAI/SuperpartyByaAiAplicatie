@@ -108,7 +108,7 @@
 
 ---
 
-### 9. Emulator Auth Mapping (`superparty_flutter/lib/services/firebase_service.dart`)
+### 9. Emulator Auth Mapping (`superparty_flutter/lib/services/supabase_service.dart`)
 
 **Status:** ✅ Already Fixed
 - Android emulator: Uses `10.0.2.2` when `USE_ADB_REVERSE=false` (automatic, no adb reverse needed)

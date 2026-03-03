@@ -17,7 +17,7 @@ Toate cele 4 flow-uri au fost verificate și fixate:
 **Dovadă din cod:**
 - `app_router.dart:51-62` - Auth stream timeout 30s cu fallback la currentUser
 - `auth_wrapper.dart:69-76` - Auth stream timeout cu fallback
-- `auth_wrapper.dart:144-150` - Firestore stream timeout 30s
+- `auth_wrapper.dart:144-150` - Database stream timeout 30s
 - `auth_wrapper.dart:158-162` - Error → HomeScreen (nu black screen)
 
 **Concluzie:** ✅ **DEJA FIXAT** - Nu sunt necesare modificări suplimentare
@@ -31,12 +31,12 @@ Toate cele 4 flow-uri au fost verificate și fixate:
 bash scripts/verify-emulators.sh
 
 # 2. Pornește emulators (dacă nu sunt pornite)
-firebase emulators:start
+supabase emulators:start
 
 # 3. Pentru Android emulator:
 # Opțiunea A (recomandat): adb reverse
 adb reverse tcp:9098 tcp:9098  # Auth
-adb reverse tcp:8082 tcp:8082  # Firestore
+adb reverse tcp:8082 tcp:8082  # Database
 adb reverse tcp:5002 tcp:5002  # Functions
 
 # Opțiunea B: folosește 10.0.2.2 (fără adb reverse)
@@ -48,8 +48,8 @@ flutter run --dart-define=USE_EMULATORS=true -d emulator-5554
 
 **Output așteptat:**
 ```
-[FirebaseService] ✅ Emulators configured: host=127.0.0.1 Firestore:8082 Auth:9098 Functions:5002
-[FirebaseService] ✅ Firebase initialized successfully
+[SupabaseService] ✅ Emulators configured: host=127.0.0.1 Database:8082 Auth:9098 Functions:5002
+[SupabaseService] ✅ Supabase initialized successfully
 [AppRouter] Auth stream: user=FBQUjlK2...
 [AuthWrapper] User authenticated → HomeScreen
 ```
@@ -70,9 +70,9 @@ flutter run --dart-define=USE_EMULATORS=true -d emulator-5554
 
 **Modificări:**
 1. ✅ Adăugat logging detaliat: `waMode`, `lockReason`, `instanceId`, `requestId`
-2. ✅ Logging breakdown: in-memory vs Firestore accounts
+2. ✅ Logging breakdown: in-memory vs Database accounts
 3. ✅ Response include `waMode`, `lockReason`, `requestId` pentru debugging
-4. ✅ Include TOATE accounts din Firestore (inclusiv `needs_qr`, `disconnected`)
+4. ✅ Include TOATE accounts din Database (inclusiv `needs_qr`, `disconnected`)
 
 **Test:**
 ```bash
@@ -84,7 +84,7 @@ curl -H "Authorization: Bearer $ADMIN_TOKEN" \
 # Expected logs în legacy hosting:
 # [GET /accounts/test_123] Request: waMode=passive, lockReason=lock_not_acquired
 # [GET /accounts/test_123] In-memory accounts: 0
-# [GET /accounts/test_123] Firestore accounts: X total
+# [GET /accounts/test_123] Database accounts: X total
 # [GET /accounts/test_123] Total accounts: X
 # [GET /accounts/test_123] Response: X accounts, waMode=passive
 ```
@@ -118,8 +118,8 @@ curl -H "Authorization: Bearer $ADMIN_TOKEN" \
 - `[WhatsAppApiService] getAccounts: accountsCount=1` → apoi `accountsCount=0`
 
 **Fix aplicat:**
-- ✅ GET /accounts include TOATE accounts din Firestore (nu filtrează pe status)
-- ✅ Logging explică breakdown: in-memory vs Firestore
+- ✅ GET /accounts include TOATE accounts din Database (nu filtrează pe status)
+- ✅ Logging explică breakdown: in-memory vs Database
 
 ---
 
@@ -171,7 +171,7 @@ curl -H "Authorization: Bearer $ADMIN_TOKEN" \
 # În aplicație: Navigate to Evenimente
 # Expected logs:
 # [EvenimenteScreen/evt_1234567890] Query params: datePreset=all, driverFilter=all, codeFilter=, notedByFilter=
-# [EvenimenteScreen/evt_1234567890] Loaded 15 events from Firestore
+# [EvenimenteScreen/evt_1234567890] Loaded 15 events from Database
 # [EvenimenteScreen/evt_1234567890] Events breakdown: total=15, isArchived=false=12, isArchived=true=3
 # [EvenimenteScreen/evt_1234567890] Filtered events count: 12
 # [EvenimenteScreen/evt_1234567890] Filtered out 0 events (date/driver/code/notedBy filters)
@@ -199,9 +199,9 @@ bash scripts/verify-emulators.sh
 
 **Output așteptat:**
 ```
-=== Verificare Firebase Emulators ===
+=== Verificare Supabase Emulators ===
 ✅ Auth emulator (9098): OK
-✅ Firestore emulator (8082): OK
+✅ Database emulator (8082): OK
 ✅ Functions emulator (5002): OK
 ✅ adb reverse configurat (3 porturi)
 ✅ Toate emulators sunt pornite
@@ -242,7 +242,7 @@ bash scripts/verify-emulators.sh
 flutter run --dart-define=USE_EMULATORS=true -d emulator-5554
 
 # 3. Verifică logs
-# Expected: [FirebaseService] ✅ Firebase initialized successfully
+# Expected: [SupabaseService] ✅ Supabase initialized successfully
 # Expected: [AppRouter] Auth stream: user=...
 # Expected: Aplicația se deschide (nu rămâne pe loading)
 ```
@@ -281,7 +281,7 @@ bash scripts/test-whatsapp-flow.sh
 # 1. În aplicație: Navigate to Evenimente
 # 2. Verifică logs:
 # Expected: [EvenimenteScreen/evt_xxx] Query params: ...
-# Expected: [EvenimenteScreen/evt_xxx] Loaded X events from Firestore
+# Expected: [EvenimenteScreen/evt_xxx] Loaded X events from Database
 # Expected: [EvenimenteScreen/evt_xxx] Filtered events count: Y
 # Expected: Empty state dacă Y=0 (nu ecran negru)
 ```

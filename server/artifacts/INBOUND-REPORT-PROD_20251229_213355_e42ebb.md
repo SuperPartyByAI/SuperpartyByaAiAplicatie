@@ -18,7 +18,7 @@
 
 ## EVIDENCE
 
-**Firestore path:** wa_messages/3EB0BB4C4A7850B8AE138F
+**Database path:** wa_messages/3EB0BB4C4A7850B8AE138F
 
 **Message data:**
 
@@ -39,4 +39,4 @@
 
 - messages.upsert event triggered
 - Direction correctly identified as inbound
-- Persisted to Firestore with correct fields
+- Persisted to Database with correct fields

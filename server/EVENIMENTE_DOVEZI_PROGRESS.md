@@ -5,7 +5,7 @@
 ### 1. Schema de Date
 
 - ✅ Documentație completă în `EVENIMENTE_DOVEZI_SCHEMA.md`
-- ✅ Structură Firestore definită
+- ✅ Structură Database definită
 - ✅ Structură Storage definită
 - ✅ Schema SQLite pentru cache local
 - ✅ Reguli de securitate documentate
@@ -16,7 +16,7 @@
   - EventModel cu toate câmpurile
   - RoleAssignment + AssignmentStatus enum
   - DriverAssignment + DriverStatus enum
-  - Metode fromFirestore/toFirestore
+  - Metode fromDatabase/toDatabase
   - copyWith pentru immutability
 
 - ✅ `lib/models/evidence_model.dart`
@@ -123,7 +123,7 @@
 
 ### 8. Documentație (100% Complete)
 
-- ✅ `EVENIMENTE_DOVEZI_SCHEMA.md` - Schema Firestore + Storage + Security Rules
+- ✅ `EVENIMENTE_DOVEZI_SCHEMA.md` - Schema Database + Storage + Security Rules
 - ✅ `EVENIMENTE_DOVEZI_README.md` - Setup guide + troubleshooting
 - ✅ `ACCEPTANCE_CRITERIA_CHECK.md` - Verificare completă 13/13
 - ✅ `EVIDENCE_UPLOAD_REFACTOR.md` - Documentație refactorizare upload robust
@@ -147,7 +147,7 @@
 
 ```dart
 class EvidenceUploadResult {
-  final String docId;           // Firestore doc ID
+  final String docId;           // Database doc ID
   final String downloadUrl;     // Real URL from Storage API
   final String storagePath;     // Actual storage path
   final DateTime uploadedAt;    // Upload timestamp
@@ -161,8 +161,8 @@ Future<EvidenceUploadResult> uploadEvidence(...) async {
   // Upload to Storage
   final downloadUrl = await snapshot.ref.getDownloadURL(); // ✅ Real URL
 
-  // Create Firestore doc
-  final docRef = await _firestore.collection(...).add(...);
+  // Create Database doc
+  final docRef = await _database.collection(...).add(...);
 
   // Return complete result
   return EvidenceUploadResult(
@@ -203,7 +203,7 @@ final localFiltered = localEvidence.where((local) {
 - ✅ Zero query-uri după upload
 - ✅ Zero race conditions
 - ✅ Zero duplicate thumbnails
-- ✅ Funcționează cu orice Firebase project
+- ✅ Funcționează cu orice Supabase project
 
 **Documentație completă:** `EVIDENCE_UPLOAD_REFACTOR.md`
 
@@ -220,7 +220,7 @@ final localFiltered = localEvidence.where((local) {
 
 ```dart
 class EvidenceService {
-  // Upload imagine în Storage + Firestore
+  // Upload imagine în Storage + Database
   Future<EvidenceUploadResult> uploadEvidence({  // ✅ UPDATED
     required String eventId,
     required String evidenceId,
@@ -371,7 +371,7 @@ class DoveziScreen extends StatefulWidget {
 
 #### `test/services/event_service_test.dart`
 
-- Mock Firestore + Auth
+- Mock Database + Auth
 - Test getEventsStream cu filtre
 - Test updateRoleAssignment
 - Test updateDriverAssignment
@@ -384,7 +384,7 @@ class DoveziScreen extends StatefulWidget {
 ### 10. Documentație
 
 - README cu instrucțiuni setup
-- Indexuri Firestore necesare
+- Indexuri Database necesare
 - Pași testare manuală
 
 ---
@@ -435,7 +435,7 @@ flutter test --coverage
 2. **Error handling**: Toate serviciile aruncă excepții cu mesaje clare
 3. **Optimistic UI**: Dovezile apar imediat după selecție (cache local)
 4. **Offline-first**: Dovezile se salvează local și se sincronizează când există conectivitate
-5. **Lock enforcement**: Verificare server-side în Firestore rules + client-side în UI
+5. **Lock enforcement**: Verificare server-side în Database rules + client-side în UI
 6. **Immutability**: Toate modelele au copyWith pentru state management
 7. **Testability**: Serviciile acceptă dependencies injectate pentru testing
 
@@ -443,9 +443,9 @@ flutter test --coverage
 
 ## ⚠️ Atenție
 
-- **Indexuri Firestore**: Vor fi necesare pentru query-uri complexe (vezi EVENIMENTE_DOVEZI_SCHEMA.md)
+- **Indexuri Database**: Vor fi necesare pentru query-uri complexe (vezi EVENIMENTE_DOVEZI_SCHEMA.md)
 - **Storage rules**: Verifică că sunt configurate corect pentru upload
-- **Permissions**: Verifică că utilizatorii au permisiuni corecte în Firestore
+- **Permissions**: Verifică că utilizatorii au permisiuni corecte în Database
 - **Cleanup**: Implementează ștergere dovezi când se șterge un eveniment
 
 ---

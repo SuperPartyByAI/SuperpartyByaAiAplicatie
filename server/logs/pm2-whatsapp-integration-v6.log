@@ -1,0 +1,2005 @@
+[TAILING] Tailing last 1000 lines for [whatsapp-integration-v6] process (change the value with --lines option)
+/root/.pm2/logs/whatsapp-integration-v6-error.log last 1000 lines:
+17|whatsap |     at param (/root/whatsapp-integration-v6/node_modules/express/lib/router/index.js:376:14)
+17|whatsap |     at Function.process_params (/root/whatsapp-integration-v6/node_modules/express/lib/router/index.js:421:3)
+17|whatsap | Error sending message: TypeError: Cannot read properties of undefined (reading 'id')
+17|whatsap |     at Object.sendMessage (file:///root/whatsapp-integration-v6/node_modules/@whiskeysockets/baileys/lib/Socket/messages-send.js:883:48)
+17|whatsap |     at file:///root/whatsapp-integration-v6/whatsapp-integration-v6-index.js:2432:27
+17|whatsap |     at Layer.handle [as handle_request] (/root/whatsapp-integration-v6/node_modules/express/lib/router/layer.js:95:5)
+17|whatsap |     at next (/root/whatsapp-integration-v6/node_modules/express/lib/router/route.js:149:13)
+17|whatsap |     at Route.dispatch (/root/whatsapp-integration-v6/node_modules/express/lib/router/route.js:119:3)
+17|whatsap |     at Layer.handle [as handle_request] (/root/whatsapp-integration-v6/node_modules/express/lib/router/layer.js:95:5)
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/express/lib/router/index.js:284:15
+17|whatsap |     at param (/root/whatsapp-integration-v6/node_modules/express/lib/router/index.js:365:14)
+17|whatsap |     at param (/root/whatsapp-integration-v6/node_modules/express/lib/router/index.js:376:14)
+17|whatsap |     at Function.process_params (/root/whatsapp-integration-v6/node_modules/express/lib/router/index.js:421:3)
+17|whatsap | Error sending message: TypeError: Cannot read properties of undefined (reading 'id')
+17|whatsap |     at Object.sendMessage (file:///root/whatsapp-integration-v6/node_modules/@whiskeysockets/baileys/lib/Socket/messages-send.js:883:48)
+17|whatsap |     at file:///root/whatsapp-integration-v6/whatsapp-integration-v6-index.js:2432:27
+17|whatsap |     at Layer.handle [as handle_request] (/root/whatsapp-integration-v6/node_modules/express/lib/router/layer.js:95:5)
+17|whatsap |     at next (/root/whatsapp-integration-v6/node_modules/express/lib/router/route.js:149:13)
+17|whatsap |     at Route.dispatch (/root/whatsapp-integration-v6/node_modules/express/lib/router/route.js:119:3)
+17|whatsap |     at Layer.handle [as handle_request] (/root/whatsapp-integration-v6/node_modules/express/lib/router/layer.js:95:5)
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/express/lib/router/index.js:284:15
+17|whatsap |     at param (/root/whatsapp-integration-v6/node_modules/express/lib/router/index.js:365:14)
+17|whatsap |     at param (/root/whatsapp-integration-v6/node_modules/express/lib/router/index.js:376:14)
+17|whatsap |     at Function.process_params (/root/whatsapp-integration-v6/node_modules/express/lib/router/index.js:421:3)
+17|whatsap | Error sending message: TypeError: Cannot read properties of undefined (reading 'id')
+17|whatsap |     at Object.sendMessage (file:///root/whatsapp-integration-v6/node_modules/@whiskeysockets/baileys/lib/Socket/messages-send.js:883:48)
+17|whatsap |     at file:///root/whatsapp-integration-v6/whatsapp-integration-v6-index.js:2432:27
+17|whatsap |     at Layer.handle [as handle_request] (/root/whatsapp-integration-v6/node_modules/express/lib/router/layer.js:95:5)
+17|whatsap |     at next (/root/whatsapp-integration-v6/node_modules/express/lib/router/route.js:149:13)
+17|whatsap |     at Route.dispatch (/root/whatsapp-integration-v6/node_modules/express/lib/router/route.js:119:3)
+17|whatsap |     at Layer.handle [as handle_request] (/root/whatsapp-integration-v6/node_modules/express/lib/router/layer.js:95:5)
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/express/lib/router/index.js:284:15
+17|whatsap |     at param (/root/whatsapp-integration-v6/node_modules/express/lib/router/index.js:365:14)
+17|whatsap |     at param (/root/whatsapp-integration-v6/node_modules/express/lib/router/index.js:376:14)
+17|whatsap |     at Function.process_params (/root/whatsapp-integration-v6/node_modules/express/lib/router/index.js:421:3)
+17|whatsap | Token verify error: Error: Firebase ID token has incorrect algorithm. Expected "RS256" but got "ES256". See https://firebase.google.com/docs/auth/admin/verify-id-tokens for details on how to retrieve an ID token.
+17|whatsap |     at FirebaseTokenVerifier.verifyContent (/root/whatsapp-integration-v6/node_modules/firebase-admin/lib/auth/token-verifier.js:248:19)
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/firebase-admin/lib/auth/token-verifier.js:163:18
+17|whatsap |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+17|whatsap |     at async verifyFirebaseToken (file:///root/whatsapp-integration-v6/whatsapp-integration-v6-index.js:2639:21)
+17|whatsap | Error listing employees: Error: 7 PERMISSION_DENIED: Permission denied on resource project superparty-frontend.
+17|whatsap |     at callErrorFromStatus (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/call.js:32:19)
+17|whatsap |     at Object.onReceiveStatus (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/client.js:359:73)
+17|whatsap |     at Object.onReceiveStatus (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/client-interceptors.js:327:181)
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/resolving-call.js:135:78
+17|whatsap |     at process.processTicksAndRejections (node:internal/process/task_queues:77:11)
+17|whatsap | for call at
+17|whatsap |     at ServiceClientImpl.makeServerStreamRequest (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/client.js:342:32)
+17|whatsap |     at ServiceClientImpl.<anonymous> (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/make-client.js:105:19)
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/v1/firestore_client.js:242:33
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streamingApiCaller.js:38:28
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/google-gax/build/src/normalCalls/timeout.js:44:16
+17|whatsap |     at Object.request (/root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streaming.js:234:40)
+17|whatsap |     at makeRequest (/root/whatsapp-integration-v6/node_modules/retry-request/index.js:159:28)
+17|whatsap |     at retryRequest (/root/whatsapp-integration-v6/node_modules/retry-request/index.js:119:5)
+17|whatsap |     at StreamProxy.setStream (/root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streaming.js:225:37)
+17|whatsap |     at StreamingApiCaller.call (/root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streamingApiCaller.js:54:16)
+17|whatsap | Caused by: Error
+17|whatsap |     at QueryUtil._getResponse (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query-util.js:44:23)
+17|whatsap |     at Query._getResponse (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query.js:784:32)
+17|whatsap |     at Query._get (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query.js:777:35)
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query.js:745:43
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/telemetry/enabled-trace-util.js:110:30
+17|whatsap |     at NoopContextManager.with (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/context/NoopContextManager.js:25:19)
+17|whatsap |     at ContextAPI.with (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/api/context.js:60:46)
+17|whatsap |     at NoopTracer.startActiveSpan (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/trace/NoopTracer.js:65:31)
+17|whatsap |     at ProxyTracer.startActiveSpan (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/trace/ProxyTracer.js:36:24)
+17|whatsap |     at EnabledTraceUtil.startActiveSpan (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/telemetry/enabled-trace-util.js:102:28) {
+17|whatsap |   code: 7,
+17|whatsap |   details: 'Permission denied on resource project superparty-frontend.',
+17|whatsap |   metadata: Metadata {
+17|whatsap |     internalRepr: Map(5) {
+17|whatsap |       'google.rpc.errorinfo-bin' => [Array],
+17|whatsap |       'google.rpc.help-bin' => [Array],
+17|whatsap |       'google.rpc.localizedmessage-bin' => [Array],
+17|whatsap |       'grpc-status-details-bin' => [Array],
+17|whatsap |       'x-debug-tracking-id' => [Array]
+17|whatsap |     },
+17|whatsap |     opaqueData: Map(0) {},
+17|whatsap |     options: {}
+17|whatsap |   },
+17|whatsap |   statusDetails: [
+17|whatsap |     ErrorInfo {
+17|whatsap |       metadata: [Object],
+17|whatsap |       reason: 'CONSUMER_INVALID',
+17|whatsap |       domain: 'googleapis.com'
+17|whatsap |     },
+17|whatsap |     LocalizedMessage {
+17|whatsap |       locale: 'en-US',
+17|whatsap |       message: 'Permission denied on resource project superparty-frontend.'
+17|whatsap |     },
+17|whatsap |     Help { links: [Array] }
+17|whatsap |   ],
+17|whatsap |   reason: 'CONSUMER_INVALID',
+17|whatsap |   domain: 'googleapis.com',
+17|whatsap |   errorInfoMetadata: {
+17|whatsap |     containerInfo: 'superparty-frontend',
+17|whatsap |     service: 'firestore.googleapis.com',
+17|whatsap |     consumer: 'projects/superparty-frontend'
+17|whatsap |   }
+17|whatsap | }
+17|whatsap | Error listing suspended: Error: 7 PERMISSION_DENIED: Permission denied on resource project superparty-frontend.
+17|whatsap |     at callErrorFromStatus (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/call.js:32:19)
+17|whatsap |     at Object.onReceiveStatus (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/client.js:359:73)
+17|whatsap |     at Object.onReceiveStatus (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/client-interceptors.js:327:181)
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/resolving-call.js:135:78
+17|whatsap |     at process.processTicksAndRejections (node:internal/process/task_queues:77:11)
+17|whatsap | for call at
+17|whatsap |     at ServiceClientImpl.makeServerStreamRequest (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/client.js:342:32)
+17|whatsap |     at ServiceClientImpl.<anonymous> (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/make-client.js:105:19)
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/v1/firestore_client.js:242:33
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streamingApiCaller.js:38:28
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/google-gax/build/src/normalCalls/timeout.js:44:16
+17|whatsap |     at Object.request (/root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streaming.js:234:40)
+17|whatsap |     at makeRequest (/root/whatsapp-integration-v6/node_modules/retry-request/index.js:159:28)
+17|whatsap |     at retryRequest (/root/whatsapp-integration-v6/node_modules/retry-request/index.js:119:5)
+17|whatsap |     at StreamProxy.setStream (/root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streaming.js:225:37)
+17|whatsap |     at StreamingApiCaller.call (/root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streamingApiCaller.js:54:16)
+17|whatsap | Caused by: Error
+17|whatsap |     at QueryUtil._getResponse (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query-util.js:44:23)
+17|whatsap |     at Query._getResponse (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query.js:784:32)
+17|whatsap |     at Query._get (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query.js:777:35)
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query.js:745:43
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/telemetry/enabled-trace-util.js:110:30
+17|whatsap |     at NoopContextManager.with (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/context/NoopContextManager.js:25:19)
+17|whatsap |     at ContextAPI.with (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/api/context.js:60:46)
+17|whatsap |     at NoopTracer.startActiveSpan (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/trace/NoopTracer.js:65:31)
+17|whatsap |     at ProxyTracer.startActiveSpan (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/trace/ProxyTracer.js:36:24)
+17|whatsap |     at EnabledTraceUtil.startActiveSpan (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/telemetry/enabled-trace-util.js:102:28) {
+17|whatsap |   code: 7,
+17|whatsap |   details: 'Permission denied on resource project superparty-frontend.',
+17|whatsap |   metadata: Metadata {
+17|whatsap |     internalRepr: Map(5) {
+17|whatsap |       'google.rpc.errorinfo-bin' => [Array],
+17|whatsap |       'google.rpc.help-bin' => [Array],
+17|whatsap |       'google.rpc.localizedmessage-bin' => [Array],
+17|whatsap |       'grpc-status-details-bin' => [Array],
+17|whatsap |       'x-debug-tracking-id' => [Array]
+17|whatsap |     },
+17|whatsap |     opaqueData: Map(0) {},
+17|whatsap |     options: {}
+17|whatsap |   },
+17|whatsap |   statusDetails: [
+17|whatsap |     ErrorInfo {
+17|whatsap |       metadata: [Object],
+17|whatsap |       reason: 'CONSUMER_INVALID',
+17|whatsap |       domain: 'googleapis.com'
+17|whatsap |     },
+17|whatsap |     LocalizedMessage {
+17|whatsap |       locale: 'en-US',
+17|whatsap |       message: 'Permission denied on resource project superparty-frontend.'
+17|whatsap |     },
+17|whatsap |     Help { links: [Array] }
+17|whatsap |   ],
+17|whatsap |   reason: 'CONSUMER_INVALID',
+17|whatsap |   domain: 'googleapis.com',
+17|whatsap |   errorInfoMetadata: {
+17|whatsap |     consumer: 'projects/superparty-frontend',
+17|whatsap |     containerInfo: 'superparty-frontend',
+17|whatsap |     service: 'firestore.googleapis.com'
+17|whatsap |   }
+17|whatsap | }
+17|whatsap | Error listing requests: Error: 7 PERMISSION_DENIED: Permission denied on resource project superparty-frontend.
+17|whatsap |     at callErrorFromStatus (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/call.js:32:19)
+17|whatsap |     at Object.onReceiveStatus (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/client.js:359:73)
+17|whatsap |     at Object.onReceiveStatus (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/client-interceptors.js:327:181)
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/resolving-call.js:135:78
+17|whatsap |     at process.processTicksAndRejections (node:internal/process/task_queues:77:11)
+17|whatsap | for call at
+17|whatsap |     at ServiceClientImpl.makeServerStreamRequest (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/client.js:342:32)
+17|whatsap |     at ServiceClientImpl.<anonymous> (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/make-client.js:105:19)
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/v1/firestore_client.js:242:33
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streamingApiCaller.js:38:28
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/google-gax/build/src/normalCalls/timeout.js:44:16
+17|whatsap |     at Object.request (/root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streaming.js:234:40)
+17|whatsap |     at makeRequest (/root/whatsapp-integration-v6/node_modules/retry-request/index.js:159:28)
+17|whatsap |     at retryRequest (/root/whatsapp-integration-v6/node_modules/retry-request/index.js:119:5)
+17|whatsap |     at StreamProxy.setStream (/root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streaming.js:225:37)
+17|whatsap |     at StreamingApiCaller.call (/root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streamingApiCaller.js:54:16)
+17|whatsap | Caused by: Error
+17|whatsap |     at QueryUtil._getResponse (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query-util.js:44:23)
+17|whatsap |     at CollectionReference._getResponse (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query.js:784:32)
+17|whatsap |     at CollectionReference._get (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query.js:777:35)
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query.js:745:43
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/telemetry/enabled-trace-util.js:110:30
+17|whatsap |     at NoopContextManager.with (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/context/NoopContextManager.js:25:19)
+17|whatsap |     at ContextAPI.with (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/api/context.js:60:46)
+17|whatsap |     at NoopTracer.startActiveSpan (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/trace/NoopTracer.js:65:31)
+17|whatsap |     at ProxyTracer.startActiveSpan (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/trace/ProxyTracer.js:36:24)
+17|whatsap |     at EnabledTraceUtil.startActiveSpan (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/telemetry/enabled-trace-util.js:102:28) {
+17|whatsap |   code: 7,
+17|whatsap |   details: 'Permission denied on resource project superparty-frontend.',
+17|whatsap |   metadata: Metadata {
+17|whatsap |     internalRepr: Map(5) {
+17|whatsap |       'google.rpc.errorinfo-bin' => [Array],
+17|whatsap |       'google.rpc.help-bin' => [Array],
+17|whatsap |       'google.rpc.localizedmessage-bin' => [Array],
+17|whatsap |       'grpc-status-details-bin' => [Array],
+17|whatsap |       'x-debug-tracking-id' => [Array]
+17|whatsap |     },
+17|whatsap |     opaqueData: Map(0) {},
+17|whatsap |     options: {}
+17|whatsap |   },
+17|whatsap |   statusDetails: [
+17|whatsap |     ErrorInfo {
+17|whatsap |       metadata: [Object],
+17|whatsap |       reason: 'CONSUMER_INVALID',
+17|whatsap |       domain: 'googleapis.com'
+17|whatsap |     },
+17|whatsap |     LocalizedMessage {
+17|whatsap |       locale: 'en-US',
+17|whatsap |       message: 'Permission denied on resource project superparty-frontend.'
+17|whatsap |     },
+17|whatsap |     Help { links: [Array] }
+17|whatsap |   ],
+17|whatsap |   reason: 'CONSUMER_INVALID',
+17|whatsap |   domain: 'googleapis.com',
+17|whatsap |   errorInfoMetadata: {
+17|whatsap |     containerInfo: 'superparty-frontend',
+17|whatsap |     service: 'firestore.googleapis.com',
+17|whatsap |     consumer: 'projects/superparty-frontend'
+17|whatsap |   }
+17|whatsap | }
+17|whatsap | ⚠️ The printQRInTerminal option has been deprecated. You will no longer receive QR codes in the terminal automatically. Please listen to the connection.update event yourself and handle the QR your way. You can remove this message by removing this opttion. This message will be removed in a future version.
+17|whatsap | ⚠️ The printQRInTerminal option has been deprecated. You will no longer receive QR codes in the terminal automatically. Please listen to the connection.update event yourself and handle the QR your way. You can remove this message by removing this opttion. This message will be removed in a future version.
+17|whatsap | Error: Google not initialized
+17|whatsap |     at flushChatBatch (file:///root/whatsapp-integration-v6/google-sync.js:141:25)
+17|whatsap |     at Timeout._onTimeout (file:///root/whatsapp-integration-v6/google-sync.js:111:68)
+17|whatsap |     at listOnTimeout (node:internal/timers:581:17)
+17|whatsap |     at process.processTimers (node:internal/timers:519:7)
+17|whatsap | Error: Google not initialized
+17|whatsap |     at flushMessageBatch (file:///root/whatsapp-integration-v6/google-sync.js:216:25)
+17|whatsap |     at Timeout._onTimeout (file:///root/whatsapp-integration-v6/google-sync.js:131:66)
+17|whatsap |     at listOnTimeout (node:internal/timers:581:17)
+17|whatsap |     at process.processTimers (node:internal/timers:519:7)
+17|whatsap | Error listing employees: Error: 7 PERMISSION_DENIED: Permission denied on resource project superparty-frontend.
+17|whatsap |     at callErrorFromStatus (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/call.js:32:19)
+17|whatsap |     at Object.onReceiveStatus (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/client.js:359:73)
+17|whatsap |     at Object.onReceiveStatus (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/client-interceptors.js:327:181)
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/resolving-call.js:135:78
+17|whatsap |     at process.processTicksAndRejections (node:internal/process/task_queues:77:11)
+17|whatsap | for call at
+17|whatsap |     at ServiceClientImpl.makeServerStreamRequest (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/client.js:342:32)
+17|whatsap |     at ServiceClientImpl.<anonymous> (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/make-client.js:105:19)
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/v1/firestore_client.js:242:33
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streamingApiCaller.js:38:28
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/google-gax/build/src/normalCalls/timeout.js:44:16
+17|whatsap |     at Object.request (/root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streaming.js:234:40)
+17|whatsap |     at makeRequest (/root/whatsapp-integration-v6/node_modules/retry-request/index.js:159:28)
+17|whatsap |     at retryRequest (/root/whatsapp-integration-v6/node_modules/retry-request/index.js:119:5)
+17|whatsap |     at StreamProxy.setStream (/root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streaming.js:225:37)
+17|whatsap |     at StreamingApiCaller.call (/root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streamingApiCaller.js:54:16)
+17|whatsap | Caused by: Error
+17|whatsap |     at QueryUtil._getResponse (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query-util.js:44:23)
+17|whatsap |     at Query._getResponse (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query.js:784:32)
+17|whatsap |     at Query._get (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query.js:777:35)
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query.js:745:43
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/telemetry/enabled-trace-util.js:110:30
+17|whatsap |     at NoopContextManager.with (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/context/NoopContextManager.js:25:19)
+17|whatsap |     at ContextAPI.with (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/api/context.js:60:46)
+17|whatsap |     at NoopTracer.startActiveSpan (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/trace/NoopTracer.js:65:31)
+17|whatsap |     at ProxyTracer.startActiveSpan (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/trace/ProxyTracer.js:36:24)
+17|whatsap |     at EnabledTraceUtil.startActiveSpan (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/telemetry/enabled-trace-util.js:102:28) {
+17|whatsap |   code: 7,
+17|whatsap |   details: 'Permission denied on resource project superparty-frontend.',
+17|whatsap |   metadata: Metadata {
+17|whatsap |     internalRepr: Map(5) {
+17|whatsap |       'google.rpc.errorinfo-bin' => [Array],
+17|whatsap |       'google.rpc.help-bin' => [Array],
+17|whatsap |       'google.rpc.localizedmessage-bin' => [Array],
+17|whatsap |       'grpc-status-details-bin' => [Array],
+17|whatsap |       'x-debug-tracking-id' => [Array]
+17|whatsap |     },
+17|whatsap |     opaqueData: Map(0) {},
+17|whatsap |     options: {}
+17|whatsap |   },
+17|whatsap |   statusDetails: [
+17|whatsap |     ErrorInfo {
+17|whatsap |       metadata: [Object],
+17|whatsap |       reason: 'CONSUMER_INVALID',
+17|whatsap |       domain: 'googleapis.com'
+17|whatsap |     },
+17|whatsap |     LocalizedMessage {
+17|whatsap |       locale: 'en-US',
+17|whatsap |       message: 'Permission denied on resource project superparty-frontend.'
+17|whatsap |     },
+17|whatsap |     Help { links: [Array] }
+17|whatsap |   ],
+17|whatsap |   reason: 'CONSUMER_INVALID',
+17|whatsap |   domain: 'googleapis.com',
+17|whatsap |   errorInfoMetadata: {
+17|whatsap |     service: 'firestore.googleapis.com',
+17|whatsap |     containerInfo: 'superparty-frontend',
+17|whatsap |     consumer: 'projects/superparty-frontend'
+17|whatsap |   }
+17|whatsap | }
+17|whatsap | Error listing suspended: Error: 7 PERMISSION_DENIED: Permission denied on resource project superparty-frontend.
+17|whatsap |     at callErrorFromStatus (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/call.js:32:19)
+17|whatsap |     at Object.onReceiveStatus (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/client.js:359:73)
+17|whatsap |     at Object.onReceiveStatus (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/client-interceptors.js:327:181)
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/resolving-call.js:135:78
+17|whatsap |     at process.processTicksAndRejections (node:internal/process/task_queues:77:11)
+17|whatsap | for call at
+17|whatsap |     at ServiceClientImpl.makeServerStreamRequest (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/client.js:342:32)
+17|whatsap |     at ServiceClientImpl.<anonymous> (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/make-client.js:105:19)
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/v1/firestore_client.js:242:33
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streamingApiCaller.js:38:28
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/google-gax/build/src/normalCalls/timeout.js:44:16
+17|whatsap |     at Object.request (/root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streaming.js:234:40)
+17|whatsap |     at makeRequest (/root/whatsapp-integration-v6/node_modules/retry-request/index.js:159:28)
+17|whatsap |     at retryRequest (/root/whatsapp-integration-v6/node_modules/retry-request/index.js:119:5)
+17|whatsap |     at StreamProxy.setStream (/root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streaming.js:225:37)
+17|whatsap |     at StreamingApiCaller.call (/root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streamingApiCaller.js:54:16)
+17|whatsap | Caused by: Error
+17|whatsap |     at QueryUtil._getResponse (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query-util.js:44:23)
+17|whatsap |     at Query._getResponse (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query.js:784:32)
+17|whatsap |     at Query._get (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query.js:777:35)
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query.js:745:43
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/telemetry/enabled-trace-util.js:110:30
+17|whatsap |     at NoopContextManager.with (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/context/NoopContextManager.js:25:19)
+17|whatsap |     at ContextAPI.with (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/api/context.js:60:46)
+17|whatsap |     at NoopTracer.startActiveSpan (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/trace/NoopTracer.js:65:31)
+17|whatsap |     at ProxyTracer.startActiveSpan (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/trace/ProxyTracer.js:36:24)
+17|whatsap |     at EnabledTraceUtil.startActiveSpan (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/telemetry/enabled-trace-util.js:102:28) {
+17|whatsap |   code: 7,
+17|whatsap |   details: 'Permission denied on resource project superparty-frontend.',
+17|whatsap |   metadata: Metadata {
+17|whatsap |     internalRepr: Map(5) {
+17|whatsap |       'google.rpc.errorinfo-bin' => [Array],
+17|whatsap |       'google.rpc.help-bin' => [Array],
+17|whatsap |       'google.rpc.localizedmessage-bin' => [Array],
+17|whatsap |       'grpc-status-details-bin' => [Array],
+17|whatsap |       'x-debug-tracking-id' => [Array]
+17|whatsap |     },
+17|whatsap |     opaqueData: Map(0) {},
+17|whatsap |     options: {}
+17|whatsap |   },
+17|whatsap |   statusDetails: [
+17|whatsap |     ErrorInfo {
+17|whatsap |       metadata: [Object],
+17|whatsap |       reason: 'CONSUMER_INVALID',
+17|whatsap |       domain: 'googleapis.com'
+17|whatsap |     },
+17|whatsap |     LocalizedMessage {
+17|whatsap |       locale: 'en-US',
+17|whatsap |       message: 'Permission denied on resource project superparty-frontend.'
+17|whatsap |     },
+17|whatsap |     Help { links: [Array] }
+17|whatsap |   ],
+17|whatsap |   reason: 'CONSUMER_INVALID',
+17|whatsap |   domain: 'googleapis.com',
+17|whatsap |   errorInfoMetadata: {
+17|whatsap |     containerInfo: 'superparty-frontend',
+17|whatsap |     consumer: 'projects/superparty-frontend',
+17|whatsap |     service: 'firestore.googleapis.com'
+17|whatsap |   }
+17|whatsap | }
+17|whatsap | Error listing requests: Error: 7 PERMISSION_DENIED: Permission denied on resource project superparty-frontend.
+17|whatsap |     at callErrorFromStatus (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/call.js:32:19)
+17|whatsap |     at Object.onReceiveStatus (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/client.js:359:73)
+17|whatsap |     at Object.onReceiveStatus (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/client-interceptors.js:327:181)
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/resolving-call.js:135:78
+17|whatsap |     at process.processTicksAndRejections (node:internal/process/task_queues:77:11)
+17|whatsap | for call at
+17|whatsap |     at ServiceClientImpl.makeServerStreamRequest (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/client.js:342:32)
+17|whatsap |     at ServiceClientImpl.<anonymous> (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/make-client.js:105:19)
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/v1/firestore_client.js:242:33
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streamingApiCaller.js:38:28
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/google-gax/build/src/normalCalls/timeout.js:44:16
+17|whatsap |     at Object.request (/root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streaming.js:234:40)
+17|whatsap |     at makeRequest (/root/whatsapp-integration-v6/node_modules/retry-request/index.js:159:28)
+17|whatsap |     at retryRequest (/root/whatsapp-integration-v6/node_modules/retry-request/index.js:119:5)
+17|whatsap |     at StreamProxy.setStream (/root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streaming.js:225:37)
+17|whatsap |     at StreamingApiCaller.call (/root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streamingApiCaller.js:54:16)
+17|whatsap | Caused by: Error
+17|whatsap |     at QueryUtil._getResponse (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query-util.js:44:23)
+17|whatsap |     at CollectionReference._getResponse (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query.js:784:32)
+17|whatsap |     at CollectionReference._get (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query.js:777:35)
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query.js:745:43
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/telemetry/enabled-trace-util.js:110:30
+17|whatsap |     at NoopContextManager.with (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/context/NoopContextManager.js:25:19)
+17|whatsap |     at ContextAPI.with (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/api/context.js:60:46)
+17|whatsap |     at NoopTracer.startActiveSpan (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/trace/NoopTracer.js:65:31)
+17|whatsap |     at ProxyTracer.startActiveSpan (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/trace/ProxyTracer.js:36:24)
+17|whatsap |     at EnabledTraceUtil.startActiveSpan (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/telemetry/enabled-trace-util.js:102:28) {
+17|whatsap |   code: 7,
+17|whatsap |   details: 'Permission denied on resource project superparty-frontend.',
+17|whatsap |   metadata: Metadata {
+17|whatsap |     internalRepr: Map(5) {
+17|whatsap |       'google.rpc.errorinfo-bin' => [Array],
+17|whatsap |       'google.rpc.help-bin' => [Array],
+17|whatsap |       'google.rpc.localizedmessage-bin' => [Array],
+17|whatsap |       'grpc-status-details-bin' => [Array],
+17|whatsap |       'x-debug-tracking-id' => [Array]
+17|whatsap |     },
+17|whatsap |     opaqueData: Map(0) {},
+17|whatsap |     options: {}
+17|whatsap |   },
+17|whatsap |   statusDetails: [
+17|whatsap |     ErrorInfo {
+17|whatsap |       metadata: [Object],
+17|whatsap |       reason: 'CONSUMER_INVALID',
+17|whatsap |       domain: 'googleapis.com'
+17|whatsap |     },
+17|whatsap |     LocalizedMessage {
+17|whatsap |       locale: 'en-US',
+17|whatsap |       message: 'Permission denied on resource project superparty-frontend.'
+17|whatsap |     },
+17|whatsap |     Help { links: [Array] }
+17|whatsap |   ],
+17|whatsap |   reason: 'CONSUMER_INVALID',
+17|whatsap |   domain: 'googleapis.com',
+17|whatsap |   errorInfoMetadata: {
+17|whatsap |     service: 'firestore.googleapis.com',
+17|whatsap |     consumer: 'projects/superparty-frontend',
+17|whatsap |     containerInfo: 'superparty-frontend'
+17|whatsap |   }
+17|whatsap | }
+17|whatsap | Token verify error: Error: Firebase ID token has incorrect algorithm. Expected "RS256" but got "ES256". See https://firebase.google.com/docs/auth/admin/verify-id-tokens for details on how to retrieve an ID token.
+17|whatsap |     at FirebaseTokenVerifier.verifyContent (/root/whatsapp-integration-v6/node_modules/firebase-admin/lib/auth/token-verifier.js:248:19)
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/firebase-admin/lib/auth/token-verifier.js:163:18
+17|whatsap |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+17|whatsap |     at async verifyFirebaseToken (file:///root/whatsapp-integration-v6/whatsapp-integration-v6-index.js:2639:21)
+17|whatsap | ⚠️ The printQRInTerminal option has been deprecated. You will no longer receive QR codes in the terminal automatically. Please listen to the connection.update event yourself and handle the QR your way. You can remove this message by removing this opttion. This message will be removed in a future version.
+17|whatsap | ⚠️ The printQRInTerminal option has been deprecated. You will no longer receive QR codes in the terminal automatically. Please listen to the connection.update event yourself and handle the QR your way. You can remove this message by removing this opttion. This message will be removed in a future version.
+17|whatsap | Error: Google not initialized
+17|whatsap |     at flushChatBatch (file:///root/whatsapp-integration-v6/google-sync.js:141:25)
+17|whatsap |     at Timeout._onTimeout (file:///root/whatsapp-integration-v6/google-sync.js:111:68)
+17|whatsap |     at listOnTimeout (node:internal/timers:581:17)
+17|whatsap |     at process.processTimers (node:internal/timers:519:7)
+17|whatsap | Error: Google not initialized
+17|whatsap |     at flushMessageBatch (file:///root/whatsapp-integration-v6/google-sync.js:216:25)
+17|whatsap |     at Timeout._onTimeout (file:///root/whatsapp-integration-v6/google-sync.js:131:66)
+17|whatsap |     at listOnTimeout (node:internal/timers:581:17)
+17|whatsap |     at process.processTimers (node:internal/timers:519:7)
+17|whatsap | Error listing employees: Error: 7 PERMISSION_DENIED: Permission denied on resource project superparty-frontend.
+17|whatsap |     at callErrorFromStatus (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/call.js:32:19)
+17|whatsap |     at Object.onReceiveStatus (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/client.js:359:73)
+17|whatsap |     at Object.onReceiveStatus (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/client-interceptors.js:327:181)
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/resolving-call.js:135:78
+17|whatsap |     at process.processTicksAndRejections (node:internal/process/task_queues:77:11)
+17|whatsap | for call at
+17|whatsap |     at ServiceClientImpl.makeServerStreamRequest (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/client.js:342:32)
+17|whatsap |     at ServiceClientImpl.<anonymous> (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/make-client.js:105:19)
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/v1/firestore_client.js:242:33
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streamingApiCaller.js:38:28
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/google-gax/build/src/normalCalls/timeout.js:44:16
+17|whatsap |     at Object.request (/root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streaming.js:234:40)
+17|whatsap |     at makeRequest (/root/whatsapp-integration-v6/node_modules/retry-request/index.js:159:28)
+17|whatsap |     at retryRequest (/root/whatsapp-integration-v6/node_modules/retry-request/index.js:119:5)
+17|whatsap |     at StreamProxy.setStream (/root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streaming.js:225:37)
+17|whatsap |     at StreamingApiCaller.call (/root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streamingApiCaller.js:54:16)
+17|whatsap | Caused by: Error
+17|whatsap |     at QueryUtil._getResponse (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query-util.js:44:23)
+17|whatsap |     at Query._getResponse (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query.js:784:32)
+17|whatsap |     at Query._get (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query.js:777:35)
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query.js:745:43
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/telemetry/enabled-trace-util.js:110:30
+17|whatsap |     at NoopContextManager.with (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/context/NoopContextManager.js:25:19)
+17|whatsap |     at ContextAPI.with (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/api/context.js:60:46)
+17|whatsap |     at NoopTracer.startActiveSpan (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/trace/NoopTracer.js:65:31)
+17|whatsap |     at ProxyTracer.startActiveSpan (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/trace/ProxyTracer.js:36:24)
+17|whatsap |     at EnabledTraceUtil.startActiveSpan (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/telemetry/enabled-trace-util.js:102:28) {
+17|whatsap |   code: 7,
+17|whatsap |   details: 'Permission denied on resource project superparty-frontend.',
+17|whatsap |   metadata: Metadata {
+17|whatsap |     internalRepr: Map(5) {
+17|whatsap |       'google.rpc.errorinfo-bin' => [Array],
+17|whatsap |       'google.rpc.help-bin' => [Array],
+17|whatsap |       'google.rpc.localizedmessage-bin' => [Array],
+17|whatsap |       'grpc-status-details-bin' => [Array],
+17|whatsap |       'x-debug-tracking-id' => [Array]
+17|whatsap |     },
+17|whatsap |     opaqueData: Map(0) {},
+17|whatsap |     options: {}
+17|whatsap |   },
+17|whatsap |   statusDetails: [
+17|whatsap |     ErrorInfo {
+17|whatsap |       metadata: [Object],
+17|whatsap |       reason: 'CONSUMER_INVALID',
+17|whatsap |       domain: 'googleapis.com'
+17|whatsap |     },
+17|whatsap |     LocalizedMessage {
+17|whatsap |       locale: 'en-US',
+17|whatsap |       message: 'Permission denied on resource project superparty-frontend.'
+17|whatsap |     },
+17|whatsap |     Help { links: [Array] }
+17|whatsap |   ],
+17|whatsap |   reason: 'CONSUMER_INVALID',
+17|whatsap |   domain: 'googleapis.com',
+17|whatsap |   errorInfoMetadata: {
+17|whatsap |     containerInfo: 'superparty-frontend',
+17|whatsap |     service: 'firestore.googleapis.com',
+17|whatsap |     consumer: 'projects/superparty-frontend'
+17|whatsap |   }
+17|whatsap | }
+17|whatsap | Error listing suspended: Error: 7 PERMISSION_DENIED: Permission denied on resource project superparty-frontend.
+17|whatsap |     at callErrorFromStatus (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/call.js:32:19)
+17|whatsap |     at Object.onReceiveStatus (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/client.js:359:73)
+17|whatsap |     at Object.onReceiveStatus (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/client-interceptors.js:327:181)
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/resolving-call.js:135:78
+17|whatsap |     at process.processTicksAndRejections (node:internal/process/task_queues:77:11)
+17|whatsap | for call at
+17|whatsap |     at ServiceClientImpl.makeServerStreamRequest (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/client.js:342:32)
+17|whatsap |     at ServiceClientImpl.<anonymous> (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/make-client.js:105:19)
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/v1/firestore_client.js:242:33
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streamingApiCaller.js:38:28
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/google-gax/build/src/normalCalls/timeout.js:44:16
+17|whatsap |     at Object.request (/root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streaming.js:234:40)
+17|whatsap |     at makeRequest (/root/whatsapp-integration-v6/node_modules/retry-request/index.js:159:28)
+17|whatsap |     at retryRequest (/root/whatsapp-integration-v6/node_modules/retry-request/index.js:119:5)
+17|whatsap |     at StreamProxy.setStream (/root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streaming.js:225:37)
+17|whatsap |     at StreamingApiCaller.call (/root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streamingApiCaller.js:54:16)
+17|whatsap | Caused by: Error
+17|whatsap |     at QueryUtil._getResponse (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query-util.js:44:23)
+17|whatsap |     at Query._getResponse (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query.js:784:32)
+17|whatsap |     at Query._get (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query.js:777:35)
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query.js:745:43
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/telemetry/enabled-trace-util.js:110:30
+17|whatsap |     at NoopContextManager.with (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/context/NoopContextManager.js:25:19)
+17|whatsap |     at ContextAPI.with (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/api/context.js:60:46)
+17|whatsap |     at NoopTracer.startActiveSpan (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/trace/NoopTracer.js:65:31)
+17|whatsap |     at ProxyTracer.startActiveSpan (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/trace/ProxyTracer.js:36:24)
+17|whatsap |     at EnabledTraceUtil.startActiveSpan (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/telemetry/enabled-trace-util.js:102:28) {
+17|whatsap |   code: 7,
+17|whatsap |   details: 'Permission denied on resource project superparty-frontend.',
+17|whatsap |   metadata: Metadata {
+17|whatsap |     internalRepr: Map(5) {
+17|whatsap |       'google.rpc.errorinfo-bin' => [Array],
+17|whatsap |       'google.rpc.help-bin' => [Array],
+17|whatsap |       'google.rpc.localizedmessage-bin' => [Array],
+17|whatsap |       'grpc-status-details-bin' => [Array],
+17|whatsap |       'x-debug-tracking-id' => [Array]
+17|whatsap |     },
+17|whatsap |     opaqueData: Map(0) {},
+17|whatsap |     options: {}
+17|whatsap |   },
+17|whatsap |   statusDetails: [
+17|whatsap |     ErrorInfo {
+17|whatsap |       metadata: [Object],
+17|whatsap |       reason: 'CONSUMER_INVALID',
+17|whatsap |       domain: 'googleapis.com'
+17|whatsap |     },
+17|whatsap |     LocalizedMessage {
+17|whatsap |       locale: 'en-US',
+17|whatsap |       message: 'Permission denied on resource project superparty-frontend.'
+17|whatsap |     },
+17|whatsap |     Help { links: [Array] }
+17|whatsap |   ],
+17|whatsap |   reason: 'CONSUMER_INVALID',
+17|whatsap |   domain: 'googleapis.com',
+17|whatsap |   errorInfoMetadata: {
+17|whatsap |     consumer: 'projects/superparty-frontend',
+17|whatsap |     service: 'firestore.googleapis.com',
+17|whatsap |     containerInfo: 'superparty-frontend'
+17|whatsap |   }
+17|whatsap | }
+17|whatsap | Error listing requests: Error: 7 PERMISSION_DENIED: Permission denied on resource project superparty-frontend.
+17|whatsap |     at callErrorFromStatus (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/call.js:32:19)
+17|whatsap |     at Object.onReceiveStatus (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/client.js:359:73)
+17|whatsap |     at Object.onReceiveStatus (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/client-interceptors.js:327:181)
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/resolving-call.js:135:78
+17|whatsap |     at process.processTicksAndRejections (node:internal/process/task_queues:77:11)
+17|whatsap | for call at
+17|whatsap |     at ServiceClientImpl.makeServerStreamRequest (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/client.js:342:32)
+17|whatsap |     at ServiceClientImpl.<anonymous> (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/make-client.js:105:19)
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/v1/firestore_client.js:242:33
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streamingApiCaller.js:38:28
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/google-gax/build/src/normalCalls/timeout.js:44:16
+17|whatsap |     at Object.request (/root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streaming.js:234:40)
+17|whatsap |     at makeRequest (/root/whatsapp-integration-v6/node_modules/retry-request/index.js:159:28)
+17|whatsap |     at retryRequest (/root/whatsapp-integration-v6/node_modules/retry-request/index.js:119:5)
+17|whatsap |     at StreamProxy.setStream (/root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streaming.js:225:37)
+17|whatsap |     at StreamingApiCaller.call (/root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streamingApiCaller.js:54:16)
+17|whatsap | Caused by: Error
+17|whatsap |     at QueryUtil._getResponse (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query-util.js:44:23)
+17|whatsap |     at CollectionReference._getResponse (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query.js:784:32)
+17|whatsap |     at CollectionReference._get (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query.js:777:35)
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query.js:745:43
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/telemetry/enabled-trace-util.js:110:30
+17|whatsap |     at NoopContextManager.with (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/context/NoopContextManager.js:25:19)
+17|whatsap |     at ContextAPI.with (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/api/context.js:60:46)
+17|whatsap |     at NoopTracer.startActiveSpan (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/trace/NoopTracer.js:65:31)
+17|whatsap |     at ProxyTracer.startActiveSpan (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/trace/ProxyTracer.js:36:24)
+17|whatsap |     at EnabledTraceUtil.startActiveSpan (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/telemetry/enabled-trace-util.js:102:28) {
+17|whatsap |   code: 7,
+17|whatsap |   details: 'Permission denied on resource project superparty-frontend.',
+17|whatsap |   metadata: Metadata {
+17|whatsap |     internalRepr: Map(5) {
+17|whatsap |       'google.rpc.errorinfo-bin' => [Array],
+17|whatsap |       'google.rpc.help-bin' => [Array],
+17|whatsap |       'google.rpc.localizedmessage-bin' => [Array],
+17|whatsap |       'grpc-status-details-bin' => [Array],
+17|whatsap |       'x-debug-tracking-id' => [Array]
+17|whatsap |     },
+17|whatsap |     opaqueData: Map(0) {},
+17|whatsap |     options: {}
+17|whatsap |   },
+17|whatsap |   statusDetails: [
+17|whatsap |     ErrorInfo {
+17|whatsap |       metadata: [Object],
+17|whatsap |       reason: 'CONSUMER_INVALID',
+17|whatsap |       domain: 'googleapis.com'
+17|whatsap |     },
+17|whatsap |     LocalizedMessage {
+17|whatsap |       locale: 'en-US',
+17|whatsap |       message: 'Permission denied on resource project superparty-frontend.'
+17|whatsap |     },
+17|whatsap |     Help { links: [Array] }
+17|whatsap |   ],
+17|whatsap |   reason: 'CONSUMER_INVALID',
+17|whatsap |   domain: 'googleapis.com',
+17|whatsap |   errorInfoMetadata: {
+17|whatsap |     containerInfo: 'superparty-frontend',
+17|whatsap |     service: 'firestore.googleapis.com',
+17|whatsap |     consumer: 'projects/superparty-frontend'
+17|whatsap |   }
+17|whatsap | }
+17|whatsap | Token verify error: Error: Firebase ID token has incorrect algorithm. Expected "RS256" but got "ES256". See https://firebase.google.com/docs/auth/admin/verify-id-tokens for details on how to retrieve an ID token.
+17|whatsap |     at FirebaseTokenVerifier.verifyContent (/root/whatsapp-integration-v6/node_modules/firebase-admin/lib/auth/token-verifier.js:248:19)
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/firebase-admin/lib/auth/token-verifier.js:163:18
+17|whatsap |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+17|whatsap |     at async verifyFirebaseToken (file:///root/whatsapp-integration-v6/whatsapp-integration-v6-index.js:2639:21)
+17|whatsap | Token verify error: Error: Firebase ID token has incorrect algorithm. Expected "RS256" but got "ES256". See https://firebase.google.com/docs/auth/admin/verify-id-tokens for details on how to retrieve an ID token.
+17|whatsap |     at FirebaseTokenVerifier.verifyContent (/root/whatsapp-integration-v6/node_modules/firebase-admin/lib/auth/token-verifier.js:248:19)
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/firebase-admin/lib/auth/token-verifier.js:163:18
+17|whatsap |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+17|whatsap |     at async verifyFirebaseToken (file:///root/whatsapp-integration-v6/whatsapp-integration-v6-index.js:2639:21)
+17|whatsap | Token verify error: Error: Firebase ID token has incorrect algorithm. Expected "RS256" but got "ES256". See https://firebase.google.com/docs/auth/admin/verify-id-tokens for details on how to retrieve an ID token.
+17|whatsap |     at FirebaseTokenVerifier.verifyContent (/root/whatsapp-integration-v6/node_modules/firebase-admin/lib/auth/token-verifier.js:248:19)
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/firebase-admin/lib/auth/token-verifier.js:163:18
+17|whatsap |     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+17|whatsap |     at async verifyFirebaseToken (file:///root/whatsapp-integration-v6/whatsapp-integration-v6-index.js:2639:21)
+17|whatsap | Error listing requests: Error: 7 PERMISSION_DENIED: Permission denied on resource project superparty-frontend.
+17|whatsap |     at callErrorFromStatus (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/call.js:32:19)
+17|whatsap |     at Object.onReceiveStatus (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/client.js:359:73)
+17|whatsap |     at Object.onReceiveStatus (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/client-interceptors.js:327:181)
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/resolving-call.js:135:78
+17|whatsap |     at process.processTicksAndRejections (node:internal/process/task_queues:77:11)
+17|whatsap | for call at
+17|whatsap |     at ServiceClientImpl.makeServerStreamRequest (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/client.js:342:32)
+17|whatsap |     at ServiceClientImpl.<anonymous> (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/make-client.js:105:19)
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/v1/firestore_client.js:242:33
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streamingApiCaller.js:38:28
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/google-gax/build/src/normalCalls/timeout.js:44:16
+17|whatsap |     at Object.request (/root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streaming.js:234:40)
+17|whatsap |     at makeRequest (/root/whatsapp-integration-v6/node_modules/retry-request/index.js:159:28)
+17|whatsap |     at retryRequest (/root/whatsapp-integration-v6/node_modules/retry-request/index.js:119:5)
+17|whatsap |     at StreamProxy.setStream (/root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streaming.js:225:37)
+17|whatsap |     at StreamingApiCaller.call (/root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streamingApiCaller.js:54:16)
+17|whatsap | Caused by: Error
+17|whatsap |     at QueryUtil._getResponse (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query-util.js:44:23)
+17|whatsap |     at CollectionReference._getResponse (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query.js:784:32)
+17|whatsap |     at CollectionReference._get (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query.js:777:35)
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query.js:745:43
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/telemetry/enabled-trace-util.js:110:30
+17|whatsap |     at NoopContextManager.with (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/context/NoopContextManager.js:25:19)
+17|whatsap |     at ContextAPI.with (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/api/context.js:60:46)
+17|whatsap |     at NoopTracer.startActiveSpan (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/trace/NoopTracer.js:65:31)
+17|whatsap |     at ProxyTracer.startActiveSpan (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/trace/ProxyTracer.js:36:24)
+17|whatsap |     at EnabledTraceUtil.startActiveSpan (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/telemetry/enabled-trace-util.js:102:28) {
+17|whatsap |   code: 7,
+17|whatsap |   details: 'Permission denied on resource project superparty-frontend.',
+17|whatsap |   metadata: Metadata {
+17|whatsap |     internalRepr: Map(5) {
+17|whatsap |       'google.rpc.errorinfo-bin' => [Array],
+17|whatsap |       'google.rpc.help-bin' => [Array],
+17|whatsap |       'google.rpc.localizedmessage-bin' => [Array],
+17|whatsap |       'grpc-status-details-bin' => [Array],
+17|whatsap |       'x-debug-tracking-id' => [Array]
+17|whatsap |     },
+17|whatsap |     opaqueData: Map(0) {},
+17|whatsap |     options: {}
+17|whatsap |   },
+17|whatsap |   statusDetails: [
+17|whatsap |     ErrorInfo {
+17|whatsap |       metadata: [Object],
+17|whatsap |       reason: 'CONSUMER_INVALID',
+17|whatsap |       domain: 'googleapis.com'
+17|whatsap |     },
+17|whatsap |     LocalizedMessage {
+17|whatsap |       locale: 'en-US',
+17|whatsap |       message: 'Permission denied on resource project superparty-frontend.'
+17|whatsap |     },
+17|whatsap |     Help { links: [Array] }
+17|whatsap |   ],
+17|whatsap |   reason: 'CONSUMER_INVALID',
+17|whatsap |   domain: 'googleapis.com',
+17|whatsap |   errorInfoMetadata: {
+17|whatsap |     containerInfo: 'superparty-frontend',
+17|whatsap |     consumer: 'projects/superparty-frontend',
+17|whatsap |     service: 'firestore.googleapis.com'
+17|whatsap |   }
+17|whatsap | }
+17|whatsap | Error listing employees: Error: 7 PERMISSION_DENIED: Permission denied on resource project superparty-frontend.
+17|whatsap |     at callErrorFromStatus (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/call.js:32:19)
+17|whatsap |     at Object.onReceiveStatus (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/client.js:359:73)
+17|whatsap |     at Object.onReceiveStatus (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/client-interceptors.js:327:181)
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/resolving-call.js:135:78
+17|whatsap |     at process.processTicksAndRejections (node:internal/process/task_queues:77:11)
+17|whatsap | for call at
+17|whatsap |     at ServiceClientImpl.makeServerStreamRequest (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/client.js:342:32)
+17|whatsap |     at ServiceClientImpl.<anonymous> (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/make-client.js:105:19)
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/v1/firestore_client.js:242:33
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streamingApiCaller.js:38:28
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/google-gax/build/src/normalCalls/timeout.js:44:16
+17|whatsap |     at Object.request (/root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streaming.js:234:40)
+17|whatsap |     at makeRequest (/root/whatsapp-integration-v6/node_modules/retry-request/index.js:159:28)
+17|whatsap |     at retryRequest (/root/whatsapp-integration-v6/node_modules/retry-request/index.js:119:5)
+17|whatsap |     at StreamProxy.setStream (/root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streaming.js:225:37)
+17|whatsap |     at StreamingApiCaller.call (/root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streamingApiCaller.js:54:16)
+17|whatsap | Caused by: Error
+17|whatsap |     at QueryUtil._getResponse (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query-util.js:44:23)
+17|whatsap |     at Query._getResponse (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query.js:784:32)
+17|whatsap |     at Query._get (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query.js:777:35)
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query.js:745:43
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/telemetry/enabled-trace-util.js:110:30
+17|whatsap |     at NoopContextManager.with (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/context/NoopContextManager.js:25:19)
+17|whatsap |     at ContextAPI.with (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/api/context.js:60:46)
+17|whatsap |     at NoopTracer.startActiveSpan (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/trace/NoopTracer.js:65:31)
+17|whatsap |     at ProxyTracer.startActiveSpan (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/trace/ProxyTracer.js:36:24)
+17|whatsap |     at EnabledTraceUtil.startActiveSpan (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/telemetry/enabled-trace-util.js:102:28) {
+17|whatsap |   code: 7,
+17|whatsap |   details: 'Permission denied on resource project superparty-frontend.',
+17|whatsap |   metadata: Metadata {
+17|whatsap |     internalRepr: Map(5) {
+17|whatsap |       'google.rpc.errorinfo-bin' => [Array],
+17|whatsap |       'google.rpc.help-bin' => [Array],
+17|whatsap |       'google.rpc.localizedmessage-bin' => [Array],
+17|whatsap |       'grpc-status-details-bin' => [Array],
+17|whatsap |       'x-debug-tracking-id' => [Array]
+17|whatsap |     },
+17|whatsap |     opaqueData: Map(0) {},
+17|whatsap |     options: {}
+17|whatsap |   },
+17|whatsap |   statusDetails: [
+17|whatsap |     ErrorInfo {
+17|whatsap |       metadata: [Object],
+17|whatsap |       reason: 'CONSUMER_INVALID',
+17|whatsap |       domain: 'googleapis.com'
+17|whatsap |     },
+17|whatsap |     LocalizedMessage {
+17|whatsap |       locale: 'en-US',
+17|whatsap |       message: 'Permission denied on resource project superparty-frontend.'
+17|whatsap |     },
+17|whatsap |     Help { links: [Array] }
+17|whatsap |   ],
+17|whatsap |   reason: 'CONSUMER_INVALID',
+17|whatsap |   domain: 'googleapis.com',
+17|whatsap |   errorInfoMetadata: {
+17|whatsap |     containerInfo: 'superparty-frontend',
+17|whatsap |     service: 'firestore.googleapis.com',
+17|whatsap |     consumer: 'projects/superparty-frontend'
+17|whatsap |   }
+17|whatsap | }
+17|whatsap | Error listing suspended: Error: 7 PERMISSION_DENIED: Permission denied on resource project superparty-frontend.
+17|whatsap |     at callErrorFromStatus (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/call.js:32:19)
+17|whatsap |     at Object.onReceiveStatus (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/client.js:359:73)
+17|whatsap |     at Object.onReceiveStatus (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/client-interceptors.js:327:181)
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/resolving-call.js:135:78
+17|whatsap |     at process.processTicksAndRejections (node:internal/process/task_queues:77:11)
+17|whatsap | for call at
+17|whatsap |     at ServiceClientImpl.makeServerStreamRequest (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/client.js:342:32)
+17|whatsap |     at ServiceClientImpl.<anonymous> (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/make-client.js:105:19)
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/v1/firestore_client.js:242:33
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streamingApiCaller.js:38:28
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/google-gax/build/src/normalCalls/timeout.js:44:16
+17|whatsap |     at Object.request (/root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streaming.js:234:40)
+17|whatsap |     at makeRequest (/root/whatsapp-integration-v6/node_modules/retry-request/index.js:159:28)
+17|whatsap |     at retryRequest (/root/whatsapp-integration-v6/node_modules/retry-request/index.js:119:5)
+17|whatsap |     at StreamProxy.setStream (/root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streaming.js:225:37)
+17|whatsap |     at StreamingApiCaller.call (/root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streamingApiCaller.js:54:16)
+17|whatsap | Caused by: Error
+17|whatsap |     at QueryUtil._getResponse (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query-util.js:44:23)
+17|whatsap |     at Query._getResponse (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query.js:784:32)
+17|whatsap |     at Query._get (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query.js:777:35)
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query.js:745:43
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/telemetry/enabled-trace-util.js:110:30
+17|whatsap |     at NoopContextManager.with (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/context/NoopContextManager.js:25:19)
+17|whatsap |     at ContextAPI.with (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/api/context.js:60:46)
+17|whatsap |     at NoopTracer.startActiveSpan (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/trace/NoopTracer.js:65:31)
+17|whatsap |     at ProxyTracer.startActiveSpan (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/trace/ProxyTracer.js:36:24)
+17|whatsap |     at EnabledTraceUtil.startActiveSpan (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/telemetry/enabled-trace-util.js:102:28) {
+17|whatsap |   code: 7,
+17|whatsap |   details: 'Permission denied on resource project superparty-frontend.',
+17|whatsap |   metadata: Metadata {
+17|whatsap |     internalRepr: Map(5) {
+17|whatsap |       'google.rpc.errorinfo-bin' => [Array],
+17|whatsap |       'google.rpc.help-bin' => [Array],
+17|whatsap |       'google.rpc.localizedmessage-bin' => [Array],
+17|whatsap |       'grpc-status-details-bin' => [Array],
+17|whatsap |       'x-debug-tracking-id' => [Array]
+17|whatsap |     },
+17|whatsap |     opaqueData: Map(0) {},
+17|whatsap |     options: {}
+17|whatsap |   },
+17|whatsap |   statusDetails: [
+17|whatsap |     ErrorInfo {
+17|whatsap |       metadata: [Object],
+17|whatsap |       reason: 'CONSUMER_INVALID',
+17|whatsap |       domain: 'googleapis.com'
+17|whatsap |     },
+17|whatsap |     LocalizedMessage {
+17|whatsap |       locale: 'en-US',
+17|whatsap |       message: 'Permission denied on resource project superparty-frontend.'
+17|whatsap |     },
+17|whatsap |     Help { links: [Array] }
+17|whatsap |   ],
+17|whatsap |   reason: 'CONSUMER_INVALID',
+17|whatsap |   domain: 'googleapis.com',
+17|whatsap |   errorInfoMetadata: {
+17|whatsap |     service: 'firestore.googleapis.com',
+17|whatsap |     consumer: 'projects/superparty-frontend',
+17|whatsap |     containerInfo: 'superparty-frontend'
+17|whatsap |   }
+17|whatsap | }
+17|whatsap | ⚠️ The printQRInTerminal option has been deprecated. You will no longer receive QR codes in the terminal automatically. Please listen to the connection.update event yourself and handle the QR your way. You can remove this message by removing this opttion. This message will be removed in a future version.
+17|whatsap | Error listing employees: Error: 7 PERMISSION_DENIED: Permission denied on resource project superparty-frontend.
+17|whatsap |     at callErrorFromStatus (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/call.js:32:19)
+17|whatsap |     at Object.onReceiveStatus (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/client.js:359:73)
+17|whatsap |     at Object.onReceiveStatus (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/client-interceptors.js:327:181)
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/resolving-call.js:135:78
+17|whatsap |     at process.processTicksAndRejections (node:internal/process/task_queues:77:11)
+17|whatsap | for call at
+17|whatsap |     at ServiceClientImpl.makeServerStreamRequest (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/client.js:342:32)
+17|whatsap |     at ServiceClientImpl.<anonymous> (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/make-client.js:105:19)
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/v1/firestore_client.js:242:33
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streamingApiCaller.js:38:28
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/google-gax/build/src/normalCalls/timeout.js:44:16
+17|whatsap |     at Object.request (/root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streaming.js:234:40)
+17|whatsap |     at makeRequest (/root/whatsapp-integration-v6/node_modules/retry-request/index.js:159:28)
+17|whatsap |     at retryRequest (/root/whatsapp-integration-v6/node_modules/retry-request/index.js:119:5)
+17|whatsap |     at StreamProxy.setStream (/root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streaming.js:225:37)
+17|whatsap |     at StreamingApiCaller.call (/root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streamingApiCaller.js:54:16)
+17|whatsap | Caused by: Error
+17|whatsap |     at QueryUtil._getResponse (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query-util.js:44:23)
+17|whatsap |     at Query._getResponse (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query.js:784:32)
+17|whatsap |     at Query._get (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query.js:777:35)
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query.js:745:43
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/telemetry/enabled-trace-util.js:110:30
+17|whatsap |     at NoopContextManager.with (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/context/NoopContextManager.js:25:19)
+17|whatsap |     at ContextAPI.with (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/api/context.js:60:46)
+17|whatsap |     at NoopTracer.startActiveSpan (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/trace/NoopTracer.js:65:31)
+17|whatsap |     at ProxyTracer.startActiveSpan (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/trace/ProxyTracer.js:36:24)
+17|whatsap |     at EnabledTraceUtil.startActiveSpan (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/telemetry/enabled-trace-util.js:102:28) {
+17|whatsap |   code: 7,
+17|whatsap |   details: 'Permission denied on resource project superparty-frontend.',
+17|whatsap |   metadata: Metadata {
+17|whatsap |     internalRepr: Map(5) {
+17|whatsap |       'google.rpc.errorinfo-bin' => [Array],
+17|whatsap |       'google.rpc.help-bin' => [Array],
+17|whatsap |       'google.rpc.localizedmessage-bin' => [Array],
+17|whatsap |       'grpc-status-details-bin' => [Array],
+17|whatsap |       'x-debug-tracking-id' => [Array]
+17|whatsap |     },
+17|whatsap |     opaqueData: Map(0) {},
+17|whatsap |     options: {}
+17|whatsap |   },
+17|whatsap |   statusDetails: [
+17|whatsap |     ErrorInfo {
+17|whatsap |       metadata: [Object],
+17|whatsap |       reason: 'CONSUMER_INVALID',
+17|whatsap |       domain: 'googleapis.com'
+17|whatsap |     },
+17|whatsap |     LocalizedMessage {
+17|whatsap |       locale: 'en-US',
+17|whatsap |       message: 'Permission denied on resource project superparty-frontend.'
+17|whatsap |     },
+17|whatsap |     Help { links: [Array] }
+17|whatsap |   ],
+17|whatsap |   reason: 'CONSUMER_INVALID',
+17|whatsap |   domain: 'googleapis.com',
+17|whatsap |   errorInfoMetadata: {
+17|whatsap |     containerInfo: 'superparty-frontend',
+17|whatsap |     service: 'firestore.googleapis.com',
+17|whatsap |     consumer: 'projects/superparty-frontend'
+17|whatsap |   }
+17|whatsap | }
+17|whatsap | Error listing requests: Error: 7 PERMISSION_DENIED: Permission denied on resource project superparty-frontend.
+17|whatsap |     at callErrorFromStatus (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/call.js:32:19)
+17|whatsap |     at Object.onReceiveStatus (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/client.js:359:73)
+17|whatsap |     at Object.onReceiveStatus (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/client-interceptors.js:327:181)
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/resolving-call.js:135:78
+17|whatsap |     at process.processTicksAndRejections (node:internal/process/task_queues:77:11)
+17|whatsap | for call at
+17|whatsap |     at ServiceClientImpl.makeServerStreamRequest (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/client.js:342:32)
+17|whatsap |     at ServiceClientImpl.<anonymous> (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/make-client.js:105:19)
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/v1/firestore_client.js:242:33
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streamingApiCaller.js:38:28
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/google-gax/build/src/normalCalls/timeout.js:44:16
+17|whatsap |     at Object.request (/root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streaming.js:234:40)
+17|whatsap |     at makeRequest (/root/whatsapp-integration-v6/node_modules/retry-request/index.js:159:28)
+17|whatsap |     at retryRequest (/root/whatsapp-integration-v6/node_modules/retry-request/index.js:119:5)
+17|whatsap |     at StreamProxy.setStream (/root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streaming.js:225:37)
+17|whatsap |     at StreamingApiCaller.call (/root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streamingApiCaller.js:54:16)
+17|whatsap | Caused by: Error
+17|whatsap |     at QueryUtil._getResponse (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query-util.js:44:23)
+17|whatsap |     at CollectionReference._getResponse (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query.js:784:32)
+17|whatsap |     at CollectionReference._get (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query.js:777:35)
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query.js:745:43
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/telemetry/enabled-trace-util.js:110:30
+17|whatsap |     at NoopContextManager.with (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/context/NoopContextManager.js:25:19)
+17|whatsap |     at ContextAPI.with (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/api/context.js:60:46)
+17|whatsap |     at NoopTracer.startActiveSpan (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/trace/NoopTracer.js:65:31)
+17|whatsap |     at ProxyTracer.startActiveSpan (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/trace/ProxyTracer.js:36:24)
+17|whatsap |     at EnabledTraceUtil.startActiveSpan (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/telemetry/enabled-trace-util.js:102:28) {
+17|whatsap |   code: 7,
+17|whatsap |   details: 'Permission denied on resource project superparty-frontend.',
+17|whatsap |   metadata: Metadata {
+17|whatsap |     internalRepr: Map(5) {
+17|whatsap |       'google.rpc.errorinfo-bin' => [Array],
+17|whatsap |       'google.rpc.help-bin' => [Array],
+17|whatsap |       'google.rpc.localizedmessage-bin' => [Array],
+17|whatsap |       'grpc-status-details-bin' => [Array],
+17|whatsap |       'x-debug-tracking-id' => [Array]
+17|whatsap |     },
+17|whatsap |     opaqueData: Map(0) {},
+17|whatsap |     options: {}
+17|whatsap |   },
+17|whatsap |   statusDetails: [
+17|whatsap |     ErrorInfo {
+17|whatsap |       metadata: [Object],
+17|whatsap |       reason: 'CONSUMER_INVALID',
+17|whatsap |       domain: 'googleapis.com'
+17|whatsap |     },
+17|whatsap |     LocalizedMessage {
+17|whatsap |       locale: 'en-US',
+17|whatsap |       message: 'Permission denied on resource project superparty-frontend.'
+17|whatsap |     },
+17|whatsap |     Help { links: [Array] }
+17|whatsap |   ],
+17|whatsap |   reason: 'CONSUMER_INVALID',
+17|whatsap |   domain: 'googleapis.com',
+17|whatsap |   errorInfoMetadata: {
+17|whatsap |     consumer: 'projects/superparty-frontend',
+17|whatsap |     containerInfo: 'superparty-frontend',
+17|whatsap |     service: 'firestore.googleapis.com'
+17|whatsap |   }
+17|whatsap | }
+17|whatsap | Error listing suspended: Error: 7 PERMISSION_DENIED: Permission denied on resource project superparty-frontend.
+17|whatsap |     at callErrorFromStatus (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/call.js:32:19)
+17|whatsap |     at Object.onReceiveStatus (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/client.js:359:73)
+17|whatsap |     at Object.onReceiveStatus (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/client-interceptors.js:327:181)
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/resolving-call.js:135:78
+17|whatsap |     at process.processTicksAndRejections (node:internal/process/task_queues:77:11)
+17|whatsap | for call at
+17|whatsap |     at ServiceClientImpl.makeServerStreamRequest (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/client.js:342:32)
+17|whatsap |     at ServiceClientImpl.<anonymous> (/root/whatsapp-integration-v6/node_modules/@grpc/grpc-js/build/src/make-client.js:105:19)
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/v1/firestore_client.js:242:33
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streamingApiCaller.js:38:28
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/google-gax/build/src/normalCalls/timeout.js:44:16
+17|whatsap |     at Object.request (/root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streaming.js:234:40)
+17|whatsap |     at makeRequest (/root/whatsapp-integration-v6/node_modules/retry-request/index.js:159:28)
+17|whatsap |     at retryRequest (/root/whatsapp-integration-v6/node_modules/retry-request/index.js:119:5)
+17|whatsap |     at StreamProxy.setStream (/root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streaming.js:225:37)
+17|whatsap |     at StreamingApiCaller.call (/root/whatsapp-integration-v6/node_modules/google-gax/build/src/streamingCalls/streamingApiCaller.js:54:16)
+17|whatsap | Caused by: Error
+17|whatsap |     at QueryUtil._getResponse (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query-util.js:44:23)
+17|whatsap |     at Query._getResponse (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query.js:784:32)
+17|whatsap |     at Query._get (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query.js:777:35)
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/reference/query.js:745:43
+17|whatsap |     at /root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/telemetry/enabled-trace-util.js:110:30
+17|whatsap |     at NoopContextManager.with (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/context/NoopContextManager.js:25:19)
+17|whatsap |     at ContextAPI.with (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/api/context.js:60:46)
+17|whatsap |     at NoopTracer.startActiveSpan (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/trace/NoopTracer.js:65:31)
+17|whatsap |     at ProxyTracer.startActiveSpan (/root/whatsapp-integration-v6/node_modules/@opentelemetry/api/build/src/trace/ProxyTracer.js:36:24)
+17|whatsap |     at EnabledTraceUtil.startActiveSpan (/root/whatsapp-integration-v6/node_modules/@google-cloud/firestore/build/src/telemetry/enabled-trace-util.js:102:28) {
+17|whatsap |   code: 7,
+17|whatsap |   details: 'Permission denied on resource project superparty-frontend.',
+17|whatsap |   metadata: Metadata {
+17|whatsap |     internalRepr: Map(5) {
+17|whatsap |       'google.rpc.errorinfo-bin' => [Array],
+17|whatsap |       'google.rpc.help-bin' => [Array],
+17|whatsap |       'google.rpc.localizedmessage-bin' => [Array],
+17|whatsap |       'grpc-status-details-bin' => [Array],
+17|whatsap |       'x-debug-tracking-id' => [Array]
+17|whatsap |     },
+17|whatsap |     opaqueData: Map(0) {},
+17|whatsap |     options: {}
+17|whatsap |   },
+17|whatsap |   statusDetails: [
+17|whatsap |     ErrorInfo {
+17|whatsap |       metadata: [Object],
+17|whatsap |       reason: 'CONSUMER_INVALID',
+17|whatsap |       domain: 'googleapis.com'
+17|whatsap |     },
+17|whatsap |     LocalizedMessage {
+17|whatsap |       locale: 'en-US',
+17|whatsap |       message: 'Permission denied on resource project superparty-frontend.'
+17|whatsap |     },
+17|whatsap |     Help { links: [Array] }
+17|whatsap |   ],
+17|whatsap |   reason: 'CONSUMER_INVALID',
+17|whatsap |   domain: 'googleapis.com',
+17|whatsap |   errorInfoMetadata: {
+17|whatsap |     service: 'firestore.googleapis.com',
+17|whatsap |     consumer: 'projects/superparty-frontend',
+17|whatsap |     containerInfo: 'superparty-frontend'
+17|whatsap |   }
+17|whatsap | }
+
+/root/.pm2/logs/whatsapp-integration-v6-out.log last 1000 lines:
+17|whatsap | [Heartbeat] Skipped vWPV8yMvNyCab1kl5S0U because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LKvZfsJMz7IO8dBLuotj because state is needs_qr
+17|whatsap | [Heartbeat] Skipped hQtWagPAA490T7FD3vdb because state is needs_qr
+17|whatsap | [Heartbeat] Skipped ZHRI9O3O3Lx6yRWzqOWg because state is needs_qr
+17|whatsap | [Heartbeat] Pinging Supabase for C9mLWO3s3nx5ckQBlmUE
+17|whatsap | [Heartbeat] Skipped XANaSkgQzW5Z1VfmIvCs because state is needs_qr
+17|whatsap | [Heartbeat] Tick: 17 sessions in memory.
+17|whatsap | [Heartbeat] Skipped 7ei5E0SiunhP686M0EVX because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LxAQ6z2i6KkJJVxCndT2 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped YJGfkW2sbaPE3YCatApW because state is needs_qr
+17|whatsap | [Heartbeat] Skipped tJp0PGVaFVHBSjfk3Kv3 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 9ULWIxluGCZNcfVbouHo because state is needs_qr
+17|whatsap | [Heartbeat] Skipped T4GYuGE8Ylxoqgmm7hWv because state is needs_qr
+17|whatsap | [Heartbeat] Skipped Ztj2SRhRWAflLQh7iVi5 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 7MXiCIPXm1ZGeXxk5X58 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped C7xKBICjBaeibmkmfYN8 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped K22D5aEwi4PHCDw94E1l because state is needs_qr
+17|whatsap | [Heartbeat] Skipped PA0gh9QjBm08EjPgMxWh because state is needs_qr
+17|whatsap | [Heartbeat] Skipped vWPV8yMvNyCab1kl5S0U because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LKvZfsJMz7IO8dBLuotj because state is needs_qr
+17|whatsap | [Heartbeat] Skipped hQtWagPAA490T7FD3vdb because state is needs_qr
+17|whatsap | [Heartbeat] Skipped ZHRI9O3O3Lx6yRWzqOWg because state is needs_qr
+17|whatsap | [Heartbeat] Pinging Supabase for C9mLWO3s3nx5ckQBlmUE
+17|whatsap | [Heartbeat] Skipped XANaSkgQzW5Z1VfmIvCs because state is needs_qr
+17|whatsap | [Heartbeat] Tick: 17 sessions in memory.
+17|whatsap | [Heartbeat] Skipped 7ei5E0SiunhP686M0EVX because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LxAQ6z2i6KkJJVxCndT2 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped YJGfkW2sbaPE3YCatApW because state is needs_qr
+17|whatsap | [Heartbeat] Skipped tJp0PGVaFVHBSjfk3Kv3 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 9ULWIxluGCZNcfVbouHo because state is needs_qr
+17|whatsap | [Heartbeat] Skipped T4GYuGE8Ylxoqgmm7hWv because state is needs_qr
+17|whatsap | [Heartbeat] Skipped Ztj2SRhRWAflLQh7iVi5 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 7MXiCIPXm1ZGeXxk5X58 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped C7xKBICjBaeibmkmfYN8 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped K22D5aEwi4PHCDw94E1l because state is needs_qr
+17|whatsap | [Heartbeat] Skipped PA0gh9QjBm08EjPgMxWh because state is needs_qr
+17|whatsap | [Heartbeat] Skipped vWPV8yMvNyCab1kl5S0U because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LKvZfsJMz7IO8dBLuotj because state is needs_qr
+17|whatsap | [Heartbeat] Skipped hQtWagPAA490T7FD3vdb because state is needs_qr
+17|whatsap | [Heartbeat] Skipped ZHRI9O3O3Lx6yRWzqOWg because state is needs_qr
+17|whatsap | [Heartbeat] Pinging Supabase for C9mLWO3s3nx5ckQBlmUE
+17|whatsap | [Heartbeat] Skipped XANaSkgQzW5Z1VfmIvCs because state is needs_qr
+17|whatsap | [Heartbeat] Tick: 17 sessions in memory.
+17|whatsap | [Heartbeat] Skipped 7ei5E0SiunhP686M0EVX because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LxAQ6z2i6KkJJVxCndT2 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped YJGfkW2sbaPE3YCatApW because state is needs_qr
+17|whatsap | [Heartbeat] Skipped tJp0PGVaFVHBSjfk3Kv3 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 9ULWIxluGCZNcfVbouHo because state is needs_qr
+17|whatsap | [Heartbeat] Skipped T4GYuGE8Ylxoqgmm7hWv because state is needs_qr
+17|whatsap | [Heartbeat] Skipped Ztj2SRhRWAflLQh7iVi5 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 7MXiCIPXm1ZGeXxk5X58 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped C7xKBICjBaeibmkmfYN8 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped K22D5aEwi4PHCDw94E1l because state is needs_qr
+17|whatsap | [Heartbeat] Skipped PA0gh9QjBm08EjPgMxWh because state is needs_qr
+17|whatsap | [Heartbeat] Skipped vWPV8yMvNyCab1kl5S0U because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LKvZfsJMz7IO8dBLuotj because state is needs_qr
+17|whatsap | [Heartbeat] Skipped hQtWagPAA490T7FD3vdb because state is needs_qr
+17|whatsap | [Heartbeat] Skipped ZHRI9O3O3Lx6yRWzqOWg because state is needs_qr
+17|whatsap | [Heartbeat] Pinging Supabase for C9mLWO3s3nx5ckQBlmUE
+17|whatsap | [Heartbeat] Skipped XANaSkgQzW5Z1VfmIvCs because state is needs_qr
+17|whatsap | [Heartbeat] Tick: 17 sessions in memory.
+17|whatsap | [Heartbeat] Skipped 7ei5E0SiunhP686M0EVX because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LxAQ6z2i6KkJJVxCndT2 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped YJGfkW2sbaPE3YCatApW because state is needs_qr
+17|whatsap | [Heartbeat] Skipped tJp0PGVaFVHBSjfk3Kv3 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 9ULWIxluGCZNcfVbouHo because state is needs_qr
+17|whatsap | [Heartbeat] Skipped T4GYuGE8Ylxoqgmm7hWv because state is needs_qr
+17|whatsap | [Heartbeat] Skipped Ztj2SRhRWAflLQh7iVi5 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 7MXiCIPXm1ZGeXxk5X58 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped C7xKBICjBaeibmkmfYN8 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped K22D5aEwi4PHCDw94E1l because state is needs_qr
+17|whatsap | [Heartbeat] Skipped PA0gh9QjBm08EjPgMxWh because state is needs_qr
+17|whatsap | [Heartbeat] Skipped vWPV8yMvNyCab1kl5S0U because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LKvZfsJMz7IO8dBLuotj because state is needs_qr
+17|whatsap | [Heartbeat] Skipped hQtWagPAA490T7FD3vdb because state is needs_qr
+17|whatsap | [Heartbeat] Skipped ZHRI9O3O3Lx6yRWzqOWg because state is needs_qr
+17|whatsap | [Heartbeat] Pinging Supabase for C9mLWO3s3nx5ckQBlmUE
+17|whatsap | [Heartbeat] Skipped XANaSkgQzW5Z1VfmIvCs because state is needs_qr
+17|whatsap | [Heartbeat] Tick: 17 sessions in memory.
+17|whatsap | [Heartbeat] Skipped 7ei5E0SiunhP686M0EVX because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LxAQ6z2i6KkJJVxCndT2 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped YJGfkW2sbaPE3YCatApW because state is needs_qr
+17|whatsap | [Heartbeat] Skipped tJp0PGVaFVHBSjfk3Kv3 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 9ULWIxluGCZNcfVbouHo because state is needs_qr
+17|whatsap | [Heartbeat] Skipped T4GYuGE8Ylxoqgmm7hWv because state is needs_qr
+17|whatsap | [Heartbeat] Skipped Ztj2SRhRWAflLQh7iVi5 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 7MXiCIPXm1ZGeXxk5X58 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped C7xKBICjBaeibmkmfYN8 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped K22D5aEwi4PHCDw94E1l because state is needs_qr
+17|whatsap | [Heartbeat] Skipped PA0gh9QjBm08EjPgMxWh because state is needs_qr
+17|whatsap | [Heartbeat] Skipped vWPV8yMvNyCab1kl5S0U because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LKvZfsJMz7IO8dBLuotj because state is needs_qr
+17|whatsap | [Heartbeat] Skipped hQtWagPAA490T7FD3vdb because state is needs_qr
+17|whatsap | [Heartbeat] Skipped ZHRI9O3O3Lx6yRWzqOWg because state is needs_qr
+17|whatsap | [Heartbeat] Pinging Supabase for C9mLWO3s3nx5ckQBlmUE
+17|whatsap | [Heartbeat] Skipped XANaSkgQzW5Z1VfmIvCs because state is needs_qr
+17|whatsap | [Heartbeat] Tick: 17 sessions in memory.
+17|whatsap | [Heartbeat] Skipped 7ei5E0SiunhP686M0EVX because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LxAQ6z2i6KkJJVxCndT2 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped YJGfkW2sbaPE3YCatApW because state is needs_qr
+17|whatsap | [Heartbeat] Skipped tJp0PGVaFVHBSjfk3Kv3 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 9ULWIxluGCZNcfVbouHo because state is needs_qr
+17|whatsap | [Heartbeat] Skipped T4GYuGE8Ylxoqgmm7hWv because state is needs_qr
+17|whatsap | [Heartbeat] Skipped Ztj2SRhRWAflLQh7iVi5 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 7MXiCIPXm1ZGeXxk5X58 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped C7xKBICjBaeibmkmfYN8 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped K22D5aEwi4PHCDw94E1l because state is needs_qr
+17|whatsap | [Heartbeat] Skipped PA0gh9QjBm08EjPgMxWh because state is needs_qr
+17|whatsap | [Heartbeat] Skipped vWPV8yMvNyCab1kl5S0U because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LKvZfsJMz7IO8dBLuotj because state is needs_qr
+17|whatsap | [Heartbeat] Skipped hQtWagPAA490T7FD3vdb because state is needs_qr
+17|whatsap | [Heartbeat] Skipped ZHRI9O3O3Lx6yRWzqOWg because state is needs_qr
+17|whatsap | [Heartbeat] Pinging Supabase for C9mLWO3s3nx5ckQBlmUE
+17|whatsap | [Heartbeat] Skipped XANaSkgQzW5Z1VfmIvCs because state is needs_qr
+17|whatsap | [Heartbeat] Tick: 17 sessions in memory.
+17|whatsap | [Heartbeat] Skipped 7ei5E0SiunhP686M0EVX because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LxAQ6z2i6KkJJVxCndT2 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped YJGfkW2sbaPE3YCatApW because state is needs_qr
+17|whatsap | [Heartbeat] Skipped tJp0PGVaFVHBSjfk3Kv3 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 9ULWIxluGCZNcfVbouHo because state is needs_qr
+17|whatsap | [Heartbeat] Skipped T4GYuGE8Ylxoqgmm7hWv because state is needs_qr
+17|whatsap | [Heartbeat] Skipped Ztj2SRhRWAflLQh7iVi5 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 7MXiCIPXm1ZGeXxk5X58 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped C7xKBICjBaeibmkmfYN8 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped K22D5aEwi4PHCDw94E1l because state is needs_qr
+17|whatsap | [Heartbeat] Skipped PA0gh9QjBm08EjPgMxWh because state is needs_qr
+17|whatsap | [Heartbeat] Skipped vWPV8yMvNyCab1kl5S0U because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LKvZfsJMz7IO8dBLuotj because state is needs_qr
+17|whatsap | [Heartbeat] Skipped hQtWagPAA490T7FD3vdb because state is needs_qr
+17|whatsap | [Heartbeat] Skipped ZHRI9O3O3Lx6yRWzqOWg because state is needs_qr
+17|whatsap | [Heartbeat] Pinging Supabase for C9mLWO3s3nx5ckQBlmUE
+17|whatsap | [Heartbeat] Skipped XANaSkgQzW5Z1VfmIvCs because state is needs_qr
+17|whatsap | [Heartbeat] Tick: 17 sessions in memory.
+17|whatsap | [Heartbeat] Skipped 7ei5E0SiunhP686M0EVX because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LxAQ6z2i6KkJJVxCndT2 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped YJGfkW2sbaPE3YCatApW because state is needs_qr
+17|whatsap | [Heartbeat] Skipped tJp0PGVaFVHBSjfk3Kv3 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 9ULWIxluGCZNcfVbouHo because state is needs_qr
+17|whatsap | [Heartbeat] Skipped T4GYuGE8Ylxoqgmm7hWv because state is needs_qr
+17|whatsap | [Heartbeat] Skipped Ztj2SRhRWAflLQh7iVi5 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 7MXiCIPXm1ZGeXxk5X58 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped C7xKBICjBaeibmkmfYN8 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped K22D5aEwi4PHCDw94E1l because state is needs_qr
+17|whatsap | [Heartbeat] Skipped PA0gh9QjBm08EjPgMxWh because state is needs_qr
+17|whatsap | [Heartbeat] Skipped vWPV8yMvNyCab1kl5S0U because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LKvZfsJMz7IO8dBLuotj because state is needs_qr
+17|whatsap | [Heartbeat] Skipped hQtWagPAA490T7FD3vdb because state is needs_qr
+17|whatsap | [Heartbeat] Skipped ZHRI9O3O3Lx6yRWzqOWg because state is needs_qr
+17|whatsap | [Heartbeat] Pinging Supabase for C9mLWO3s3nx5ckQBlmUE
+17|whatsap | [Heartbeat] Skipped XANaSkgQzW5Z1VfmIvCs because state is needs_qr
+17|whatsap | [Heartbeat] Tick: 17 sessions in memory.
+17|whatsap | [Heartbeat] Skipped 7ei5E0SiunhP686M0EVX because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LxAQ6z2i6KkJJVxCndT2 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped YJGfkW2sbaPE3YCatApW because state is needs_qr
+17|whatsap | [Heartbeat] Skipped tJp0PGVaFVHBSjfk3Kv3 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 9ULWIxluGCZNcfVbouHo because state is needs_qr
+17|whatsap | [Heartbeat] Skipped T4GYuGE8Ylxoqgmm7hWv because state is needs_qr
+17|whatsap | [Heartbeat] Skipped Ztj2SRhRWAflLQh7iVi5 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 7MXiCIPXm1ZGeXxk5X58 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped C7xKBICjBaeibmkmfYN8 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped K22D5aEwi4PHCDw94E1l because state is needs_qr
+17|whatsap | [Heartbeat] Skipped PA0gh9QjBm08EjPgMxWh because state is needs_qr
+17|whatsap | [Heartbeat] Skipped vWPV8yMvNyCab1kl5S0U because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LKvZfsJMz7IO8dBLuotj because state is needs_qr
+17|whatsap | [Heartbeat] Skipped hQtWagPAA490T7FD3vdb because state is needs_qr
+17|whatsap | [Heartbeat] Skipped ZHRI9O3O3Lx6yRWzqOWg because state is needs_qr
+17|whatsap | [Heartbeat] Pinging Supabase for C9mLWO3s3nx5ckQBlmUE
+17|whatsap | [Heartbeat] Skipped XANaSkgQzW5Z1VfmIvCs because state is needs_qr
+17|whatsap | [Heartbeat] Tick: 17 sessions in memory.
+17|whatsap | [Heartbeat] Skipped 7ei5E0SiunhP686M0EVX because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LxAQ6z2i6KkJJVxCndT2 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped YJGfkW2sbaPE3YCatApW because state is needs_qr
+17|whatsap | [Heartbeat] Skipped tJp0PGVaFVHBSjfk3Kv3 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 9ULWIxluGCZNcfVbouHo because state is needs_qr
+17|whatsap | [Heartbeat] Skipped T4GYuGE8Ylxoqgmm7hWv because state is needs_qr
+17|whatsap | [Heartbeat] Skipped Ztj2SRhRWAflLQh7iVi5 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 7MXiCIPXm1ZGeXxk5X58 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped C7xKBICjBaeibmkmfYN8 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped K22D5aEwi4PHCDw94E1l because state is needs_qr
+17|whatsap | [Heartbeat] Skipped PA0gh9QjBm08EjPgMxWh because state is needs_qr
+17|whatsap | [Heartbeat] Skipped vWPV8yMvNyCab1kl5S0U because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LKvZfsJMz7IO8dBLuotj because state is needs_qr
+17|whatsap | [Heartbeat] Skipped hQtWagPAA490T7FD3vdb because state is needs_qr
+17|whatsap | [Heartbeat] Skipped ZHRI9O3O3Lx6yRWzqOWg because state is needs_qr
+17|whatsap | [Heartbeat] Pinging Supabase for C9mLWO3s3nx5ckQBlmUE
+17|whatsap | [Heartbeat] Skipped XANaSkgQzW5Z1VfmIvCs because state is needs_qr
+17|whatsap | [Heartbeat] Tick: 17 sessions in memory.
+17|whatsap | [Heartbeat] Skipped 7ei5E0SiunhP686M0EVX because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LxAQ6z2i6KkJJVxCndT2 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped YJGfkW2sbaPE3YCatApW because state is needs_qr
+17|whatsap | [Heartbeat] Skipped tJp0PGVaFVHBSjfk3Kv3 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 9ULWIxluGCZNcfVbouHo because state is needs_qr
+17|whatsap | [Heartbeat] Skipped T4GYuGE8Ylxoqgmm7hWv because state is needs_qr
+17|whatsap | [Heartbeat] Skipped Ztj2SRhRWAflLQh7iVi5 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 7MXiCIPXm1ZGeXxk5X58 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped C7xKBICjBaeibmkmfYN8 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped K22D5aEwi4PHCDw94E1l because state is needs_qr
+17|whatsap | [Heartbeat] Skipped PA0gh9QjBm08EjPgMxWh because state is needs_qr
+17|whatsap | [Heartbeat] Skipped vWPV8yMvNyCab1kl5S0U because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LKvZfsJMz7IO8dBLuotj because state is needs_qr
+17|whatsap | [Heartbeat] Skipped hQtWagPAA490T7FD3vdb because state is needs_qr
+17|whatsap | [Heartbeat] Skipped ZHRI9O3O3Lx6yRWzqOWg because state is needs_qr
+17|whatsap | [Heartbeat] Pinging Supabase for C9mLWO3s3nx5ckQBlmUE
+17|whatsap | [Heartbeat] Skipped XANaSkgQzW5Z1VfmIvCs because state is needs_qr
+17|whatsap | [Heartbeat] Tick: 17 sessions in memory.
+17|whatsap | [Heartbeat] Skipped 7ei5E0SiunhP686M0EVX because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LxAQ6z2i6KkJJVxCndT2 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped YJGfkW2sbaPE3YCatApW because state is needs_qr
+17|whatsap | [Heartbeat] Skipped tJp0PGVaFVHBSjfk3Kv3 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 9ULWIxluGCZNcfVbouHo because state is needs_qr
+17|whatsap | [Heartbeat] Skipped T4GYuGE8Ylxoqgmm7hWv because state is needs_qr
+17|whatsap | [Heartbeat] Skipped Ztj2SRhRWAflLQh7iVi5 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 7MXiCIPXm1ZGeXxk5X58 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped C7xKBICjBaeibmkmfYN8 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped K22D5aEwi4PHCDw94E1l because state is needs_qr
+17|whatsap | [Heartbeat] Skipped PA0gh9QjBm08EjPgMxWh because state is needs_qr
+17|whatsap | [Heartbeat] Skipped vWPV8yMvNyCab1kl5S0U because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LKvZfsJMz7IO8dBLuotj because state is needs_qr
+17|whatsap | [Heartbeat] Skipped hQtWagPAA490T7FD3vdb because state is needs_qr
+17|whatsap | [Heartbeat] Skipped ZHRI9O3O3Lx6yRWzqOWg because state is needs_qr
+17|whatsap | [Heartbeat] Pinging Supabase for C9mLWO3s3nx5ckQBlmUE
+17|whatsap | [Heartbeat] Skipped XANaSkgQzW5Z1VfmIvCs because state is needs_qr
+17|whatsap | [Heartbeat] Tick: 17 sessions in memory.
+17|whatsap | [Heartbeat] Skipped 7ei5E0SiunhP686M0EVX because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LxAQ6z2i6KkJJVxCndT2 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped YJGfkW2sbaPE3YCatApW because state is needs_qr
+17|whatsap | [Heartbeat] Skipped tJp0PGVaFVHBSjfk3Kv3 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 9ULWIxluGCZNcfVbouHo because state is needs_qr
+17|whatsap | [Heartbeat] Skipped T4GYuGE8Ylxoqgmm7hWv because state is needs_qr
+17|whatsap | [Heartbeat] Skipped Ztj2SRhRWAflLQh7iVi5 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 7MXiCIPXm1ZGeXxk5X58 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped C7xKBICjBaeibmkmfYN8 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped K22D5aEwi4PHCDw94E1l because state is needs_qr
+17|whatsap | [Heartbeat] Skipped PA0gh9QjBm08EjPgMxWh because state is needs_qr
+17|whatsap | [Heartbeat] Skipped vWPV8yMvNyCab1kl5S0U because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LKvZfsJMz7IO8dBLuotj because state is needs_qr
+17|whatsap | [Heartbeat] Skipped hQtWagPAA490T7FD3vdb because state is needs_qr
+17|whatsap | [Heartbeat] Skipped ZHRI9O3O3Lx6yRWzqOWg because state is needs_qr
+17|whatsap | [Heartbeat] Pinging Supabase for C9mLWO3s3nx5ckQBlmUE
+17|whatsap | [Heartbeat] Skipped XANaSkgQzW5Z1VfmIvCs because state is needs_qr
+17|whatsap | [Heartbeat] Tick: 17 sessions in memory.
+17|whatsap | [Heartbeat] Skipped 7ei5E0SiunhP686M0EVX because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LxAQ6z2i6KkJJVxCndT2 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped YJGfkW2sbaPE3YCatApW because state is needs_qr
+17|whatsap | [Heartbeat] Skipped tJp0PGVaFVHBSjfk3Kv3 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 9ULWIxluGCZNcfVbouHo because state is needs_qr
+17|whatsap | [Heartbeat] Skipped T4GYuGE8Ylxoqgmm7hWv because state is needs_qr
+17|whatsap | [Heartbeat] Skipped Ztj2SRhRWAflLQh7iVi5 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 7MXiCIPXm1ZGeXxk5X58 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped C7xKBICjBaeibmkmfYN8 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped K22D5aEwi4PHCDw94E1l because state is needs_qr
+17|whatsap | [Heartbeat] Skipped PA0gh9QjBm08EjPgMxWh because state is needs_qr
+17|whatsap | [Heartbeat] Skipped vWPV8yMvNyCab1kl5S0U because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LKvZfsJMz7IO8dBLuotj because state is needs_qr
+17|whatsap | [Heartbeat] Skipped hQtWagPAA490T7FD3vdb because state is needs_qr
+17|whatsap | [Heartbeat] Skipped ZHRI9O3O3Lx6yRWzqOWg because state is needs_qr
+17|whatsap | [Heartbeat] Pinging Supabase for C9mLWO3s3nx5ckQBlmUE
+17|whatsap | [Heartbeat] Skipped XANaSkgQzW5Z1VfmIvCs because state is needs_qr
+17|whatsap | [Heartbeat] Tick: 17 sessions in memory.
+17|whatsap | [Heartbeat] Skipped 7ei5E0SiunhP686M0EVX because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LxAQ6z2i6KkJJVxCndT2 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped YJGfkW2sbaPE3YCatApW because state is needs_qr
+17|whatsap | [Heartbeat] Skipped tJp0PGVaFVHBSjfk3Kv3 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 9ULWIxluGCZNcfVbouHo because state is needs_qr
+17|whatsap | [Heartbeat] Skipped T4GYuGE8Ylxoqgmm7hWv because state is needs_qr
+17|whatsap | [Heartbeat] Skipped Ztj2SRhRWAflLQh7iVi5 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 7MXiCIPXm1ZGeXxk5X58 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped C7xKBICjBaeibmkmfYN8 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped K22D5aEwi4PHCDw94E1l because state is needs_qr
+17|whatsap | [Heartbeat] Skipped PA0gh9QjBm08EjPgMxWh because state is needs_qr
+17|whatsap | [Heartbeat] Skipped vWPV8yMvNyCab1kl5S0U because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LKvZfsJMz7IO8dBLuotj because state is needs_qr
+17|whatsap | [Heartbeat] Skipped hQtWagPAA490T7FD3vdb because state is needs_qr
+17|whatsap | [Heartbeat] Skipped ZHRI9O3O3Lx6yRWzqOWg because state is needs_qr
+17|whatsap | [Heartbeat] Pinging Supabase for C9mLWO3s3nx5ckQBlmUE
+17|whatsap | [Heartbeat] Skipped XANaSkgQzW5Z1VfmIvCs because state is needs_qr
+17|whatsap | [Heartbeat] Tick: 17 sessions in memory.
+17|whatsap | [Heartbeat] Skipped 7ei5E0SiunhP686M0EVX because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LxAQ6z2i6KkJJVxCndT2 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped YJGfkW2sbaPE3YCatApW because state is needs_qr
+17|whatsap | [Heartbeat] Skipped tJp0PGVaFVHBSjfk3Kv3 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 9ULWIxluGCZNcfVbouHo because state is needs_qr
+17|whatsap | [Heartbeat] Skipped T4GYuGE8Ylxoqgmm7hWv because state is needs_qr
+17|whatsap | [Heartbeat] Skipped Ztj2SRhRWAflLQh7iVi5 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 7MXiCIPXm1ZGeXxk5X58 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped C7xKBICjBaeibmkmfYN8 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped K22D5aEwi4PHCDw94E1l because state is needs_qr
+17|whatsap | [Heartbeat] Skipped PA0gh9QjBm08EjPgMxWh because state is needs_qr
+17|whatsap | [Heartbeat] Skipped vWPV8yMvNyCab1kl5S0U because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LKvZfsJMz7IO8dBLuotj because state is needs_qr
+17|whatsap | [Heartbeat] Skipped hQtWagPAA490T7FD3vdb because state is needs_qr
+17|whatsap | [Heartbeat] Skipped ZHRI9O3O3Lx6yRWzqOWg because state is needs_qr
+17|whatsap | [Heartbeat] Pinging Supabase for C9mLWO3s3nx5ckQBlmUE
+17|whatsap | [Heartbeat] Skipped XANaSkgQzW5Z1VfmIvCs because state is needs_qr
+17|whatsap | [SessionManager] C9mLWO3s3nx5ckQBlmUE CREDS_UPDATE fired (phase=none) — saving to disk
+17|whatsap | [SessionManager] C9mLWO3s3nx5ckQBlmUE CREDS_UPDATE — save complete
+17|whatsap | [Heartbeat] Tick: 17 sessions in memory.
+17|whatsap | [Heartbeat] Skipped 7ei5E0SiunhP686M0EVX because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LxAQ6z2i6KkJJVxCndT2 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped YJGfkW2sbaPE3YCatApW because state is needs_qr
+17|whatsap | [Heartbeat] Skipped tJp0PGVaFVHBSjfk3Kv3 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 9ULWIxluGCZNcfVbouHo because state is needs_qr
+17|whatsap | [Heartbeat] Skipped T4GYuGE8Ylxoqgmm7hWv because state is needs_qr
+17|whatsap | [Heartbeat] Skipped Ztj2SRhRWAflLQh7iVi5 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 7MXiCIPXm1ZGeXxk5X58 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped C7xKBICjBaeibmkmfYN8 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped K22D5aEwi4PHCDw94E1l because state is needs_qr
+17|whatsap | [Heartbeat] Skipped PA0gh9QjBm08EjPgMxWh because state is needs_qr
+17|whatsap | [Heartbeat] Skipped vWPV8yMvNyCab1kl5S0U because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LKvZfsJMz7IO8dBLuotj because state is needs_qr
+17|whatsap | [Heartbeat] Skipped hQtWagPAA490T7FD3vdb because state is needs_qr
+17|whatsap | [Heartbeat] Skipped ZHRI9O3O3Lx6yRWzqOWg because state is needs_qr
+17|whatsap | [Heartbeat] Pinging Supabase for C9mLWO3s3nx5ckQBlmUE
+17|whatsap | [Heartbeat] Skipped XANaSkgQzW5Z1VfmIvCs because state is needs_qr
+17|whatsap | [Heartbeat] Tick: 17 sessions in memory.
+17|whatsap | [Heartbeat] Skipped 7ei5E0SiunhP686M0EVX because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LxAQ6z2i6KkJJVxCndT2 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped YJGfkW2sbaPE3YCatApW because state is needs_qr
+17|whatsap | [Heartbeat] Skipped tJp0PGVaFVHBSjfk3Kv3 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 9ULWIxluGCZNcfVbouHo because state is needs_qr
+17|whatsap | [Heartbeat] Skipped T4GYuGE8Ylxoqgmm7hWv because state is needs_qr
+17|whatsap | [Heartbeat] Skipped Ztj2SRhRWAflLQh7iVi5 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 7MXiCIPXm1ZGeXxk5X58 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped C7xKBICjBaeibmkmfYN8 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped K22D5aEwi4PHCDw94E1l because state is needs_qr
+17|whatsap | [Heartbeat] Skipped PA0gh9QjBm08EjPgMxWh because state is needs_qr
+17|whatsap | [Heartbeat] Skipped vWPV8yMvNyCab1kl5S0U because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LKvZfsJMz7IO8dBLuotj because state is needs_qr
+17|whatsap | [Heartbeat] Skipped hQtWagPAA490T7FD3vdb because state is needs_qr
+17|whatsap | [Heartbeat] Skipped ZHRI9O3O3Lx6yRWzqOWg because state is needs_qr
+17|whatsap | [Heartbeat] Pinging Supabase for C9mLWO3s3nx5ckQBlmUE
+17|whatsap | [Heartbeat] Skipped XANaSkgQzW5Z1VfmIvCs because state is needs_qr
+17|whatsap | [Heartbeat] Tick: 17 sessions in memory.
+17|whatsap | [Heartbeat] Skipped 7ei5E0SiunhP686M0EVX because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LxAQ6z2i6KkJJVxCndT2 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped YJGfkW2sbaPE3YCatApW because state is needs_qr
+17|whatsap | [Heartbeat] Skipped tJp0PGVaFVHBSjfk3Kv3 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 9ULWIxluGCZNcfVbouHo because state is needs_qr
+17|whatsap | [Heartbeat] Skipped T4GYuGE8Ylxoqgmm7hWv because state is needs_qr
+17|whatsap | [Heartbeat] Skipped Ztj2SRhRWAflLQh7iVi5 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 7MXiCIPXm1ZGeXxk5X58 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped C7xKBICjBaeibmkmfYN8 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped K22D5aEwi4PHCDw94E1l because state is needs_qr
+17|whatsap | [Heartbeat] Skipped PA0gh9QjBm08EjPgMxWh because state is needs_qr
+17|whatsap | [Heartbeat] Skipped vWPV8yMvNyCab1kl5S0U because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LKvZfsJMz7IO8dBLuotj because state is needs_qr
+17|whatsap | [Heartbeat] Skipped hQtWagPAA490T7FD3vdb because state is needs_qr
+17|whatsap | [Heartbeat] Skipped ZHRI9O3O3Lx6yRWzqOWg because state is needs_qr
+17|whatsap | [Heartbeat] Pinging Supabase for C9mLWO3s3nx5ckQBlmUE
+17|whatsap | [Heartbeat] Skipped XANaSkgQzW5Z1VfmIvCs because state is needs_qr
+17|whatsap | [Heartbeat] Tick: 17 sessions in memory.
+17|whatsap | [Heartbeat] Skipped 7ei5E0SiunhP686M0EVX because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LxAQ6z2i6KkJJVxCndT2 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped YJGfkW2sbaPE3YCatApW because state is needs_qr
+17|whatsap | [Heartbeat] Skipped tJp0PGVaFVHBSjfk3Kv3 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 9ULWIxluGCZNcfVbouHo because state is needs_qr
+17|whatsap | [Heartbeat] Skipped T4GYuGE8Ylxoqgmm7hWv because state is needs_qr
+17|whatsap | [Heartbeat] Skipped Ztj2SRhRWAflLQh7iVi5 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 7MXiCIPXm1ZGeXxk5X58 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped C7xKBICjBaeibmkmfYN8 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped K22D5aEwi4PHCDw94E1l because state is needs_qr
+17|whatsap | [Heartbeat] Skipped PA0gh9QjBm08EjPgMxWh because state is needs_qr
+17|whatsap | [Heartbeat] Skipped vWPV8yMvNyCab1kl5S0U because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LKvZfsJMz7IO8dBLuotj because state is needs_qr
+17|whatsap | [Heartbeat] Skipped hQtWagPAA490T7FD3vdb because state is needs_qr
+17|whatsap | [Heartbeat] Skipped ZHRI9O3O3Lx6yRWzqOWg because state is needs_qr
+17|whatsap | [Heartbeat] Pinging Supabase for C9mLWO3s3nx5ckQBlmUE
+17|whatsap | [Heartbeat] Skipped XANaSkgQzW5Z1VfmIvCs because state is needs_qr
+17|whatsap | [Heartbeat] Tick: 17 sessions in memory.
+17|whatsap | [Heartbeat] Skipped 7ei5E0SiunhP686M0EVX because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LxAQ6z2i6KkJJVxCndT2 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped YJGfkW2sbaPE3YCatApW because state is needs_qr
+17|whatsap | [Heartbeat] Skipped tJp0PGVaFVHBSjfk3Kv3 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 9ULWIxluGCZNcfVbouHo because state is needs_qr
+17|whatsap | [Heartbeat] Skipped T4GYuGE8Ylxoqgmm7hWv because state is needs_qr
+17|whatsap | [Heartbeat] Skipped Ztj2SRhRWAflLQh7iVi5 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 7MXiCIPXm1ZGeXxk5X58 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped C7xKBICjBaeibmkmfYN8 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped K22D5aEwi4PHCDw94E1l because state is needs_qr
+17|whatsap | [Heartbeat] Skipped PA0gh9QjBm08EjPgMxWh because state is needs_qr
+17|whatsap | [Heartbeat] Skipped vWPV8yMvNyCab1kl5S0U because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LKvZfsJMz7IO8dBLuotj because state is needs_qr
+17|whatsap | [Heartbeat] Skipped hQtWagPAA490T7FD3vdb because state is needs_qr
+17|whatsap | [Heartbeat] Skipped ZHRI9O3O3Lx6yRWzqOWg because state is needs_qr
+17|whatsap | [Heartbeat] Pinging Supabase for C9mLWO3s3nx5ckQBlmUE
+17|whatsap | [Heartbeat] Skipped XANaSkgQzW5Z1VfmIvCs because state is needs_qr
+17|whatsap | [Heartbeat] Tick: 17 sessions in memory.
+17|whatsap | [Heartbeat] Skipped 7ei5E0SiunhP686M0EVX because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LxAQ6z2i6KkJJVxCndT2 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped YJGfkW2sbaPE3YCatApW because state is needs_qr
+17|whatsap | [Heartbeat] Skipped tJp0PGVaFVHBSjfk3Kv3 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 9ULWIxluGCZNcfVbouHo because state is needs_qr
+17|whatsap | [Heartbeat] Skipped T4GYuGE8Ylxoqgmm7hWv because state is needs_qr
+17|whatsap | [Heartbeat] Skipped Ztj2SRhRWAflLQh7iVi5 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 7MXiCIPXm1ZGeXxk5X58 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped C7xKBICjBaeibmkmfYN8 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped K22D5aEwi4PHCDw94E1l because state is needs_qr
+17|whatsap | [Heartbeat] Skipped PA0gh9QjBm08EjPgMxWh because state is needs_qr
+17|whatsap | [Heartbeat] Skipped vWPV8yMvNyCab1kl5S0U because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LKvZfsJMz7IO8dBLuotj because state is needs_qr
+17|whatsap | [Heartbeat] Skipped hQtWagPAA490T7FD3vdb because state is needs_qr
+17|whatsap | [Heartbeat] Skipped ZHRI9O3O3Lx6yRWzqOWg because state is needs_qr
+17|whatsap | [Heartbeat] Pinging Supabase for C9mLWO3s3nx5ckQBlmUE
+17|whatsap | [Heartbeat] Skipped XANaSkgQzW5Z1VfmIvCs because state is needs_qr
+17|whatsap | [Heartbeat] Tick: 17 sessions in memory.
+17|whatsap | [Heartbeat] Skipped 7ei5E0SiunhP686M0EVX because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LxAQ6z2i6KkJJVxCndT2 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped YJGfkW2sbaPE3YCatApW because state is needs_qr
+17|whatsap | [Heartbeat] Skipped tJp0PGVaFVHBSjfk3Kv3 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 9ULWIxluGCZNcfVbouHo because state is needs_qr
+17|whatsap | [Heartbeat] Skipped T4GYuGE8Ylxoqgmm7hWv because state is needs_qr
+17|whatsap | [Heartbeat] Skipped Ztj2SRhRWAflLQh7iVi5 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 7MXiCIPXm1ZGeXxk5X58 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped C7xKBICjBaeibmkmfYN8 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped K22D5aEwi4PHCDw94E1l because state is needs_qr
+17|whatsap | [Heartbeat] Skipped PA0gh9QjBm08EjPgMxWh because state is needs_qr
+17|whatsap | [Heartbeat] Skipped vWPV8yMvNyCab1kl5S0U because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LKvZfsJMz7IO8dBLuotj because state is needs_qr
+17|whatsap | [Heartbeat] Skipped hQtWagPAA490T7FD3vdb because state is needs_qr
+17|whatsap | [Heartbeat] Skipped ZHRI9O3O3Lx6yRWzqOWg because state is needs_qr
+17|whatsap | [Heartbeat] Pinging Supabase for C9mLWO3s3nx5ckQBlmUE
+17|whatsap | [Heartbeat] Skipped XANaSkgQzW5Z1VfmIvCs because state is needs_qr
+17|whatsap | [Heartbeat] Tick: 17 sessions in memory.
+17|whatsap | [Heartbeat] Skipped 7ei5E0SiunhP686M0EVX because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LxAQ6z2i6KkJJVxCndT2 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped YJGfkW2sbaPE3YCatApW because state is needs_qr
+17|whatsap | [Heartbeat] Skipped tJp0PGVaFVHBSjfk3Kv3 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 9ULWIxluGCZNcfVbouHo because state is needs_qr
+17|whatsap | [Heartbeat] Skipped T4GYuGE8Ylxoqgmm7hWv because state is needs_qr
+17|whatsap | [Heartbeat] Skipped Ztj2SRhRWAflLQh7iVi5 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 7MXiCIPXm1ZGeXxk5X58 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped C7xKBICjBaeibmkmfYN8 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped K22D5aEwi4PHCDw94E1l because state is needs_qr
+17|whatsap | [Heartbeat] Skipped PA0gh9QjBm08EjPgMxWh because state is needs_qr
+17|whatsap | [Heartbeat] Skipped vWPV8yMvNyCab1kl5S0U because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LKvZfsJMz7IO8dBLuotj because state is needs_qr
+17|whatsap | [Heartbeat] Skipped hQtWagPAA490T7FD3vdb because state is needs_qr
+17|whatsap | [Heartbeat] Skipped ZHRI9O3O3Lx6yRWzqOWg because state is needs_qr
+17|whatsap | [Heartbeat] Pinging Supabase for C9mLWO3s3nx5ckQBlmUE
+17|whatsap | [Heartbeat] Skipped XANaSkgQzW5Z1VfmIvCs because state is needs_qr
+17|whatsap | [Heartbeat] Tick: 17 sessions in memory.
+17|whatsap | [Heartbeat] Skipped 7ei5E0SiunhP686M0EVX because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LxAQ6z2i6KkJJVxCndT2 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped YJGfkW2sbaPE3YCatApW because state is needs_qr
+17|whatsap | [Heartbeat] Skipped tJp0PGVaFVHBSjfk3Kv3 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 9ULWIxluGCZNcfVbouHo because state is needs_qr
+17|whatsap | [Heartbeat] Skipped T4GYuGE8Ylxoqgmm7hWv because state is needs_qr
+17|whatsap | [Heartbeat] Skipped Ztj2SRhRWAflLQh7iVi5 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 7MXiCIPXm1ZGeXxk5X58 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped C7xKBICjBaeibmkmfYN8 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped K22D5aEwi4PHCDw94E1l because state is needs_qr
+17|whatsap | [Heartbeat] Skipped PA0gh9QjBm08EjPgMxWh because state is needs_qr
+17|whatsap | [Heartbeat] Skipped vWPV8yMvNyCab1kl5S0U because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LKvZfsJMz7IO8dBLuotj because state is needs_qr
+17|whatsap | [Heartbeat] Skipped hQtWagPAA490T7FD3vdb because state is needs_qr
+17|whatsap | [Heartbeat] Skipped ZHRI9O3O3Lx6yRWzqOWg because state is needs_qr
+17|whatsap | [Heartbeat] Pinging Supabase for C9mLWO3s3nx5ckQBlmUE
+17|whatsap | [Heartbeat] Skipped XANaSkgQzW5Z1VfmIvCs because state is needs_qr
+17|whatsap | [Heartbeat] Tick: 17 sessions in memory.
+17|whatsap | [Heartbeat] Skipped 7ei5E0SiunhP686M0EVX because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LxAQ6z2i6KkJJVxCndT2 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped YJGfkW2sbaPE3YCatApW because state is needs_qr
+17|whatsap | [Heartbeat] Skipped tJp0PGVaFVHBSjfk3Kv3 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 9ULWIxluGCZNcfVbouHo because state is needs_qr
+17|whatsap | [Heartbeat] Skipped T4GYuGE8Ylxoqgmm7hWv because state is needs_qr
+17|whatsap | [Heartbeat] Skipped Ztj2SRhRWAflLQh7iVi5 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 7MXiCIPXm1ZGeXxk5X58 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped C7xKBICjBaeibmkmfYN8 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped K22D5aEwi4PHCDw94E1l because state is needs_qr
+17|whatsap | [Heartbeat] Skipped PA0gh9QjBm08EjPgMxWh because state is needs_qr
+17|whatsap | [Heartbeat] Skipped vWPV8yMvNyCab1kl5S0U because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LKvZfsJMz7IO8dBLuotj because state is needs_qr
+17|whatsap | [Heartbeat] Skipped hQtWagPAA490T7FD3vdb because state is needs_qr
+17|whatsap | [Heartbeat] Skipped ZHRI9O3O3Lx6yRWzqOWg because state is needs_qr
+17|whatsap | [Heartbeat] Pinging Supabase for C9mLWO3s3nx5ckQBlmUE
+17|whatsap | [Heartbeat] Skipped XANaSkgQzW5Z1VfmIvCs because state is needs_qr
+17|whatsap | [Heartbeat] Tick: 17 sessions in memory.
+17|whatsap | [Heartbeat] Skipped 7ei5E0SiunhP686M0EVX because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LxAQ6z2i6KkJJVxCndT2 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped YJGfkW2sbaPE3YCatApW because state is needs_qr
+17|whatsap | [Heartbeat] Skipped tJp0PGVaFVHBSjfk3Kv3 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 9ULWIxluGCZNcfVbouHo because state is needs_qr
+17|whatsap | [Heartbeat] Skipped T4GYuGE8Ylxoqgmm7hWv because state is needs_qr
+17|whatsap | [Heartbeat] Skipped Ztj2SRhRWAflLQh7iVi5 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 7MXiCIPXm1ZGeXxk5X58 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped C7xKBICjBaeibmkmfYN8 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped K22D5aEwi4PHCDw94E1l because state is needs_qr
+17|whatsap | [Heartbeat] Skipped PA0gh9QjBm08EjPgMxWh because state is needs_qr
+17|whatsap | [Heartbeat] Skipped vWPV8yMvNyCab1kl5S0U because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LKvZfsJMz7IO8dBLuotj because state is needs_qr
+17|whatsap | [Heartbeat] Skipped hQtWagPAA490T7FD3vdb because state is needs_qr
+17|whatsap | [Heartbeat] Skipped ZHRI9O3O3Lx6yRWzqOWg because state is needs_qr
+17|whatsap | [Heartbeat] Pinging Supabase for C9mLWO3s3nx5ckQBlmUE
+17|whatsap | [Heartbeat] Skipped XANaSkgQzW5Z1VfmIvCs because state is needs_qr
+17|whatsap | [Heartbeat] Tick: 17 sessions in memory.
+17|whatsap | [Heartbeat] Skipped 7ei5E0SiunhP686M0EVX because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LxAQ6z2i6KkJJVxCndT2 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped YJGfkW2sbaPE3YCatApW because state is needs_qr
+17|whatsap | [Heartbeat] Skipped tJp0PGVaFVHBSjfk3Kv3 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 9ULWIxluGCZNcfVbouHo because state is needs_qr
+17|whatsap | [Heartbeat] Skipped T4GYuGE8Ylxoqgmm7hWv because state is needs_qr
+17|whatsap | [Heartbeat] Skipped Ztj2SRhRWAflLQh7iVi5 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 7MXiCIPXm1ZGeXxk5X58 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped C7xKBICjBaeibmkmfYN8 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped K22D5aEwi4PHCDw94E1l because state is needs_qr
+17|whatsap | [Heartbeat] Skipped PA0gh9QjBm08EjPgMxWh because state is needs_qr
+17|whatsap | [Heartbeat] Skipped vWPV8yMvNyCab1kl5S0U because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LKvZfsJMz7IO8dBLuotj because state is needs_qr
+17|whatsap | [Heartbeat] Skipped hQtWagPAA490T7FD3vdb because state is needs_qr
+17|whatsap | [Heartbeat] Skipped ZHRI9O3O3Lx6yRWzqOWg because state is needs_qr
+17|whatsap | [Heartbeat] Pinging Supabase for C9mLWO3s3nx5ckQBlmUE
+17|whatsap | [Heartbeat] Skipped XANaSkgQzW5Z1VfmIvCs because state is needs_qr
+17|whatsap | [Heartbeat] Tick: 17 sessions in memory.
+17|whatsap | [Heartbeat] Skipped 7ei5E0SiunhP686M0EVX because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LxAQ6z2i6KkJJVxCndT2 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped YJGfkW2sbaPE3YCatApW because state is needs_qr
+17|whatsap | [Heartbeat] Skipped tJp0PGVaFVHBSjfk3Kv3 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 9ULWIxluGCZNcfVbouHo because state is needs_qr
+17|whatsap | [Heartbeat] Skipped T4GYuGE8Ylxoqgmm7hWv because state is needs_qr
+17|whatsap | [Heartbeat] Skipped Ztj2SRhRWAflLQh7iVi5 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 7MXiCIPXm1ZGeXxk5X58 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped C7xKBICjBaeibmkmfYN8 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped K22D5aEwi4PHCDw94E1l because state is needs_qr
+17|whatsap | [Heartbeat] Skipped PA0gh9QjBm08EjPgMxWh because state is needs_qr
+17|whatsap | [Heartbeat] Skipped vWPV8yMvNyCab1kl5S0U because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LKvZfsJMz7IO8dBLuotj because state is needs_qr
+17|whatsap | [Heartbeat] Skipped hQtWagPAA490T7FD3vdb because state is needs_qr
+17|whatsap | [Heartbeat] Skipped ZHRI9O3O3Lx6yRWzqOWg because state is needs_qr
+17|whatsap | [Heartbeat] Pinging Supabase for C9mLWO3s3nx5ckQBlmUE
+17|whatsap | [Heartbeat] Skipped XANaSkgQzW5Z1VfmIvCs because state is needs_qr
+17|whatsap | [Heartbeat] Tick: 17 sessions in memory.
+17|whatsap | [Heartbeat] Skipped 7ei5E0SiunhP686M0EVX because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LxAQ6z2i6KkJJVxCndT2 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped YJGfkW2sbaPE3YCatApW because state is needs_qr
+17|whatsap | [Heartbeat] Skipped tJp0PGVaFVHBSjfk3Kv3 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 9ULWIxluGCZNcfVbouHo because state is needs_qr
+17|whatsap | [Heartbeat] Skipped T4GYuGE8Ylxoqgmm7hWv because state is needs_qr
+17|whatsap | [Heartbeat] Skipped Ztj2SRhRWAflLQh7iVi5 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 7MXiCIPXm1ZGeXxk5X58 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped C7xKBICjBaeibmkmfYN8 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped K22D5aEwi4PHCDw94E1l because state is needs_qr
+17|whatsap | [Heartbeat] Skipped PA0gh9QjBm08EjPgMxWh because state is needs_qr
+17|whatsap | [Heartbeat] Skipped vWPV8yMvNyCab1kl5S0U because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LKvZfsJMz7IO8dBLuotj because state is needs_qr
+17|whatsap | [Heartbeat] Skipped hQtWagPAA490T7FD3vdb because state is needs_qr
+17|whatsap | [Heartbeat] Skipped ZHRI9O3O3Lx6yRWzqOWg because state is needs_qr
+17|whatsap | [Heartbeat] Pinging Supabase for C9mLWO3s3nx5ckQBlmUE
+17|whatsap | [Heartbeat] Skipped XANaSkgQzW5Z1VfmIvCs because state is needs_qr
+17|whatsap | [Heartbeat] Tick: 17 sessions in memory.
+17|whatsap | [Heartbeat] Skipped 7ei5E0SiunhP686M0EVX because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LxAQ6z2i6KkJJVxCndT2 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped YJGfkW2sbaPE3YCatApW because state is needs_qr
+17|whatsap | [Heartbeat] Skipped tJp0PGVaFVHBSjfk3Kv3 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 9ULWIxluGCZNcfVbouHo because state is needs_qr
+17|whatsap | [Heartbeat] Skipped T4GYuGE8Ylxoqgmm7hWv because state is needs_qr
+17|whatsap | [Heartbeat] Skipped Ztj2SRhRWAflLQh7iVi5 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 7MXiCIPXm1ZGeXxk5X58 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped C7xKBICjBaeibmkmfYN8 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped K22D5aEwi4PHCDw94E1l because state is needs_qr
+17|whatsap | [Heartbeat] Skipped PA0gh9QjBm08EjPgMxWh because state is needs_qr
+17|whatsap | [Heartbeat] Skipped vWPV8yMvNyCab1kl5S0U because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LKvZfsJMz7IO8dBLuotj because state is needs_qr
+17|whatsap | [Heartbeat] Skipped hQtWagPAA490T7FD3vdb because state is needs_qr
+17|whatsap | [Heartbeat] Skipped ZHRI9O3O3Lx6yRWzqOWg because state is needs_qr
+17|whatsap | [Heartbeat] Pinging Supabase for C9mLWO3s3nx5ckQBlmUE
+17|whatsap | [Heartbeat] Skipped XANaSkgQzW5Z1VfmIvCs because state is needs_qr
+17|whatsap | [Heartbeat] Tick: 17 sessions in memory.
+17|whatsap | [Heartbeat] Skipped 7ei5E0SiunhP686M0EVX because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LxAQ6z2i6KkJJVxCndT2 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped YJGfkW2sbaPE3YCatApW because state is needs_qr
+17|whatsap | [Heartbeat] Skipped tJp0PGVaFVHBSjfk3Kv3 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 9ULWIxluGCZNcfVbouHo because state is needs_qr
+17|whatsap | [Heartbeat] Skipped T4GYuGE8Ylxoqgmm7hWv because state is needs_qr
+17|whatsap | [Heartbeat] Skipped Ztj2SRhRWAflLQh7iVi5 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 7MXiCIPXm1ZGeXxk5X58 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped C7xKBICjBaeibmkmfYN8 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped K22D5aEwi4PHCDw94E1l because state is needs_qr
+17|whatsap | [Heartbeat] Skipped PA0gh9QjBm08EjPgMxWh because state is needs_qr
+17|whatsap | [Heartbeat] Skipped vWPV8yMvNyCab1kl5S0U because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LKvZfsJMz7IO8dBLuotj because state is needs_qr
+17|whatsap | [Heartbeat] Skipped hQtWagPAA490T7FD3vdb because state is needs_qr
+17|whatsap | [Heartbeat] Skipped ZHRI9O3O3Lx6yRWzqOWg because state is needs_qr
+17|whatsap | [Heartbeat] Pinging Supabase for C9mLWO3s3nx5ckQBlmUE
+17|whatsap | [Heartbeat] Skipped XANaSkgQzW5Z1VfmIvCs because state is needs_qr
+17|whatsap | [Heartbeat] Tick: 17 sessions in memory.
+17|whatsap | [Heartbeat] Skipped 7ei5E0SiunhP686M0EVX because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LxAQ6z2i6KkJJVxCndT2 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped YJGfkW2sbaPE3YCatApW because state is needs_qr
+17|whatsap | [Heartbeat] Skipped tJp0PGVaFVHBSjfk3Kv3 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 9ULWIxluGCZNcfVbouHo because state is needs_qr
+17|whatsap | [Heartbeat] Skipped T4GYuGE8Ylxoqgmm7hWv because state is needs_qr
+17|whatsap | [Heartbeat] Skipped Ztj2SRhRWAflLQh7iVi5 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 7MXiCIPXm1ZGeXxk5X58 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped C7xKBICjBaeibmkmfYN8 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped K22D5aEwi4PHCDw94E1l because state is needs_qr
+17|whatsap | [Heartbeat] Skipped PA0gh9QjBm08EjPgMxWh because state is needs_qr
+17|whatsap | [Heartbeat] Skipped vWPV8yMvNyCab1kl5S0U because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LKvZfsJMz7IO8dBLuotj because state is needs_qr
+17|whatsap | [Heartbeat] Skipped hQtWagPAA490T7FD3vdb because state is needs_qr
+17|whatsap | [Heartbeat] Skipped ZHRI9O3O3Lx6yRWzqOWg because state is needs_qr
+17|whatsap | [Heartbeat] Pinging Supabase for C9mLWO3s3nx5ckQBlmUE
+17|whatsap | [Heartbeat] Skipped XANaSkgQzW5Z1VfmIvCs because state is needs_qr
+17|whatsap | [10:18:19.204] [32mINFO[39m: [36mGET /actuator/health 404 1ms[39m
+17|whatsap |     [35mservice[39m: "superparty-backend"
+17|whatsap |     [35menv[39m: "production"
+17|whatsap |     [35mrequestId[39m: "cd695578-ce94-45c7-af81-529a696f9a91"
+17|whatsap |     [35mmethod[39m: "GET"
+17|whatsap |     [35murl[39m: "/actuator/health"
+17|whatsap |     [35mstatusCode[39m: 404
+17|whatsap |     [35mduration[39m: 1
+17|whatsap |     [35mip[39m: "127.0.0.1"
+17|whatsap | [Heartbeat] Tick: 17 sessions in memory.
+17|whatsap | [Heartbeat] Skipped 7ei5E0SiunhP686M0EVX because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LxAQ6z2i6KkJJVxCndT2 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped YJGfkW2sbaPE3YCatApW because state is needs_qr
+17|whatsap | [Heartbeat] Skipped tJp0PGVaFVHBSjfk3Kv3 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 9ULWIxluGCZNcfVbouHo because state is needs_qr
+17|whatsap | [Heartbeat] Skipped T4GYuGE8Ylxoqgmm7hWv because state is needs_qr
+17|whatsap | [Heartbeat] Skipped Ztj2SRhRWAflLQh7iVi5 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 7MXiCIPXm1ZGeXxk5X58 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped C7xKBICjBaeibmkmfYN8 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped K22D5aEwi4PHCDw94E1l because state is needs_qr
+17|whatsap | [Heartbeat] Skipped PA0gh9QjBm08EjPgMxWh because state is needs_qr
+17|whatsap | [Heartbeat] Skipped vWPV8yMvNyCab1kl5S0U because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LKvZfsJMz7IO8dBLuotj because state is needs_qr
+17|whatsap | [Heartbeat] Skipped hQtWagPAA490T7FD3vdb because state is needs_qr
+17|whatsap | [Heartbeat] Skipped ZHRI9O3O3Lx6yRWzqOWg because state is needs_qr
+17|whatsap | [Heartbeat] Pinging Supabase for C9mLWO3s3nx5ckQBlmUE
+17|whatsap | [Heartbeat] Skipped XANaSkgQzW5Z1VfmIvCs because state is needs_qr
+17|whatsap | [Heartbeat] Tick: 17 sessions in memory.
+17|whatsap | [Heartbeat] Skipped 7ei5E0SiunhP686M0EVX because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LxAQ6z2i6KkJJVxCndT2 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped YJGfkW2sbaPE3YCatApW because state is needs_qr
+17|whatsap | [Heartbeat] Skipped tJp0PGVaFVHBSjfk3Kv3 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 9ULWIxluGCZNcfVbouHo because state is needs_qr
+17|whatsap | [Heartbeat] Skipped T4GYuGE8Ylxoqgmm7hWv because state is needs_qr
+17|whatsap | [Heartbeat] Skipped Ztj2SRhRWAflLQh7iVi5 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 7MXiCIPXm1ZGeXxk5X58 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped C7xKBICjBaeibmkmfYN8 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped K22D5aEwi4PHCDw94E1l because state is needs_qr
+17|whatsap | [Heartbeat] Skipped PA0gh9QjBm08EjPgMxWh because state is needs_qr
+17|whatsap | [Heartbeat] Skipped vWPV8yMvNyCab1kl5S0U because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LKvZfsJMz7IO8dBLuotj because state is needs_qr
+17|whatsap | [Heartbeat] Skipped hQtWagPAA490T7FD3vdb because state is needs_qr
+17|whatsap | [Heartbeat] Skipped ZHRI9O3O3Lx6yRWzqOWg because state is needs_qr
+17|whatsap | [Heartbeat] Pinging Supabase for C9mLWO3s3nx5ckQBlmUE
+17|whatsap | [Heartbeat] Skipped XANaSkgQzW5Z1VfmIvCs because state is needs_qr
+17|whatsap | [Heartbeat] Tick: 17 sessions in memory.
+17|whatsap | [Heartbeat] Skipped 7ei5E0SiunhP686M0EVX because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LxAQ6z2i6KkJJVxCndT2 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped YJGfkW2sbaPE3YCatApW because state is needs_qr
+17|whatsap | [Heartbeat] Skipped tJp0PGVaFVHBSjfk3Kv3 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 9ULWIxluGCZNcfVbouHo because state is needs_qr
+17|whatsap | [Heartbeat] Skipped T4GYuGE8Ylxoqgmm7hWv because state is needs_qr
+17|whatsap | [Heartbeat] Skipped Ztj2SRhRWAflLQh7iVi5 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 7MXiCIPXm1ZGeXxk5X58 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped C7xKBICjBaeibmkmfYN8 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped K22D5aEwi4PHCDw94E1l because state is needs_qr
+17|whatsap | [Heartbeat] Skipped PA0gh9QjBm08EjPgMxWh because state is needs_qr
+17|whatsap | [Heartbeat] Skipped vWPV8yMvNyCab1kl5S0U because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LKvZfsJMz7IO8dBLuotj because state is needs_qr
+17|whatsap | [Heartbeat] Skipped hQtWagPAA490T7FD3vdb because state is needs_qr
+17|whatsap | [Heartbeat] Skipped ZHRI9O3O3Lx6yRWzqOWg because state is needs_qr
+17|whatsap | [Heartbeat] Pinging Supabase for C9mLWO3s3nx5ckQBlmUE
+17|whatsap | [Heartbeat] Skipped XANaSkgQzW5Z1VfmIvCs because state is needs_qr
+17|whatsap | [SessionManager] C9mLWO3s3nx5ckQBlmUE CREDS_UPDATE fired (phase=none) — saving to disk
+17|whatsap | [SessionManager] C9mLWO3s3nx5ckQBlmUE CREDS_UPDATE — save complete
+17|whatsap | [Heartbeat] Tick: 17 sessions in memory.
+17|whatsap | [Heartbeat] Skipped 7ei5E0SiunhP686M0EVX because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LxAQ6z2i6KkJJVxCndT2 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped YJGfkW2sbaPE3YCatApW because state is needs_qr
+17|whatsap | [Heartbeat] Skipped tJp0PGVaFVHBSjfk3Kv3 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 9ULWIxluGCZNcfVbouHo because state is needs_qr
+17|whatsap | [Heartbeat] Skipped T4GYuGE8Ylxoqgmm7hWv because state is needs_qr
+17|whatsap | [Heartbeat] Skipped Ztj2SRhRWAflLQh7iVi5 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 7MXiCIPXm1ZGeXxk5X58 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped C7xKBICjBaeibmkmfYN8 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped K22D5aEwi4PHCDw94E1l because state is needs_qr
+17|whatsap | [Heartbeat] Skipped PA0gh9QjBm08EjPgMxWh because state is needs_qr
+17|whatsap | [Heartbeat] Skipped vWPV8yMvNyCab1kl5S0U because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LKvZfsJMz7IO8dBLuotj because state is needs_qr
+17|whatsap | [Heartbeat] Skipped hQtWagPAA490T7FD3vdb because state is needs_qr
+17|whatsap | [Heartbeat] Skipped ZHRI9O3O3Lx6yRWzqOWg because state is needs_qr
+17|whatsap | [Heartbeat] Pinging Supabase for C9mLWO3s3nx5ckQBlmUE
+17|whatsap | [Heartbeat] Skipped XANaSkgQzW5Z1VfmIvCs because state is needs_qr
+17|whatsap | [Heartbeat] Tick: 17 sessions in memory.
+17|whatsap | [Heartbeat] Skipped 7ei5E0SiunhP686M0EVX because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LxAQ6z2i6KkJJVxCndT2 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped YJGfkW2sbaPE3YCatApW because state is needs_qr
+17|whatsap | [Heartbeat] Skipped tJp0PGVaFVHBSjfk3Kv3 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 9ULWIxluGCZNcfVbouHo because state is needs_qr
+17|whatsap | [Heartbeat] Skipped T4GYuGE8Ylxoqgmm7hWv because state is needs_qr
+17|whatsap | [Heartbeat] Skipped Ztj2SRhRWAflLQh7iVi5 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 7MXiCIPXm1ZGeXxk5X58 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped C7xKBICjBaeibmkmfYN8 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped K22D5aEwi4PHCDw94E1l because state is needs_qr
+17|whatsap | [Heartbeat] Skipped PA0gh9QjBm08EjPgMxWh because state is needs_qr
+17|whatsap | [Heartbeat] Skipped vWPV8yMvNyCab1kl5S0U because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LKvZfsJMz7IO8dBLuotj because state is needs_qr
+17|whatsap | [Heartbeat] Skipped hQtWagPAA490T7FD3vdb because state is needs_qr
+17|whatsap | [Heartbeat] Skipped ZHRI9O3O3Lx6yRWzqOWg because state is needs_qr
+17|whatsap | [Heartbeat] Pinging Supabase for C9mLWO3s3nx5ckQBlmUE
+17|whatsap | [Heartbeat] Skipped XANaSkgQzW5Z1VfmIvCs because state is needs_qr
+17|whatsap | [Heartbeat] Tick: 17 sessions in memory.
+17|whatsap | [Heartbeat] Skipped 7ei5E0SiunhP686M0EVX because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LxAQ6z2i6KkJJVxCndT2 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped YJGfkW2sbaPE3YCatApW because state is needs_qr
+17|whatsap | [Heartbeat] Skipped tJp0PGVaFVHBSjfk3Kv3 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 9ULWIxluGCZNcfVbouHo because state is needs_qr
+17|whatsap | [Heartbeat] Skipped T4GYuGE8Ylxoqgmm7hWv because state is needs_qr
+17|whatsap | [Heartbeat] Skipped Ztj2SRhRWAflLQh7iVi5 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 7MXiCIPXm1ZGeXxk5X58 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped C7xKBICjBaeibmkmfYN8 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped K22D5aEwi4PHCDw94E1l because state is needs_qr
+17|whatsap | [Heartbeat] Skipped PA0gh9QjBm08EjPgMxWh because state is needs_qr
+17|whatsap | [Heartbeat] Skipped vWPV8yMvNyCab1kl5S0U because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LKvZfsJMz7IO8dBLuotj because state is needs_qr
+17|whatsap | [Heartbeat] Skipped hQtWagPAA490T7FD3vdb because state is needs_qr
+17|whatsap | [Heartbeat] Skipped ZHRI9O3O3Lx6yRWzqOWg because state is needs_qr
+17|whatsap | [Heartbeat] Pinging Supabase for C9mLWO3s3nx5ckQBlmUE
+17|whatsap | [Heartbeat] Skipped XANaSkgQzW5Z1VfmIvCs because state is needs_qr
+17|whatsap | [Heartbeat] Tick: 17 sessions in memory.
+17|whatsap | [Heartbeat] Skipped 7ei5E0SiunhP686M0EVX because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LxAQ6z2i6KkJJVxCndT2 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped YJGfkW2sbaPE3YCatApW because state is needs_qr
+17|whatsap | [Heartbeat] Skipped tJp0PGVaFVHBSjfk3Kv3 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 9ULWIxluGCZNcfVbouHo because state is needs_qr
+17|whatsap | [Heartbeat] Skipped T4GYuGE8Ylxoqgmm7hWv because state is needs_qr
+17|whatsap | [Heartbeat] Skipped Ztj2SRhRWAflLQh7iVi5 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 7MXiCIPXm1ZGeXxk5X58 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped C7xKBICjBaeibmkmfYN8 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped K22D5aEwi4PHCDw94E1l because state is needs_qr
+17|whatsap | [Heartbeat] Skipped PA0gh9QjBm08EjPgMxWh because state is needs_qr
+17|whatsap | [Heartbeat] Skipped vWPV8yMvNyCab1kl5S0U because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LKvZfsJMz7IO8dBLuotj because state is needs_qr
+17|whatsap | [Heartbeat] Skipped hQtWagPAA490T7FD3vdb because state is needs_qr
+17|whatsap | [Heartbeat] Skipped ZHRI9O3O3Lx6yRWzqOWg because state is needs_qr
+17|whatsap | [Heartbeat] Pinging Supabase for C9mLWO3s3nx5ckQBlmUE
+17|whatsap | [Heartbeat] Skipped XANaSkgQzW5Z1VfmIvCs because state is needs_qr
+17|whatsap | [Heartbeat] Tick: 17 sessions in memory.
+17|whatsap | [Heartbeat] Skipped 7ei5E0SiunhP686M0EVX because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LxAQ6z2i6KkJJVxCndT2 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped YJGfkW2sbaPE3YCatApW because state is needs_qr
+17|whatsap | [Heartbeat] Skipped tJp0PGVaFVHBSjfk3Kv3 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 9ULWIxluGCZNcfVbouHo because state is needs_qr
+17|whatsap | [Heartbeat] Skipped T4GYuGE8Ylxoqgmm7hWv because state is needs_qr
+17|whatsap | [Heartbeat] Skipped Ztj2SRhRWAflLQh7iVi5 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 7MXiCIPXm1ZGeXxk5X58 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped C7xKBICjBaeibmkmfYN8 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped K22D5aEwi4PHCDw94E1l because state is needs_qr
+17|whatsap | [Heartbeat] Skipped PA0gh9QjBm08EjPgMxWh because state is needs_qr
+17|whatsap | [Heartbeat] Skipped vWPV8yMvNyCab1kl5S0U because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LKvZfsJMz7IO8dBLuotj because state is needs_qr
+17|whatsap | [Heartbeat] Skipped hQtWagPAA490T7FD3vdb because state is needs_qr
+17|whatsap | [Heartbeat] Skipped ZHRI9O3O3Lx6yRWzqOWg because state is needs_qr
+17|whatsap | [Heartbeat] Pinging Supabase for C9mLWO3s3nx5ckQBlmUE
+17|whatsap | [Heartbeat] Skipped XANaSkgQzW5Z1VfmIvCs because state is needs_qr
+17|whatsap | [Heartbeat] Tick: 17 sessions in memory.
+17|whatsap | [Heartbeat] Skipped 7ei5E0SiunhP686M0EVX because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LxAQ6z2i6KkJJVxCndT2 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped YJGfkW2sbaPE3YCatApW because state is needs_qr
+17|whatsap | [Heartbeat] Skipped tJp0PGVaFVHBSjfk3Kv3 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 9ULWIxluGCZNcfVbouHo because state is needs_qr
+17|whatsap | [Heartbeat] Skipped T4GYuGE8Ylxoqgmm7hWv because state is needs_qr
+17|whatsap | [Heartbeat] Skipped Ztj2SRhRWAflLQh7iVi5 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 7MXiCIPXm1ZGeXxk5X58 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped C7xKBICjBaeibmkmfYN8 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped K22D5aEwi4PHCDw94E1l because state is needs_qr
+17|whatsap | [Heartbeat] Skipped PA0gh9QjBm08EjPgMxWh because state is needs_qr
+17|whatsap | [Heartbeat] Skipped vWPV8yMvNyCab1kl5S0U because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LKvZfsJMz7IO8dBLuotj because state is needs_qr
+17|whatsap | [Heartbeat] Skipped hQtWagPAA490T7FD3vdb because state is needs_qr
+17|whatsap | [Heartbeat] Skipped ZHRI9O3O3Lx6yRWzqOWg because state is needs_qr
+17|whatsap | [Heartbeat] Pinging Supabase for C9mLWO3s3nx5ckQBlmUE
+17|whatsap | [Heartbeat] Skipped XANaSkgQzW5Z1VfmIvCs because state is needs_qr
+17|whatsap | [Heartbeat] Tick: 17 sessions in memory.
+17|whatsap | [Heartbeat] Skipped 7ei5E0SiunhP686M0EVX because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LxAQ6z2i6KkJJVxCndT2 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped YJGfkW2sbaPE3YCatApW because state is needs_qr
+17|whatsap | [Heartbeat] Skipped tJp0PGVaFVHBSjfk3Kv3 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 9ULWIxluGCZNcfVbouHo because state is needs_qr
+17|whatsap | [Heartbeat] Skipped T4GYuGE8Ylxoqgmm7hWv because state is needs_qr
+17|whatsap | [Heartbeat] Skipped Ztj2SRhRWAflLQh7iVi5 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 7MXiCIPXm1ZGeXxk5X58 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped C7xKBICjBaeibmkmfYN8 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped K22D5aEwi4PHCDw94E1l because state is needs_qr
+17|whatsap | [Heartbeat] Skipped PA0gh9QjBm08EjPgMxWh because state is needs_qr
+17|whatsap | [Heartbeat] Skipped vWPV8yMvNyCab1kl5S0U because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LKvZfsJMz7IO8dBLuotj because state is needs_qr
+17|whatsap | [Heartbeat] Skipped hQtWagPAA490T7FD3vdb because state is needs_qr
+17|whatsap | [Heartbeat] Skipped ZHRI9O3O3Lx6yRWzqOWg because state is needs_qr
+17|whatsap | [Heartbeat] Pinging Supabase for C9mLWO3s3nx5ckQBlmUE
+17|whatsap | [Heartbeat] Skipped XANaSkgQzW5Z1VfmIvCs because state is needs_qr
+17|whatsap | [Heartbeat] Tick: 17 sessions in memory.
+17|whatsap | [Heartbeat] Skipped 7ei5E0SiunhP686M0EVX because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LxAQ6z2i6KkJJVxCndT2 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped YJGfkW2sbaPE3YCatApW because state is needs_qr
+17|whatsap | [Heartbeat] Skipped tJp0PGVaFVHBSjfk3Kv3 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 9ULWIxluGCZNcfVbouHo because state is needs_qr
+17|whatsap | [Heartbeat] Skipped T4GYuGE8Ylxoqgmm7hWv because state is needs_qr
+17|whatsap | [Heartbeat] Skipped Ztj2SRhRWAflLQh7iVi5 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 7MXiCIPXm1ZGeXxk5X58 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped C7xKBICjBaeibmkmfYN8 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped K22D5aEwi4PHCDw94E1l because state is needs_qr
+17|whatsap | [Heartbeat] Skipped PA0gh9QjBm08EjPgMxWh because state is needs_qr
+17|whatsap | [Heartbeat] Skipped vWPV8yMvNyCab1kl5S0U because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LKvZfsJMz7IO8dBLuotj because state is needs_qr
+17|whatsap | [Heartbeat] Skipped hQtWagPAA490T7FD3vdb because state is needs_qr
+17|whatsap | [Heartbeat] Skipped ZHRI9O3O3Lx6yRWzqOWg because state is needs_qr
+17|whatsap | [Heartbeat] Pinging Supabase for C9mLWO3s3nx5ckQBlmUE
+17|whatsap | [Heartbeat] Skipped XANaSkgQzW5Z1VfmIvCs because state is needs_qr
+17|whatsap | [Heartbeat] Tick: 17 sessions in memory.
+17|whatsap | [Heartbeat] Skipped 7ei5E0SiunhP686M0EVX because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LxAQ6z2i6KkJJVxCndT2 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped YJGfkW2sbaPE3YCatApW because state is needs_qr
+17|whatsap | [Heartbeat] Skipped tJp0PGVaFVHBSjfk3Kv3 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 9ULWIxluGCZNcfVbouHo because state is needs_qr
+17|whatsap | [Heartbeat] Skipped T4GYuGE8Ylxoqgmm7hWv because state is needs_qr
+17|whatsap | [Heartbeat] Skipped Ztj2SRhRWAflLQh7iVi5 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 7MXiCIPXm1ZGeXxk5X58 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped C7xKBICjBaeibmkmfYN8 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped K22D5aEwi4PHCDw94E1l because state is needs_qr
+17|whatsap | [Heartbeat] Skipped PA0gh9QjBm08EjPgMxWh because state is needs_qr
+17|whatsap | [Heartbeat] Skipped vWPV8yMvNyCab1kl5S0U because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LKvZfsJMz7IO8dBLuotj because state is needs_qr
+17|whatsap | [Heartbeat] Skipped hQtWagPAA490T7FD3vdb because state is needs_qr
+17|whatsap | [Heartbeat] Skipped ZHRI9O3O3Lx6yRWzqOWg because state is needs_qr
+17|whatsap | [Heartbeat] Pinging Supabase for C9mLWO3s3nx5ckQBlmUE
+17|whatsap | [Heartbeat] Skipped XANaSkgQzW5Z1VfmIvCs because state is needs_qr
+17|whatsap | [Heartbeat] Tick: 17 sessions in memory.
+17|whatsap | [Heartbeat] Skipped 7ei5E0SiunhP686M0EVX because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LxAQ6z2i6KkJJVxCndT2 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped YJGfkW2sbaPE3YCatApW because state is needs_qr
+17|whatsap | [Heartbeat] Skipped tJp0PGVaFVHBSjfk3Kv3 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 9ULWIxluGCZNcfVbouHo because state is needs_qr
+17|whatsap | [Heartbeat] Skipped T4GYuGE8Ylxoqgmm7hWv because state is needs_qr
+17|whatsap | [Heartbeat] Skipped Ztj2SRhRWAflLQh7iVi5 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 7MXiCIPXm1ZGeXxk5X58 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped C7xKBICjBaeibmkmfYN8 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped K22D5aEwi4PHCDw94E1l because state is needs_qr
+17|whatsap | [Heartbeat] Skipped PA0gh9QjBm08EjPgMxWh because state is needs_qr
+17|whatsap | [Heartbeat] Skipped vWPV8yMvNyCab1kl5S0U because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LKvZfsJMz7IO8dBLuotj because state is needs_qr
+17|whatsap | [Heartbeat] Skipped hQtWagPAA490T7FD3vdb because state is needs_qr
+17|whatsap | [Heartbeat] Skipped ZHRI9O3O3Lx6yRWzqOWg because state is needs_qr
+17|whatsap | [Heartbeat] Pinging Supabase for C9mLWO3s3nx5ckQBlmUE
+17|whatsap | [Heartbeat] Skipped XANaSkgQzW5Z1VfmIvCs because state is needs_qr
+17|whatsap | [Heartbeat] Tick: 17 sessions in memory.
+17|whatsap | [Heartbeat] Skipped 7ei5E0SiunhP686M0EVX because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LxAQ6z2i6KkJJVxCndT2 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped YJGfkW2sbaPE3YCatApW because state is needs_qr
+17|whatsap | [Heartbeat] Skipped tJp0PGVaFVHBSjfk3Kv3 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 9ULWIxluGCZNcfVbouHo because state is needs_qr
+17|whatsap | [Heartbeat] Skipped T4GYuGE8Ylxoqgmm7hWv because state is needs_qr
+17|whatsap | [Heartbeat] Skipped Ztj2SRhRWAflLQh7iVi5 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 7MXiCIPXm1ZGeXxk5X58 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped C7xKBICjBaeibmkmfYN8 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped K22D5aEwi4PHCDw94E1l because state is needs_qr
+17|whatsap | [Heartbeat] Skipped PA0gh9QjBm08EjPgMxWh because state is needs_qr
+17|whatsap | [Heartbeat] Skipped vWPV8yMvNyCab1kl5S0U because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LKvZfsJMz7IO8dBLuotj because state is needs_qr
+17|whatsap | [Heartbeat] Skipped hQtWagPAA490T7FD3vdb because state is needs_qr
+17|whatsap | [Heartbeat] Skipped ZHRI9O3O3Lx6yRWzqOWg because state is needs_qr
+17|whatsap | [Heartbeat] Pinging Supabase for C9mLWO3s3nx5ckQBlmUE
+17|whatsap | [Heartbeat] Skipped XANaSkgQzW5Z1VfmIvCs because state is needs_qr
+17|whatsap | [10:25:23.423] [32mINFO[39m: [36mGET / 404 2ms[39m
+17|whatsap |     [35mservice[39m: "superparty-backend"
+17|whatsap |     [35menv[39m: "production"
+17|whatsap |     [35mrequestId[39m: "8282340f-ad8e-4a0a-98b4-fcf2382c292d"
+17|whatsap |     [35mmethod[39m: "GET"
+17|whatsap |     [35murl[39m: "/"
+17|whatsap |     [35mstatusCode[39m: 404
+17|whatsap |     [35mduration[39m: 2
+17|whatsap |     [35mip[39m: "66.132.153.130"
+17|whatsap | [Heartbeat] Tick: 17 sessions in memory.
+17|whatsap | [Heartbeat] Skipped 7ei5E0SiunhP686M0EVX because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LxAQ6z2i6KkJJVxCndT2 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped YJGfkW2sbaPE3YCatApW because state is needs_qr
+17|whatsap | [Heartbeat] Skipped tJp0PGVaFVHBSjfk3Kv3 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 9ULWIxluGCZNcfVbouHo because state is needs_qr
+17|whatsap | [Heartbeat] Skipped T4GYuGE8Ylxoqgmm7hWv because state is needs_qr
+17|whatsap | [Heartbeat] Skipped Ztj2SRhRWAflLQh7iVi5 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 7MXiCIPXm1ZGeXxk5X58 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped C7xKBICjBaeibmkmfYN8 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped K22D5aEwi4PHCDw94E1l because state is needs_qr
+17|whatsap | [Heartbeat] Skipped PA0gh9QjBm08EjPgMxWh because state is needs_qr
+17|whatsap | [Heartbeat] Skipped vWPV8yMvNyCab1kl5S0U because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LKvZfsJMz7IO8dBLuotj because state is needs_qr
+17|whatsap | [Heartbeat] Skipped hQtWagPAA490T7FD3vdb because state is needs_qr
+17|whatsap | [Heartbeat] Skipped ZHRI9O3O3Lx6yRWzqOWg because state is needs_qr
+17|whatsap | [Heartbeat] Pinging Supabase for C9mLWO3s3nx5ckQBlmUE
+17|whatsap | [Heartbeat] Skipped XANaSkgQzW5Z1VfmIvCs because state is needs_qr
+17|whatsap | [10:25:32.914] [32mINFO[39m: [36mGET / 404 1ms[39m
+17|whatsap |     [35mservice[39m: "superparty-backend"
+17|whatsap |     [35menv[39m: "production"
+17|whatsap |     [35mrequestId[39m: "8bea0285-4dac-468a-a4d5-c469f84c5084"
+17|whatsap |     [35mmethod[39m: "GET"
+17|whatsap |     [35murl[39m: "/"
+17|whatsap |     [35mstatusCode[39m: 404
+17|whatsap |     [35mduration[39m: 1
+17|whatsap |     [35mip[39m: "66.132.153.130"
+17|whatsap | [10:25:39.516] [32mINFO[39m: [36mGET /security.txt 404 1ms[39m
+17|whatsap |     [35mservice[39m: "superparty-backend"
+17|whatsap |     [35menv[39m: "production"
+17|whatsap |     [35mrequestId[39m: "c2d14bfa-de7b-4397-9023-6f74aaff1f2e"
+17|whatsap |     [35mmethod[39m: "GET"
+17|whatsap |     [35murl[39m: "/security.txt"
+17|whatsap |     [35mstatusCode[39m: 404
+17|whatsap |     [35mduration[39m: 1
+17|whatsap |     [35mip[39m: "66.132.153.130"
+17|whatsap | [Heartbeat] Tick: 17 sessions in memory.
+17|whatsap | [Heartbeat] Skipped 7ei5E0SiunhP686M0EVX because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LxAQ6z2i6KkJJVxCndT2 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped YJGfkW2sbaPE3YCatApW because state is needs_qr
+17|whatsap | [Heartbeat] Skipped tJp0PGVaFVHBSjfk3Kv3 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 9ULWIxluGCZNcfVbouHo because state is needs_qr
+17|whatsap | [Heartbeat] Skipped T4GYuGE8Ylxoqgmm7hWv because state is needs_qr
+17|whatsap | [Heartbeat] Skipped Ztj2SRhRWAflLQh7iVi5 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 7MXiCIPXm1ZGeXxk5X58 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped C7xKBICjBaeibmkmfYN8 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped K22D5aEwi4PHCDw94E1l because state is needs_qr
+17|whatsap | [Heartbeat] Skipped PA0gh9QjBm08EjPgMxWh because state is needs_qr
+17|whatsap | [Heartbeat] Skipped vWPV8yMvNyCab1kl5S0U because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LKvZfsJMz7IO8dBLuotj because state is needs_qr
+17|whatsap | [Heartbeat] Skipped hQtWagPAA490T7FD3vdb because state is needs_qr
+17|whatsap | [Heartbeat] Skipped ZHRI9O3O3Lx6yRWzqOWg because state is needs_qr
+17|whatsap | [Heartbeat] Pinging Supabase for C9mLWO3s3nx5ckQBlmUE
+17|whatsap | [Heartbeat] Skipped XANaSkgQzW5Z1VfmIvCs because state is needs_qr
+17|whatsap | [Heartbeat] Tick: 17 sessions in memory.
+17|whatsap | [Heartbeat] Skipped 7ei5E0SiunhP686M0EVX because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LxAQ6z2i6KkJJVxCndT2 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped YJGfkW2sbaPE3YCatApW because state is needs_qr
+17|whatsap | [Heartbeat] Skipped tJp0PGVaFVHBSjfk3Kv3 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 9ULWIxluGCZNcfVbouHo because state is needs_qr
+17|whatsap | [Heartbeat] Skipped T4GYuGE8Ylxoqgmm7hWv because state is needs_qr
+17|whatsap | [Heartbeat] Skipped Ztj2SRhRWAflLQh7iVi5 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 7MXiCIPXm1ZGeXxk5X58 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped C7xKBICjBaeibmkmfYN8 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped K22D5aEwi4PHCDw94E1l because state is needs_qr
+17|whatsap | [Heartbeat] Skipped PA0gh9QjBm08EjPgMxWh because state is needs_qr
+17|whatsap | [Heartbeat] Skipped vWPV8yMvNyCab1kl5S0U because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LKvZfsJMz7IO8dBLuotj because state is needs_qr
+17|whatsap | [Heartbeat] Skipped hQtWagPAA490T7FD3vdb because state is needs_qr
+17|whatsap | [Heartbeat] Skipped ZHRI9O3O3Lx6yRWzqOWg because state is needs_qr
+17|whatsap | [Heartbeat] Pinging Supabase for C9mLWO3s3nx5ckQBlmUE
+17|whatsap | [Heartbeat] Skipped XANaSkgQzW5Z1VfmIvCs because state is needs_qr
+17|whatsap | [Heartbeat] Tick: 17 sessions in memory.
+17|whatsap | [Heartbeat] Skipped 7ei5E0SiunhP686M0EVX because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LxAQ6z2i6KkJJVxCndT2 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped YJGfkW2sbaPE3YCatApW because state is needs_qr
+17|whatsap | [Heartbeat] Skipped tJp0PGVaFVHBSjfk3Kv3 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 9ULWIxluGCZNcfVbouHo because state is needs_qr
+17|whatsap | [Heartbeat] Skipped T4GYuGE8Ylxoqgmm7hWv because state is needs_qr
+17|whatsap | [Heartbeat] Skipped Ztj2SRhRWAflLQh7iVi5 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 7MXiCIPXm1ZGeXxk5X58 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped C7xKBICjBaeibmkmfYN8 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped K22D5aEwi4PHCDw94E1l because state is needs_qr
+17|whatsap | [Heartbeat] Skipped PA0gh9QjBm08EjPgMxWh because state is needs_qr
+17|whatsap | [Heartbeat] Skipped vWPV8yMvNyCab1kl5S0U because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LKvZfsJMz7IO8dBLuotj because state is needs_qr
+17|whatsap | [Heartbeat] Skipped hQtWagPAA490T7FD3vdb because state is needs_qr
+17|whatsap | [Heartbeat] Skipped ZHRI9O3O3Lx6yRWzqOWg because state is needs_qr
+17|whatsap | [Heartbeat] Pinging Supabase for C9mLWO3s3nx5ckQBlmUE
+17|whatsap | [Heartbeat] Skipped XANaSkgQzW5Z1VfmIvCs because state is needs_qr
+17|whatsap | [Heartbeat] Tick: 17 sessions in memory.
+17|whatsap | [Heartbeat] Skipped 7ei5E0SiunhP686M0EVX because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LxAQ6z2i6KkJJVxCndT2 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped YJGfkW2sbaPE3YCatApW because state is needs_qr
+17|whatsap | [Heartbeat] Skipped tJp0PGVaFVHBSjfk3Kv3 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 9ULWIxluGCZNcfVbouHo because state is needs_qr
+17|whatsap | [Heartbeat] Skipped T4GYuGE8Ylxoqgmm7hWv because state is needs_qr
+17|whatsap | [Heartbeat] Skipped Ztj2SRhRWAflLQh7iVi5 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 7MXiCIPXm1ZGeXxk5X58 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped C7xKBICjBaeibmkmfYN8 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped K22D5aEwi4PHCDw94E1l because state is needs_qr
+17|whatsap | [Heartbeat] Skipped PA0gh9QjBm08EjPgMxWh because state is needs_qr
+17|whatsap | [Heartbeat] Skipped vWPV8yMvNyCab1kl5S0U because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LKvZfsJMz7IO8dBLuotj because state is needs_qr
+17|whatsap | [Heartbeat] Skipped hQtWagPAA490T7FD3vdb because state is needs_qr
+17|whatsap | [Heartbeat] Skipped ZHRI9O3O3Lx6yRWzqOWg because state is needs_qr
+17|whatsap | [Heartbeat] Pinging Supabase for C9mLWO3s3nx5ckQBlmUE
+17|whatsap | [Heartbeat] Skipped XANaSkgQzW5Z1VfmIvCs because state is needs_qr
+17|whatsap | [Heartbeat] Tick: 17 sessions in memory.
+17|whatsap | [Heartbeat] Skipped 7ei5E0SiunhP686M0EVX because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LxAQ6z2i6KkJJVxCndT2 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped YJGfkW2sbaPE3YCatApW because state is needs_qr
+17|whatsap | [Heartbeat] Skipped tJp0PGVaFVHBSjfk3Kv3 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 9ULWIxluGCZNcfVbouHo because state is needs_qr
+17|whatsap | [Heartbeat] Skipped T4GYuGE8Ylxoqgmm7hWv because state is needs_qr
+17|whatsap | [Heartbeat] Skipped Ztj2SRhRWAflLQh7iVi5 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped 7MXiCIPXm1ZGeXxk5X58 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped C7xKBICjBaeibmkmfYN8 because state is needs_qr
+17|whatsap | [Heartbeat] Skipped K22D5aEwi4PHCDw94E1l because state is needs_qr
+17|whatsap | [Heartbeat] Skipped PA0gh9QjBm08EjPgMxWh because state is needs_qr
+17|whatsap | [Heartbeat] Skipped vWPV8yMvNyCab1kl5S0U because state is needs_qr
+17|whatsap | [Heartbeat] Skipped LKvZfsJMz7IO8dBLuotj because state is needs_qr
+17|whatsap | [Heartbeat] Skipped hQtWagPAA490T7FD3vdb because state is needs_qr
+17|whatsap | [Heartbeat] Skipped ZHRI9O3O3Lx6yRWzqOWg because state is needs_qr
+17|whatsap | [Heartbeat] Pinging Supabase for C9mLWO3s3nx5ckQBlmUE
+17|whatsap | [Heartbeat] Skipped XANaSkgQzW5Z1VfmIvCs because state is needs_qr
+

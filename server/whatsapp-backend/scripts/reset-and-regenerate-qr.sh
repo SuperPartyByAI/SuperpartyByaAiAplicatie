@@ -12,7 +12,7 @@ if [ -z "$EMAIL" ] || [ -z "$ACCOUNT_ID" ]; then
   exit 1
 fi
 
-export FIREBASE_API_KEY="AIzaSyDcMXO6XdFZE_tVnJ1M4Wrt8Aw7Yh1o0K0"
+export SUPABASE_API_KEY="AIzaSyDcMXO6XdFZE_tVnJ1M4Wrt8Aw7Yh1o0K0"
 
 cd "$(dirname "$0")/.." || exit 1
 
@@ -30,20 +30,20 @@ fi
 echo "✅ Token obținut"
 echo ""
 
-# Pasul 1: Resetează status-ul în Firestore la "disconnected"
+# Pasul 1: Resetează status-ul în Database la "disconnected"
 echo "📊 Pasul 1: Resetare status la 'disconnected'..."
-RESET_RESULT=$(ssh root@37.27.34.179 "cd /opt/whatsapp/Aplicatie-SuperpartyByAi/whatsapp-backend 2>/dev/null || cd /root/whatsapp-backend 2>/dev/null && GOOGLE_APPLICATION_CREDENTIALS=/etc/whatsapp-backend/firebase-sa.json node -e \"
-const admin = require('firebase-admin');
+RESET_RESULT=$(ssh root@37.27.34.179 "cd /opt/whatsapp/Aplicatie-SuperpartyByAi/whatsapp-backend 2>/dev/null || cd /root/whatsapp-backend 2>/dev/null && GOOGLE_APPLICATION_CREDENTIALS=/etc/whatsapp-backend/supabase-sa.json node -e \"
+const admin = require('supabase-admin');
 if (admin.apps.length === 0) {
   admin.initializeApp({
-    credential: admin.credential.cert(require('/etc/whatsapp-backend/firebase-sa.json')),
+    credential: admin.credential.cert(require('/etc/whatsapp-backend/supabase-sa.json')),
   });
 }
-const db = admin.firestore();
+const db = admin.database();
 db.collection('accounts').doc('$ACCOUNT_ID').update({
   status: 'disconnected',
   regeneratingQr: false,
-  updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+  updatedAt: admin.database.FieldValue.serverTimestamp(),
 }).then(() => {
   console.log('SUCCESS: Status reset to disconnected');
   process.exit(0);

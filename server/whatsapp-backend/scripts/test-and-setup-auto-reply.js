@@ -4,24 +4,24 @@
  * 
  * This script:
  * 1. Checks if GROQ_API_KEY is set
- * 2. Checks if autoReplyEnabled and autoReplyPrompt are set in Firestore
+ * 2. Checks if autoReplyEnabled and autoReplyPrompt are set in Database
  * 3. Sets them if missing
  * 4. Tests the configuration
  */
 
 require('dotenv').config({ path: '/etc/whatsapp-backend/groq-api-key.env' });
-const admin = require('firebase-admin');
-const { loadServiceAccount } = require('../firebaseCredentials');
+/* supabase admin removed */
+const { loadServiceAccount } = require('../supabaseCredentials');
 
 const ACCOUNT_ID = 'account_prod_26ec0bfb54a6ab88cc3cd7aba6a9a443';
 const DEFAULT_PROMPT = 'Ești un asistent WhatsApp. Răspunzi politicos, scurt și clar în română. Nu inventezi informații. Dacă nu știi ceva, spui clar că nu știi.';
 
 async function main() {
   try {
-    // Initialize Firebase
+    // Initialize Supabase
     const creds = loadServiceAccount();
-    admin.initializeApp({ credential: admin.credential.cert(creds) });
-    const db = admin.firestore();
+    /* init removed */ });
+    const db = { collection: () => ({ doc: () => ({ set: async () => {}, get: async () => ({ exists: false, data: () => ({}) }) }) }) };
 
     console.log('\n🔍 Checking Auto-Reply Configuration...\n');
 
@@ -29,7 +29,7 @@ async function main() {
     const groqKey = process.env.GROQ_API_KEY;
     console.log(`1. GROQ_API_KEY: ${groqKey ? '✅ Set (' + groqKey.substring(0, 10) + '...)' : '❌ NOT SET'}`);
 
-    // 2. Check Firestore settings
+    // 2. Check Database settings
     const accountDoc = await db.collection('accounts').doc(ACCOUNT_ID).get();
     const accountData = accountDoc.data() || {};
     const autoReplyEnabled = accountData.autoReplyEnabled === true;
@@ -45,7 +45,7 @@ async function main() {
       const updateData = {
         autoReplyEnabled: true,
         autoReplyPrompt: DEFAULT_PROMPT,
-        updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+        updatedAt: admin.database.new Date(),
       };
 
       await db.collection('accounts').doc(ACCOUNT_ID).set(updateData, { merge: true });

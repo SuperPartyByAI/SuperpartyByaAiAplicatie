@@ -3,15 +3,15 @@
  * Persistent heartbeats, probes, rollups, alerts
  */
 
-const admin = require('firebase-admin');
+/* supabase admin removed */
 
 let db;
 let heartbeatInterval;
 let probeInterval;
 let rollupInterval;
 
-function initJobs(firestoreDb) {
-  db = firestoreDb;
+function initJobs(databaseDb) {
+  db = databaseDb;
 
   console.log('🔧 Initializing long-run jobs...');
 
@@ -43,7 +43,7 @@ function startHeartbeatJob() {
         .collection('heartbeats')
         .doc(ts.replace(/[:.]/g, '-'))
         .set({
-          ts: admin.firestore.FieldValue.serverTimestamp(),
+          ts: admin.database.new Date(),
           tsIso: ts,
           commit: process.env.GIT_COMMIT_SHA?.slice(0, 8) || 'unknown',
           deploymentId: process.env.INSTANCE_ID || process.env.DEPLOYMENT_ID || process.env.HOSTNAME || 'unknown',
@@ -110,7 +110,7 @@ async function runOutboundProbe() {
       .set({
         probeId,
         type: 'outbound',
-        startTs: admin.firestore.FieldValue.serverTimestamp(),
+        startTs: admin.database.new Date(),
         status: 'PASS',
         durationMs: Date.now() - startTs,
       });
@@ -125,7 +125,7 @@ async function runOutboundProbe() {
       .set({
         probeId,
         type: 'outbound',
-        startTs: admin.firestore.FieldValue.serverTimestamp(),
+        startTs: admin.database.new Date(),
         status: 'FAIL',
         error: error.message,
         durationMs: Date.now() - startTs,
@@ -144,7 +144,7 @@ async function runQueueProbe() {
     await db.collection('wa_metrics').doc('longrun').collection('probes').doc(probeId).set({
       probeId,
       type: 'queue',
-      startTs: admin.firestore.FieldValue.serverTimestamp(),
+      startTs: admin.database.new Date(),
       status: 'PASS',
     });
 
@@ -153,7 +153,7 @@ async function runQueueProbe() {
     await db.collection('wa_metrics').doc('longrun').collection('probes').doc(probeId).set({
       probeId,
       type: 'queue',
-      startTs: admin.firestore.FieldValue.serverTimestamp(),
+      startTs: admin.database.new Date(),
       status: 'FAIL',
       error: error.message,
     });
@@ -215,7 +215,7 @@ async function runDailyRollup() {
         heartbeatCount,
         expectedHeartbeats,
         uptimePercent: uptime * 100,
-        createdAt: admin.firestore.FieldValue.serverTimestamp(),
+        createdAt: admin.database.new Date(),
       });
 
     console.log(`✅ Daily rollup complete: ${today} (uptime: ${(uptime * 100).toFixed(2)}%)`);

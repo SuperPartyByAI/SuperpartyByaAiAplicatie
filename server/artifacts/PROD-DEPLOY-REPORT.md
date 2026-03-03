@@ -1,7 +1,7 @@
 # PRODUCTION DEPLOYMENT REPORT
 
 **Timestamp:** 2025-12-29T12:50:00Z  
-**Environment:** Firebase Functions (whatsappV3)  
+**Environment:** Supabase Functions (whatsappV3)  
 **URL:** https://us-central1-superparty-frontend.cloudfunctions.net/whatsappV3
 
 ---

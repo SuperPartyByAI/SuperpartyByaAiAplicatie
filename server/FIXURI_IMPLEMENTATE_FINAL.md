@@ -25,7 +25,7 @@ app.delete('/api/whatsapp/accounts/:id', accountLimiter, async (req, res) => {
 
 ```javascript
 // CRITICAL: Set status to 'logged_out' (not 'needs_qr') to indicate session expired and re-link required
-await saveAccountToFirestore(accountId, {
+await saveAccountToDatabase(accountId, {
   status: 'logged_out', // Changed from 'needs_qr'
   lastError: `logged_out (${reason}) - requires re-link`,
   // ...
@@ -135,7 +135,7 @@ După deploy, testează:
 
 2. **401 handler set logged_out**:
    - Trigger 401 disconnect (delete creds)
-   - Check account status în Firestore: ar trebui să fie `logged_out` (nu `needs_qr`)
+   - Check account status în Database: ar trebui să fie `logged_out` (nu `needs_qr`)
 
 3. **Flutter handle 202**:
    - Call `regenerateQr` când status=connecting

@@ -15,7 +15,7 @@ Operator Account (WhatsApp)
   ↓ (receives message)
 Baileys Backend (Hetzner)
   ↓ (detects probe message)
-Firestore (wa_metrics/longrun/probes/IN_{timestamp})
+Database (wa_metrics/longrun/probes/IN_{timestamp})
 ```
 
 ---
@@ -30,7 +30,7 @@ Firestore (wa_metrics/longrun/probes/IN_{timestamp})
    - Operator: Already configured
    - Probe sender: Need new number (can be virtual)
 
-3. **Firestore config:**
+3. **Database config:**
    - `operatorAccountId`: Set to operator's Baileys account ID
    - `probeSenderAccountId`: Set to probe sender's Baileys account ID
    - `operatorJid`: Set to operator's WhatsApp JID (phone@s.whatsapp.net)
@@ -109,11 +109,11 @@ curl https://whats-app-ompro.ro/api/whatsapp/accounts | jq '.accounts[] | select
 
 ---
 
-## Step 3: Update Firestore Config
+## Step 3: Update Database Config
 
-### Via Firestore Console
+### Via Database Console
 
-1. Go to: https://console.firebase.google.com/project/superparty-frontend/firestore
+1. Go to: https://console.supabase.google.com/project/superparty-frontend/database
 2. Navigate to: `wa_metrics/longrun/config/current`
 3. Click "Edit document"
 4. Update fields:
@@ -171,7 +171,7 @@ async function runInboundProbe() {
     await probeRef.set({
       probeKey,
       type: 'inbound',
-      ts: admin.firestore.FieldValue.serverTimestamp(),
+      ts: admin.database.FieldValue.serverTimestamp(),
       tsIso: now.toISOString(),
       result: 'PASS',
       instanceId,
@@ -223,7 +223,7 @@ const latencyMs = Date.now() - startTs;
 await probeRef.set({
   probeKey,
   type: 'inbound',
-  ts: admin.firestore.FieldValue.serverTimestamp(),
+  ts: admin.database.FieldValue.serverTimestamp(),
   tsIso: now.toISOString(),
   result: received ? 'PASS' : 'FAIL',
   latencyMs,
@@ -443,7 +443,7 @@ curl https://whats-app-ompro.ro/api/admin/longrun/probes | jq '[.probes[] | sele
 - [ ] Probe sender account added
 - [ ] Probe sender connected (QR scanned)
 - [ ] Operator account ID identified
-- [ ] Firestore config updated
+- [ ] Database config updated
 - [ ] Inbound probe logic implemented
 - [ ] Manual test successful
 - [ ] Scheduled probes enabled

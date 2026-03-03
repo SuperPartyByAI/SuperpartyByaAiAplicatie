@@ -18,25 +18,25 @@
 
 ### NOT Deployed Yet:
 
-- ⏳ Firebase Functions - needs authentication
+- ⏳ Supabase Functions - needs authentication
 
 ---
 
-## 🔑 Firebase Authentication Required
+## 🔑 Supabase Authentication Required
 
-Firebase deploy needs authentication. You have 2 options:
+Supabase deploy needs authentication. You have 2 options:
 
 ### Option 1: Interactive Login (Recommended)
 
 ```bash
 cd /workspaces/Aplicatie-SuperpartyByAi
-firebase login
+supabase login
 ```
 
 **Steps:**
 
 1. Browser opens automatically
-2. Select Google account (the one with Firebase project access)
+2. Select Google account (the one with Supabase project access)
 3. Accept permissions
 4. Return to terminal
 
@@ -44,11 +44,11 @@ firebase login
 
 ```bash
 # Generate token (run this locally on your machine)
-firebase login:ci
+supabase login:ci
 
 # Copy the token, then in Gitpod:
-export FIREBASE_TOKEN="your-token-here"
-firebase deploy --only functions --token "$FIREBASE_TOKEN"
+export SUPABASE_TOKEN="your-token-here"
+supabase deploy --only functions --token "$SUPABASE_TOKEN"
 ```
 
 ---
@@ -59,7 +59,7 @@ After authentication:
 
 ```bash
 cd /workspaces/Aplicatie-SuperpartyByAi
-firebase deploy --only functions
+supabase deploy --only functions
 ```
 
 **Expected output:**
@@ -67,7 +67,7 @@ firebase deploy --only functions
 ```
 ✔  Deploy complete!
 
-Project Console: https://console.firebase.google.com/project/superparty-frontend/overview
+Project Console: https://console.supabase.google.com/project/superparty-frontend/overview
 Function URL (whatsapp): https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp
 ```
 
@@ -86,7 +86,7 @@ curl https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp/
 ```json
 {
   "status": "online",
-  "service": "SuperParty WhatsApp on Firebase",
+  "service": "SuperParty WhatsApp on Supabase",
   "version": "5.0.0",
   "accounts": 0
 }
@@ -231,28 +231,28 @@ curl -X POST https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp
 
 ```bash
 # Run login again
-firebase login
+supabase login
 
 # Or use token
-firebase login:ci
-export FIREBASE_TOKEN="your-token"
-firebase deploy --only functions --token "$FIREBASE_TOKEN"
+supabase login:ci
+export SUPABASE_TOKEN="your-token"
+supabase deploy --only functions --token "$SUPABASE_TOKEN"
 ```
 
 ### "Permission denied"
 
 - Make sure you're logged in with the correct Google account
-- Check Firebase Console: https://console.firebase.google.com/project/superparty-frontend
+- Check Supabase Console: https://console.supabase.google.com/project/superparty-frontend
 - Verify you have "Editor" or "Owner" role
 
 ### "Function already exists"
 
 - This is normal, it will update the existing function
-- Use `--force` if needed: `firebase deploy --only functions --force`
+- Use `--force` if needed: `supabase deploy --only functions --force`
 
 ---
 
-## 📞 Firebase Project Details
+## 📞 Supabase Project Details
 
 ```
 Project ID: superparty-frontend
@@ -264,9 +264,9 @@ Generation: 1st Gen
 
 **Console URLs:**
 
-- Project: https://console.firebase.google.com/project/superparty-frontend
-- Functions: https://console.firebase.google.com/project/superparty-frontend/functions
-- Logs: https://console.firebase.google.com/project/superparty-frontend/logs
+- Project: https://console.supabase.google.com/project/superparty-frontend
+- Functions: https://console.supabase.google.com/project/superparty-frontend/functions
+- Logs: https://console.supabase.google.com/project/superparty-frontend/logs
 
 ---
 
@@ -276,7 +276,7 @@ Generation: 1st Gen
 2. **Pairing Codes Don't Work** - They generate invalid codes in Cloud Functions
 3. **Documentation is Complete** - All guides are in the repo
 4. **Code is Committed** - Everything is in Git
-5. **Just Need Deploy** - Only Firebase authentication is missing
+5. **Just Need Deploy** - Only Supabase authentication is missing
 
 ---
 
@@ -284,10 +284,10 @@ Generation: 1st Gen
 
 ```bash
 # Authenticate
-firebase login
+supabase login
 
 # Deploy
-cd /workspaces/Aplicatie-SuperpartyByAi && firebase deploy --only functions
+cd /workspaces/Aplicatie-SuperpartyByAi && supabase deploy --only functions
 
 # Verify
 curl https://us-central1-superparty-frontend.cloudfunctions.net/whatsapp/

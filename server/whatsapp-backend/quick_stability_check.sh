@@ -114,7 +114,7 @@ echo ""
 # 4. Instructions
 echo "📋 Next Steps:"
 echo "   - Monitor logs: journalctl -u whatsapp-backend -f | grep -E 'restore|health|stale|connected'"
-echo "   - Check for restores: journalctl -u whatsapp-backend | grep 'restore.*Firestore'"
+echo "   - Check for restores: journalctl -u whatsapp-backend | grep 'restore.*Database'"
 echo "   - Verify Hetzner volume: SESSIONS_PATH=/opt/whatsapp/sessions"
 echo "   - Test message: curl -X POST .../api/whatsapp/send-message"
 echo ""

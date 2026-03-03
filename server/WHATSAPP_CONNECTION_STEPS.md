@@ -73,7 +73,7 @@ tail -50 /tmp/flutter_live_logs.txt | grep -i "status.*connected\|Account:.*stat
 Verifică în legacy hosting dashboard:
 - `connection.update: open` - conexiune deschisă
 - `connection.update: connect` - conectat cu succes
-- Status în Firestore devine `connected`
+- Status în Database devine `connected`
 
 ---
 
@@ -109,9 +109,9 @@ tail -50 /tmp/flutter_live_logs.txt | grep -i "Account:.*status"
 legacy hosting Dashboard → Deploy Logs → Căutare "connection.update"
 ```
 
-### Verificare Firestore
+### Verificare Database
 ```
-Firebase Console → Firestore → Collection "accounts" → Document "account_dev_xxx"
+Supabase Console → Database → Collection "accounts" → Document "account_dev_xxx"
 → Field "status" ar trebui să fie "connected"
 ```
 

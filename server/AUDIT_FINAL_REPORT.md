@@ -38,23 +38,23 @@
 ### ✅ Port Consistency - FIXED
 
 **Before:**
-- `firebase.json`: Auth port 9098
-- `firebase_service.dart`: Auth port 9099 ❌
+- `supabase.json`: Auth port 9098
+- `supabase_service.dart`: Auth port 9099 ❌
 
 **After:**
-- `firebase.json`: Auth port 9098
-- `firebase_service.dart`: Auth port 9098 ✅
+- `supabase.json`: Auth port 9098
+- `supabase_service.dart`: Auth port 9098 ✅
 - `LOCAL_DEV_WINDOWS.md`: Updated with Auth port note
 
 **All Ports (Consistent):**
-- Firestore: 8082
+- Database: 8082
 - Functions: 5002
 - Auth: 9098
 - UI: 4001
 
 ---
 
-### ✅ Firestore Rules / Security - VERIFIED
+### ✅ Database Rules / Security - VERIFIED
 
 **Server-only writes (client deny):**
 - ✅ `teamCodePools`: `allow write: if false`
@@ -79,12 +79,12 @@
 ### ✅ Tooling Windows - VERIFIED
 
 **Scripts (root package.json):**
-- ✅ `emulators`: `firebase.cmd emulators:start ...`
+- ✅ `emulators`: `supabase.cmd emulators:start ...`
 - ✅ `emu`: Alias pentru emulators
-- ✅ `seed:emu`: `node tools/seed_firestore.js --emulator ...`
+- ✅ `seed:emu`: `node tools/seed_database.js --emulator ...`
 - ✅ `functions:build`: `cd functions && npm.cmd ci && npm.cmd run build`
-- ✅ `functions:deploy`: Uses `firebase.cmd deploy`
-- ✅ `rules:deploy`: Uses `firebase.cmd deploy`
+- ✅ `functions:deploy`: Uses `supabase.cmd deploy`
+- ✅ `rules:deploy`: Uses `supabase.cmd deploy`
 
 **Husky:**
 - ✅ Non-blocking pe Windows (fallback dacă npx nu e în PATH)
@@ -97,13 +97,13 @@
 ### ✅ Hardcoding - VERIFIED
 
 **WhatsAppApiService:**
-- ✅ `projectId` derivat din `Firebase.app().options.projectId`
+- ✅ `projectId` derivat din `Supabase.app().options.projectId`
 - ✅ Suport `USE_EMULATORS=true` pentru emulator URL
-- ✅ Fallback doar dacă Firebase nu e inițializat
+- ✅ Fallback doar dacă Supabase nu e inițializat
 
 **Ports:**
-- ✅ Toate porturile în `firebase.json` (single source of truth)
-- ✅ Flutter derivează din `firebase.json` (manual, dar consistent)
+- ✅ Toate porturile în `supabase.json` (single source of truth)
+- ✅ Flutter derivează din `supabase.json` (manual, dar consistent)
 
 ---
 

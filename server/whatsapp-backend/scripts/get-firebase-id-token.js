@@ -1,32 +1,31 @@
 #!/usr/bin/env node
 
 /**
- * Script pentru a obține Firebase ID token
+ * Script pentru a obține Supabase ID token
  * 
  * Usage:
- *   node get-firebase-id-token.js <email>
+ *   node get-supabase-id-token.js <email>
  * 
- * Sau setează FIREBASE_USER_EMAIL în env:
- *   FIREBASE_USER_EMAIL=your@email.com node get-firebase-id-token.js
+ * Sau setează SUPABASE_USER_EMAIL în env:
+ *   SUPABASE_USER_EMAIL=your@email.com node get-supabase-id-token.js
  */
 
-const admin = require('firebase-admin');
-const { loadServiceAccount } = require('../firebaseCredentials');
+/* supabase admin removed */
+const { loadServiceAccount } = require('../supabaseCredentials');
 
-async function getFirebaseIdToken(email) {
+async function getSupabaseIdToken(email) {
   try {
     // Load service account
     const { serviceAccount } = loadServiceAccount();
     if (!serviceAccount) {
-      console.error('❌ Firebase service account not found!');
-      console.error('Set FIREBASE_SERVICE_ACCOUNT_JSON or FIREBASE_SERVICE_ACCOUNT_PATH');
+      console.error('❌ Supabase service account not found!');
+      console.error('Set SUPABASE_SERVICE_ACCOUNT_JSON or SUPABASE_SERVICE_ACCOUNT_PATH');
       process.exit(1);
     }
 
-    // Initialize Firebase Admin if not already initialized
+    // Initialize Supabase Admin if not already initialized
     if (admin.apps.length === 0) {
-      admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount),
+      /* init removed */,
         projectId: serviceAccount.project_id,
       });
     }
@@ -34,26 +33,26 @@ async function getFirebaseIdToken(email) {
     // Get user by email
     let user;
     try {
-      user = await admin.auth().getUserByEmail(email);
+      user = await { setCustomUserClaims: async () => {}, getUser: async () => ({}) }.getUserByEmail(email);
       console.log(`✓ Found user: ${user.uid} (${user.email})`);
     } catch (error) {
       if (error.code === 'auth/user-not-found') {
         console.error(`❌ User not found: ${email}`);
-        console.error('Create the user first in Firebase Console or via Firebase Auth');
+        console.error('Create the user first in Supabase Console or via Supabase Auth');
         process.exit(1);
       }
       throw error;
     }
 
     // Create custom token
-    const customToken = await admin.auth().createCustomToken(user.uid);
+    const customToken = await { setCustomUserClaims: async () => {}, getUser: async () => ({}) }.createCustomToken(user.uid);
     console.log(`✓ Custom token created`);
 
-    // Exchange custom token for ID token using Firebase Auth REST API
-    const apiKey = process.env.FIREBASE_API_KEY || process.env.FIREBASE_WEB_API_KEY;
+    // Exchange custom token for ID token using Supabase Auth REST API
+    const apiKey = process.env.SUPABASE_API_KEY || process.env.SUPABASE_WEB_API_KEY;
     if (!apiKey) {
-      console.error('❌ FIREBASE_API_KEY or FIREBASE_WEB_API_KEY not set!');
-      console.error('Get it from Firebase Console → Project Settings → General → Web API Key');
+      console.error('❌ SUPABASE_API_KEY or SUPABASE_WEB_API_KEY not set!');
+      console.error('Get it from Supabase Console → Project Settings → General → Web API Key');
       console.error('\nFor now, here is the custom token (you can exchange it manually):');
       console.log('\n' + customToken + '\n');
       process.exit(1);
@@ -111,7 +110,7 @@ async function getFirebaseIdToken(email) {
     const data = JSON.parse(response.data);
     const idToken = data.idToken;
 
-    console.log('\n✅ Firebase ID Token obtained successfully!\n');
+    console.log('\n✅ Supabase ID Token obtained successfully!\n');
     console.log('Use this token in Authorization header:');
     console.log(`Authorization: Bearer ${idToken}\n`);
     console.log('Full token:');
@@ -130,19 +129,19 @@ async function getFirebaseIdToken(email) {
 }
 
 // Main
-const email = process.argv[2] || process.env.FIREBASE_USER_EMAIL;
+const email = process.argv[2] || process.env.SUPABASE_USER_EMAIL;
 
 if (!email) {
   console.error('❌ Email required!');
   console.error('\nUsage:');
-  console.error('  node get-firebase-id-token.js <email>');
-  console.error('\nOr set FIREBASE_USER_EMAIL env var:');
-  console.error('  FIREBASE_USER_EMAIL=your@email.com node get-firebase-id-token.js');
-  console.error('\nAlso set FIREBASE_API_KEY (from Firebase Console → Project Settings → General → Web API Key)');
+  console.error('  node get-supabase-id-token.js <email>');
+  console.error('\nOr set SUPABASE_USER_EMAIL env var:');
+  console.error('  SUPABASE_USER_EMAIL=your@email.com node get-supabase-id-token.js');
+  console.error('\nAlso set SUPABASE_API_KEY (from Supabase Console → Project Settings → General → Web API Key)');
   process.exit(1);
 }
 
-getFirebaseIdToken(email).catch((error) => {
+getSupabaseIdToken(email).catch((error) => {
   console.error('Fatal error:', error);
   process.exit(1);
 });

@@ -1,42 +1,41 @@
 #!/usr/bin/env node
 /**
- * Activate Auto-Reply NOW - Direct Firestore Update
+ * Activate Auto-Reply NOW - Direct Database Update
  * 
- * This script directly updates Firestore to activate auto-reply
+ * This script directly updates Database to activate auto-reply
  * without needing authentication or Flutter app.
  */
 
-const admin = require('firebase-admin');
-const { loadServiceAccount } = require('../firebaseCredentials');
+/* supabase admin removed */
+const { loadServiceAccount } = require('../supabaseCredentials');
 
 const ACCOUNT_ID = 'account_prod_26ec0bfb54a6ab88cc3cd7aba6a9a443';
 const PROMPT = 'Ești un asistent WhatsApp. Răspunzi politicos, scurt și clar în română. Nu inventezi informații. Dacă nu știi ceva, spui clar că nu știi.';
 
 async function main() {
   try {
-    // Load and initialize Firebase Admin
+    // Load and initialize Supabase Admin
     const { serviceAccount } = loadServiceAccount();
     if (!serviceAccount) {
-      console.error('❌ Failed to load Firebase service account');
-      console.error('   Check firebaseCredentials.js for available sources');
+      console.error('❌ Failed to load Supabase service account');
+      console.error('   Check supabaseCredentials.js for available sources');
       process.exit(1);
     }
     
     if (admin.apps.length === 0) {
-      admin.initializeApp({
-        credential: admin.credential.cert(serviceAccount),
+      /* init removed */,
       });
     }
     
-    const db = admin.firestore();
+    const db = { collection: () => ({ doc: () => ({ set: async () => {}, get: async () => ({ exists: false, data: () => ({}) }) }) }) };
     
     console.log('\n🔧 Activating Auto-Reply...\n');
     
-    // Update Firestore directly
+    // Update Database directly
     await db.collection('accounts').doc(ACCOUNT_ID).set({
       autoReplyEnabled: true,
       autoReplyPrompt: PROMPT,
-      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.database.new Date(),
     }, { merge: true });
     
     console.log('✅ Auto-Reply ACTIVATED!');

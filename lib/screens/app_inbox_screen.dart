@@ -1,6 +1,5 @@
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:intl/intl.dart';
 
 class AppInboxScreen extends StatelessWidget {
@@ -8,19 +7,22 @@ class AppInboxScreen extends StatelessWidget {
 
   void _markAsRead(String docId, List<dynamic> currentReadBy, String uid) async {
     if (!currentReadBy.contains(uid)) {
-      await FirebaseFirestore.instance.collection('app_inbox').doc(docId).update({
-        'readBy': FieldValue.arrayUnion([uid])
-      });
+      final updated = List<dynamic>.from(currentReadBy)..add(uid);
+      try {
+        await Supabase.instance.client.from('app_inbox').update({'readBy': updated}).eq('id', docId);
+      } catch (e) {
+        debugPrint('Error marking as read: $e');
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    final user = FirebaseAuth.instance.currentUser;
+    final user = (Supabase.instance.client.auth.currentUser);
     if (user == null) {
       return const Scaffold(body: Center(child: Text('Trebuie să fii autentificat.')));
     }
-    final String currentUid = user.uid;
+    final String currentUid = user.id;
 
     return Scaffold(
       appBar: AppBar(
@@ -29,22 +31,14 @@ class AppInboxScreen extends StatelessWidget {
         iconTheme: const IconThemeData(color: Colors.white),
       ),
       backgroundColor: Colors.grey[100],
-      body: FutureBuilder<QuerySnapshot>(
-        future: FirebaseFirestore.instance
-            .collection('app_inbox')
-            .orderBy('timestamp', descending: true)
-            .limit(50)
-            .get(const GetOptions(source: Source.serverAndCache)),
+      body: FutureBuilder<List<Map<String, dynamic>>>(
+        future: Supabase.instance.client.from('app_inbox').select().order('timestamp', ascending: false),
         builder: (context, snapshot) {
-          if (snapshot.hasError) {
-            return const Center(child: Text('Eroare la încărcarea mesajelor.'));
-          }
-
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          final docs = snapshot.data?.docs ?? [];
+          final docs = snapshot.data ?? [];
 
           if (docs.isEmpty) {
             return const Center(
@@ -63,13 +57,13 @@ class AppInboxScreen extends StatelessWidget {
             padding: const EdgeInsets.all(12),
             itemCount: docs.length,
             itemBuilder: (context, index) {
-              final data = docs[index].data() as Map<String, dynamic>;
-              final docId = docs[index].id;
+              final data = docs[index];
+              final docId = data['id']?.toString() ?? '';
               
               final String title = data['title'] ?? 'Mesaj Fără Titlu';
               final String body = data['body'] ?? '';
               final String type = data['type'] ?? 'info';
-              final Timestamp? timestamp = data['timestamp'] as Timestamp?;
+              final dynamic? timestamp = data['timestamp'] as dynamic?;
               final List<dynamic> readBy = data['readBy'] ?? [];
               
               final bool isUnread = !readBy.contains(currentUid);
@@ -90,8 +84,15 @@ class AppInboxScreen extends StatelessWidget {
               // Format time
               String timeStr = '';
               if (timestamp != null) {
-                final date = timestamp.toDate();
-                timeStr = DateFormat('dd MMM, HH:mm').format(date);
+                DateTime? date;
+                if (timestamp is String) {
+                  date = DateTime.tryParse(timestamp);
+                } else if (timestamp is int) {
+                  date = DateTime.fromMillisecondsSinceEpoch(timestamp);
+                }
+                if (date != null) {
+                  timeStr = DateFormat('dd MMM, HH:mm').format(date);
+                }
               }
 
               return Card(

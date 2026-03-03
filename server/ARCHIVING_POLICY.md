@@ -40,7 +40,7 @@ Pentru **orice colecție** (evenimente, dovezi, conversații, mesaje, comentarii
 
 ```dart
 Future<void> deleteEvent(String eventId) async {
-  await _firestore.collection('evenimente').doc(eventId).delete();
+  await _database.collection('evenimente').doc(eventId).delete();
 }
 ```
 
@@ -48,10 +48,10 @@ Future<void> deleteEvent(String eventId) async {
 
 ```dart
 Future<void> archiveEvent(String eventId, {String? reason}) async {
-  final user = FirebaseAuth.instance.currentUser;
+  final user = SupabaseAuth.instance.currentUser;
   if (user == null) throw Exception('Utilizator neautentificat');
 
-  await _firestore.collection('evenimente').doc(eventId).update({
+  await _database.collection('evenimente').doc(eventId).update({
     'isArchived': true,
     'archivedAt': FieldValue.serverTimestamp(),
     'archivedBy': user.uid,
@@ -66,10 +66,10 @@ Future<void> archiveEvent(String eventId, {String? reason}) async {
 
 ```dart
 Future<void> unarchiveEvent(String eventId) async {
-  final user = FirebaseAuth.instance.currentUser;
+  final user = SupabaseAuth.instance.currentUser;
   if (user == null) throw Exception('Utilizator neautentificat');
 
-  await _firestore.collection('evenimente').doc(eventId).update({
+  await _database.collection('evenimente').doc(eventId).update({
     'isArchived': false,
     'archivedAt': FieldValue.delete(),
     'archivedBy': FieldValue.delete(),
@@ -87,7 +87,7 @@ Future<void> unarchiveEvent(String eventId) async {
 ### Liste "Active" (default)
 
 ```dart
-Query q = _firestore.collection('evenimente')
+Query q = _database.collection('evenimente')
   .where('isArchived', isEqualTo: false)
   .orderBy('data', descending: false);
 ```
@@ -95,7 +95,7 @@ Query q = _firestore.collection('evenimente')
 ### Tab/Filtru "Arhivate"
 
 ```dart
-Query q = _firestore.collection('evenimente')
+Query q = _database.collection('evenimente')
   .where('isArchived', isEqualTo: true)
   .orderBy('archivedAt', descending: true);
 ```
@@ -103,21 +103,21 @@ Query q = _firestore.collection('evenimente')
 ### Opțional: "Toate"
 
 ```dart
-Query q = _firestore.collection('evenimente')
+Query q = _database.collection('evenimente')
   .orderBy('data', descending: false);
 // Fără filtru pe isArchived
 ```
 
 ---
 
-## 🔒 Firestore Rules: Blochez DELETE
+## 🔒 Database Rules: Blochez DELETE
 
 **Cheia garanției:** Dacă Rules interzic `delete`, nimeni (nici UI, nici script) nu poate șterge din greșeală.
 
 ```javascript
 rules_version = '2';
 
-service cloud.firestore {
+service cloud.database {
   match /databases/{database}/documents {
 
     // Evenimente - POLITICA: NEVER DELETE
@@ -155,12 +155,12 @@ service cloud.firestore {
 
 ## 📦 Storage Rules: Blochez DELETE
 
-Fișierele din Storage **nu se șterg niciodată**. Doar metadata din Firestore se arhivează.
+Fișierele din Storage **nu se șterg niciodată**. Doar metadata din Database se arhivează.
 
 ```javascript
 rules_version = '2';
 
-service firebase.storage {
+service supabase.storage {
   match /b/{bucket}/o {
 
     // Evenimente dovezi - NEVER DELETE
@@ -201,7 +201,7 @@ service firebase.storage {
 }
 ```
 
-### 2. Verificați Firebase Console
+### 2. Verificați Supabase Console
 
 - Nu configurați **TTL policies** pe colecții
 - Nu creați **Cloud Functions** care fac cleanup automat
@@ -217,14 +217,14 @@ Dacă există scripturi care șterg date vechi, **dezactivați-le**.
 
 Înainte de merge, verificați:
 
-- [ ] **Nicio rută** din app nu mai cheamă `.delete()` pe Firestore
+- [ ] **Nicio rută** din app nu mai cheamă `.delete()` pe Database
 - [ ] **Niciun loc** nu șterge fișiere din Storage
 - [ ] Câmpurile `isArchived`, `archivedAt`, `archivedBy` există în toate entitățile relevante
 - [ ] Listele "active" filtrează `isArchived=false`
 - [ ] Există UI pentru "Arhivate" (măcar filtru/tab)
-- [ ] **Firestore Rules** au `allow delete: if false` pe colecțiile relevante
+- [ ] **Database Rules** au `allow delete: if false` pe colecțiile relevante
 - [ ] **Storage Rules** au `allow delete: if false` pe folderele relevante
-- [ ] **Nu există TTL** configurat în Firebase Console
+- [ ] **Nu există TTL** configurat în Supabase Console
 - [ ] **Nu există câmpuri** de tip `deleteAt`/`expiresAt` în schema
 
 ---
@@ -247,11 +247,11 @@ stream: eventService.getEventsStream(filters.copyWith(showArchived: false))
 stream: eventService.getArchivedEventsStream()
 ```
 
-### Dovezi (Firestore + Storage)
+### Dovezi (Database + Storage)
 
 ```dart
 // Arhivare metadata (fișierul rămâne în Storage)
-await _firestore
+await _database
   .collection('evenimente')
   .doc(eventId)
   .collection('dovezi')
@@ -270,7 +270,7 @@ await _firestore
 
 ```dart
 // Arhivare thread
-await _firestore.collection('threads').doc(threadId).update({
+await _database.collection('threads').doc(threadId).update({
   'isArchived': true,
   'archivedAt': FieldValue.serverTimestamp(),
   'archivedBy': currentUser.uid,
@@ -290,10 +290,10 @@ await _firestore.collection('threads').doc(threadId).update({
 > **Acțiuni obligatorii:**
 >
 > 1. Elimină orice `.delete()` din cod
-> 2. Oprește orice ștergere în Firestore/Storage Rules (`allow delete: if false`)
+> 2. Oprește orice ștergere în Database/Storage Rules (`allow delete: if false`)
 > 3. Asigură că listele exclud arhivate implicit
 > 4. Fără câmpuri de tip `deleteAt`/`expiresAt`
-> 5. Fără TTL configurat în Firebase
+> 5. Fără TTL configurat în Supabase
 
 ---
 
@@ -303,9 +303,9 @@ Dacă există date fără câmpuri de arhivare:
 
 ```javascript
 // Script Node.js pentru migrare
-const admin = require('firebase-admin');
+const admin = require('supabase-admin');
 admin.initializeApp();
-const db = admin.firestore();
+const db = admin.database();
 
 async function migrateCollection(collectionName) {
   const snapshot = await db.collection(collectionName).get();
@@ -340,6 +340,6 @@ Pentru întrebări despre politica de arhivare:
 
 - **Documentație:** `ARCHIVING_POLICY.md`
 - **Implementare:** `lib/services/event_service.dart` (exemplu)
-- **Rules:** `firestore.rules`, `storage.rules`
+- **Rules:** `database.rules`, `storage.rules`
 
 **Ultima actualizare:** 2026-01-05

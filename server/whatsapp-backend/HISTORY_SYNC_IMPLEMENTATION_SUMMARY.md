@@ -12,7 +12,7 @@
 - Defaults: History sync enabled, backfill 100 messages/50 threads
 
 #### 2. Helper Functions (Lines ~509-759)
-- **`saveMessageToFirestore(accountId, msg, isFromHistory)`** - Idempotent message save (reusable)
+- **`saveMessageToDatabase(accountId, msg, isFromHistory)`** - Idempotent message save (reusable)
 - **`saveMessagesBatch(accountId, messages, source)`** - Batch writes for history sync (500 ops/batch limit)
 
 #### 3. Socket Initialization (Lines ~565-577, ~3216-3227)
@@ -26,11 +26,11 @@
 - Updates `accounts/{accountId}.lastHistorySyncAt` and `historySyncCount`
 
 #### 5. Enhanced Message Persistence (Lines ~1194-1197)
-- Replaced inline save logic with `saveMessageToFirestore()` helper
+- Replaced inline save logic with `saveMessageToDatabase()` helper
 - Ensures consistent schema and idempotency
 
 #### 6. Enhanced Receipt Handlers (Lines ~1410-1480, ~4075-4146)
-- **`messages.update`** - Persists delivery/read status to Firestore
+- **`messages.update`** - Persists delivery/read status to Database
 - **`message-receipt.update`** - Persists read receipts with timestamps
 
 #### 7. Enhanced Send Message Endpoint (Lines ~2760-3040)
@@ -68,7 +68,7 @@
 
 #### 11. Enhanced Dashboard (Lines ~4892-4970)
 - Added `lastBackfillAt` and `lastHistorySyncAt` fields per account
-- Fetches from Firestore `accounts` collection
+- Fetches from Database `accounts` collection
 
 #### 12. Enhanced Outbox Worker (Lines ~5208-5235)
 - Already had thread update logic (no changes needed)
@@ -76,30 +76,30 @@
 
 #### 13. Graceful Shutdown Enhancement (Lines ~5479-5485)
 - Added timeout handling for session flush (30 seconds)
-- Prevents hanging on shutdown if Firestore batches are slow
+- Prevents hanging on shutdown if Database batches are slow
 
 ---
 
-## Firestore Schema Changes
+## Database Schema Changes
 
 ### New Fields in `accounts/{accountId}`
-- `lastHistorySyncAt`: FirestoreTimestamp
+- `lastHistorySyncAt`: DatabaseTimestamp
 - `historySyncCount`: number
 - `lastHistorySyncResult`: object
-- `lastBackfillAt`: FirestoreTimestamp
+- `lastBackfillAt`: DatabaseTimestamp
 - `lastBackfillResult`: object
 
 ### New Fields in `threads/{threadId}`
 - `displayName`: string (from pushName)
 - `lastMessagePreview`: string (first 100 chars)
-- `lastBackfillAt`: FirestoreTimestamp
+- `lastBackfillAt`: DatabaseTimestamp
 
 ### New Fields in `threads/{threadId}/messages/{messageId}`
 - `messageType`: string (`'text' | 'image' | 'video' | 'audio' | 'document'`)
 - `mediaType`, `mediaUrl`, `mediaMimetype`, `mediaFilename`: for media messages
 - `status`: string (`'queued' | 'sent' | 'delivered' | 'read'`)
-- `deliveredAt`, `readAt`: FirestoreTimestamp
-- `syncedAt`: FirestoreTimestamp (when synced from history)
+- `deliveredAt`, `readAt`: DatabaseTimestamp
+- `syncedAt`: DatabaseTimestamp (when synced from history)
 - `syncSource`: string (`'history_sync' | 'realtime'`)
 
 ---
@@ -127,7 +127,7 @@
 
 3. **Media Files:** Only metadata is stored (URL, mimetype, filename). Actual media files are not downloaded/stored.
 
-4. **Batch Size:** Firestore batch limit is 500 operations. Large history syncs are processed in multiple batches with throttling.
+4. **Batch Size:** Database batch limit is 500 operations. Large history syncs are processed in multiple batches with throttling.
 
 ---
 

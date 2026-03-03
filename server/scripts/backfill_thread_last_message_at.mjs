@@ -13,7 +13,7 @@
  *   node scripts/backfill_thread_last_message_at.mjs --project superparty-frontend \
  *     --accountId account_prod_XXX [--accountId ...] [--dry-run] [--limit 500]
  *
- * Credentials: GOOGLE_APPLICATION_CREDENTIALS or serviceAccountKey.json (see check_firestore_history).
+ * Credentials: GOOGLE_APPLICATION_CREDENTIALS or serviceAccountKey.json (see check_database_history).
  */
 
 import { createRequire } from 'module';
@@ -21,7 +21,7 @@ import { readFileSync, existsSync } from 'fs';
 import path from 'path';
 
 const require = createRequire(import.meta.url);
-const admin = require('firebase-admin');
+const admin = require('supabase-admin');
 
 function loadServiceAccount() {
   const cwd = process.cwd();
@@ -96,7 +96,7 @@ async function run() {
   if (!admin.apps.length) {
     admin.initializeApp({ credential: admin.credential.cert(cred), projectId: project });
   }
-  const db = admin.firestore();
+  const db = admin.database();
 
   console.log(`Backfill lastMessageAt/lastMessageAtMs: project=${project} accounts=${accountIds.length} dryRun=${dryRun} limit=${limit}`);
 
@@ -141,7 +141,7 @@ async function run() {
         continue;
       }
 
-      const lastMessageAt = admin.firestore.Timestamp.fromMillis(lastMs);
+      const lastMessageAt = admin.database.Timestamp.fromMillis(lastMs);
       const update = { lastMessageAt, lastMessageAtMs: lastMs };
 
       if (!dryRun) {

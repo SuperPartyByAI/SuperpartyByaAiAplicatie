@@ -3,8 +3,8 @@ try {
   const serviceAccount = require('../serviceAccountKey.json');
   console.log('Project ID:', serviceAccount.project_id);
 
-  const fb = require('./firebase');
-  console.log('Firebase Loaded');
+  const fb = require('./supabase');
+  console.log('Supabase Loaded');
   const { db, auth, FieldValue } = fb;
   
   async function run() {
@@ -13,7 +13,7 @@ try {
     
     console.log('Approving ' + uid);
     
-    // 1. Force Write to Firestore
+    // 1. Force Write to Database
     await db.collection('employees').doc(uid).set({
         uid: uid,
         email: email,
@@ -22,7 +22,7 @@ try {
         approved: true,
         approvedAt: FieldValue.serverTimestamp()
     }, { merge: true });
-    console.log('Firestore Updated');
+    console.log('Database Updated');
 
     // 2. Set Custom Claims
     await auth.setCustomUserClaims(uid, { approved: true, role: 'employee' });

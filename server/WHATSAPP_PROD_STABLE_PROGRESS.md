@@ -8,8 +8,8 @@
 - Documented in `WHATSAPP_BASELINE_AUDIT.md`
 
 ### 2. Server-Only Outbox ✅
-- **firestore.rules**: Changed `/outbox` to `allow create, update, delete: if false` (server-only)
-- **kyc-app**: Updated `ChatClientiRealtime.jsx` to call Functions proxy instead of direct Firestore write
+- **database.rules**: Changed `/outbox` to `allow create, update, delete: if false` (server-only)
+- **kyc-app**: Updated `ChatClientiRealtime.jsx` to call Functions proxy instead of direct Database write
 - **Flutter**: Already uses `sendViaProxy` (no changes needed)
 
 ### 3. Functions Proxy Send ✅
@@ -43,7 +43,7 @@
 
 ### 7. Observability ⏳
 - Add `/healthz` endpoint (process alive)
-- Add `/readyz` endpoint (firestore available, worker running, leases ok)
+- Add `/readyz` endpoint (database available, worker running, leases ok)
 - Add `/metrics-json` endpoint:
   - activeAccounts
   - queuedCount, processingCount, sentLast5m, failedLast5m
@@ -72,7 +72,7 @@
 
 ## Files Changed (PR1)
 
-1. `firestore.rules` - Server-only outbox writes
+1. `database.rules` - Server-only outbox writes
 2. `kyc-app/kyc-app/src/components/ChatClientiRealtime.jsx` - Use proxy instead of direct write
 3. `functions/whatsappProxy.js` - Added send endpoint
 4. `functions/index.js` - Export send endpoint

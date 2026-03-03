@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
- * Verify Inbox Angajați: accountIds from API/Firestore vs threads query.
+ * Verify Inbox Angajați: accountIds from API/Database vs threads query.
  *
- * 1. Lists Firestore `accounts` (source for GET /api/whatsapp/accounts).
+ * 1. Lists Database `accounts` (source for GET /api/whatsapp/accounts).
  * 2. For each accountId, runs the same threads query as Staff Inbox (accountId + orderBy lastMessageAt).
  * 3. Marks admin phone (0737571397) – excluded in Staff Inbox.
  * 4. Reports thread counts so we can confirm API accountIds match thread accountIds.
@@ -19,7 +19,7 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const require = createRequire(import.meta.url);
-const admin = require('firebase-admin');
+const admin = require('supabase-admin');
 
 const ADMIN_PHONE = '0737571397';
 
@@ -36,7 +36,7 @@ function loadServiceAccount() {
   };
   const gac = process.env.GOOGLE_APPLICATION_CREDENTIALS;
   if (gac) { const v = tryPath(gac); if (v) return { serviceAccount: v }; }
-  const fpath = process.env.FIREBASE_SERVICE_ACCOUNT_PATH;
+  const fpath = process.env.SUPABASE_SERVICE_ACCOUNT_PATH;
   if (fpath) { const v = tryPath(fpath); if (v) return { serviceAccount: v }; }
   for (const rel of ['functions/serviceAccountKey.json', 'whatsapp-backend/serviceAccountKey.json', 'serviceAccountKey.json']) {
     const v = tryPath(path.join(cwd, rel));
@@ -105,12 +105,12 @@ async function main() {
       admin.initializeApp({ projectId: project });
     }
   } catch (e) {
-    console.error('❌ Firebase init failed:', e.message);
+    console.error('❌ Supabase init failed:', e.message);
     console.error('   Use GOOGLE_APPLICATION_CREDENTIALS or serviceAccountKey.json. See audit_whatsapp_inbox_schema.mjs.');
     process.exit(1);
   }
 
-  const db = admin.firestore();
+  const db = admin.database();
 
   console.log('🔍 Verify Inbox Angajați – accountIds vs threads');
   console.log('─'.repeat(60));
@@ -131,7 +131,7 @@ async function main() {
     accounts.push({ accountId, phone, status, name });
   }
 
-  console.log(`📋 Firestore accounts (source for API): ${accounts.length}`);
+  console.log(`📋 Database accounts (source for API): ${accounts.length}`);
   if (accounts.length === 0) {
     console.log('   No accounts. Staff Inbox would have 0 accountIds → 0 threads.');
     process.exit(0);
@@ -189,9 +189,9 @@ async function main() {
   }
 
   console.log('');
-  console.log('✅ Same accountIds used for: API response, Firestore threads query, thread doc field "accountId".');
+  console.log('✅ Same accountIds used for: API response, Database threads query, thread doc field "accountId".');
   console.log('   If thread count = 0 for an account, create threads via re-pair (Disconnect → Connect → Scan QR) or new messages.');
-  console.log('   Note: This script uses Admin SDK (bypasses rules). The app uses client SDK – if you see 0 in Inbox but counts >0 here, check Firestore rules (e.g. staffProfiles, adminOnlyAccountIds).');
+  console.log('   Note: This script uses Admin SDK (bypasses rules). The app uses client SDK – if you see 0 in Inbox but counts >0 here, check Database rules (e.g. staffProfiles, adminOnlyAccountIds).');
 }
 
 main().catch((e) => {

@@ -1,5 +1,5 @@
-// Session Store - Salvează Baileys sessions în Firestore pentru persistență
-const firestore = require('../firebase/firestore');
+// Session Store - Salvează Baileys sessions în Database pentru persistență
+const database = require('../supabase/database');
 const fs = require('fs');
 const path = require('path');
 
@@ -9,14 +9,14 @@ class SessionStore {
   }
 
   async initialize() {
-    if (!firestore.db) {
-      await firestore.initialize();
+    if (!database.db) {
+      await database.initialize();
     }
-    this.db = firestore.db;
+    this.db = database.db;
   }
 
   /**
-   * Salvează session în Firestore
+   * Salvează session în Database
    * @param {string} accountId
    * @param {string} sessionPath - Path la .baileys_auth/{accountId}
    */
@@ -33,22 +33,22 @@ class SessionStore {
 
       const creds = JSON.parse(fs.readFileSync(credsPath, 'utf8'));
 
-      // Salvează în Firestore
+      // Salvează în Database
       await this.db.collection('whatsapp_sessions').doc(accountId).set({
         accountId,
         creds: creds,
         updatedAt: new Date().toISOString(),
-        savedAt: firestore.admin.firestore.FieldValue.serverTimestamp(),
+        savedAt: database.admin.database.FieldValue.serverTimestamp(),
       });
 
-      console.log(`💾 [${accountId}] Session saved to Firestore`);
+      console.log(`💾 [${accountId}] Session saved to Database`);
     } catch (error) {
       console.error(`❌ [${accountId}] Failed to save session:`, error.message);
     }
   }
 
   /**
-   * Restaurează session din Firestore
+   * Restaurează session din Database
    * @param {string} accountId
    * @param {string} sessionPath - Path la .baileys_auth/{accountId}
    */
@@ -59,7 +59,7 @@ class SessionStore {
       const doc = await this.db.collection('whatsapp_sessions').doc(accountId).get();
 
       if (!doc.exists) {
-        console.log(`ℹ️ [${accountId}] No saved session in Firestore`);
+        console.log(`ℹ️ [${accountId}] No saved session in Database`);
         return false;
       }
 
@@ -74,7 +74,7 @@ class SessionStore {
       const credsPath = path.join(sessionPath, 'creds.json');
       fs.writeFileSync(credsPath, JSON.stringify(data.creds, null, 2));
 
-      console.log(`✅ [${accountId}] Session restored from Firestore`);
+      console.log(`✅ [${accountId}] Session restored from Database`);
       return true;
     } catch (error) {
       console.error(`❌ [${accountId}] Failed to restore session:`, error.message);
@@ -83,7 +83,7 @@ class SessionStore {
   }
 
   /**
-   * Șterge session din Firestore
+   * Șterge session din Database
    * @param {string} accountId
    */
   async deleteSession(accountId) {
@@ -91,7 +91,7 @@ class SessionStore {
       if (!this.db) await this.initialize();
 
       await this.db.collection('whatsapp_sessions').doc(accountId).delete();
-      console.log(`🗑️ [${accountId}] Session deleted from Firestore`);
+      console.log(`🗑️ [${accountId}] Session deleted from Database`);
     } catch (error) {
       console.error(`❌ [${accountId}] Failed to delete session:`, error.message);
     }

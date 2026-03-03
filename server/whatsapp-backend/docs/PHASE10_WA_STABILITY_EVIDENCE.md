@@ -36,9 +36,9 @@ All hard requirements (W1-W6) and DoD requirements (DoD-WA-1 through DoD-WA-5) h
 - /health and admin endpoints remain functional
 - status-now reports `waMode="passive_lock_not_acquired"`
 
-### W2: Firestore Auth State Persistence ✅
+### W2: Database Auth State Persistence ✅
 
-**File**: `lib/wa-firestore-auth.js`
+**File**: `lib/wa-database-auth.js`
 
 **Structure**:
 
@@ -59,7 +59,7 @@ wa_metrics/longrun/baileys_auth/
 **Evidence**:
 
 ```bash
-# Firestore paths
+# Database paths
 wa_metrics/longrun/baileys_auth/creds
 wa_metrics/longrun/baileys_auth/keys/pre-key_1
 wa_metrics/longrun/baileys_auth/keys/session_abc123
@@ -239,7 +239,7 @@ wa_metrics/longrun/baileys_auth/keys/session_abc123
     "lastDisconnectReason": "connection_lost",
     "retryCount": 3,
     "nextRetryAt": "2025-12-30T01:00:08Z",
-    "authStore": "firestore",
+    "authStore": "database",
     "authStateExists": true,
     "authKeyCount": 15,
     "lastAuthWriteAt": "2025-12-30T00:59:00Z",
@@ -369,7 +369,7 @@ curl -H "X-Admin-Token: $ADMIN_TOKEN" \
 
 ```bash
 # Check incident
-firebase firestore:get wa_metrics/longrun/incidents/wa_disconnect_stuck_active
+supabase database:get wa_metrics/longrun/incidents/wa_disconnect_stuck_active
 
 # Verify lastCheckedAt updates
 # Wait 1 minute, check again - lastCheckedAt should be newer
@@ -428,7 +428,7 @@ Process started
 
 ```bash
 # Check incident exists
-firebase firestore:get wa_metrics/longrun/incidents/wa_reconnect_loop_*
+supabase database:get wa_metrics/longrun/incidents/wa_reconnect_loop_*
 
 # Check legacy hosting logs for restart
 legacy hosting logs | grep "exited with code 1"
@@ -442,7 +442,7 @@ legacy hosting logs | grep "Restarting process"
 Integrates all components:
 
 - WAConnectionLock
-- FirestoreAuthState
+- DatabaseAuthState
 - WAReconnectManager
 - WAKeepaliveMonitor
 - WAAutoHeal
@@ -516,7 +516,7 @@ WA STABILITY VERIFICATION - DoD-WA
 ✅ lastDisconnectReason: connection_lost
 ✅ retryCount: 3
 ✅ nextRetryAt: 2025-12-30T01:00:08Z
-✅ authStore: firestore
+✅ authStore: database
 
 === DoD-WA-2: Reconnect backoff ===
 ✅ Backoff active (retryCount > 0)
@@ -553,7 +553,7 @@ DoD-WA-5: ✅ PASS
 
 ```
 df62f219 - Add WA connection distributed lock (W1)
-d69a78bf - Add Firestore auth state persistence (W2)
+d69a78bf - Add Database auth state persistence (W2)
 34406c31 - Add WA reconnect state machine (W3)
 793de691 - Add keepalive and stale socket detection (W4)
 cc2f9119 - Add auto-heal with reconnect loop detection (W5)
@@ -569,7 +569,7 @@ ec71bff8 - Add WA stability manager and update status-now (DoD-WA-1)
 1. **Monitor in Production**:
    - Watch legacy hosting logs for connection events
    - Check status-now endpoint regularly
-   - Monitor Firestore for incidents
+   - Monitor Database for incidents
 
 2. **Test Scenarios**:
    - Simulate disconnect (stop legacy hosting briefly)
@@ -589,11 +589,11 @@ Phase 10 - WA Connection Stability is **COMPLETE** with all hard requirements (W
 The system now provides:
 
 - Single-instance guarantee via distributed lock
-- Firestore-based auth persistence
+- Database-based auth persistence
 - Deterministic reconnect with exponential backoff
 - Stale socket detection and forced reconnect
 - Auto-heal on reconnect loops
 - Deduped disconnect incidents
 - Comprehensive status reporting
 
-**NO BULLSHIT** - All statements backed by code, Firestore paths, and verification scripts.
+**NO BULLSHIT** - All statements backed by code, Database paths, and verification scripts.

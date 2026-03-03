@@ -61,10 +61,10 @@ describe('writeMessageIdempotent thread activity', () => {
         }),
       }),
     };
-    // message_persist uses require('firebase-admin') at load; we need admin.firestore
-    const admin = require('firebase-admin');
-    if (admin && !admin.firestore) {
-      admin.firestore = {
+    // message_persist uses {} at load; we need admin.database
+    /* supabase admin removed */
+    if (admin && !admin.database) {
+      admin.database = {
         FieldValue: { serverTimestamp: () => ({ _serverTimestamp: true }) },
         Timestamp: { fromMillis: (ms) => ({ toMillis: () => ms }) },
       };

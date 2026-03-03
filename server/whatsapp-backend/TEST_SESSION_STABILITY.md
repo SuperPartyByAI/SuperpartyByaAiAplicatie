@@ -9,10 +9,10 @@
    # Verifică că SESSIONS_PATH=/data/sessions este setat
    ```
 
-2. **Verifică Firestore backup e activ:**
+2. **Verifică Database backup e activ:**
    ```bash
    # Verifică în loguri la startup:
-   # "💾 Session backed up to Firestore"
+   # "💾 Session backed up to Database"
    ```
 
 3. **Verifică backend e ACTIVE mode:**
@@ -23,7 +23,7 @@
 
 ---
 
-## Test 1: Auto-restore din Firestore (Redeploy Simulation)
+## Test 1: Auto-restore din Database (Redeploy Simulation)
 
 ### Scenariu: Sesiunea se pierde la redeploy, dar se restaurează automat
 
@@ -48,10 +48,10 @@ legacy hosting up
 
 **Pas 4:** Verifică logurile pentru restore:
 ```bash
-legacy hosting logs --service whatsapp-backend | grep -i "restore\|Firestore"
+legacy hosting logs --service whatsapp-backend | grep -i "restore\|Database"
 # Trebuie să vezi:
-# "🔄 [account_xxx] Disk session missing, attempting Firestore restore..."
-# "✅ [account_xxx] Session restored from Firestore (X files)"
+# "🔄 [account_xxx] Disk session missing, attempting Database restore..."
+# "✅ [account_xxx] Session restored from Database (X files)"
 ```
 
 **Pas 5:** Verifică account e conectat (nu necesita QR nou):
@@ -127,11 +127,11 @@ legacy hosting run --service whatsapp-backend -- sh -c "rm /data/sessions/accoun
 **Pas 3:** Așteaptă health check (runează la fiecare 60s):
 ```bash
 # Așteaptă 60-120 secunde
-legacy hosting logs --service whatsapp-backend | grep -i "Session health check\|restore.*Firestore"
+legacy hosting logs --service whatsapp-backend | grep -i "Session health check\|restore.*Database"
 # Trebuie să vezi:
 # "⚠️  [account_xxx] Session health check: socket disconnected but status is connected"
-# "🔄 [account_xxx] Session health check: restoring missing disk session from Firestore..."
-# "✅ [account_xxx] Session restored from Firestore (X files)"
+# "🔄 [account_xxx] Session health check: restoring missing disk session from Database..."
+# "✅ [account_xxx] Session restored from Database (X files)"
 ```
 
 **Pas 4:** Verifică account e încă conectat:
@@ -220,7 +220,7 @@ legacy hosting logs --service whatsapp-backend --since 24h | \
 **Pas 3:** Verifică sesiune stability metrics:
 ```bash
 legacy hosting logs --service whatsapp-backend --since 24h | \
-  grep -i "restore.*Firestore\|Session health\|stability" | tail -10
+  grep -i "restore.*Database\|Session health\|stability" | tail -10
 ```
 
 **Pas 4:** Testează mesaje funcționează continuu:
@@ -273,7 +273,7 @@ echo ""
 # 3. Check recent restores (last hour)
 echo "3. Recent Session Restores (last hour):"
 legacy hosting logs --service whatsapp-backend --since 1h 2>/dev/null | \
-  grep -c "Session restored from Firestore" || echo "  None (good - session stable)"
+  grep -c "Session restored from Database" || echo "  None (good - session stable)"
 echo ""
 
 # 4. Check for errors
@@ -314,16 +314,16 @@ chmod +x quick_stability_check.sh
 
 ### Dacă restore-ul nu funcționează:
 
-1. **Verifică Firestore backup există:**
+1. **Verifică Database backup există:**
    ```bash
-   # În Firebase Console -> Firestore -> wa_sessions collection
+   # În Supabase Console -> Database -> wa_sessions collection
    # Verifică că există document pentru account-ul tău
    ```
 
 2. **Verifică logurile pentru erori:**
    ```bash
    legacy hosting logs --service whatsapp-backend | \
-     grep -i "Firestore restore failed\|restore.*error" | tail -10
+     grep -i "Database restore failed\|restore.*error" | tail -10
    ```
 
 3. **Verifică SESSIONS_PATH e writable:**

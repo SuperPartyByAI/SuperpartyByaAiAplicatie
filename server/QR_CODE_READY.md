@@ -7,7 +7,7 @@
 ✅ QR Code generated (length: 237)
 ✅ phone: +407****97 (numărul tău real, mascat în logs)
 ✅ Status: qr_ready
-✅ QR saved to Firestore
+✅ QR saved to Database
 ```
 
 **Contul nou EXISTĂ și are QR code valid!** ✅
@@ -42,7 +42,7 @@
 3. **Verifică din nou** dacă apare QR code-ul
 
 **Dacă tot nu apare**:
-- Poate există un delay de sincronizare Firestore ↔ app
+- Poate există un delay de sincronizare Database ↔ app
 - Așteaptă 10-20 secunde și reîncearcă refresh
 - Sau șterge contul vechi ("Test Real") și verifică din nou
 
@@ -59,7 +59,7 @@
 - ✅ QR Code generated (length: 237)
 - ✅ phone: +407****97
 - ✅ Status: qr_ready
-- ✅ QR saved to Firestore
+- ✅ QR saved to Database
 
 ---
 
@@ -89,4 +89,4 @@
 - Dacă DA → **scanează-l cu telefonul acum!**
 - Dacă NU → **refresh app-ul** și verifică din nou
 
-**QR code-ul EXISTĂ în Firestore** (confirmat în logs) - trebuie doar să apară în app și să-l scanezi! 🎉
+**QR code-ul EXISTĂ în Database** (confirmat în logs) - trebuie doar să apară în app și să-l scanezi! 🎉

@@ -7,7 +7,7 @@ In-memory caching implementation to reduce database reads and improve API respon
 **Benefits:**
 
 - ✅ 10-100x faster API responses
-- ✅ Reduced Firebase/Firestore costs
+- ✅ Reduced Supabase/Database costs
 - ✅ Lower latency for users
 - ✅ Zero infrastructure cost (no Redis needed)
 
@@ -18,12 +18,12 @@ In-memory caching implementation to reduce database reads and improve API respon
 | Endpoint                   | Without Cache | With Cache | Improvement       |
 | -------------------------- | ------------- | ---------- | ----------------- |
 | GET /api/whatsapp/accounts | ~200-500ms    | ~5-10ms    | **20-50x faster** |
-| Firebase Functions         | ~100-300ms    | ~5-10ms    | **10-30x faster** |
+| Supabase Functions         | ~100-300ms    | ~5-10ms    | **10-30x faster** |
 
 **Cost Savings:**
 
-- Firestore reads: ~90% reduction
-- Firebase Functions invocations: Same (but faster)
+- Database reads: ~90% reduction
+- Supabase Functions invocations: Same (but faster)
 - **Estimated savings: $10-50/month** (depending on traffic)
 
 ---
@@ -65,7 +65,7 @@ const data = await cache.getOrSet('key', async () => {
 
 ## 📍 Where Caching is Applied
 
-### 1. Firebase Functions (`functions/index.js`)
+### 1. Supabase Functions (`functions/index.js`)
 
 **Endpoint:** `GET /api/whatsapp/accounts`
 
@@ -289,7 +289,7 @@ If caching issues:
 **Implemented:**
 
 - ✅ Memory cache utility with TTL
-- ✅ Caching in Firebase Functions
+- ✅ Caching in Supabase Functions
 - ✅ Caching in WhatsApp Backend
 - ✅ Comprehensive tests
 - ✅ Documentation

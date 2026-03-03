@@ -22,11 +22,11 @@ echo "📧 Email: $EMAIL"
 echo ""
 
 # Setează API key-ul
-export FIREBASE_API_KEY="AIzaSyDcMXO6XdFZE_tVnJ1M4Wrt8Aw7Yh1o0K0"
+export SUPABASE_API_KEY="AIzaSyDcMXO6XdFZE_tVnJ1M4Wrt8Aw7Yh1o0K0"
 
-# Obține token-ul Firebase
+# Obține token-ul Supabase
 cd "$(dirname "$0")/.." || exit 1
-echo "🔑 Obținere Firebase ID Token..."
+echo "🔑 Obținere Supabase ID Token..."
 TOKEN=$(node scripts/get-id-token-terminal.js "$EMAIL" 2>/dev/null | grep -E "^eyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$" | head -n 1)
 
 if [ -z "$TOKEN" ]; then
@@ -45,7 +45,7 @@ if [ -n "$INDEX_ERRORS" ]; then
   echo "⚠️  Atenție: Există erori de index pentru threads!"
   echo "$INDEX_ERRORS"
   echo ""
-  echo "💡 Trebuie să creezi/activezi indexul în Firebase Console"
+  echo "💡 Trebuie să creezi/activezi indexul în Supabase Console"
   exit 1
 else
   echo "✅ Index threads OK"

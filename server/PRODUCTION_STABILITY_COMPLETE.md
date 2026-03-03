@@ -11,7 +11,7 @@
 
 **ALL production stability requirements implemented and deployed:**
 - ✅ **Retry/Backoff**: Transient failures auto-retry (4 attempts, exp backoff)
-- ✅ **Extraction Caching**: AI results cached in Firestore (prevents "se rupe")
+- ✅ **Extraction Caching**: AI results cached in Database (prevents "se rupe")
 - ✅ **Admin Permanence**: Hardened with debouncing + retry
 - ✅ **Observability**: TraceId added to all requests
 - ✅ **Docs Fixed**: CLI syntax corrected (--limit → --lines) in 13 files
@@ -125,7 +125,7 @@ await whatsappApiService.extractEventFromThread(
 **Debugging**:
 ```bash
 # Find all logs for a specific trace
-firebase functions:log --only whatsappExtractEventFromThread --lines 500 | grep "trace_1737168900_123456"
+supabase functions:log --only whatsappExtractEventFromThread --lines 500 | grep "trace_1737168900_123456"
 ```
 
 ---
@@ -161,7 +161,7 @@ Success: Set _hasBootstrapped = true, refresh token
 
 ### 5. DOCS CLEANUP ✅
 
-**Fixed**: `firebase functions:log --limit` → `firebase functions:log --lines`
+**Fixed**: `supabase functions:log --limit` → `supabase functions:log --lines`
 
 **Files updated** (13 total):
 ```
@@ -180,7 +180,7 @@ AI_CHAT_REPAIR_COMPLETE.md
 FINAL_AUDIT_REPORT.md
 ```
 
-**Why**: Firebase CLI only supports `--lines`, not `--limit`. Old docs had incorrect syntax.
+**Why**: Supabase CLI only supports `--lines`, not `--limit`. Old docs had incorrect syntax.
 
 ---
 
@@ -189,7 +189,7 @@ FINAL_AUDIT_REPORT.md
 ### Modified (5 core files)
 ```
 functions/whatsappExtractEventFromThread.js    (caching + traceId + error handling)
-superparty_flutter/lib/core/utils/retry.dart  (enhanced FirebaseFunctionsException support)
+superparty_flutter/lib/core/utils/retry.dart  (enhanced SupabaseFunctionsException support)
 superparty_flutter/lib/services/admin_bootstrap_service.dart (debouncing + retry)
 + 13 documentation files (CLI syntax fixes)
 ```
@@ -248,7 +248,7 @@ $ cd functions && npm run build
 
 ### Functions Deploy
 ```bash
-$ firebase deploy --only functions:whatsappExtractEventFromThread
+$ supabase deploy --only functions:whatsappExtractEventFromThread
 i  functions: updating Node.js 20 (2nd Gen) function whatsappExtractEventFromThread(us-central1)...
 ✔  functions[whatsappExtractEventFromThread(us-central1)] Successful update operation.
 ✔  Deploy complete!
@@ -278,8 +278,8 @@ nothing to commit, working tree clean
 
 **How** (choose one):
 
-**Option A: Firebase Console** (2 minutes)
-1. Open: https://console.firebase.google.com/project/superparty-frontend/functions
+**Option A: Supabase Console** (2 minutes)
+1. Open: https://console.supabase.google.com/project/superparty-frontend/functions
 2. Find: "whatsapp" (v1, 2048MB, us-central1)
 3. Click: 3 dots (...) → Delete → Confirm
 
@@ -291,7 +291,7 @@ gcloud functions delete whatsapp --region us-central1 --project superparty-front
 
 **Verification**:
 ```bash
-firebase functions:list | grep "whatsapp.*v1"
+supabase functions:list | grep "whatsapp.*v1"
 # Expected: No results
 ```
 
@@ -322,7 +322,7 @@ firebase functions:list | grep "whatsapp.*v1"
 4. Note: Result with draftEvent
 5. Tap: "Extract Event" again (second time)
 6. Expected: Instant result (~200ms), same draftEvent
-7. Verify Firestore: threads/{threadId}/extractions/{cacheKey} exists
+7. Verify Database: threads/{threadId}/extractions/{cacheKey} exists
 ```
 **Expected**: First call runs AI, second call returns cached result
 
@@ -339,12 +339,12 @@ firebase functions:list | grep "whatsapp.*v1"
 ```
 1. Extract event from any thread
 2. Check Flutter console for traceId
-3. Check Firestore extraction doc for same traceId
+3. Check Database extraction doc for same traceId
 4. Check function logs:
-   firebase functions:log --only whatsappExtractEventFromThread --lines 50
+   supabase functions:log --only whatsappExtractEventFromThread --lines 50
 5. Grep for traceId in logs
 ```
-**Expected**: TraceId appears in Flutter console, Firestore, and function logs
+**Expected**: TraceId appears in Flutter console, Database, and function logs
 
 ---
 
@@ -354,7 +354,7 @@ firebase functions:list | grep "whatsapp.*v1"
 
 **What's Automated**:
 - ✅ Retry/backoff (4 attempts, transient errors only)
-- ✅ Extraction caching (Firestore, SHA256 keys)
+- ✅ Extraction caching (Database, SHA256 keys)
 - ✅ Admin permanence (debounced, retry-enabled)
 - ✅ Observability (traceId everywhere)
 - ✅ Docs fixed (CLI syntax corrected)
@@ -373,7 +373,7 @@ firebase functions:list | grep "whatsapp.*v1"
 | Requirement | Before | After | Status |
 |-------------|--------|-------|--------|
 | **Retry Logic** | Manual, inconsistent | Automatic, 4 attempts, exp backoff | ✅ |
-| **Extraction Caching** | None (always AI call) | Firestore cache, instant on hit | ✅ |
+| **Extraction Caching** | None (always AI call) | Database cache, instant on hit | ✅ |
 | **Admin Permanence** | Basic, no debounce | Hardened with debounce + retry | ✅ |
 | **Observability** | No traceId | TraceId in all logs/docs/responses | ✅ |
 | **Docs Accuracy** | --limit (wrong) | --lines (correct) | ✅ |
@@ -391,7 +391,7 @@ firebase functions:list | grep "whatsapp.*v1"
    - **Admin permanence**: ✅ **PASS** (debounced, retry-enabled, line 26-53)
    - **Region alignment**: ✅ **PASS** (us-central1 everywhere)
    - **Retry/backoff**: ✅ **PASS** (4 attempts, transient only, line 60-125)
-   - **Extraction caching**: ✅ **PASS** (Firestore, SHA256 keys, line 95-344)
+   - **Extraction caching**: ✅ **PASS** (Database, SHA256 keys, line 95-344)
 4. ✅ **Remaining blockers**: NONE (v1 function deletion is optional)
 
 ---

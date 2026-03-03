@@ -19,9 +19,9 @@
    - Introdu prompt-ul: `Ești un asistent WhatsApp. Răspunzi politicos, scurt și clar în română. Nu inventezi informații. Dacă nu știi ceva, spui clar că nu știi.`
    - Salvează
 
-### Opțiunea 2: Firestore Console (Direct)
+### Opțiunea 2: Database Console (Direct)
 
-1. **Deschide Firebase Console**: https://console.firebase.google.com/project/superparty-frontend/firestore
+1. **Deschide Supabase Console**: https://console.supabase.google.com/project/superparty-frontend/database
 2. **Navighează la**: `accounts` → `account_prod_26ec0bfb54a6ab88cc3cd7aba6a9a443`
 3. **Editează documentul**:
    - `autoReplyEnabled`: `true`
@@ -67,15 +67,15 @@ Când auto-reply funcționează, vei vedea:
 
 2. **Verifică că autoReplyEnabled este true**:
    - În Flutter app: Settings → Auto-Reply Toggle ON
-   - Sau în Firestore: `accounts/{accountId}.autoReplyEnabled = true`
+   - Sau în Database: `accounts/{accountId}.autoReplyEnabled = true`
 
 3. **Verifică că promptul este setat**:
    - În Flutter app: AI Settings → Prompt setat
-   - Sau în Firestore: `accounts/{accountId}.autoReplyPrompt = "..."`
+   - Sau în Database: `accounts/{accountId}.autoReplyPrompt = "..."`
 
 ### Vezi "Gate X FAIL" în logs
 
-- **Gate 8 FAIL**: Auto-reply nu este enabled → Activează în Flutter/Firestore
+- **Gate 8 FAIL**: Auto-reply nu este enabled → Activează în Flutter/Database
 - **Gate 10/11 FAIL**: Cooldown activ → Așteaptă 10 secunde
 - **Gate 12 FAIL**: GROQ_API_KEY nu este setat → Verifică `/etc/whatsapp-backend/groq-api-key.env`
 

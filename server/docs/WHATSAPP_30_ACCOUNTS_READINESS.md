@@ -16,7 +16,7 @@
 
 **Key Files:**
 - `whatsapp-backend/server.js` - Main entrypoint, connection management, API endpoints
-- `whatsapp-backend/lib/persistence/firestore-auth.js` - Firestore backup layer
+- `whatsapp-backend/lib/persistence/database-auth.js` - Database backup layer
 - `whatsapp-backend/lib/wa-bootstrap.js` - Bootstrap utilities
 - `whatsapp-backend/lib/wa-stability-manager.js` - Stability/reconnection logic
 - systemd service - Hetzner deployment configuration
@@ -49,10 +49,10 @@ const authDir =
 - State files: `{authDir}/{accountId}/app-state-sync-key-*.json`
 - Version files: `{authDir}/{accountId}/app-state-sync-version-*.json`
 
-**Firestore Backup:**
-- ✅ Enabled: `USE_FIRESTORE_BACKUP = true` (line 160)
-- ✅ Backup on `saveCreds()`: Wraps Baileys saveCreds to also write to Firestore `wa_sessions` collection (lines 523-551, 3156-3180)
-- ✅ Restore: `restoreAccount()` can restore from Firestore if disk session missing (lines 3112-3138)
+**Database Backup:**
+- ✅ Enabled: `USE_DATABASE_BACKUP = true` (line 160)
+- ✅ Backup on `saveCreds()`: Wraps Baileys saveCreds to also write to Database `wa_sessions` collection (lines 523-551, 3156-3180)
+- ✅ Restore: `restoreAccount()` can restore from Database if disk session missing (lines 3112-3138)
 
 **Risk:** If `SESSIONS_PATH` is not set and no Hetzner volume is mounted, sessions are stored in ephemeral container filesystem → **sessions lost on redeploy**.
 
@@ -61,25 +61,25 @@ const authDir =
 **Representation:**
 - In-memory: `connections` Map (line 284) - `Map<accountId, {id, name, phone, sock, status, ...}>`
 - Disk: `{authDir}/{accountId}/` directories (one per account)
-- Firestore: `accounts` collection (metadata) + `wa_sessions` collection (encrypted session files)
+- Database: `accounts` collection (metadata) + `wa_sessions` collection (encrypted session files)
 
 **Account ID Format:**
 - Current: `account_${env}_${hash}` (line 68-73) - deterministic hash from phone number
 - Not using fixed `WA-01..WA-30` format
 
 **Boot Sequence:**
-- ✅ **Partially implemented:** `restoreAccountsFromFirestore()` called in `app.listen()` callback (line 4028)
-- ⚠️  **Gap:** Only restores accounts from Firestore (where `status='connected'`)
+- ✅ **Partially implemented:** `restoreAccountsFromDatabase()` called in `app.listen()` callback (line 4028)
+- ⚠️  **Gap:** Only restores accounts from Database (where `status='connected'`)
 - ❌ **Missing:** Does NOT scan disk for session directories and restore them
 - ❌ **Missing:** Does NOT load all accounts deterministically (WA-01..WA-30)
 
 **Boot Flow:**
 ```
 1. Server starts (line 4021)
-2. restoreAccountsFromFirestore() called (line 4028)
-3. Queries Firestore: accounts where status='connected' (line 3530)
-4. For each Firestore account: restoreAccount() (line 3556)
-5. restoreAccount() loads from disk OR Firestore backup (line 3109-3144)
+2. restoreAccountsFromDatabase() called (line 4028)
+3. Queries Database: accounts where status='connected' (line 3530)
+4. For each Database account: restoreAccount() (line 3556)
+5. restoreAccount() loads from disk OR Database backup (line 3109-3144)
 6. Creates Baileys socket and adds to connections Map
 ```
 
@@ -87,12 +87,12 @@ const authDir =
 - ✅ Auto-reconnect exists: `recoverStaleConnection()` (line 1150)
 - ✅ Health monitoring: Stale connection check every 60s (line 4031)
 - ✅ Backoff: Uses `reconnectAttempts` Map (line 285), max 5 attempts (line 308)
-- ⚠️  Reconnect only triggers if Firestore status='connected', not if disk session exists
+- ⚠️  Reconnect only triggers if Database status='connected', not if disk session exists
 
 **Add Account Flow:**
 - ✅ Endpoint: `POST /api/whatsapp/add-account` (line ~2170)
 - ✅ Generates QR code for pairing
-- ✅ Saves to Firestore `accounts` collection
+- ✅ Saves to Database `accounts` collection
 - ✅ Creates session directory on disk
 
 ### D) Hetzner Deploy Assumptions
@@ -106,7 +106,7 @@ const authDir =
 **Required Environment Variables:**
 - ✅ `PORT` - Hetzner injects automatically
 - ⚠️  `SESSIONS_PATH` - **CRITICAL** - must be set to persistent volume path
-- ✅ `FIREBASE_SERVICE_ACCOUNT_JSON` - Firestore credentials
+- ✅ `SUPABASE_SERVICE_ACCOUNT_JSON` - Database credentials
 - ✅ `ADMIN_TOKEN` - Optional, for protected endpoints
 - ⚠️  `HETZNER_SESSIONS_PATH` - **MAY BE USED** if `SESSIONS_PATH` not set
 
@@ -138,7 +138,7 @@ const authDir =
 **Requirement:** SIGTERM handler must close all sockets and flush auth state  
 **Current:** SIGTERM handler exists (line 4508) but:
 - Calls `sock.end()` for all connections (line 4527)
-- Releases Firestore leases (line 4517)
+- Releases Database leases (line 4517)
 - ❌ **MISSING:** Does NOT explicitly call `saveCreds()` to flush session files
 - ❌ **MISSING:** Does NOT wait for all saves to complete before exit
 
@@ -157,8 +157,8 @@ for (const [accountId, account] of connections.entries()) {
 #### 4. Auto-Load All Known Accounts on Boot
 **Status:** ⚠️  **PARTIAL**  
 **Requirement:** Boot sequence should scan disk for session directories and restore all found accounts  
-**Current:** Only restores from Firestore (accounts where `status='connected'`)  
-**Gap:** If Firestore is unavailable or account not in Firestore, disk sessions are ignored  
+**Current:** Only restores from Database (accounts where `status='connected'`)  
+**Gap:** If Database is unavailable or account not in Database, disk sessions are ignored  
 **Fix:** Add disk scan to boot sequence:
 ```javascript
 // Scan authDir for session directories
@@ -217,7 +217,7 @@ app.get('/api/status/dashboard', async (req, res) => {
 **Current:** `/health` endpoint exists (line ~1380)  
 **Returns:**
 - Service status
-- Firestore connection status
+- Database connection status
 - Storage checks (if enhanced)
 - Account counts
 
@@ -291,7 +291,7 @@ app.get('/api/status/dashboard', async (req, res) => {
 |------|---------------------------|------|---------------------------|
 | **Persistent Volume** | No explicit Hetzner volume config | 🔴 **HIGH** | Manual: Create Hetzner volume, mount at `/data/sessions`, set `SESSIONS_PATH=/data/sessions` |
 | **SESSIONS_PATH Validation** | Checks env var exists but no writability check on startup | 🔴 **HIGH** | Add startup validation: If `SESSIONS_PATH` not writable, fail fast with clear error |
-| **Boot Auto-Load from Disk** | Only restores from Firestore (`restoreAccountsFromFirestore` line 3520) | 🔴 **HIGH** | Add disk scan in boot sequence: Scan `authDir` for directories with `creds.json`, restore all found |
+| **Boot Auto-Load from Disk** | Only restores from Database (`restoreAccountsFromDatabase` line 3520) | 🔴 **HIGH** | Add disk scan in boot sequence: Scan `authDir` for directories with `creds.json`, restore all found |
 | **Per-Account Status Dashboard** | `/api/whatsapp/accounts` exists but basic format | 🟡 **MEDIUM** | Add `/api/status/dashboard` endpoint with detailed per-account status (CONNECTED/QR_REQUIRED/etc.) |
 | **Graceful Shutdown Flush** | SIGTERM handler exists (line 4508) but doesn't flush sessions | 🟡 **MEDIUM** | Enhance SIGTERM: Call `saveCreds()` for all accounts before `sock.end()` |
 | **Account ID Naming** | Uses hash-based IDs (`account_${env}_${hash}`) | 🟢 **LOW** | Optional: Add `WA-01..WA-30` display names as metadata (keep hash IDs for uniqueness) |
@@ -321,8 +321,8 @@ if (!isWritable) {
 
 ### Gap 2: Add Disk Scan to Boot Sequence
 
-**File:** `whatsapp-backend/server.js` (modify `restoreAccountsFromFirestore` or add new function)  
-**Change:** Add disk scan BEFORE Firestore restore:
+**File:** `whatsapp-backend/server.js` (modify `restoreAccountsFromDatabase` or add new function)  
+**Change:** Add disk scan BEFORE Database restore:
 
 ```javascript
 async function restoreAccountsFromDisk() {
@@ -344,9 +344,9 @@ async function restoreAccountsFromDisk() {
     const credsPath = path.join(sessionPath, 'creds.json');
 
     if (fs.existsSync(credsPath)) {
-      // Check if already in connections (from Firestore restore)
+      // Check if already in connections (from Database restore)
       if (!connections.has(accountId)) {
-        console.log(`🔄 [${accountId}] Restoring from disk (not in Firestore)...`);
+        console.log(`🔄 [${accountId}] Restoring from disk (not in Database)...`);
         try {
           await restoreAccount(accountId, {
             status: 'connected',
@@ -357,7 +357,7 @@ async function restoreAccountsFromDisk() {
           console.error(`❌ [${accountId}] Disk restore failed:`, error.message);
         }
       } else {
-        console.log(`✅ [${accountId}] Already restored from Firestore, skipping disk restore`);
+        console.log(`✅ [${accountId}] Already restored from Database, skipping disk restore`);
       }
     }
   }
@@ -369,11 +369,11 @@ async function restoreAccountsFromDisk() {
 **Call order in `app.listen()`:**
 ```javascript
 // Restore accounts after server starts
-await restoreAccountsFromFirestore(); // Existing
+await restoreAccountsFromDatabase(); // Existing
 await restoreAccountsFromDisk(); // NEW - fills gaps
 ```
 
-**Impact:** High - Ensures all disk sessions are loaded even if Firestore unavailable
+**Impact:** High - Ensures all disk sessions are loaded even if Database unavailable
 
 ---
 
@@ -486,7 +486,7 @@ process.on('SIGTERM', async () => {
   await Promise.allSettled(flushPromises);
   console.log('✅ All sessions flushed to disk');
 
-  // Release Firestore leases
+  // Release Database leases
   await releaseLeases();
 
   // Close all sockets
@@ -600,9 +600,9 @@ process.on('SIGTERM', async () => {
 ### ✅ Implemented (Already Working)
 
 1. **Baileys Integration:** WebSocket-based, no browser needed ✅
-2. **Session Storage:** `useMultiFileAuthState()` with Firestore backup ✅
+2. **Session Storage:** `useMultiFileAuthState()` with Database backup ✅
 3. **Auto-Reconnect:** Health monitoring + stale connection recovery ✅
-4. **Boot Sequence:** Restores accounts from Firestore on startup ✅
+4. **Boot Sequence:** Restores accounts from Database on startup ✅
 5. **Graceful Shutdown:** SIGTERM handler exists (needs enhancement) ✅
 6. **Health Check:** `/health` endpoint for Hetzner ✅
 7. **Admin Protection:** `requireAdmin` middleware with token ✅
@@ -610,7 +610,7 @@ process.on('SIGTERM', async () => {
 ### ❌ Missing (Critical Gaps)
 
 1. **Persistent Volume:** No Hetzner volume configured → **MANUAL SETUP REQUIRED**
-2. **Disk Boot Scan:** Only restores from Firestore, ignores disk sessions → **CODE FIX NEEDED**
+2. **Disk Boot Scan:** Only restores from Database, ignores disk sessions → **CODE FIX NEEDED**
 3. **Status Dashboard:** No `/api/status/dashboard` endpoint → **CODE FIX NEEDED**
 4. **Shutdown Flush:** SIGTERM doesn't flush sessions → **CODE FIX NEEDED**
 5. **Startup Validation:** No check that `SESSIONS_PATH` is writable → **CODE FIX NEEDED**

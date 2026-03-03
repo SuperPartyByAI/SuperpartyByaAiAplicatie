@@ -11,7 +11,7 @@ All P0 requirements from Issue #5 have been implemented and tested:
 
 1. ✅ Restoration with event handlers attached
 2. ✅ Connecting timeout + state machine (60s timeout)
-3. ✅ Health endpoint extended with mode, lock, firestore policy
+3. ✅ Health endpoint extended with mode, lock, database policy
 4. ✅ Lease/lock fields added to account schema
 5. ✅ Restart test x3 passed (connected account persists)
 
@@ -35,7 +35,7 @@ All P0 requirements from Issue #5 have been implemented and tested:
     "needs_qr": 7,
     "max": 18
   },
-  "firestore": {
+  "database": {
     "status": "connected",
     "policy": {
       "collections": [
@@ -68,7 +68,7 @@ All P0 requirements from Issue #5 have been implemented and tested:
 - ✅ `mode`: "single" (single worker mode)
 - ✅ `lock.owner`: deployment ID
 - ✅ `lock.expiresAt`: null (not implemented yet)
-- ✅ `firestore.policy`: collections, ownership, lease info
+- ✅ `database.policy`: collections, ownership, lease info
 - ✅ `errorsByStatus`: aggregated errors per status
 - ✅ `accounts.disconnected`: count of disconnected accounts
 
@@ -121,13 +121,13 @@ All P0 requirements from Issue #5 have been implemented and tested:
 
 ### Schema Changes
 
-Added to `saveAccountToFirestore()` calls:
+Added to `saveAccountToDatabase()` calls:
 
 ```javascript
 {
   claimedBy: process.env.LEGACY_DEPLOYMENT_ID || process.env.HOSTNAME || 'unknown',
-  claimedAt: admin.firestore.Timestamp.fromMillis(now),
-  leaseUntil: admin.firestore.Timestamp.fromMillis(now + LEASE_DURATION_MS)
+  claimedAt: admin.database.Timestamp.fromMillis(now),
+  leaseUntil: admin.database.Timestamp.fromMillis(now + LEASE_DURATION_MS)
 }
 ```
 
@@ -259,7 +259,7 @@ Added multiple inspection methods:
 - Triggers after 60 seconds
 - Sets `status = 'disconnected'`
 - Sets `lastError = 'Connection timeout - no progress after 60s'`
-- Saves to Firestore with timestamp
+- Saves to Database with timestamp
 
 ## 8. Code Changes Summary
 
@@ -292,7 +292,7 @@ Added multiple inspection methods:
 5. **/health endpoint** - Lines 1248-1320
    - Added `mode` field
    - Added `lock` object with owner and expiresAt
-   - Added `firestore.policy` with collections and ownership info
+   - Added `database.policy` with collections and ownership info
    - Added `errorsByStatus` aggregation
    - Added `disconnected` count
 
@@ -315,7 +315,7 @@ Added multiple inspection methods:
 
 1. **Message Reception Verification**
    - Cannot verify via listener inspection (Baileys limitation)
-   - Functional test needed: send inbound message, check Firestore
+   - Functional test needed: send inbound message, check Database
    - Requires external phone to send test message
 
 2. **Lease Coordination**
@@ -340,7 +340,7 @@ Added multiple inspection methods:
 - ✅ Connecting timeout works (tested: 60s → disconnected)
 - ✅ Health endpoint has mode field
 - ✅ Health endpoint has lock owner
-- ✅ Health endpoint has firestore policy
+- ✅ Health endpoint has database policy
 - ✅ Lease fields added to schema
 - ✅ Lease refresh implemented (2min interval)
 - ✅ Lease release on shutdown

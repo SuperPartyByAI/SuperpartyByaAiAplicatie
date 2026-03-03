@@ -1,6 +1,6 @@
-# Firebase Structure Checks Orchestrator
+# Supabase Structure Checks Orchestrator
 
-This directory contains the pipeline to automatically test, verify, and validate our Firebase setup (Firestore schema, security rules, indexes, and backups).
+This directory contains the pipeline to automatically test, verify, and validate our Supabase setup (Database schema, security rules, indexes, and backups).
 
 ## Requirements
 
@@ -9,12 +9,12 @@ The orchestrator and integration checks expect the following environment variabl
 - `PROJECT_ID`: e.g. `superparty-frontend`
 - `BACKUP_BUCKET`: e.g. `gs://superparty-frontend-backups`
 - `DRY_RUN`: "true" or "false"
-- `GOOGLE_APPLICATION_CREDENTIALS`: Absolute path to the Firebase Service Account JSON file. Required for `admin_checks` to manipulate/clean test documents bypassing security rules.
+- `GOOGLE_APPLICATION_CREDENTIALS`: Absolute path to the Supabase Service Account JSON file. Required for `admin_checks` to manipulate/clean test documents bypassing security rules.
 
 ## Local Execution (Dry Run)
 
 ```bash
-cd monitoring/firebase/checks
+cd monitoring/supabase/checks
 export DRY_RUN="true"
 export PROJECT_ID="superparty-frontend"
 export BACKUP_BUCKET="gs://superparty-frontend-backups"
@@ -28,7 +28,7 @@ python run_checks.py
 
 ## Interpreting Output
 
-A Markdown report to `/tmp/report_firebase_structure.md` is generated detailing each phase (emulator, integration, backup).
+A Markdown report to `/tmp/report_supabase_structure.md` is generated detailing each phase (emulator, integration, backup).
 
 - ✅ **OK**: Feature behaving securely and as defined.
 - ❌ **CRITICAL**: Regression detected. Client escalated permissions or backup bucket inaccessible.

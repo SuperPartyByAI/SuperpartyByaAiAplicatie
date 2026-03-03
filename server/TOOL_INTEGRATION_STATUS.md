@@ -46,7 +46,7 @@
 ### Uptime Monitoring
 
 - ⚠️ **Custom** - legacy hosting health checks
-- ⚠️ **Firebase** - Built-in monitoring
+- ⚠️ **Supabase** - Built-in monitoring
 
 ### Caching
 
@@ -217,7 +217,7 @@ app.get('/metrics', async (req, res) => {
 | Better Stack   | $0 (Free tier)      | ✅ Active |
 | GitHub Actions | $0 (Free tier)      | ✅ Active |
 | legacy hosting        | ~$5-20/month        | ✅ Active |
-| Firebase       | ~$0-10/month        | ✅ Active |
+| Supabase       | ~$0-10/month        | ✅ Active |
 | **Total**      | **~$5-30/month**    |           |
 
 ### Recommended Additions

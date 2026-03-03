@@ -273,8 +273,8 @@ linear-gradient(180deg, var(--bg2), var(--bg))
 
 **Assign Modal:**
 - Type code → validates format
-- "Alocă" → assigns code to slot, saves to Firestore
-- "Șterge" → unassigns code, saves to Firestore
+- "Alocă" → assigns code to slot, saves to Database
+- "Șterge" → unassigns code, saves to Database
 - "Anulează" → closes without changes
 - Duplicate detection → shows hint with other event
 
@@ -300,13 +300,13 @@ linear-gradient(180deg, var(--bg2), var(--bg))
 1. **Upload Photo:**
    - Click upload button
    - Opens file picker (multi-select)
-   - Uploads to Firebase Storage
-   - Creates Firestore document in `dovezi` subcollection
+   - Uploads to Supabase Storage
+   - Creates Database document in `dovezi` subcollection
    - Updates photo grid
 
 2. **Delete Photo:**
    - Click × button on thumbnail
-   - Sets `isArchived: true` in Firestore (NEVER DELETE)
+   - Sets `isArchived: true` in Database (NEVER DELETE)
    - Removes from grid
 
 3. **Preview Photo:**
@@ -318,7 +318,7 @@ linear-gradient(180deg, var(--bg2), var(--bg))
 4. **Verdict:**
    - Click status pill
    - Shows verdict options: PENDING / APPROVED / REJECTED
-   - Saves to Firestore
+   - Saves to Database
    - If APPROVED → locks category
 
 5. **Reverifică:**
@@ -343,7 +343,7 @@ linear-gradient(180deg, var(--bg2), var(--bg))
 }
 ```
 
-### 4.2 Event State (Firestore Schema)
+### 4.2 Event State (Database Schema)
 ```javascript
 {
   id: string,
@@ -371,7 +371,7 @@ linear-gradient(180deg, var(--bg2), var(--bg))
 }
 ```
 
-### 4.3 Dovezi State (Firestore Schema)
+### 4.3 Dovezi State (Database Schema)
 ```javascript
 {
   id: string,
@@ -385,7 +385,7 @@ linear-gradient(180deg, var(--bg2), var(--bg))
 }
 ```
 
-### 4.4 Evidence State (Firestore Schema)
+### 4.4 Evidence State (Database Schema)
 ```javascript
 {
   eventId: string,
@@ -399,9 +399,9 @@ linear-gradient(180deg, var(--bg2), var(--bg))
 
 ---
 
-## 5. FIREBASE OPERATIONS
+## 5. SUPABASE OPERATIONS
 
-### 5.1 Firestore Collections
+### 5.1 Database Collections
 
 **`evenimente` (events):**
 - Read: stream all events, filter client-side
@@ -465,12 +465,12 @@ evenimente/{eventId}/dovezi/{category}/{timestamp}_{filename}
 | HTML Structure | 1209-1600 | AppBar + Filters markup |
 | Modals Markup | 1600-2000 | All modal HTML |
 | Event List Container | 2000-2100 | Container for cards |
-| JavaScript Init | 2100-2200 | Firebase init, auth check |
+| JavaScript Init | 2100-2200 | Supabase init, auth check |
 | Filter Logic | 2200-2800 | All filter functions |
 | Modal Logic | 2800-3200 | Modal open/close/actions |
 | Event Card Rendering | 3200-3800 | buildEventCard function |
 | Dovezi Logic | 3800-4200 | Photo upload, verdict |
-| Firestore Operations | 4200-4500 | Save/load functions |
+| Database Operations | 4200-4500 | Save/load functions |
 | Event Listeners | 4500-4522 | DOMContentLoaded, init |
 
 ---
@@ -504,8 +504,8 @@ evenimente/{eventId}/dovezi/{category}/{timestamp}_{filename}
 
 **Provider/Riverpod:**
 - `FilterState` - toate filtrele
-- `EventsStream` - stream Firestore evenimente
-- `DoveziStream` - stream Firestore dovezi per event
+- `EventsStream` - stream Database evenimente
+- `DoveziStream` - stream Database dovezi per event
 - `EvidenceStateStream` - stream verdict state
 
 ---
@@ -536,10 +536,10 @@ evenimente/{eventId}/dovezi/{category}/{timestamp}_{filename}
 - [ ] Status pill (3 states)
 - [ ] Verdict logic (lock după OK)
 - [ ] Reverifică button (unlock)
-- [ ] Firestore stream evenimente
-- [ ] Firestore stream dovezi
-- [ ] Firestore stream evidenceState
-- [ ] Firebase Storage upload
+- [ ] Database stream evenimente
+- [ ] Database stream dovezi
+- [ ] Database stream evidenceState
+- [ ] Supabase Storage upload
 - [ ] Code validation
 - [ ] Duplicate detection
 - [ ] Filter logic (toate filtrele)

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 
-/// EvenimenteScreen — Lista evenimentelor rezervate din Firestore
+/// EvenimenteScreen — Lista evenimentelor rezervate din Database
 /// Afișează evenimentul „mamă" cu short code (01, 02...) + lista rolurilor (01A, 01B...)
 class EvenimenteScreen extends StatelessWidget {
   const EvenimenteScreen({super.key});
@@ -54,20 +54,9 @@ class EvenimenteScreen extends StatelessWidget {
   }
 
   Widget _buildEventsList() {
-    return StreamBuilder<QuerySnapshot>(
-      stream: FirebaseFirestore.instance
-          .collection('evenimente')
-          .where('isArchived', isEqualTo: false)
-          .orderBy('createdAt', descending: true)
-          .limit(50)
-          .snapshots(),
+    return StreamBuilder<List<Map<String, dynamic>>>(
+      stream: Supabase.instance.client.from('events').stream(primaryKey: ['id']),
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(
-            child: CircularProgressIndicator(color: Color(0xFF4ECDC4)),
-          );
-        }
-
         if (snapshot.hasError) {
           return Center(
             child: Padding(
@@ -88,7 +77,7 @@ class EvenimenteScreen extends StatelessWidget {
           );
         }
 
-        final docs = snapshot.data?.docs ?? [];
+        final docs = snapshot.data ?? [];
 
         if (docs.isEmpty) {
           return Center(
@@ -112,8 +101,8 @@ class EvenimenteScreen extends StatelessWidget {
           itemCount: docs.length,
           itemBuilder: (context, index) {
             final doc = docs[index];
-            final data = doc.data() as Map<String, dynamic>;
-            return _EventCard(data: data, docId: doc.id);
+            final data = doc;
+            return _EventCard(data: data, docId: doc['id']?.toString() ?? '');
           },
         );
       },

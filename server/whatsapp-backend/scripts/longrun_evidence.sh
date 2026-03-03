@@ -31,8 +31,8 @@ echo "=== 2. STATUS-NOW (DoD-WA-1 fields) ==="
 curl -sS "${HDR[@]}" "$BASE/api/longrun/status-now" | python3 -m json.tool | head -150
 echo ""
 
-echo "=== 3. FIRESTORE-WRITE-TEST ==="
-curl -sS "${HDR[@]}" "$BASE/api/longrun/firestore-write-test" | python3 -m json.tool
+echo "=== 3. DATABASE-WRITE-TEST ==="
+curl -sS "${HDR[@]}" "$BASE/api/longrun/database-write-test" | python3 -m json.tool
 echo ""
 
 echo "=== 4. BOOTSTRAP (idempotent) ==="

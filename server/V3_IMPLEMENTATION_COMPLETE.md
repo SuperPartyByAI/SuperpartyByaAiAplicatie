@@ -342,7 +342,7 @@ PARTIAL __tests__/dateTimeParser.test.js (32/35)
   ⚠️ 3 minor formatting issues (non-blocking)
 
 FAIL __tests__/roleDetector.test.js
-  ❌ Firebase not initialized in tests (needs mock)
+  ❌ Supabase not initialized in tests (needs mock)
 ```
 
 ### Manual Testing Checklist
@@ -364,14 +364,14 @@ FAIL __tests__/roleDetector.test.js
 ```bash
 cd functions
 npm install
-firebase deploy --only functions
+supabase deploy --only functions
 ```
 
 ### 2. Initialize Counters
 
 ```bash
 # Run once to initialize eventShortId counter
-firebase firestore:set counters/eventShortCode '{"value": 0}'
+supabase database:set counters/eventShortCode '{"value": 0}'
 ```
 
 ### 3. Migrate Existing Events (Optional)
@@ -391,7 +391,7 @@ Update Flutter app to use V3 models (already done in previous session).
 ### 5. Verify
 
 - Create a test event via app
-- Check Firestore: `schemaVersion: 3`, `eventShortId: number`
+- Check Database: `schemaVersion: 3`, `eventShortId: number`
 - Verify role assignment with staff code
 - Test follow-up scheduler (wait 1 hour or trigger manually)
 
@@ -485,7 +485,7 @@ Runs every hour to process due follow-up tasks.
    - Add "Pune codul tău" button for staff
    - Show follow-up notifications
 
-2. **Firestore Rules** (30 min)
+2. **Database Rules** (30 min)
    - Update rules for `staffProfiles` collection
    - Update rules for `staffHours` collection
    - Update rules for `tasks` collection
@@ -496,7 +496,7 @@ Runs every hour to process due follow-up tasks.
    - Create user guide for staff codes
 
 4. **Additional Tests** (2-3 hours)
-   - Fix roleDetector tests (add Firebase mock)
+   - Fix roleDetector tests (add Supabase mock)
    - Add integration tests
    - Add E2E tests
 

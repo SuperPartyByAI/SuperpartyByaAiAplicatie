@@ -10,7 +10,7 @@
 
 ### **1. Backend CRM (100% Complete):**
 
-**Firebase Functions:**
+**Supabase Functions:**
 - ✅ `functions/aggregateClientStats.js` - Trigger on `evenimente/{eventId}` create/update
   - Writes to: `clients/{phoneE164}` (lifetimeSpendPaid, eventsCount, lastEventAt)
 - ✅ `functions/whatsappExtractEventFromThread.js` - Callable for AI extraction
@@ -21,7 +21,7 @@
   - Reads: `clients/{phoneE164}` + `evenimente` where `phoneE164`
   - Returns: `{ answer, sources: [...] }`
 
-**Firestore:**
+**Database:**
 - ✅ Rules: `clients/{phoneE164}` → `allow delete: if false` (NEVER DELETE) - Line ~385-394
 - ✅ Rules: `threads/{threadId}/messages` → `allow delete: if false` (NEVER DELETE) - Line 235-236
 - ✅ Rules: `threads/{threadId}/extractions` → `allow delete: if false` (NEVER DELETE) - Line 247-248
@@ -56,7 +56,7 @@
 - ✅ `addAccount()` (Line 151)
 - ✅ `regenerateQr()` (Line 189)
 - ✅ `deleteAccount()` (Line 222)
-- ✅ `sendViaProxy()` (Line 64) - Sends via Firebase Functions `/whatsappProxySend`
+- ✅ `sendViaProxy()` (Line 64) - Sends via Supabase Functions `/whatsappProxySend`
 - ✅ `qrPageUrl()` (Line 255)
 - ❌ `extractEventFromThread()` - **NOT FOUND**
 - ❌ `getClientProfile()` - **NOT FOUND**
@@ -82,13 +82,13 @@
 1. **Inbox Screen** ❌
    - File: `whatsapp_inbox_screen.dart` - **DOES NOT EXIST**
    - Route: `/whatsapp/inbox` - **NOT DEFINED**
-   - Feature: Thread list per `accountId` (query Firestore `threads` where `accountId`)
+   - Feature: Thread list per `accountId` (query Database `threads` where `accountId`)
 
 2. **Chat Screen** ❌
    - File: `whatsapp_chat_screen.dart` - **DOES NOT EXIST**
    - Route: `/whatsapp/chat/:threadId` - **NOT DEFINED**
    - Features:
-     - Message list (query Firestore `threads/{threadId}/messages`)
+     - Message list (query Database `threads/{threadId}/messages`)
      - Send button (use existing `sendViaProxy()`)
      - **CRM Panel** (buttons: Extract Event, Open Client Profile)
 
@@ -101,9 +101,9 @@
      - Ask AI button (call `clientCrmAsk`)
 
 4. **Service Methods CRM** ❌
-   - `extractEventFromThread()` - **NOT FOUND** (needs to call Firebase callable `whatsappExtractEventFromThread`)
-   - `getClientProfile(phoneE164)` - **NOT FOUND** (needs to query Firestore `clients/{phoneE164}`)
-   - `askClientAI(phoneE164, question)` - **NOT FOUND** (needs to call Firebase callable `clientCrmAsk`)
+   - `extractEventFromThread()` - **NOT FOUND** (needs to call Supabase callable `whatsappExtractEventFromThread`)
+   - `getClientProfile(phoneE164)` - **NOT FOUND** (needs to query Database `clients/{phoneE164}`)
+   - `askClientAI(phoneE164, question)` - **NOT FOUND** (needs to call Supabase callable `clientCrmAsk`)
 
 ---
 
@@ -113,11 +113,11 @@
 
 | Component | Status | Location | Notes |
 |-----------|--------|----------|-------|
-| `clients/{phoneE164}` schema | ✅ | `firestore.rules` Line ~385-394 | NEVER DELETE policy |
+| `clients/{phoneE164}` schema | ✅ | `database.rules` Line ~385-394 | NEVER DELETE policy |
 | `aggregateClientStats` trigger | ✅ | `functions/aggregateClientStats.js` | Auto-updates client stats |
 | `whatsappExtractEventFromThread` callable | ✅ | `functions/whatsappExtractEventFromThread.js` | Returns draftEvent |
 | `clientCrmAsk` callable | ✅ | `functions/clientCrmAsk.js` | Answers from structured data |
-| Firestore indexes (evenimente) | ✅ | `firestore.indexes.json` | `phoneE164 ASC, date DESC` |
+| Database indexes (evenimente) | ✅ | `database.indexes.json` | `phoneE164 ASC, date DESC` |
 | Message persistence (backend) | ✅ | `server.js` Line 1319 | Inbound/outbound saved |
 | History sync (backend) | ✅ | `server.js` Line 1252 | Best-effort ingestion |
 
@@ -133,24 +133,24 @@
 | Inbox route | ❌ | `app_router.dart` | `/whatsapp/inbox` |
 | Chat route | ❌ | `app_router.dart` | `/whatsapp/chat/:threadId` |
 | Client route | ❌ | `app_router.dart` | `/whatsapp/client/:phoneE164` |
-| `extractEventFromThread()` method | ❌ | `whatsapp_api_service.dart` | Call Firebase callable |
-| `getClientProfile()` method | ❌ | `whatsapp_api_service.dart` | Query Firestore `clients/{phoneE164}` |
-| `askClientAI()` method | ❌ | `whatsapp_api_service.dart` | Call Firebase callable |
+| `extractEventFromThread()` method | ❌ | `whatsapp_api_service.dart` | Call Supabase callable |
+| `getClientProfile()` method | ❌ | `whatsapp_api_service.dart` | Query Database `clients/{phoneE164}` |
+| `askClientAI()` method | ❌ | `whatsapp_api_service.dart` | Call Supabase callable |
 
 ---
 
 ## 🚀 **Deploy Status (What's Ready to Deploy)**
 
-### **Firebase (Ready):**
+### **Supabase (Ready):**
 
 ```bash
 # All backend CRM code is committed and ready
-firebase deploy --only firestore,functions
+supabase deploy --only database,functions
 ```
 
 **Will deploy:**
-- ✅ Firestore Rules (with `clients/{phoneE164}` NEVER DELETE)
-- ✅ Firestore Indexes (with `evenimente` on `phoneE164`)
+- ✅ Database Rules (with `clients/{phoneE164}` NEVER DELETE)
+- ✅ Database Indexes (with `evenimente` on `phoneE164`)
 - ✅ `aggregateClientStats` trigger
 - ✅ `whatsappExtractEventFromThread` callable
 - ✅ `clientCrmAsk` callable
@@ -163,7 +163,7 @@ firebase deploy --only firestore,functions
 
 **Ensure env vars:**
 - `SESSIONS_PATH=/app/sessions` ✅
-- `FIREBASE_SERVICE_ACCOUNT_JSON=...` ✅
+- `SUPABASE_SERVICE_ACCOUNT_JSON=...` ✅
 
 ---
 

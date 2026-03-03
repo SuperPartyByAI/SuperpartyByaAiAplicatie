@@ -132,7 +132,7 @@ Dimensiune: 47.7 MB
 
 ## 🎊 Progres Total
 
-- ✅ **Firebase Functions** - COMPLET (50%)
+- ✅ **Supabase Functions** - COMPLET (50%)
 - ✅ **Build AAB** - COMPLET (25%)
 - ⏳ **Upload Play Store** - Urmează (25%)
 

@@ -1,5 +1,5 @@
 /**
- * LONG-RUN FIRESTORE SCHEMA - COMPLETE (DoD-LR-1 to DoD-LR-27)
+ * LONG-RUN DATABASE SCHEMA - COMPLETE (DoD-LR-1 to DoD-LR-27)
  * NO BULLSHIT: All writes idempotent, all reads deterministic
  *
  * Collections:
@@ -18,7 +18,7 @@
  * - wa_metrics/longrun/missing_buckets/{bucketId}
  */
 
-const { FieldValue } = require('firebase-admin/firestore');
+const { FieldValue } = {};
 
 class LongRunSchemaComplete {
   constructor(db) {
@@ -38,7 +38,7 @@ class LongRunSchemaComplete {
       commitHash,
       serviceVersion,
       expectedAccounts: 4,
-      updatedAt: FieldValue.serverTimestamp(),
+      updatedAt: new Date(),
 
       // Heartbeat settings
       heartbeatIntervalSec: 60,
@@ -142,7 +142,7 @@ class LongRunSchemaComplete {
         transaction.set(lockRef, {
           holderInstanceId,
           leaseUntilTs: now + leaseDurationMs,
-          updatedAt: FieldValue.serverTimestamp(),
+          updatedAt: new Date(),
           renewCount,
         });
 
@@ -192,7 +192,7 @@ class LongRunSchemaComplete {
       instanceId,
       mode, // leader|standby|canary
       status: 'running',
-      createdAt: FieldValue.serverTimestamp(),
+      createdAt: new Date(),
     };
 
     await runRef.set(runDoc);
@@ -221,7 +221,7 @@ class LongRunSchemaComplete {
       queueDepth: data.queueDepth,
       expectedIntervalSec: data.expectedIntervalSec,
       driftSec: data.driftSec,
-      createdAt: FieldValue.serverTimestamp(),
+      createdAt: new Date(),
     };
 
     await hbRef.set(hbDoc);
@@ -247,7 +247,7 @@ class LongRunSchemaComplete {
       commitHash: data.commitHash,
       serviceVersion: data.serviceVersion,
       instanceId: data.instanceId,
-      createdAt: FieldValue.serverTimestamp(),
+      createdAt: new Date(),
     };
 
     await probeRef.set(probeDoc);
@@ -271,7 +271,7 @@ class LongRunSchemaComplete {
       lastDisconnect: data.lastDisconnect || null,
       commitHash: data.commitHash,
       instanceId: data.instanceId,
-      createdAt: FieldValue.serverTimestamp(),
+      createdAt: new Date(),
     };
 
     await incidentRef.set(incidentDoc);
@@ -300,7 +300,7 @@ class LongRunSchemaComplete {
       commitHash: data.commitHash,
       serviceVersion: data.serviceVersion,
       instanceId: data.instanceId,
-      createdAt: FieldValue.serverTimestamp(),
+      createdAt: new Date(),
     };
 
     await rollupRef.set(rollupDoc);
@@ -326,7 +326,7 @@ class LongRunSchemaComplete {
       preflightReason: data.preflightReason || null,
       commitHash: data.commitHash,
       instanceId: data.instanceId,
-      updatedAt: FieldValue.serverTimestamp(),
+      updatedAt: new Date(),
     };
 
     await stateRef.set(stateDoc, { merge: true });
@@ -351,7 +351,7 @@ class LongRunSchemaComplete {
       relatedIds: data.relatedIds || [],
       commitHash: data.commitHash,
       instanceId: data.instanceId,
-      createdAt: FieldValue.serverTimestamp(),
+      createdAt: new Date(),
     };
 
     await remediationRef.set(remediationDoc);
@@ -375,7 +375,7 @@ class LongRunSchemaComplete {
       relatedIds: data.relatedIds || [],
       commitHash: data.commitHash,
       instanceId: data.instanceId,
-      createdAt: FieldValue.serverTimestamp(),
+      createdAt: new Date(),
     };
 
     await auditRef.set(auditDoc);
@@ -399,7 +399,7 @@ class LongRunSchemaComplete {
       storageRef: data.storageRef, // path to backup file
       commitHash: data.commitHash,
       instanceId: data.instanceId,
-      createdAt: FieldValue.serverTimestamp(),
+      createdAt: new Date(),
     };
 
     await backupRef.set(backupDoc);
@@ -419,11 +419,11 @@ class LongRunSchemaComplete {
       type: data.type, // heartbeat|probe|incident|remediation
       payload: data.payload,
       checksum: data.checksum,
-      ack: data.ack || false, // true when flushed to Firestore
+      ack: data.ack || false, // true when flushed to Database
       ackTs: data.ackTs || null,
       commitHash: data.commitHash,
       instanceId: data.instanceId,
-      createdAt: FieldValue.serverTimestamp(),
+      createdAt: new Date(),
     };
 
     await walRef.set(walDoc);
@@ -439,7 +439,7 @@ class LongRunSchemaComplete {
     await walRef.update({
       ack: true,
       ackTs: Date.now(),
-      updatedAt: FieldValue.serverTimestamp(),
+      updatedAt: new Date(),
     });
   }
 
@@ -456,7 +456,7 @@ class LongRunSchemaComplete {
       reason: data.reason, // gap|restart|crash
       commitHash: data.commitHash,
       instanceId: data.instanceId,
-      createdAt: FieldValue.serverTimestamp(),
+      createdAt: new Date(),
     };
 
     await missingRef.set(missingDoc);

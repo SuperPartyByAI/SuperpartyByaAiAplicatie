@@ -155,7 +155,7 @@ ssh -i ~/.ssh/hetzner_whatsapp root@37.27.34.179 "journalctl -u whatsapp-backend
 ```
 [AutoReply][Trace] traceId=abc123 incomingRemoteJid=40768098268@s.whatsapp.net canonicalKey=40768098268@s.whatsapp.net phoneDigits=40768098268 phoneE164=+40768098268 canonicalThreadId=account_prod_...__40768098268@s.whatsapp.net computedThreadId=account_prod_...__40768098268@s.whatsapp.net
 [AutoReply][Trace] traceId=abc123 entering try block accountId=... threadId=...
-[AutoReply][Trace] traceId=abc123 firestoreQueriesCompleted threadDocPath=threads/account_prod_...__40768098268@s.whatsapp.net threadDocExists=true
+[AutoReply][Trace] traceId=abc123 databaseQueriesCompleted threadDocPath=threads/account_prod_...__40768098268@s.whatsapp.net threadDocExists=true
 [AutoReply][Trace] traceId=abc123 threadDataLoaded actualThreadId=... exists=true pickedExisting=false hasFirstName=true hasDisplayName=true hasPendingNameRequest=false hasPendingPreferredName=false
 [AutoReply][Trace] traceId=abc123 nameCheck hasName=true firstName=Denisa displayName=Denisa Ursache pendingNameRequest=false pendingPreferredName=false nameSource=firstName
 [AutoReply][Trace] traceId=abc123 settingsCheck accountId=... actualThreadId=... accountEnabled=true threadEnabled=false isAiEnabled=true accountPrompt=set

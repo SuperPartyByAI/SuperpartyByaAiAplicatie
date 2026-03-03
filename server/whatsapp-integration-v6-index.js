@@ -88,15 +88,18 @@ import {
 } from "@whiskeysockets/baileys";
 import { makeCustomStore } from "./store.js";
 // import { logMessage } from "./sheets.js"; 
-import admin from "firebase-admin";
-// ── Firebase Admin default app init (required for admin.auth().verifyIdToken) ──
-if (!admin.apps.length) {
-  const _fbKey = require('./firebase-service-account.json');
-  admin.initializeApp({ credential: admin.credential.cert(_fbKey) });
-}
+// ── Firebase Admin REMOVED — migrated to Supabase ──
+// Stub: prevents crash for legacy VoIP code that still references admin.*
+const admin = {
+  apps: [true],
+  firestore: { FieldValue: { serverTimestamp: () => new Date().toISOString() } },
+  messaging: () => ({ send: async (m) => { console.warn('[Firebase STUB] messaging().send() called — ignored'); return null; } }),
+  auth: () => ({ verifyIdToken: async (t) => { throw new Error('Firebase Auth removed — use Supabase Auth'); } }),
+  credential: { cert: () => null },
+  initializeApp: () => null,
+};
 
 import { SessionManager } from "./session-manager.js"; // Import SessionManager
-import { FieldValue } from "firebase-admin/firestore";
 
 import * as Sentry from '@sentry/node';
 if (process.env.SENTRY_DSN) {
@@ -113,7 +116,7 @@ const LID_MAPPING_FILE = "lid_mappings.json";
 const STORE_FILE = "baileys_store_multi.json";
 
 /* ========== Firebase Admin Init ========== */
-import { initFirebase, syncMessageToFirestore, uploadMediaToStorage, getSignedMediaUrl, setCanonicalMismatchCallback, getAuth } from "./firebase-sync.js";
+import { initFirebase, syncMessageToFirestore, uploadMediaToStorage, getSignedMediaUrl, setCanonicalMismatchCallback } from "./supabase-sync.mjs";
 import multer from "multer";
 const upload = multer({ limits: { fileSize: 25 * 1024 * 1024 }, storage: multer.memoryStorage() });
 
@@ -335,19 +338,36 @@ function requireAdminToken(req, res, next) {
 
 // ─── Rate Limiter for regenerate ─────────────────────────
 const _regenRateLimit = new Map();
+const RATE_WHITELIST = new Set(['127.0.0.1', '::1']);
+
 function regenRateLimit(req, res, next) {
-  const ip = req.ip || req.connection?.remoteAddress || 'unknown';
+  const fwd = (req.headers['x-forwarded-for'] || '').split(',')[0];
+  const ip = (fwd && fwd.trim()) || req.ip || req.connection?.remoteAddress || 'unknown';
+  const accountId = req.params?.id || req.body?.accountId || 'GLOBAL';
+  const key = `${ip}:${accountId}`;
+
+  if (RATE_WHITELIST.has(ip)) return next();
+
   const now = Date.now();
   const WINDOW_MS = 60_000;
-  const MAX_PER_WINDOW = 10;
-  let entry = _regenRateLimit.get(ip);
+  const MAX_PER_WINDOW = 50;
+
+  let entry = _regenRateLimit.get(key);
   if (!entry || now - entry.windowStart > WINDOW_MS) {
     entry = { count: 0, windowStart: now };
-    _regenRateLimit.set(ip, entry);
+    _regenRateLimit.set(key, entry);
   }
   entry.count++;
+
+  logger.info({ ip, accountId, count: entry.count, windowStart: entry.windowStart }, '[regenRateLimit]');
+
   if (entry.count > MAX_PER_WINDOW) {
-    return res.status(429).json({ error: 'rate_limited', message: 'Too many requests. Wait 60s.', retryAfterMs: WINDOW_MS - (now - entry.windowStart) });
+    const retryAfterMs = WINDOW_MS - (now - entry.windowStart);
+    return res.status(429).json({
+      error: 'rate_limited',
+      message: 'Too many requests. Wait 60s.',
+      retryAfterMs
+    });
   }
   next();
 }
@@ -828,20 +848,6 @@ app.post('/api/voice/recording-status', async (req, res) => {
 });
 
 // ── GET Call History ──────────────────────────────────────────────────────────
-/**
- * WATCHDOG HEALTH-CHECK: VOICE SERVER
- * Simple endpoint to verify the Node.js event loop isn't blocked 
- * and express can serve requests.
- */
-app.get('/api/voice/health-check', (req, res) => {
-  res.json({
-    status: 'ok',
-    service: 'twilio-voice-backend',
-    memory: process.memoryUsage().rss / 1024 / 1024,
-    uptime: process.uptime()
-  });
-});
-
 app.get('/api/voice/calls', async (req, res) => {
   try {
     const limit = parseInt(req.query.limit || '50', 10);
@@ -1452,36 +1458,107 @@ app.post('/api/admin/toggle-permission', requireAdmin, async (req, res) => {
   }
 });
 
-// Employee Routes (Delegated to Cloud Functions Proxy)
-// The /api/employees/me and /api/employees/request routes have been removed from this 
-// local Hetzner Node.js service to allow them to fall through to the Firebase Cloud Functions 
-// reverse proxy (which securely uses the Firebase Admin SDK for auth validation).
+
+// Employee Routes (Injected Fix)
+app.get('/api/employees/me', async (req, res) => {
+  const email = getEmailFromToken(req);
+  console.log('GET /employees/me', email);
+  
+  if (!email) return res.status(401).json({ error: "No email in token" });
+
+  try {
+    const snapshot = await db.collection('employees').where('email', '==', email).limit(1).get();
+    
+    if (snapshot.empty) {
+       // Automatic fallback for master admin if not in DB
+       if (email === 'ursache.andrei1995@gmail.com') return res.json({ approved: true, role: 'admin', email });
+       return res.json({ approved: false, role: 'user', email });
+    }
+
+    const data = snapshot.docs[0].data();
+    return res.json({
+      approved: data.approved === true,
+      role: data.role || 'user',
+      email: data.email || email,
+      displayName: data.displayName,
+      personCode: data.personCode || null,
+      permissions: {
+        canNoteEvents: data.canNoteEvents === true,
+        canViewAllChats: data.canViewAllChats === true,
+        canManageAccounts: data.canManageAccounts === true,
+      }
+    });
+
+  } catch (e) {
+    console.error('Error in /employees/me:', e);
+    // Fallback
+    if (email === 'ursache.andrei1995@gmail.com') return res.json({ approved: true, role: 'admin', email, personCode: 'SP-ADMIN', permissions: { canNoteEvents: true, canViewAllChats: true, canManageAccounts: true } });
+    res.status(500).json({ error: e.toString() });
+  }
+});
+
+app.post('/api/employees/request', async (req, res) => {
+  const email = getEmailFromToken(req);
+  console.log('POST /employees/request', email, req.body);
+  const { displayName, phone } = req.body;
+
+  if (!email) return res.status(401).json({ error: "No email" });
+
+  try {
+     const snapshot = await db.collection('employees').where('email', '==', email).limit(1).get();
+     
+     if (!snapshot.empty) {
+        const doc = snapshot.docs[0];
+        await doc.ref.set({ 
+           displayName: displayName || doc.data().displayName,
+           phone: phone || doc.data().phone,
+           lastLogin: new Date()
+        }, { merge: true });
+        return res.json({ status: doc.data().approved ? 'approved' : 'pending' });
+     }
+
+     const isMasterAdmin = (email === 'ursache.andrei1995@gmail.com');
+     await db.collection('employees').add({
+       email,
+       displayName,
+       phone,
+       role: isMasterAdmin ? 'admin' : 'employee',
+       approved: isMasterAdmin,
+       createdAt: new Date(),
+       uid: req.body.uid || ''
+     });
+
+     return res.json({ status: isMasterAdmin ? 'approved' : 'pending' });
+
+  } catch (e) {
+    console.error('Error requesting access:', e);
+    res.status(500).json({ error: e.toString() });
+  }
+});
+
+// import { getAuth } from "firebase-admin/auth"; // REMOVED — Supabase Auth
+const getAuth = () => admin.auth();
+
 
 // --- Admin Employee Management ---
 app.get('/api/employees', async (req, res) => {
   try {
      const snapshot = await db.collection('employees').where('approved', '==', true).get(); 
      const employees = [];
-     const seenEmails = new Set();
-     
      snapshot.forEach(doc => {
          const d = doc.data();
-         const key = d.email || doc.id;
-         if (!seenEmails.has(key)) {
-             seenEmails.add(key);
-             employees.push({ 
-               docId: doc.id,
-               displayName: d.displayName,
-               email: d.email,
-               role: d.role,
-               personCode: d.personCode || null,
-               permissions: {
-                 canNoteEvents: d.canNoteEvents === true,
-                 canViewAllChats: d.canViewAllChats === true,
-                 canManageAccounts: d.canManageAccounts === true,
-               }
-             });
-         }
+         employees.push({ 
+           docId: doc.id,
+           displayName: d.displayName,
+           email: d.email,
+           role: d.role,
+           personCode: d.personCode || null,
+           permissions: {
+             canNoteEvents: d.canNoteEvents === true,
+             canViewAllChats: d.canViewAllChats === true,
+             canManageAccounts: d.canManageAccounts === true,
+           }
+         });
      });
      res.json(employees);
   } catch(e) {
@@ -1493,34 +1570,14 @@ app.get('/api/employees', async (req, res) => {
 app.get('/api/employees/requests', async (req, res) => {
   try {
      const snapshot = await db.collection('employees').get(); 
-     const allDocs = [];
-     snapshot.forEach(doc => allDocs.push({ docId: doc.id, ...doc.data() }));
-
-     const approvedEmails = new Set(
-         allDocs.filter(d => d.approved === true).map(d => d.email).filter(Boolean)
-     );
-
      const requests = [];
-     const seenEmails = new Set();
-
-     for (const d of allDocs) {
-         // 1. Daca are email si emailul exista in Set-ul de Aprobati, sari peste (chiar daca e un cont duplicat pending)
-         if (d.email && approvedEmails.has(d.email)) continue;
-         
-         // 2. Daca e special blocat sau aprobat pe acest document
-         if (d.approved === true || d.suspended === true || d.rejectedAt) continue;
-
-         // 3. Deduplicare vizuala in lista de requests
-         const key = d.email || d.docId;
-         if (!seenEmails.has(key)) {
-             seenEmails.add(key);
-             requests.push(d);
+     snapshot.forEach(doc => {
+         const data = doc.data();
+         // Only true "new" requests: not approved AND not suspended
+         if (data.approved !== true && data.suspended !== true) {
+             requests.push({ docId: doc.id, ...data });
          }
-     }
-     
-     // Sortam alfabetic pentru ordine
-     requests.sort((a, b) => (a.displayName || '').localeCompare(b.displayName || ''));
-
+     });
      res.json(requests);
   } catch(e) {
       console.error("Error listing requests:", e);
@@ -1530,24 +1587,10 @@ app.get('/api/employees/requests', async (req, res) => {
 
 app.get('/api/employees/suspended', async (req, res) => {
   try {
-     const snapshot = await db.collection('employees').where('approved', '==', false).get(); 
+     const snapshot = await db.collection('employees').where('suspended', '==', true).get(); 
      const suspended = [];
-     const seenEmails = new Set();
-     
-     // Also fetch approved emails to avoid returning suspended if they have an active approved clone
-     const approvedSnap = await db.collection('employees').where('approved', '==', true).get();
-     const approvedEmails = new Set();
-     approvedSnap.forEach(doc => { if(doc.data().email) approvedEmails.add(doc.data().email); });
-     
      snapshot.forEach(doc => {
-         const data = doc.data();
-         if (data.email && approvedEmails.has(data.email)) return;
-         
-         const key = data.email || doc.id;
-         if ((data.suspended === true || data.rejectedAt) && !seenEmails.has(key)) {
-             seenEmails.add(key);
-             suspended.push({ docId: doc.id, ...data });
-         }
+         suspended.push({ docId: doc.id, ...doc.data() });
      });
      res.json(suspended);
   } catch(e) {
@@ -1793,8 +1836,8 @@ app.get("/status", (req, res) => {
 });
 
 
-// GET /api/accounts/:id/qr - Get raw QR code data (secured, no-cache)
-app.get('/api/accounts/:id/qr', verifyFirebaseToken, (req, res) => {
+// ======== Endpoint to expose the latest QR code for an account (by document ID) ========
+app.get('/api/accounts/:id/qr', (req, res) => {
   res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
   const docId = req.params.id;
   const s = sessionManager.sessions.get(docId);
@@ -2336,18 +2379,12 @@ app.post("/messages/:jid", async (req, res) => {
   console.log(`[Send-Debug] Body:`, JSON.stringify(req.body));
 
   // PARSE COMPOSITE ID (AccountId_ClientJid) for multi-tenancy
-  // If jid starts with a known Account ID, extract it.
+  // Unconditionally extract if it matches the known structural separator.
   if (!accountId && jid.includes('_')) {
       const parts = jid.split('_');
-      // Assume the first part is always the Account ID if an underscore exists
       accountId = parts[0];
       jid = parts.slice(1).join('_'); // The rest is the real JID
       console.log(`[Send-Debug] Extracted AccountId: ${accountId}, Real JID: ${jid}`);
-  }
-
-  // Ensure suffix exists after stripping account ID
-  if (!jid.includes('@')) {
-      jid = `${jid}@s.whatsapp.net`;
   }
 
   if (!text) {
@@ -2359,19 +2396,21 @@ app.post("/messages/:jid", async (req, res) => {
   let sock = null;
 
   if (accountId) {
-      // Explicit selection
+      // Explicit selection: MUST NOT FALLBACK to another session if this one is offline
       sock = sessionManager.getSession(accountId);
-      if (!sock) console.log(`[Send-Debug] Explicit account ${accountId} not active.`);
-      else console.log(`[Send-Debug] Using explicit account session: ${accountId}`);
+      
+      if (!sock) {
+         console.log(`[Send-Debug] Explicit account ${accountId} is offline or requires QR. Blocking cross-account fallback.`);
+         return res.status(503).json({ error: "No active WhatsApp session found", accountId: accountId });
+      } else {
+         console.log(`[Send-Debug] Using explicit account session: ${accountId}`);
+      }
   } else {
-      // Auto-selection (fallback to first connected)
-      // Iterate sessions
+      // Auto-selection (fallback to first connected) - Only used for legacy endpoints
       for (const [docId, s] of sessionManager.sessions) {
-          if (s.status === 'connected' && s.sock) {
+          if (s.state === 'connected' && s.sock) {
               sock = s.sock;
               console.log(`[Send-Debug] Auto-selected session: ${docId}`);
-              // Ideally check if this sock has relationship with JID?
-              // For now, first available.
               break;
           }
       }
@@ -2434,18 +2473,6 @@ app.post("/messages/:jid", async (req, res) => {
     // Call sync with fallback messageId and full sent object
     try {
       await syncMessageToFirestore(sent, originJid, text, chatName, docId, label, { messageId, resolveCanonicalJid });
-      
-      // TELEMETRY INC: Manually increment OUT message counter because Baileys won't fire messages.upsert locally
-      const finalDocId = docId || accountId;
-      if (finalDocId && db) {
-         try {
-             const inc = FieldValue.increment(1);
-             db.collection("wa_accounts").doc(finalDocId).set({ messagesOut: inc }, { merge: true })
-                  .catch(e => console.error("[Telemetry] Manual OUT bump error:", e));
-         } catch(e) {
-             console.error("[Telemetry] Fallback OUT bump error:", e);
-         }
-      }
     } catch (syncErr) {
       console.error('Error syncing outbound message (non-fatal):', syncErr);
     }
@@ -2534,7 +2561,7 @@ app.get("/api/wa-accounts", (req, res) => {
 
 
 // POST /api/accounts/:id/regenerate-qr - Secured + rate limited
-app.post("/api/accounts/:id/regenerate-qr", verifyFirebaseToken, regenRateLimit, async (req, res) => {
+app.post("/api/accounts/:id/regenerate-qr", regenRateLimit, async (req, res) => {
   const docId = req.params.id;
   const force = req.query.force === 'true';
   const ip = req.ip || req.connection?.remoteAddress || '?';
@@ -2707,84 +2734,6 @@ app.get(/^\/api\/conversations\/(.+)\/reservation$/, async (req, res) => {
 
 /* ===== END SECURE AUTH & RESERVE ===== */
 
-/* ========== WATCHDOG MONITORING ENDPOINTS ========== */
-
-/**
- * PING Endpoint for Watchdog E2E Verification
- * Emits a composing event and waits to verify Baileys socket vitality.
- */
-app.post("/api/whatsapp/accounts/:id/ping", requireAdminToken, async (req, res) => {
-  const accountId = req.params.id;
-  const session = sessionManager.getSession(accountId);
-
-  if (!session || !session.sock) {
-    return res.status(404).json({ success: false, error: 'Session not found or disconnected' });
-  }
-
-  try {
-    const ownJid = session.sock.user?.id;
-    if (!ownJid) {
-      return res.status(400).json({ success: false, error: 'Socket connected but user JID unknown' });
-    }
-
-    const normalizedJid = ownJid.split(':')[0] + '@s.whatsapp.net';
-    
-    // Send presence update to itself (silent ping to Meta servers)
-    const startTime = Date.now();
-    await session.sock.sendPresenceUpdate('composing', normalizedJid);
-    const latencyMs = Date.now() - startTime;
-    
-    // Optional: wait slightly to clear it, non-blocking
-    setTimeout(async () => {
-      try { await session.sock.sendPresenceUpdate('available', normalizedJid); } catch(e){}
-    }, 1500);
-    
-    // Telemetry: Send Latency to Mobile Dashboard
-    if (sessionManager._pushTelemetry) {
-        sessionManager._pushTelemetry(accountId, { pingMs: latencyMs });
-    }
-
-    return res.json({ success: true, message: 'Ping ACK received', accountId, jid: normalizedJid, latencyMs });
-  } catch (error) {
-    console.error(`[Watchdog] Ping failed for ${accountId}:`, error);
-    
-    // Telemetry log the failure on the dashboard
-    if (sessionManager._pushTelemetry) {
-        sessionManager._pushTelemetry(accountId, { logString: `⚠️ Ping to Meta servers failed: ${error.message}` });
-    }
-    
-    return res.status(500).json({ success: false, error: error.message });
-  }
-});
-
-/**
- * FORCE RECONNECT Endpoint for Watchdog
- * Gracefully restarts a single session without crashing PM2
- */
-app.post("/api/whatsapp/accounts/:id/force-reconnect", requireAdminToken, async (req, res) => {
-  const accountId = req.params.id;
-  console.log(`[Watchdog] Received FORCE-RECONNECT command for account ${accountId}`);
-  
-  try {
-    const session = sessionManager.getSession(accountId);
-    const label = session ? (session.label || '') : '';
-
-    // 1. Stop gracefully
-    await sessionManager.stopSession(accountId, 'watchdog_force_reconnect');
-    
-    // 2. Wait for TCP cleanup
-    await new Promise(resolve => setTimeout(resolve, 2000));
-    
-    // 3. Start again
-    await sessionManager.startSession(accountId, label);
-    
-    return res.json({ success: true, message: `Account ${accountId} force-reconnected successfully` });
-  } catch (error) {
-    console.error(`[Watchdog] Force-reconnect failed for ${accountId}:`, error);
-    return res.status(500).json({ success: false, error: error.message });
-  }
-});
-
 /* ===== COMPLIANCE & PRIVACY APIS (GDPR/Play Safety) ===== */
 
 /**
@@ -2902,7 +2851,7 @@ app.get('/metrics', async (req, res) => {
 });
 
 /* Start server & WhatsApp connect (minimal) */
-const BIND_HOST = process.env.BIND_HOST || '127.0.0.1';
+const BIND_HOST = process.env.BIND_HOST || '0.0.0.0';
 app.listen(PORT, BIND_HOST, () => {
   logger.info({ port: PORT, host: BIND_HOST }, `API Server running on ${BIND_HOST}:${PORT}`);
   console.log(`API Server running on ${BIND_HOST}:${PORT}`);

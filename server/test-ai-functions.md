@@ -6,20 +6,20 @@
 
    ```bash
    cd functions
-   firebase deploy --only functions:chatWithAI,functions:aiManager
+   supabase deploy --only functions:chatWithAI,functions:aiManager
    ```
 
 2. **Configure GROQ API key:**
 
    **IMPORTANT**: This project uses **GROQ (Llama)**, not OpenAI.
 
-   **Option A: Via Firebase Secrets (recommended for production):**
+   **Option A: Via Supabase Secrets (recommended for production):**
 
    ```bash
    cd functions
-   firebase functions:secrets:set GROQ_API_KEY
+   supabase functions:secrets:set GROQ_API_KEY
    # Paste your Groq API key when prompted
-   firebase deploy --only functions:chatWithAI
+   supabase deploy --only functions:chatWithAI
    ```
 
    **Option B: Via .env file (local development only):**
@@ -27,7 +27,7 @@
    ```bash
    cd functions
    echo "GROQ_API_KEY=gsk_your-key-here" > .env
-   firebase deploy --only functions
+   supabase deploy --only functions
    ```
 
    **Get Groq API Key:**
@@ -41,7 +41,7 @@
 
 ```javascript
 // In browser console on deployed app
-const result = await firebase.functions().httpsCallable('chatWithAI')({
+const result = await supabase.functions().httpsCallable('chatWithAI')({
   messages: [{ role: 'user', content: 'Hello, how are you?' }],
 });
 
@@ -64,7 +64,7 @@ console.log('Result:', result.data);
 // Or test with slow network
 
 try {
-  const result = await firebase.functions().httpsCallable('chatWithAI')({
+  const result = await supabase.functions().httpsCallable('chatWithAI')({
     messages: [{ role: 'user', content: 'Test' }],
   });
 } catch (error) {
@@ -87,7 +87,7 @@ try {
 // Test with invalid API key configured
 
 try {
-  const result = await firebase.functions().httpsCallable('chatWithAI')({
+  const result = await supabase.functions().httpsCallable('chatWithAI')({
     messages: [{ role: 'user', content: 'Test' }],
   });
 } catch (error) {
@@ -111,7 +111,7 @@ try {
 
 for (let i = 0; i < 10; i++) {
   try {
-    await firebase.functions().httpsCallable('chatWithAI')({
+    await supabase.functions().httpsCallable('chatWithAI')({
       messages: [{ role: 'user', content: `Test ${i}` }],
     });
   } catch (error) {
@@ -134,7 +134,7 @@ for (let i = 0; i < 10; i++) {
 // Test with no API key configured
 
 try {
-  const result = await firebase.functions().httpsCallable('chatWithAI')({
+  const result = await supabase.functions().httpsCallable('chatWithAI')({
     messages: [{ role: 'user', content: 'Test' }],
   });
 } catch (error) {

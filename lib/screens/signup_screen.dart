@@ -29,7 +29,7 @@ class _SignupScreenState extends State<SignupScreen> {
     final backend = Provider.of<BackendService>(context, listen: false);
 
     try {
-      // 1. Create Firebase User (or sign in if already exists)
+      // 1. Create Supabase User (or sign in if already exists)
       print("DEBUG: [Signup] Calling signUpWithEmailPassword for ${_emailController.text}");
       try {
         await auth.signUpWithEmailPassword(

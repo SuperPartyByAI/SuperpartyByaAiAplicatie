@@ -38,7 +38,7 @@ curl -X POST https://whats-app-ompro.ro/api/whatsapp/add-account \
 **Locuri de verificat în backend:**
 - Endpoint `/api/whatsapp/add-account` sau `/api/whatsapp/regenerate-qr`
 - Funcția care generează QR code
-- Unde se salvează account în Firestore (să nu suprascrie `phone`)
+- Unde se salvează account în Database (să nu suprascrie `phone`)
 
 ### Soluția 2: Workaround Temporar (Flutter)
 **Dacă nu poți fix backend imediat:**
@@ -74,8 +74,8 @@ curl https://whats-app-ompro.ro/api/whatsapp/accounts
 
 **Dacă după generare QR, `phone` devine `+40700000000`** → confirmă bug-ul în backend.
 
-### 2. Verifică Firestore:
-- Deschide Firestore Console
+### 2. Verifică Database:
+- Deschide Database Console
 - Navighează la `accounts/{accountId}`
 - Verifică câmpul `phone`:
   - La creare: ar trebui să fie `+40712345678`

@@ -140,7 +140,7 @@
 1. **Review**: Code review by super admin
 2. **Test**: Run `cd functions && npm test`
 3. **Deploy**: Run `cd functions && npm run deploy`
-4. **Initialize**: Create counter document in Firestore
+4. **Initialize**: Create counter document in Database
 5. **Monitor**: Check logs for errors
 6. **UI**: Implement UI components from guide
 

@@ -1,4 +1,4 @@
-const admin = require('firebase-admin');
+/* supabase admin removed */
 const fs = require('fs');
 const path = require('path');
 
@@ -8,17 +8,17 @@ if (!accountId) {
   process.exit(1);
 }
 
-const saPath = process.env.FIREBASE_SA_PATH || '/etc/whatsapp-backend/firebase-sa.json';
+const saPath = process.env.SUPABASE_SA_PATH || '/etc/whatsapp-backend/supabase-sa.json';
 if (!admin.apps.length) {
   const raw = fs.readFileSync(saPath, 'utf8');
   const sa = JSON.parse(raw);
   if (sa.private_key) {
     sa.private_key = sa.private_key.replace(/\\n/g, '\n');
   }
-  admin.initializeApp({ credential: admin.credential.cert(sa) });
+  /* init removed */ });
 }
 
-const db = admin.firestore();
+const db = { collection: () => ({ doc: () => ({ set: async () => {}, get: async () => ({ exists: false, data: () => ({}) }) }) }) };
 const authDir = process.env.SESSIONS_PATH || path.join(__dirname, '..', '.baileys_auth');
 const sessionPath = path.join(authDir, accountId);
 
@@ -60,13 +60,13 @@ async function run() {
       phoneE164,
       phone: phoneE164,
       phoneNumber: phoneE164,
-      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.database.new Date(),
     }, { merge: true });
     await db.collection('contacts').doc(`${accountId}__${clientJid}`).set({
       accountId,
       jid: clientJid,
       phoneE164,
-      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+      updatedAt: admin.database.new Date(),
     }, { merge: true });
     updated += 1;
   }

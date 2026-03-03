@@ -2,12 +2,12 @@
 
 ## Problema
 
-Scriptul `scripts/migrate_evenimente_schema_v2.js` necesită Firebase service account key pentru a accesa Firestore.
+Scriptul `scripts/migrate_evenimente_schema_v2.js` necesită Supabase service account key pentru a accesa Database.
 
 **Eroare fără key:**
 
 ```
-Error: Cannot find module 'firebase-adminsdk.json'
+Error: Cannot find module 'service-account.json'
 ```
 
 ---
@@ -16,7 +16,7 @@ Error: Cannot find module 'firebase-adminsdk.json'
 
 ### 1. Descarcă Service Account Key
 
-1. Deschide [Firebase Console](https://console.firebase.google.com/)
+1. Deschide [Supabase Console](https://console.supabase.google.com/)
 2. Selectează proiectul **superparty-frontend**
 3. Click pe **Settings** (rotiță) → **Project settings**
 4. Tab **Service accounts**
@@ -29,10 +29,10 @@ Error: Cannot find module 'firebase-adminsdk.json'
 
 ```bash
 # Mută fișierul descărcat în root-ul repo-ului
-# Redenumește-l exact: firebase-adminsdk.json
+# Redenumește-l exact: service-account.json
 
 # Exemplu path:
-C:\Users\ursac\Aplicatie-SuperpartyByAi\firebase-adminsdk.json
+C:\Users\ursac\Aplicatie-SuperpartyByAi\service-account.json
 ```
 
 **Git Bash:**
@@ -41,10 +41,10 @@ C:\Users\ursac\Aplicatie-SuperpartyByAi\firebase-adminsdk.json
 cd ~/Aplicatie-SuperpartyByAi
 
 # Verifică că fișierul există
-ls -la firebase-adminsdk.json
+ls -la service-account.json
 
 # Verifică că NU e tracked de git (trebuie să fie în .gitignore)
-git ls-files | grep -Ei "firebase-adminsdk\.json" || echo "✅ OK: not tracked"
+git ls-files | grep -Ei "supabase-adminsdk\.json" || echo "✅ OK: not tracked"
 ```
 
 ### 3. Verifică .gitignore
@@ -52,21 +52,21 @@ git ls-files | grep -Ei "firebase-adminsdk\.json" || echo "✅ OK: not tracked"
 Fișierul `.gitignore` trebuie să conțină:
 
 ```gitignore
-# Firebase service account (NEVER commit this!)
-firebase-adminsdk*.json
+# Supabase service account (NEVER commit this!)
+supabase-adminsdk*.json
 ```
 
 **Verificare:**
 
 ```bash
 cd ~/Aplicatie-SuperpartyByAi
-grep "firebase-adminsdk" .gitignore
+grep "supabase-adminsdk" .gitignore
 ```
 
 **Output așteptat:**
 
 ```
-firebase-adminsdk*.json
+supabase-adminsdk*.json
 ```
 
 ---
@@ -81,7 +81,7 @@ cd ~/Aplicatie-SuperpartyByAi
 # Install dependencies (dacă nu ai făcut deja)
 npm ci
 
-# Dry run - afișează ce s-ar schimba fără a modifica Firestore
+# Dry run - afișează ce s-ar schimba fără a modifica Database
 DRY_RUN=1 node scripts/migrate_evenimente_schema_v2.js
 ```
 
@@ -104,7 +104,7 @@ DRY_RUN=1 node scripts/migrate_evenimente_schema_v2.js
 ### Actual Migration
 
 ```bash
-# Rulează migrarea (scrie în Firestore)
+# Rulează migrarea (scrie în Database)
 node scripts/migrate_evenimente_schema_v2.js
 
 # SAU cu npm script
@@ -115,7 +115,7 @@ npm run migrate:evenimente:v2
 
 ## Troubleshooting
 
-### Error: Cannot find module 'firebase-adminsdk.json'
+### Error: Cannot find module 'service-account.json'
 
 **Cauză:** Fișierul lipsește sau e în locație greșită.
 
@@ -123,30 +123,30 @@ npm run migrate:evenimente:v2
 
 ```bash
 cd ~/Aplicatie-SuperpartyByAi
-ls -la firebase-adminsdk.json
-# Dacă nu există, descarcă-l din Firebase Console (vezi pasul 1)
+ls -la service-account.json
+# Dacă nu există, descarcă-l din Supabase Console (vezi pasul 1)
 ```
 
 ### Error: Permission denied
 
-**Cauză:** Service account nu are permisiuni pe Firestore.
+**Cauză:** Service account nu are permisiuni pe Database.
 
 **Fix:**
 
-1. Firebase Console → Firestore Database
+1. Supabase Console → Database Database
 2. Rules → Verifică că service account are acces
 3. SAU regenerează service account key cu permisiuni corecte
 
 ### Error: ENOENT: no such file or directory
 
-**Cauză:** Path-ul către `firebase-adminsdk.json` e greșit.
+**Cauză:** Path-ul către `service-account.json` e greșit.
 
 **Fix:**
 Scriptul caută în:
 
 ```javascript
-path.join(__dirname, '..', 'firebase-adminsdk.json');
-// = Aplicatie-SuperpartyByAi/firebase-adminsdk.json
+path.join(__dirname, '..', 'service-account.json');
+// = Aplicatie-SuperpartyByAi/service-account.json
 ```
 
 Verifică că fișierul e exact în root, NU în `scripts/`.
@@ -157,9 +157,9 @@ Verifică că fișierul e exact în root, NU în `scripts/`.
 
 ```
 Aplicatie-SuperpartyByAi/
-├── firebase-adminsdk.json          ← Service account key (local only, NOT in git)
-├── .gitignore                      ← Conține firebase-adminsdk*.json
-├── package.json                    ← Conține firebase-admin dependency
+├── service-account.json          ← Service account key (local only, NOT in git)
+├── .gitignore                      ← Conține supabase-adminsdk*.json
+├── package.json                    ← Conține supabase-admin dependency
 ├── scripts/
 │   └── migrate_evenimente_schema_v2.js  ← Migration script
 └── ...
@@ -171,7 +171,7 @@ Aplicatie-SuperpartyByAi/
 
 ⚠️ **IMPORTANT:**
 
-1. **NEVER commit** `firebase-adminsdk.json` to git
+1. **NEVER commit** `service-account.json` to git
 2. Verifică că e în `.gitignore`
 3. Nu partaja fișierul public (conține credențiale admin)
 4. Regenerează key-ul dacă a fost expus accidental
@@ -180,7 +180,7 @@ Aplicatie-SuperpartyByAi/
 
 ```bash
 cd ~/Aplicatie-SuperpartyByAi
-git status | grep firebase-adminsdk
+git status | grep supabase-adminsdk
 # Trebuie să fie gol (nu trebuie să apară în git status)
 ```
 
@@ -194,18 +194,18 @@ Dacă nu vrei să pui fișierul în root, poți modifica scriptul să accepte en
 
 ```javascript
 // Înainte (linia 27):
-const serviceAccount = require(path.join(__dirname, '..', 'firebase-adminsdk.json'));
+const serviceAccount = require(path.join(__dirname, '..', 'service-account.json'));
 
 // După:
 const serviceAccountPath =
-  process.env.FIREBASE_SERVICE_ACCOUNT_PATH || path.join(__dirname, '..', 'firebase-adminsdk.json');
+  process.env.SUPABASE_SERVICE_ACCOUNT_PATH || path.join(__dirname, '..', 'service-account.json');
 const serviceAccount = require(serviceAccountPath);
 ```
 
 **Rulare cu env variable:**
 
 ```bash
-FIREBASE_SERVICE_ACCOUNT_PATH=/path/to/key.json node scripts/migrate_evenimente_schema_v2.js
+SUPABASE_SERVICE_ACCOUNT_PATH=/path/to/key.json node scripts/migrate_evenimente_schema_v2.js
 ```
 
 ---
@@ -219,7 +219,7 @@ git pull origin main
 npm ci
 
 # Verifică service account key
-ls -la firebase-adminsdk.json
+ls -la service-account.json
 
 # Dry run
 DRY_RUN=1 node scripts/migrate_evenimente_schema_v2.js
@@ -232,4 +232,4 @@ node scripts/migrate_evenimente_schema_v2.js
 
 **Last Updated:** 2026-01-10  
 **Script:** `scripts/migrate_evenimente_schema_v2.js`  
-**Dependency:** `firebase-admin: ^13.6.0`
+**Dependency:** `supabase-admin: ^13.6.0`

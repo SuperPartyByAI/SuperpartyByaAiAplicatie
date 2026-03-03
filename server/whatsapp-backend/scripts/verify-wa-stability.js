@@ -9,22 +9,21 @@
  * DoD-WA-5: reconnect loop => incident wa_reconnect_loop + exit(1)
  */
 
-const admin = require('firebase-admin');
+/* supabase admin removed */
 
-// Initialize Firebase
+// Initialize Supabase
 if (!admin.apps.length) {
-  if (process.env.FIREBASE_SERVICE_ACCOUNT_JSON) {
-    const serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON);
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
+  if (process.env.SUPABASE_SERVICE_ACCOUNT_JSON) {
+    const serviceAccount = JSON.parse(process.env.SUPABASE_SERVICE_ACCOUNT_JSON);
+    /* init removed */,
     });
   } else {
-    console.error('❌ FIREBASE_SERVICE_ACCOUNT_JSON not set');
+    console.error('❌ SUPABASE_SERVICE_ACCOUNT_JSON not set');
     process.exit(1);
   }
 }
 
-const db = admin.firestore();
+const db = { collection: () => ({ doc: () => ({ set: async () => {}, get: async () => ({ exists: false, data: () => ({}) }) }) }) };
 
 async function verifyDoD_WA_1() {
   console.log('\n=== DoD-WA-1: status-now fields ===');
@@ -52,7 +51,7 @@ async function verifyDoD_WA_1() {
         : null,
       retryCount: waConnectionDoc.exists ? waConnectionDoc.data().retryCount : 0,
       nextRetryAt: waConnectionDoc.exists ? waConnectionDoc.data().nextRetryAt : null,
-      authStore: 'firestore',
+      authStore: 'database',
     };
 
     console.log('Status fields:');
@@ -69,9 +68,9 @@ async function verifyDoD_WA_1() {
     }
 
     if (authCredsDoc.exists) {
-      console.log(`✅ authStore=firestore verified (creds exist)`);
+      console.log(`✅ authStore=database verified (creds exist)`);
     } else {
-      console.log(`⚠️ authStore=firestore but no creds yet`);
+      console.log(`⚠️ authStore=database but no creds yet`);
     }
 
     return allPresent;

@@ -1,13 +1,13 @@
-# Bootstrap script for Firebase Emulators (Windows PowerShell)
+# Bootstrap script for Supabase Emulators (Windows PowerShell)
 # 
 # Usage:
 #   powershell -ExecutionPolicy Bypass -File tools/run_emulators.ps1
 #
 # What it does:
-#   1. Checks for firebase-tools
-#   2. Starts Firestore, Functions, and Auth emulators in separate window
+#   1. Checks for supabase-tools
+#   2. Starts Database, Functions, and Auth emulators in separate window
 #   3. Polls ports until emulators are ready
-#   4. Seeds Firestore with teams + code pools
+#   4. Seeds Database with teams + code pools
 #   5. Configures adb reverse for Android emulator (best effort)
 #   6. Provides instructions for next steps
 
@@ -19,17 +19,17 @@ param(
 $ErrorActionPreference = "Stop"
 
 Write-Host "========================================" -ForegroundColor Cyan
-Write-Host "Firebase Emulators Bootstrap (Windows)" -ForegroundColor Cyan
+Write-Host "Supabase Emulators Bootstrap (Windows)" -ForegroundColor Cyan
 Write-Host "========================================" -ForegroundColor Cyan
 Write-Host ""
 
-# Check firebase-tools
-Write-Host "[1/5] Checking firebase-tools..." -ForegroundColor Yellow
+# Check supabase-tools
+Write-Host "[1/5] Checking supabase-tools..." -ForegroundColor Yellow
 try {
-    $firebaseVersion = firebase --version 2>&1
-    Write-Host "✅ firebase-tools found: $firebaseVersion" -ForegroundColor Green
+    $supabaseVersion = supabase --version 2>&1
+    Write-Host "✅ supabase-tools found: $supabaseVersion" -ForegroundColor Green
 } catch {
-    Write-Host "❌ firebase-tools not found. Install: npm i -g firebase-tools" -ForegroundColor Red
+    Write-Host "❌ supabase-tools not found. Install: npm i -g supabase-tools" -ForegroundColor Red
     exit 1
 }
 
@@ -47,9 +47,9 @@ try {
 $repoRoot = Split-Path -Parent $PSScriptRoot
 
 # Start emulators in separate window
-Write-Host "[3/5] Starting Firebase emulators..." -ForegroundColor Yellow
+Write-Host "[3/5] Starting Supabase emulators..." -ForegroundColor Yellow
 Write-Host "   Project: $ProjectId" -ForegroundColor Gray
-Write-Host "   Firestore: http://127.0.0.1:8082" -ForegroundColor Gray
+Write-Host "   Database: http://127.0.0.1:8082" -ForegroundColor Gray
 Write-Host "   Functions: http://127.0.0.1:5002" -ForegroundColor Gray
 Write-Host "   Auth: http://127.0.0.1:9098" -ForegroundColor Gray
 Write-Host "   UI: http://127.0.0.1:4001" -ForegroundColor Gray
@@ -59,7 +59,7 @@ Write-Host ""
 $emulatorWindow = Start-Process powershell -ArgumentList @(
     "-NoExit",
     "-Command",
-    "Set-Location '$repoRoot'; firebase.cmd emulators:start --config .\firebase.json --only firestore,functions,auth --project $ProjectId"
+    "Set-Location '$repoRoot'; supabase.cmd emulators:start --config .\supabase.json --only database,functions,auth --project $ProjectId"
 ) -PassThru
 
 Write-Host "   ✅ Emulators started in separate window (PID: $($emulatorWindow.Id))" -ForegroundColor Green
@@ -88,7 +88,7 @@ function Test-Port {
 # Poll ports until ready
 Write-Host "[4/5] Waiting for emulators to be ready..." -ForegroundColor Yellow
 $ports = @(
-    @{Name="Firestore"; Port=8082},
+    @{Name="Database"; Port=8082},
     @{Name="Auth"; Port=9098},
     @{Name="Functions"; Port=5002},
     @{Name="UI"; Port=4001}
@@ -123,12 +123,12 @@ while (-not $allReady) {
     }
 }
 
-# Seed Firestore
-Write-Host "[5/5] Seeding Firestore..." -ForegroundColor Yellow
+# Seed Database
+Write-Host "[5/5] Seeding Database..." -ForegroundColor Yellow
 Set-Location $repoRoot
-$seedResult = node tools/seed_firestore.js --emulator --project $ProjectId 2>&1
+$seedResult = node tools/seed_database.js --emulator --project $ProjectId 2>&1
 if ($LASTEXITCODE -eq 0) {
-    Write-Host "✅ Firestore seeded successfully" -ForegroundColor Green
+    Write-Host "✅ Database seeded successfully" -ForegroundColor Green
 } else {
     Write-Host "⚠️ Seed may have failed (check output above)" -ForegroundColor Yellow
     Write-Host $seedResult
@@ -161,8 +161,8 @@ Write-Host "   - Open: http://127.0.0.1:4001" -ForegroundColor Gray
 Write-Host "   - Go to Authentication tab" -ForegroundColor Gray
 Write-Host "   - Add user: email=admin@local.dev, password=admin123456" -ForegroundColor Gray
 Write-Host ""
-Write-Host "2. Set admin role in Firestore:" -ForegroundColor White
-Write-Host "   - In Emulator UI → Firestore" -ForegroundColor Gray
+Write-Host "2. Set admin role in Database:" -ForegroundColor White
+Write-Host "   - In Emulator UI → Database" -ForegroundColor Gray
 Write-Host "   - Create: users/{uid}" -ForegroundColor Gray
 Write-Host "   - Set field: role = 'admin' (string)" -ForegroundColor Gray
 Write-Host ""

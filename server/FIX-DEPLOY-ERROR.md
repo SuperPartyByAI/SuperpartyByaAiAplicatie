@@ -1,4 +1,4 @@
-# 🔧 Fix Deploy Error - Firebase Functions
+# 🔧 Fix Deploy Error - Supabase Functions
 
 ## ❌ Eroarea
 
@@ -13,11 +13,11 @@ Failed to update function projects/superparty-frontend/locations/us-central1/fun
 
 ### 1. **Timeout la Deploy** (cel mai probabil)
 
-Firebase Functions are un timeout de 60s pentru deploy. Dacă funcția este prea mare sau deployment-ul durează prea mult, eșuează.
+Supabase Functions are un timeout de 60s pentru deploy. Dacă funcția este prea mare sau deployment-ul durează prea mult, eșuează.
 
 ### 2. **Eroare de Sintaxă în Cod**
 
-Deși codul a trecut de validare locală, poate exista o eroare care apare doar la runtime pe Firebase.
+Deși codul a trecut de validare locală, poate exista o eroare care apare doar la runtime pe Supabase.
 
 ### 3. **Permisiuni IAM Insuficiente**
 
@@ -25,7 +25,7 @@ Contul tău poate să nu aibă permisiuni să UPDATE funcția existentă.
 
 ### 4. **Funcția este Locked** (în uz)
 
-Dacă funcția este în uz (primește requests), Firebase nu poate face update.
+Dacă funcția este în uz (primește requests), Supabase nu poate face update.
 
 ---
 
@@ -34,7 +34,7 @@ Dacă funcția este în uz (primește requests), Firebase nu poate face update.
 ### **Soluția 1: Verifică Logs-urile (ACUM)**
 
 ```cmd
-firebase functions:log --only whatsapp --lines 50
+supabase functions:log --only whatsapp --lines 50
 ```
 
 Caută erori de tipul:
@@ -49,7 +49,7 @@ Caută erori de tipul:
 ### **Soluția 2: Deploy cu --debug**
 
 ```cmd
-firebase deploy --only functions --debug
+supabase deploy --only functions --debug
 ```
 
 Aceasta va afișa **toate detaliile** despre ce se întâmplă în timpul deploy-ului.
@@ -62,10 +62,10 @@ Aceasta va afișa **toate detaliile** despre ce se întâmplă în timpul deploy
 
 ```cmd
 # 1. Șterge funcția existentă
-firebase functions:delete whatsapp --region us-central1
+supabase functions:delete whatsapp --region us-central1
 
 # 2. Deploy funcția nouă
-firebase deploy --only functions
+supabase deploy --only functions
 ```
 
 ---
@@ -93,7 +93,7 @@ Dacă fix-ul nostru a cauzat problema, putem face rollback:
 git reset --hard 23486c99
 
 # 2. Deploy versiunea veche
-firebase deploy --only functions
+supabase deploy --only functions
 
 # 3. După ce funcționează, aplică fix-ul din nou
 git reset --hard a87d0c46
@@ -121,7 +121,7 @@ Dacă dă eroare → avem o problemă în cod.
 ### **Pas 1: Verifică Logs** (30 sec)
 
 ```cmd
-firebase functions:log --only whatsapp --lines 50
+supabase functions:log --only whatsapp --lines 50
 ```
 
 **Copiază output-ul și trimite-mi-l!**
@@ -131,7 +131,7 @@ firebase functions:log --only whatsapp --lines 50
 ### **Pas 2: Deploy cu --debug** (2 min)
 
 ```cmd
-firebase deploy --only functions --debug > deploy-debug.txt 2>&1
+supabase deploy --only functions --debug > deploy-debug.txt 2>&1
 ```
 
 Aceasta va salva toate detaliile în `deploy-debug.txt`.
@@ -144,12 +144,12 @@ Aceasta va salva toate detaliile în `deploy-debug.txt`.
 
 ```cmd
 # Șterge funcția
-firebase functions:delete whatsapp --region us-central1
+supabase functions:delete whatsapp --region us-central1
 
 # Confirmă cu "y"
 
 # Deploy din nou
-firebase deploy --only functions
+supabase deploy --only functions
 ```
 
 ---
@@ -161,14 +161,14 @@ firebase deploy --only functions
 ```cmd
 # Revino la versiunea care funcționa
 git reset --hard 23486c99
-firebase deploy --only functions
+supabase deploy --only functions
 
 # După ce funcționează, investigăm fix-ul
 ```
 
 ### **Opțiunea B: Deploy Manual prin Console**
 
-1. Mergi la: [Firebase Console - Functions](https://console.firebase.google.com/project/superparty-frontend/functions)
+1. Mergi la: [Supabase Console - Functions](https://console.supabase.google.com/project/superparty-frontend/functions)
 2. Click pe funcția `whatsapp`
 3. Click **"Edit"** sau **"Redeploy"**
 4. Verifică logs-urile în **"Logs"** tab
@@ -211,7 +211,7 @@ firebase deploy --only functions
 
 ## 🎯 Next Steps
 
-1. **Rulează:** `firebase functions:log --only whatsapp --lines 50`
+1. **Rulează:** `supabase functions:log --only whatsapp --lines 50`
 2. **Trimite-mi output-ul** pentru a vedea eroarea exactă
 3. **Apoi aplicăm fix-ul corespunzător**
 

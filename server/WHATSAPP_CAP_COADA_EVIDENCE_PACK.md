@@ -2,7 +2,7 @@
 
 **Date:** 2026-01-17  
 **Branch:** `audit-whatsapp-30`  
-**Goal:** Complete evidence of what exists vs what's missing for end-to-end WhatsApp + Firebase + Flutter flow
+**Goal:** Complete evidence of what exists vs what's missing for end-to-end WhatsApp + Supabase + Flutter flow
 
 ---
 
@@ -73,7 +73,7 @@ grep -n "sendViaProxy\|whatsappProxy\|getAccounts\|addAccount" superparty_flutte
 ```
 
 **Results:**
-- `sendViaProxy()` - Line 64 (sends via Firebase Functions proxy with auth)
+- `sendViaProxy()` - Line 64 (sends via Supabase Functions proxy with auth)
 - `getAccounts()` - Line 118 (GET legacy hosting backend)
 - `addAccount()` - Line 151 (POST legacy hosting backend)
 - `regenerateQr()` - Line 189 (POST legacy hosting backend)
@@ -170,7 +170,7 @@ whatsapp-backend/
 
 **Environment Variables (Expected):**
 - `SESSIONS_PATH=/app/sessions`
-- `FIREBASE_SERVICE_ACCOUNT_JSON=...`
+- `SUPABASE_SERVICE_ACCOUNT_JSON=...`
 - `ADMIN_TOKEN=...` (optional)
 - `WHATSAPP_SYNC_FULL_HISTORY=true`
 - `WHATSAPP_BACKFILL_COUNT=100`
@@ -194,15 +194,15 @@ whatsapp-backend/
 
 ---
 
-## 4) FIREBASE EVIDENCE
+## 4) SUPABASE EVIDENCE
 
-### firebase.json:
+### supabase.json:
 
 ```json
 (see full file content)
 ```
 
-### Firestore Rules:
+### Database Rules:
 
 **Key Rules:**
 
@@ -242,9 +242,9 @@ match /evenimente/{eventId} {
 }
 ```
 
-**Full rules file:** `firestore.rules`
+**Full rules file:** `database.rules`
 
-### Firestore Indexes:
+### Database Indexes:
 
 **Existing Indexes:**
 - `threads`: `accountId ASC, lastMessageAt DESC`
@@ -254,7 +254,7 @@ match /evenimente/{eventId} {
 - `evenimente`: `phoneE164 ASC, isArchived ASC, date DESC`
 - `customers`: `accountId ASC, lastMessageAt DESC`
 - `orders`: `customerId ASC, createdAt DESC`
-- ... (see `firestore.indexes.json`)
+- ... (see `database.indexes.json`)
 
 ### Cloud Functions:
 
@@ -297,7 +297,7 @@ exports.chatEventOpsV2 = require('./chatEventOpsV2').chatEventOpsV2; // Line 850
 
 **Environment Variables (Names only, no secrets):**
 - `SESSIONS_PATH`
-- `FIREBASE_SERVICE_ACCOUNT_JSON`
+- `SUPABASE_SERVICE_ACCOUNT_JSON`
 - `ADMIN_TOKEN` (optional)
 - `WHATSAPP_SYNC_FULL_HISTORY`
 - `WHATSAPP_BACKFILL_COUNT`
@@ -313,11 +313,11 @@ exports.chatEventOpsV2 = require('./chatEventOpsV2').chatEventOpsV2; // Line 850
 
 ---
 
-### Firebase:
+### Supabase:
 
 **Project ID:** `superparty-frontend`
 
-**Firestore Collections (from Console):**
+**Database Collections (from Console):**
 - `accounts` (WhatsApp accounts)
 - `threads` (conversations)
 - `threads/{threadId}/messages` (messages)
@@ -446,10 +446,10 @@ exports.chatEventOpsV2 = require('./chatEventOpsV2').chatEventOpsV2; // Line 850
 
 ---
 
-### 6.3 Firebase (Complete - No Missing Parts):
+### 6.3 Supabase (Complete - No Missing Parts):
 
-✅ Firestore Rules (NEVER DELETE policy)  
-✅ Firestore Indexes (for queries on `threads`, `evenimente`, `clients`)  
+✅ Database Rules (NEVER DELETE policy)  
+✅ Database Indexes (for queries on `threads`, `evenimente`, `clients`)  
 ✅ Cloud Functions (proxy + CRM)  
 ✅ `clients/{phoneE164}` collection schema  
 
@@ -465,15 +465,15 @@ exports.chatEventOpsV2 = require('./chatEventOpsV2').chatEventOpsV2; // Line 850
    - Display QR → Client scans → Connected
 
 2. ✅ **Send Message (via Proxy):**
-   - Flutter → `sendViaProxy()` → Firebase Functions → legacy hosting backend
+   - Flutter → `sendViaProxy()` → Supabase Functions → legacy hosting backend
    - Message saved to `outbox` + `threads/{threadId}/messages`
 
 3. ✅ **Receive Message (backend):**
-   - WhatsApp → legacy hosting backend → `messages.upsert` → Firestore
+   - WhatsApp → legacy hosting backend → `messages.upsert` → Database
    - Saved to `threads/{threadId}/messages`
 
 4. ✅ **History Sync (backend):**
-   - On pairing → `messaging-history.set` → Ingest history to Firestore
+   - On pairing → `messaging-history.set` → Ingest history to Database
 
 5. ✅ **CRM Aggregation (backend):**
    - Event created → `aggregateClientStats` trigger → Update `clients/{phoneE164}`
@@ -497,7 +497,7 @@ exports.chatEventOpsV2 = require('./chatEventOpsV2').chatEventOpsV2; // Line 850
 
 4. ❌ **Auto-CRM (Automatic):**
    - No automatic trigger on inbound message → AI extraction
-   - (Could be added as Firestore trigger on `threads/{threadId}/messages/{messageId}` onCreate)
+   - (Could be added as Database trigger on `threads/{threadId}/messages/{messageId}` onCreate)
 
 ---
 
@@ -513,9 +513,9 @@ exports.chatEventOpsV2 = require('./chatEventOpsV2').chatEventOpsV2; // Line 850
 - ✅ Outbox queue (with lease)
 - ✅ Sessions persistence (volume mount)
 
-### Firebase (Firestore + Functions):
-- ✅ Firestore Rules (NEVER DELETE)
-- ✅ Firestore Indexes (for queries)
+### Supabase (Database + Functions):
+- ✅ Database Rules (NEVER DELETE)
+- ✅ Database Indexes (for queries)
 - ✅ Proxy Functions (with auth)
 - ✅ CRM Functions (`aggregateClientStats`, `whatsappExtractEventFromThread`, `clientCrmAsk`)
 - ✅ Event Functions (`chatEventOps`, `chatEventOpsV2`)
@@ -549,13 +549,13 @@ exports.chatEventOpsV2 = require('./chatEventOpsV2').chatEventOpsV2; // Line 850
    - `/whatsapp/client/:phoneE164`
 
 ### Priority 4: Deploy
-8. Deploy Firebase Functions:
+8. Deploy Supabase Functions:
    ```bash
-   firebase deploy --only functions:aggregateClientStats,functions:whatsappExtractEventFromThread,functions:clientCrmAsk
+   supabase deploy --only functions:aggregateClientStats,functions:whatsappExtractEventFromThread,functions:clientCrmAsk
    ```
-9. Deploy Firestore Rules + Indexes:
+9. Deploy Database Rules + Indexes:
    ```bash
-   firebase deploy --only firestore
+   supabase deploy --only database
    ```
 
 ---
@@ -574,16 +574,16 @@ curl https://whats-app-ompro.ro/api/whatsapp/accounts
 curl https://whats-app-ompro.ro/api/status/dashboard
 ```
 
-### Check Firebase:
+### Check Supabase:
 ```bash
-# Firestore rules
-firebase firestore:rules:get
+# Database rules
+supabase database:rules:get
 
-# Firestore indexes
-firebase firestore:indexes:list
+# Database indexes
+supabase database:indexes:list
 
 # Functions list
-firebase functions:list
+supabase functions:list
 ```
 
 ### Check Flutter:

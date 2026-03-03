@@ -4,7 +4,7 @@ set -euo pipefail
 # Usage: ./set_groq_key.sh [user@host] [ssh_key_path]
 HOST="${1:-root@37.27.34.179}"
 KEY_PATH="${2:-$HOME/.ssh/hetzner_whatsapp}"
-ENV_FILE="/etc/whatsapp-backend/firebase-sa.env"
+ENV_FILE="/etc/whatsapp-backend/supabase-sa.env"
 GROQ_API_KEY="gsk_YOUR_GROQ_API_KEY_HERE"
 
 echo "🔑 Setting GROQ_API_KEY on $HOST..."
@@ -29,7 +29,7 @@ echo "✅ Service detectat: $SERVICE"
 echo "📝 Updating environment file..."
 ssh -i "$KEY_PATH" "$HOST" <<'EOF'
 set -e
-ENV_FILE="/etc/whatsapp-backend/firebase-sa.env"
+ENV_FILE="/etc/whatsapp-backend/supabase-sa.env"
 sudo mkdir -p /etc/whatsapp-backend
 
 # Backup existing file if it exists

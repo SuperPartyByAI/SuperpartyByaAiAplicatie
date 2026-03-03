@@ -128,10 +128,10 @@
 
 ### ☁️ Infrastructure
 
-22. **Firebase** ✅
+22. **Supabase** ✅
     - Hosting
     - Functions
-    - Firestore
+    - Database
     - Auth
     - **Status:** Production
 
@@ -190,7 +190,7 @@
     - **Cost:** $0 (gratuit)
     - **Timp:** 30 minute - 2 ore
     - **Beneficii:**
-      - 70% reducere Firebase reads
+      - 70% reducere Supabase reads
       - UI instant (cached data)
       - Automatic refetching
       - $120-252/an economie
@@ -241,7 +241,7 @@ SAU
       - Offline functionality
       - 50MB+ storage
       - Persistent data
-      - 30-50% mai puține Firebase reads
+      - 30-50% mai puține Supabase reads
     - **ROI:** 300%+
     - **Status:** ❌ NU IMPLEMENTAT
 
@@ -451,7 +451,7 @@ SAU
 - Security: Rate Limiter
 - Development: Git, GitHub, GitHub Actions, VS Code
 - Alerting: Slack, Discord
-- Infrastructure: Firebase, legacy hosting
+- Infrastructure: Supabase, legacy hosting
 - Frontend: React, Vite, Router, Service Worker, Socket.io
 
 ---

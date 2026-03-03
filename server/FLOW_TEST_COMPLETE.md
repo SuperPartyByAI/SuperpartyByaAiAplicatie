@@ -14,7 +14,7 @@ Verificare completă a flow-ului de creare evenimente cu AI:
 3. Validare date + adresă obligatorii
 4. Flow preview + confirm
 5. Idempotență (prevenire duplicate)
-6. Structură Firestore corectă
+6. Structură Database corectă
 
 ---
 
@@ -26,7 +26,7 @@ Verificare completă a flow-ului de creare evenimente cu AI:
 | **Validare Completă** | ✅ | 5/5 | 0 | 100% |
 | **Detecție Pattern-uri** | ⚠️ | 16/17 | 1 | 94% |
 | **Normalizare Diacritice** | ✅ | 8/8 | 0 | 100% |
-| **Structură Firestore** | ✅ | Verificat | - | 100% |
+| **Structură Database** | ✅ | Verificat | - | 100% |
 | **TOTAL** | ✅ | **40/41** | **1** | **98%** |
 
 ---
@@ -169,7 +169,7 @@ Result: ✅ Eroare corectă
 
 ---
 
-## ✅ Test 5: Structură Firestore
+## ✅ Test 5: Structură Database
 
 ### Rezultat: ✅ VERIFICAT
 
@@ -203,7 +203,7 @@ Result: ✅ Eroare corectă
 - ✅ Staff assignment (staffProfiles)
 - ✅ Backward compatibility (v1 → v2)
 
-**Concluzie:** Structura Firestore este completă și corectă.
+**Concluzie:** Structura Database este completă și corectă.
 
 ---
 
@@ -246,7 +246,7 @@ Result: ✅ Eroare corectă
 
 8. Backend - Create:
    ✅ Verifică idempotență (clientRequestId)
-   ✅ Creează document în Firestore
+   ✅ Creează document în Database
    ✅ Returnează eventId
 
 9. Flutter - Success:
@@ -337,7 +337,7 @@ Result: ✅ Eroare corectă
    - Exemple de utilizare
    - Metrici și statistici
 
-4. **FIRESTORE_STRUCTURE.md**
+4. **DATABASE_STRUCTURE.md**
    - Documentație completă schema v2
    - Exemple de documente
    - Queries și indexuri
@@ -369,7 +369,7 @@ Result: ✅ Eroare corectă
 - ✅ Mesaje de eroare clare și utile
 - ✅ Flow preview + confirm implementat
 - ✅ Idempotență funcționează corect
-- ✅ Structură Firestore corectă
+- ✅ Structură Database corectă
 - ✅ Backward compatibility v1 → v2
 - ✅ Audit trail complet
 

@@ -20,7 +20,7 @@ The app should detect event creation intent from natural language messages.
 
 **Expected behavior:**
 1. User sends message → App shows preview with "Confirmă" button
-2. User taps "Confirmă" → Event is created in Firestore
+2. User taps "Confirmă" → Event is created in Database
 3. Same clientRequestId → Idempotent (no duplicate)
 
 **Test:**
@@ -36,7 +36,7 @@ Expected preview:
 - Button: "Confirmă"
 
 After confirm:
-- Event created in Firestore
+- Event created in Database
 - Success message shown
 ```
 
@@ -103,7 +103,7 @@ After confirm:
 
 **Test:**
 1. Create event with role "animator"
-2. Check Firestore: `evenimente/{eventId}/staffProfiles`
+2. Check Database: `evenimente/{eventId}/staffProfiles`
 3. Should have entry: `{ animator: null }` (unassigned)
 4. Admin assigns staff → `{ animator: "staff-user-id" }`
 
@@ -111,7 +111,7 @@ After confirm:
 
 ### Prerequisites
 - [ ] App version 1.3.0 (Build 30) or later installed
-- [ ] Firebase Functions deployed with latest code
+- [ ] Supabase Functions deployed with latest code
 - [ ] Test user account logged in
 
 ### Test Cases
@@ -121,7 +121,7 @@ After confirm:
 - [ ] Verify preview shows all fields correctly
 - [ ] Tap "Confirmă"
 - [ ] Verify success message
-- [ ] Check Firestore: event exists with correct data
+- [ ] Check Database: event exists with correct data
 
 #### TC2: Missing Date
 - [ ] Send: "Eveniment pentru Ana la Strada Mihai 5"
@@ -148,7 +148,7 @@ After confirm:
 
 #### TC7: Role Assignment
 - [ ] Create event with "animator și vată de zahăr"
-- [ ] Check Firestore: `staffProfiles` should have `{ animator: null, vata: null }`
+- [ ] Check Database: `staffProfiles` should have `{ animator: null, vata: null }`
 
 ## Automated Tests
 
@@ -184,15 +184,15 @@ Expected output:
 
 ## Debugging
 
-### Check Firebase Functions Logs
+### Check Supabase Functions Logs
 ```bash
-firebase functions:log --only chatEventOps
-firebase functions:log --only chatWithAI
+supabase functions:log --only chatEventOps
+supabase functions:log --only chatWithAI
 ```
 
-### Check Firestore Data
-1. Open Firebase Console
-2. Navigate to Firestore Database
+### Check Database Data
+1. Open Supabase Console
+2. Navigate to Database Database
 3. Check `evenimente` collection
 4. Verify event fields:
    - `date` (YYYY-MM-DD format)
@@ -204,13 +204,13 @@ firebase functions:log --only chatWithAI
 
 **Issue: Events not being created**
 - Check app version (must be 1.3.0+30 or later)
-- Check Firebase Functions deployment status
+- Check Supabase Functions deployment status
 - Check function logs for errors
 
 **Issue: Duplicate events created**
 - Verify `clientRequestId` is being sent
 - Check backend idempotency logic
-- Check Firestore for existing events with same `clientRequestId`
+- Check Database for existing events with same `clientRequestId`
 
 **Issue: AI returns markdown-wrapped JSON**
 - Check system prompt in `chatEventOps.js` (lines 125-165)

@@ -1,0 +1,27 @@
+*** Begin Patch
+*** Update File: lib/screens/chat_list_screen.dart
+@@
+-        final conv = items[i];
+-        return ListTile(
+-          leading: CircleAvatar(
+-            backgroundImage: conv['photo_url'] != null ? NetworkImage(conv['photo_url']) : null,
+-            child: conv['photo_url'] == null ? const Icon(Icons.person) : null,
+-          ),
+-          title: Text(conv['name'] ?? conv['last_message_preview'] ?? 'Client'),
+-          subtitle: Text(conv['last_message_preview'] ?? ''),
+-          onTap: () => Navigator.pushNamed(context, '/chat', arguments: conv['id']),
+-        );
++        final conv = items[i];
++        // NEVER show phone in the list. Use name or fallback client display name / last message preview
++        final displayName = conv['name'] ?? conv['client_display_name'] ?? conv['last_message_preview'] ?? 'Client';
++        final subtitle = conv['last_message_preview'] ?? '';
++        return ListTile(
++          leading: CircleAvatar(
++            backgroundImage: conv['photo_url'] != null ? NetworkImage(conv['photo_url']) : null,
++            child: conv['photo_url'] == null ? const Icon(Icons.person) : null,
++          ),
++          title: Text(displayName),
++          subtitle: Text(subtitle),
++          onTap: () => Navigator.pushNamed(context, '/chat', arguments: conv['id']),
++        );
+*** End Patch

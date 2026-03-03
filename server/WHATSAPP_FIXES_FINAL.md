@@ -19,7 +19,7 @@
    - Backend attempted connections in PASSIVE mode → 500 errors
    - **Fix:** Created guard function returning 503 "instance_passive"
 
-4. **Firestore Backup Killing Socket**
+4. **Database Backup Killing Socket**
    - Errors in backup could affect Baileys socket
    - **Fix:** Wrapped in `setImmediate` + catch all errors (non-fatal)
 
@@ -63,7 +63,7 @@
 ### 4. Enhanced Logging
 **File:** `whatsapp-backend/server.js`
 - Reason 515: Full error object + stack trace
-- Firestore backup: Errors logged but don't kill socket
+- Database backup: Errors logged but don't kill socket
 - All endpoints: requestId logged for correlation
 
 ## Validation Checklist
@@ -144,9 +144,9 @@ cd whatsapp-backend && node test-smoke-reproduction.js
 ✅ All smoke tests passed!
 ```
 
-### Check Firebase Functions
+### Check Supabase Functions
 ```bash
-firebase functions:list | grep whatsappProxy
+supabase functions:list | grep whatsappProxy
 ```
 **Expected:** All proxy functions listed (v2, us-central1)
 

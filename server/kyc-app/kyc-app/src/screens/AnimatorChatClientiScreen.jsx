@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { auth, db } from '../firebase';
-import { doc, getDoc } from 'firebase/firestore';
+import { auth, db } from '../supabase';
+import { doc, getDoc } from 'supabase/database';
 import ChatClientiRealtime from '../components/ChatClientiRealtime';
 
 function AnimatorChatClientiScreen() {
@@ -16,7 +16,7 @@ function AnimatorChatClientiScreen() {
       return;
     }
 
-    // Load user's code from Firestore
+    // Load user's code from Database
     const loadUserCode = async () => {
       try {
         const userDoc = await getDoc(doc(db, 'users', currentUser.uid));

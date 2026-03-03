@@ -8,17 +8,17 @@ import { isValidEmail, isValidPassword, isValidCNP } from '../utils/validation.j
  */
 
 describe('🔴 CRITICAL TESTS - Authentication', () => {
-  it('Firebase config există și e valid', () => {
-    // Verifică că Firebase config e definit
-    const firebaseConfig = {
+  it('Supabase config există și e valid', () => {
+    // Verifică că Supabase config e definit
+    const supabaseConfig = {
       apiKey: 'AIzaSyDcec3QIIpqrhmGSsvAeH2qEbuDKwZFG3o',
-      authDomain: 'superparty-frontend.firebaseapp.com',
+      authDomain: 'superparty-frontend.supabaseapp.com',
       projectId: 'superparty-frontend',
     };
 
-    expect(firebaseConfig.apiKey).toBeDefined();
-    expect(firebaseConfig.authDomain).toBeDefined();
-    expect(firebaseConfig.projectId).toBe('superparty-frontend');
+    expect(supabaseConfig.apiKey).toBeDefined();
+    expect(supabaseConfig.authDomain).toBeDefined();
+    expect(supabaseConfig.projectId).toBe('superparty-frontend');
   });
 });
 
@@ -86,15 +86,15 @@ describe('🔴 CRITICAL TESTS - Security', () => {
     expect(codeSnippet).not.toMatch(/1\/\/[a-zA-Z0-9]{50,}/);
   });
 
-  it('Firebase config e public (corect)', () => {
-    // Firebase config TREBUIE să fie public în frontend
-    const firebaseConfig = {
+  it('Supabase config e public (corect)', () => {
+    // Supabase config TREBUIE să fie public în frontend
+    const supabaseConfig = {
       apiKey: 'AIzaSyDcec3QIIpqrhmGSsvAeH2qEbuDKwZFG3o',
     };
 
     // Verifică că există (e OK să fie public)
-    expect(firebaseConfig.apiKey).toBeDefined();
-    expect(firebaseConfig.apiKey).toMatch(/^AIza/);
+    expect(supabaseConfig.apiKey).toBeDefined();
+    expect(supabaseConfig.apiKey).toMatch(/^AIza/);
   });
 });
 

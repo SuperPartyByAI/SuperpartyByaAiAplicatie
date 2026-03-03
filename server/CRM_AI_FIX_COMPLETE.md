@@ -28,7 +28,7 @@ exports.clientCrmAsk = onCall({
 
 ### Actual Deployment
 ```bash
-$ firebase functions:list | grep -E "whatsappExtract|clientCrmAsk"
+$ supabase functions:list | grep -E "whatsappExtract|clientCrmAsk"
 │ clientCrmAsk                   │ v2 │ callable │ us-central1 │ 512 │ nodejs20 │
 │ whatsappExtractEventFromThread │ v2 │ callable │ us-central1 │ 512 │ nodejs20 │
 ```
@@ -36,15 +36,15 @@ $ firebase functions:list | grep -E "whatsappExtract|clientCrmAsk"
 ### Flutter Invocation
 ```dart
 // superparty_flutter/lib/services/whatsapp_api_service.dart:293
-final functions = FirebaseFunctions.instanceFor(region: 'us-central1'); // ✅ Correct
+final functions = SupabaseFunctions.instanceFor(region: 'us-central1'); // ✅ Correct
 
 // superparty_flutter/lib/services/whatsapp_api_service.dart:352
-final functions = FirebaseFunctions.instanceFor(region: 'us-central1'); // ✅ Correct
+final functions = SupabaseFunctions.instanceFor(region: 'us-central1'); // ✅ Correct
 ```
 
 ### The Risk
 **Current state works** (functions deployed to us-central1, Flutter calls us-central1).  
-**BUT**: Next `firebase deploy` would move functions to europe-west1 (per code) → **BREAK** Flutter calls.
+**BUT**: Next `supabase deploy` would move functions to europe-west1 (per code) → **BREAK** Flutter calls.
 
 ---
 
@@ -53,19 +53,19 @@ final functions = FirebaseFunctions.instanceFor(region: 'us-central1'); // ✅ C
 ### Changed Files (2)
 1. **functions/whatsappExtractEventFromThread.js:33**
    ```diff
-   - region: 'europe-west1', // Co-located with Firestore (eur3) for low latency
+   - region: 'europe-west1', // Co-located with Database (eur3) for low latency
    + region: 'us-central1', // Match deployment region and Flutter callable invocation
    ```
 
 2. **functions/clientCrmAsk.js:27**
    ```diff
-   - region: 'europe-west1', // Co-located with Firestore (eur3) for low latency
+   - region: 'europe-west1', // Co-located with Database (eur3) for low latency
    + region: 'us-central1', // Match deployment region and Flutter callable invocation
    ```
 
 ### Redeployed Functions
 ```bash
-firebase deploy --only functions:whatsappExtractEventFromThread,functions:clientCrmAsk
+supabase deploy --only functions:whatsappExtractEventFromThread,functions:clientCrmAsk
 # Result: ✅ Both functions updated successfully in us-central1
 ```
 
@@ -81,17 +81,17 @@ firebase deploy --only functions:whatsappExtractEventFromThread,functions:client
 
 ### Function Logs (Clean)
 ```bash
-$ firebase functions:log --only whatsappExtractEventFromThread --lines 50
+$ supabase functions:log --only whatsappExtractEventFromThread --lines 50
 # Latest logs show:
 - ✅ Starting new instance (DEPLOYMENT_ROLLOUT)
-- ✅ Firebase Functions starting - BUILD_SHA=whatsappextracteventfromthread-00005-dog
+- ✅ Supabase Functions starting - BUILD_SHA=whatsappextracteventfromthread-00005-dog
 - ⚠️  Calling setGlobalOptions twice (harmless - index.js + function define)
 - ✅ Default STARTUP TCP probe succeeded
 
-$ firebase functions:log --only clientCrmAsk --lines 50
+$ supabase functions:log --only clientCrmAsk --lines 50
 # Latest logs show:
 - ✅ Starting new instance (DEPLOYMENT_ROLLOUT)
-- ✅ Firebase Functions starting - BUILD_SHA=clientcrmask-00005-yew
+- ✅ Supabase Functions starting - BUILD_SHA=clientcrmask-00005-yew
 - ⚠️  Calling setGlobalOptions twice (harmless)
 - ✅ Default STARTUP TCP probe succeeded
 ```
@@ -108,7 +108,7 @@ $ flutter analyze
 $ curl https://whats-app-ompro.ro/health | jq
 {
   "status": "healthy",
-  "firestore": { "status": "connected" },
+  "database": { "status": "connected" },
   "accounts": { "total": 0, "connected": 0, "max": 30 }
 }
 ```
@@ -162,7 +162,7 @@ CRM_AI_FIX_COMPLETE.md                       (this report)
 5. Test "Ask AI" button (should work now)
 
 **For Agent** (if issues persist):
-1. Check function logs: `firebase functions:log --only whatsappExtractEventFromThread --lines 100`
+1. Check function logs: `supabase functions:log --only whatsappExtractEventFromThread --lines 100`
 2. Verify GROQ quota: Functions may fail if GROQ API rate limit hit
 3. Check auth: User must be signed in (functions check `request.auth?.uid`)
 

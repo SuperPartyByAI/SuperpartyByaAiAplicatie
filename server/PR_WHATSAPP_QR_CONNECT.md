@@ -31,7 +31,7 @@ Implements WhatsApp QR connect functionality from Flutter with **server-side sec
 
 ## Security Validated ✅
 
-1. **401 on missing/invalid token**: All routes verify Firebase ID token server-side
+1. **401 on missing/invalid token**: All routes verify Supabase ID token server-side
 2. **403 on insufficient permissions**: 
    - Non-employees cannot access `getAccounts`
    - Non-super-admins cannot access `addAccount` or `regenerateQr`
@@ -43,7 +43,7 @@ Implements WhatsApp QR connect functionality from Flutter with **server-side sec
 ## Critical Verifications
 
 ### 1. Auth/RBAC is Server-Side ✅
-- `requireAuth()`: Verifies Firebase ID token via `admin.auth().verifyIdToken()`
+- `requireAuth()`: Verifies Supabase ID token via `admin.auth().verifyIdToken()`
 - `requireEmployee()`: Checks `staffProfiles/{uid}` or admin email allowlist (server-side)
 - `requireSuperAdmin()`: Checks email against `SUPER_ADMIN_EMAIL` constant (server-side)
 - **No client-side security checks** (Flutter removed email check)
@@ -54,15 +54,15 @@ Implements WhatsApp QR connect functionality from Flutter with **server-side sec
 - Set via:
   ```bash
   # v2 functions:
-  firebase functions:secrets:set WHATSAPP_LEGACY_BASE_URL
+  supabase functions:secrets:set WHATSAPP_LEGACY_BASE_URL
   
   # v1 functions:
-  firebase functions:config:set whatsapp.backend_base_url="https://whats-app-ompro.ro"
+  supabase functions:config:set whatsapp.backend_base_url="https://whats-app-ompro.ro"
   ```
 
 ### 3. Fail-Fast Doesn't Break Tests ✅
 - Tests set `process.env.WHATSAPP_LEGACY_BASE_URL` before importing module
-- Fail-fast only triggers in production (`NODE_ENV === 'production'` or `FIREBASE_CONFIG` present)
+- Fail-fast only triggers in production (`NODE_ENV === 'production'` or `SUPABASE_CONFIG` present)
 
 ### 4. Proxy Safety ✅
 - **Timeout**: 30 seconds enforced
@@ -71,7 +71,7 @@ Implements WhatsApp QR connect functionality from Flutter with **server-side sec
 - **No auth forwarding**: Client Authorization header not forwarded to legacy hosting
 
 ### 5. Flutter Authorization Header ✅
-- All methods call `FirebaseAuth.instance.currentUser?.getIdToken()`
+- All methods call `SupabaseAuth.instance.currentUser?.getIdToken()`
 - Header: `Authorization: Bearer <token>`
 - Error handling:
   - 401: "Authentication required. Please log in again."
@@ -92,15 +92,15 @@ Expected: Auth/validation tests pass (some may fail on forwardRequest mocking, b
 1. Set environment variable (choose one):
    ```bash
    # v2 functions (recommended):
-   firebase functions:secrets:set WHATSAPP_LEGACY_BASE_URL
+   supabase functions:secrets:set WHATSAPP_LEGACY_BASE_URL
    
    # v1 functions:
-   firebase functions:config:set whatsapp.backend_base_url="https://whats-app-ompro.ro"
+   supabase functions:config:set whatsapp.backend_base_url="https://whats-app-ompro.ro"
    ```
 
 2. Deploy Functions:
    ```bash
-   firebase deploy --only functions:whatsappProxyGetAccounts,functions:whatsappProxyAddAccount,functions:whatsappProxyRegenerateQr
+   supabase deploy --only functions:whatsappProxyGetAccounts,functions:whatsappProxyAddAccount,functions:whatsappProxyRegenerateQr
    ```
 
 3. Install Flutter dependencies:
@@ -118,9 +118,9 @@ See `WHATSAPP_QR_CONNECT_IMPLEMENTATION.md` for detailed test flow:
 ## Review Checklist
 
 - [ ] Auth middleware uses `admin.auth().verifyIdToken()` (server-side)
-- [ ] RBAC checks use server-side allowlist/Firestore (not client data)
+- [ ] RBAC checks use server-side allowlist/Database (not client data)
 - [ ] Config supports both `functions.config()` and `process.env`
 - [ ] Tests don't break on module load (env var set before import)
 - [ ] Proxy has timeout and safe error handling
-- [ ] Flutter attaches Firebase ID token in Authorization header
+- [ ] Flutter attaches Supabase ID token in Authorization header
 - [ ] Flutter handles 401/403/400 with clear messages

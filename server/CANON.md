@@ -14,7 +14,7 @@
 - package.json (permanent): https://github.com/SuperPartyByAI/Aplicatie-SuperpartyByAi/blob/6d911e54bdc99536c85c08617ae8ce3078c6c165/package.json
 - Entry (main.jsx): https://github.com/SuperPartyByAI/Aplicatie-SuperpartyByAi/blob/6d911e54bdc99536c85c08617ae8ce3078c6c165/kyc-app/kyc-app/src/main.jsx
 - Router (App.jsx): https://github.com/SuperPartyByAI/Aplicatie-SuperpartyByAi/blob/6d911e54bdc99536c85c08617ae8ce3078c6c165/kyc-app/kyc-app/src/App.jsx
-- Firebase config (firebase.js): https://github.com/SuperPartyByAI/Aplicatie-SuperpartyByAi/blob/6d911e54bdc99536c85c08617ae8ce3078c6c165/kyc-app/kyc-app/src/firebase.js
+- Supabase config (supabase.js): https://github.com/SuperPartyByAI/Aplicatie-SuperpartyByAi/blob/6d911e54bdc99536c85c08617ae8ce3078c6c165/kyc-app/kyc-app/src/supabase.js
 - Evenimente (EvenimenteScreen.jsx): https://github.com/SuperPartyByAI/Aplicatie-SuperpartyByAi/blob/6d911e54bdc99536c85c08617ae8ce3078c6c165/kyc-app/kyc-app/src/screens/EvenimenteScreen.jsx
 
 ### Backend (Voice)
@@ -30,7 +30,7 @@
 
 ## 0) TL;DR (2–5 rânduri)
 
-- Ce construim: aplicația SuperPartyByAI + flow-uri (în special Evenimente) în KYC App, cu integrări (Firebase/Firestore) și componente auxiliare (ex. voice).
+- Ce construim: aplicația SuperPartyByAI + flow-uri (în special Evenimente) în KYC App, cu integrări (Supabase/Database) și componente auxiliare (ex. voice).
 - Flow principal ales acum: F-001 Evenimente cap-coadă (listare → detalii → acțiune → confirmare).
 - Ce e blocat acum: TODO (completezi 1 propoziție, concret).
 - Următorul pas concret: verificare și stabilizare F-001 (UI + persistare + permisiuni).
@@ -48,8 +48,8 @@
 Status: IN WORK
 
 1. Intrare: userul intră în aplicație și navighează către `Evenimente` (ruta `/evenimente`).
-2. Autentificare/identitate: userul este autenticat (Firebase Auth); dacă nu, este redirecționat/îndrumat către login.
-3. Listare evenimente: se afișează lista de evenimente (din Firestore) + state de loading/empty/error.
+2. Autentificare/identitate: userul este autenticat (Supabase Auth); dacă nu, este redirecționat/îndrumat către login.
+3. Listare evenimente: se afișează lista de evenimente (din Database) + state de loading/empty/error.
 4. Detalii eveniment: userul deschide pagina de detalii pentru un eveniment (din listă).
 5. Acțiune: userul face o acțiune (înscriere/rezervare/participare) – se validează input și se scrie în DB.
 6. Confirmare + persistare: UI confirmă; după refresh datele rămân (persistate) și se reflectă în listă/detalii.
@@ -72,8 +72,8 @@ Status: TODO
 
 - Frontend: React (KYC App) – entry `src/main.jsx`, router în `src/App.jsx`.
 - Backend/API: TODO (dacă există API separat / functions).
-- DB: Firebase Firestore.
-- Auth: Firebase Auth.
+- DB: Supabase Database.
+- Auth: Supabase Auth.
 - Hosting/Deploy: TODO.
 - Integrări: TODO (ex: voice/coqui).
 
@@ -81,7 +81,7 @@ Status: TODO
 
 - Frontend entry: `kyc-app/kyc-app/src/main.jsx`
 - Routing: `kyc-app/kyc-app/src/App.jsx`
-- Firebase init: `kyc-app/kyc-app/src/firebase.js`
+- Supabase init: `kyc-app/kyc-app/src/supabase.js`
 - Evenimente: `kyc-app/kyc-app/src/screens/EvenimenteScreen.jsx`
 - Voice backend: `coqui/app.py`
 - Config: `package.json`
@@ -106,7 +106,7 @@ Status: TODO
 - Am făcut: am creat CANON.md ca source of truth și am adăugat permalinks în START HERE.
 - Am decis: în chat nou se dă doar link la CANON.md și obiectiv + blocaj.
 - Probleme: TODO
-- Next: review tehnic F-001 (App.jsx + firebase.js + EvenimenteScreen.jsx) și fixuri.
+- Next: review tehnic F-001 (App.jsx + supabase.js + EvenimenteScreen.jsx) și fixuri.
 
 ## AI / Docs
 

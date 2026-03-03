@@ -8,7 +8,7 @@
 
 - React 19.2.0
 - Vite (build tool)
-- Firebase (auth, firestore, storage, functions)
+- Supabase (auth, database, storage, functions)
 - Service Worker (basic PWA caching)
 - React Router DOM
 - Socket.io client
@@ -17,7 +17,7 @@
 
 - ✅ Service Worker with basic cache-first strategy
 - ✅ Code splitting (lazy loading for non-critical routes)
-- ✅ Manual chunks (firebase, react-vendor)
+- ✅ Manual chunks (supabase, react-vendor)
 - ⚠️ No state management library
 - ⚠️ No query caching
 - ⚠️ No persistent storage for user data
@@ -34,7 +34,7 @@
 
 **Why:**
 
-- Perfect for your Firebase/API data fetching
+- Perfect for your Supabase/API data fetching
 - Automatic caching, refetching, and synchronization
 - Built-in loading/error states
 - Optimistic updates
@@ -122,7 +122,7 @@ await db.drafts.put({
 
 - Offline functionality
 - Faster app startup (cached data)
-- Reduced Firebase reads (cost savings)
+- Reduced Supabase reads (cost savings)
 - Better user experience
 
 ---
@@ -171,11 +171,11 @@ registerRoute(
   })
 );
 
-// Stale-while-revalidate for Firebase data
+// Stale-while-revalidate for Supabase data
 registerRoute(
-  ({ url }) => url.hostname.includes('firebaseio.com'),
+  ({ url }) => url.hostname.includes('supabaseio.com'),
   new StaleWhileRevalidate({
-    cacheName: 'firebase-cache',
+    cacheName: 'supabase-cache',
   })
 );
 ```
@@ -201,7 +201,7 @@ registerRoute(
 localStorage.setItem('theme', 'dark');
 localStorage.setItem('language', 'ro');
 
-// Auth tokens (already using Firebase)
+// Auth tokens (already using Supabase)
 // Feature flags
 localStorage.setItem('features', JSON.stringify(enabledFeatures));
 
@@ -354,7 +354,7 @@ const getCachedEvents = async () => {
 
 - Offline functionality
 - Faster app startup
-- Reduced Firebase reads
+- Reduced Supabase reads
 - Better UX
 
 ---
@@ -384,10 +384,10 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
         runtimeCaching: [
           {
-            urlPattern: /^https:\/\/firebasestorage\.googleapis\.com\/.*/i,
+            urlPattern: /^https:\/\/supabasestorage\.googleapis\.com\/.*/i,
             handler: 'CacheFirst',
             options: {
-              cacheName: 'firebase-storage',
+              cacheName: 'supabase-storage',
               expiration: {
                 maxEntries: 100,
                 maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
@@ -398,7 +398,7 @@ export default defineConfig({
             urlPattern: /^https:\/\/.*\.cloudfunctions\.net\/.*/i,
             handler: 'NetworkFirst',
             options: {
-              cacheName: 'firebase-functions',
+              cacheName: 'supabase-functions',
               expiration: {
                 maxEntries: 50,
                 maxAgeSeconds: 60 * 5, // 5 minutes
@@ -439,7 +439,7 @@ const { data: profile } = useQuery({
       return cached.value;
     }
 
-    // Fetch from Firebase
+    // Fetch from Supabase
     const data = await fetchProfile(userId);
 
     // Cache in IndexedDB
@@ -565,7 +565,7 @@ registerRoute(
 **Benefits:**
 
 - 50-80% fewer API calls
-- $5-20/month savings on Firebase reads
+- $5-20/month savings on Supabase reads
 - Better UX
 - Faster development
 
@@ -579,7 +579,7 @@ registerRoute(
 **Benefits:**
 
 - Offline functionality
-- 30-50% fewer Firebase reads
+- 30-50% fewer Supabase reads
 - $3-10/month savings
 - Better UX
 
@@ -641,8 +641,8 @@ root.render(
 ```javascript
 // src/hooks/useEvents.js
 import { useQuery } from '@tanstack/react-query';
-import { collection, getDocs } from 'firebase/firestore';
-import { db } from '../firebase';
+import { collection, getDocs } from 'supabase/database';
+import { db } from '../supabase';
 
 export const useEvents = () => {
   return useQuery({
@@ -694,7 +694,7 @@ function EvenimenteScreen() {
 
 - API calls per page load: 10-20
 - Page load time: 2-4 seconds
-- Firebase reads/day: 10,000-50,000
+- Supabase reads/day: 10,000-50,000
 - Offline support: None
 - User experience: Loading spinners everywhere
 
@@ -702,7 +702,7 @@ function EvenimenteScreen() {
 
 - API calls per page load: 2-5 (50-75% reduction)
 - Page load time: 0.5-1 second (cached data)
-- Firebase reads/day: 3,000-15,000 (70% reduction)
+- Supabase reads/day: 3,000-15,000 (70% reduction)
 - Offline support: Partial (cached data)
 - User experience: Instant UI updates
 
@@ -710,7 +710,7 @@ function EvenimenteScreen() {
 
 - API calls per page load: 1-3 (80-90% reduction)
 - Page load time: 0.2-0.5 seconds
-- Firebase reads/day: 1,000-5,000 (90% reduction)
+- Supabase reads/day: 1,000-5,000 (90% reduction)
 - Offline support: Full
 - User experience: App works offline
 
@@ -731,7 +731,7 @@ function EvenimenteScreen() {
 2. Setup QueryClient
 3. Migrate 3-5 key data fetching hooks
 4. Test and verify cache behavior
-5. Monitor Firebase read reduction
+5. Monitor Supabase read reduction
 
 ### Week 2: IndexedDB (HIGH PRIORITY)
 
@@ -763,7 +763,7 @@ function EvenimenteScreen() {
 
 - Need offline support
 - Have large data volumes
-- Want to reduce Firebase costs
+- Want to reduce Supabase costs
 
 **NO IF:**
 

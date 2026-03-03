@@ -13,7 +13,7 @@
 
 - ✅ `UpdateGate` - wraps MaterialApp in main.dart
 - ✅ `ForceUpdateScreen` - full-screen blocking UI
-- ✅ `ForceUpdateCheckerService` - checks Firestore config
+- ✅ `ForceUpdateCheckerService` - checks Database config
 - ✅ `AppStateMigrationService` - cache cleanup without logout
 - ✅ `ApkDownloaderService` - stream-to-file download
 - ✅ `ApkInstallerBridge` - MethodChannel to native
@@ -28,7 +28,7 @@
 ### AI Chat Components
 
 - ✅ Auth guard in `ai_chat_screen.dart`
-- ✅ Error mapping for Firebase Functions exceptions
+- ✅ Error mapping for Supabase Functions exceptions
 - ✅ Backend: `functions/index.js` with GROQ_API_KEY check
 
 ---
@@ -51,24 +51,24 @@ git cherry-pick 6987bac2
 
 ---
 
-### 2. Backend - AI Chat (Firebase Functions)
+### 2. Backend - AI Chat (Supabase Functions)
 
 ```bash
 cd functions
 
 # Setează GROQ_API_KEY (NOT OpenAI!)
-firebase functions:secrets:set GROQ_API_KEY
+supabase functions:secrets:set GROQ_API_KEY
 # Paste key when prompted
 
 # Deploy functions
-firebase deploy --only functions
+supabase deploy --only functions
 ```
 
 **Verificare:**
 
 ```bash
 # Check logs
-firebase functions:log --only chatWithAI
+supabase functions:log --only chatWithAI
 
 # Should see: "GROQ_API_KEY loaded from secrets"
 ```
@@ -92,11 +92,11 @@ flutter build apk --release
 
 ---
 
-### 4. Upload APK to Firebase Storage
+### 4. Upload APK to Supabase Storage
 
-**Manual (Firebase Console):**
+**Manual (Supabase Console):**
 
-1. Go to Firebase Console → Storage
+1. Go to Supabase Console → Storage
 2. Create folder: `apk/`
 3. Upload: `app-release.apk`
 4. Get download URL (click file → copy URL)
@@ -109,7 +109,7 @@ node .github/scripts/upload-apk-to-storage.js
 
 ---
 
-### 5. Firestore Config - Force Update
+### 5. Database Config - Force Update
 
 **Collection:** `app_config`  
 **Document:** `version`
@@ -121,15 +121,15 @@ node .github/scripts/upload-apk-to-storage.js
   "force_update": true,             // Boolean
   "update_message": "Versiune nouă disponibilă! Descarcă acum.",
   "release_notes": "- AI Chat fix\n- Force Update fără logout",
-  "android_download_url": "https://firebasestorage.googleapis.com/.../app-release.apk",
+  "android_download_url": "https://supabasestorage.googleapis.com/.../app-release.apk",
   "ios_download_url": null,         // Null (Android only)
   "updated_at": FieldValue.serverTimestamp()
 }
 ```
 
-**Firebase Console:**
+**Supabase Console:**
 
-1. Firestore Database → `app_config` collection
+1. Database Database → `app_config` collection
 2. Create/Edit document `version`
 3. Add fields above
 
@@ -162,7 +162,7 @@ node .github/scripts/upload-apk-to-storage.js
 **Prerequisites:**
 
 - APK uploaded to Storage
-- Firestore `app_config/version` configured
+- Database `app_config/version` configured
 - `min_build_number` > current build
 
 **Steps:**
@@ -182,7 +182,7 @@ node .github/scripts/upload-apk-to-storage.js
 - ✅ User stays authenticated
 - ✅ No signOut() called
 - ✅ Cache cleared (SharedPreferences)
-- ✅ FirebaseAuth session preserved
+- ✅ SupabaseAuth session preserved
 
 ---
 
@@ -192,17 +192,17 @@ node .github/scripts/upload-apk-to-storage.js
 
 **Error: "Trebuie să fii logat"**
 
-- Check: `FirebaseAuth.instance.currentUser != null`
+- Check: `SupabaseAuth.instance.currentUser != null`
 - Fix: Ensure user is logged in before calling AI
 
 **Error: "AI nu este configurat"**
 
-- Check: `firebase functions:secrets:access GROQ_API_KEY`
-- Fix: Set secret: `firebase functions:secrets:set GROQ_API_KEY`
+- Check: `supabase functions:secrets:access GROQ_API_KEY`
+- Fix: Set secret: `supabase functions:secrets:set GROQ_API_KEY`
 
 **Error: "Conexiune eșuată"**
 
-- Check: Firebase Functions logs
+- Check: Supabase Functions logs
 - Fix: Verify GROQ API key is valid
 
 ---
@@ -217,7 +217,7 @@ node .github/scripts/upload-apk-to-storage.js
 **Download fails:**
 
 - Check: `android_download_url` is accessible (open in browser)
-- Check: Firebase Storage rules allow read
+- Check: Supabase Storage rules allow read
 
 **Install fails:**
 
@@ -229,7 +229,7 @@ node .github/scripts/upload-apk-to-storage.js
 
 - ❌ WRONG: This should NOT happen
 - Check: `AppStateMigrationService` is called (not `signOut()`)
-- Check: No `FirebaseAuth.instance.signOut()` in update flow
+- Check: No `SupabaseAuth.instance.signOut()` in update flow
 
 ---
 
@@ -246,7 +246,7 @@ version: 1.0.2+3
 
 **For testing Force Update:**
 
-- Set `min_build_number: 4` in Firestore
+- Set `min_build_number: 4` in Database
 - App will trigger update on next launch
 
 ---

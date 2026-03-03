@@ -3,7 +3,7 @@
 ## Summary
 
 This PR implements comprehensive stability hardening for the Flutter app:
-- **Boot-time robustness**: UI appears immediately; Firebase init happens asynchronously with retry (3 attempts, 10s/20s delays)
+- **Boot-time robustness**: UI appears immediately; Supabase init happens asynchronously with retry (3 attempts, 10s/20s delays)
 - **Global error boundaries**: `runZonedGuarded` catches all unhandled errors
 - **Single MaterialApp**: Enforced via CI guardrails (only in `lib/app/app_shell.dart`)
 - **Null-safety**: Fixed unsafe `.data()!` and casts; `EvidenceModel` returns safe fallback on invalid data
@@ -13,18 +13,18 @@ This PR implements comprehensive stability hardening for the Flutter app:
 
 ### Core Stability
 - `lib/main.dart`: Wrapped in `runZonedGuarded`, improved error boundaries
-- `lib/app/app_shell.dart`: `FirebaseInitGate` with dependency injection for testing
+- `lib/app/app_shell.dart`: `SupabaseInitGate` with dependency injection for testing
 - `lib/screens/error/error_screen.dart`: Removed MaterialApp (returns Scaffold only)
 
 ### Null-Safety
 - `lib/models/evidence_model.dart`: Safe fallback on invalid data (no app crash)
-- `lib/services/evidence_service.dart`: Uses `tryFromFirestore` and filters null
+- `lib/services/evidence_service.dart`: Uses `tryFromDatabase` and filters null
 - `lib/widgets/user_display_name.dart`: Fixed unsafe casts
-- `lib/services/firebase_service.dart`: Replaced `print()` with `debugPrint()`
+- `lib/services/supabase_service.dart`: Replaced `print()` with `debugPrint()`
 
 ### CI & Tests
 - `.github/workflows/flutter-ci.yml`: Format, analyze, test, guardrails
-- `test/app/firebase_init_gate_test.dart`: Deterministic tests for retry behavior
+- `test/app/supabase_init_gate_test.dart`: Deterministic tests for retry behavior
 
 ## Verification
 
@@ -38,10 +38,10 @@ flutter test
 
 ### Expected Behavior
 1. **Boot**: UI appears immediately (no blank screen)
-2. **Firebase init**: Shows loading → on failure shows error UI with attempt counter → auto-retries or manual Retry
+2. **Supabase init**: Shows loading → on failure shows error UI with attempt counter → auto-retries or manual Retry
 3. **After 3 attempts**: Shows "Te rog repornește aplicația." (exhausted state)
 4. **Errors**: Caught by `runZonedGuarded`, logged, app continues
-5. **Invalid Firestore data**: `EvidenceModel` returns safe fallback (no crash)
+5. **Invalid Database data**: `EvidenceModel` returns safe fallback (no crash)
 
 ## DoD Checklist
 
@@ -61,8 +61,8 @@ flutter test
 - `superparty_flutter/lib/models/evidence_model.dart`
 - `superparty_flutter/lib/screens/error/error_screen.dart`
 - `superparty_flutter/lib/services/evidence_service.dart`
-- `superparty_flutter/lib/services/firebase_service.dart`
+- `superparty_flutter/lib/services/supabase_service.dart`
 - `superparty_flutter/lib/widgets/user_display_name.dart`
-- `superparty_flutter/test/app/firebase_init_gate_test.dart` (NEW)
+- `superparty_flutter/test/app/supabase_init_gate_test.dart` (NEW)
 
 **Total:** 10 files changed, 1177 insertions(+), 388 deletions(-)

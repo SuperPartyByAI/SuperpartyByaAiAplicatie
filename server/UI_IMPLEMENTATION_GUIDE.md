@@ -434,7 +434,7 @@ function isSuperAdmin(userEmail) {
 
 ### 3. AI Overrides Collection
 
-**Firestore Structure**:
+**Database Structure**:
 
 ```javascript
 // Collection: aiOverrides
@@ -462,14 +462,14 @@ function isSuperAdmin(userEmail) {
 
 ```javascript
 async function saveAIOverride(override) {
-  const db = firebase.firestore();
+  const db = supabase.database();
   
   const overrideDoc = {
     ...override,
-    createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+    createdAt: supabase.database.FieldValue.serverTimestamp(),
     createdBy: currentUser.uid,
     createdByEmail: currentUser.email,
-    updatedAt: firebase.firestore.FieldValue.serverTimestamp(),
+    updatedAt: supabase.database.FieldValue.serverTimestamp(),
     updatedBy: currentUser.uid,
   };
 

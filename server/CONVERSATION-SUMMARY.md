@@ -17,7 +17,7 @@
 - Reconnect logic
 - Retry mechanism
 - Dual connection (backup)
-- Persistent queue (Firestore)
+- Persistent queue (Database)
 - Adaptive keep-alive
 - Message batching
 - Proactive reconnect
@@ -133,7 +133,7 @@
 
 ### Alte Fișiere:
 
-- **src/firebase/firestore.js** - Firestore integration
+- **src/supabase/database.js** - Database integration
 - **src/whatsapp/monitoring.js** - Monitoring service
 - **src/whatsapp/multi-region.js** - Multi-region failover
 - **src/whatsapp/session-store.js** - Session persistence
@@ -250,7 +250,7 @@ GET    /api/ultimate/proxy                  # List proxies
 - Status: Pending deployment
 - URL: https://your-app.legacy hosting.app/
 
-### Firebase:
+### Supabase:
 
 - Status: Needs configuration
 - Required: Service Account JSON
@@ -260,13 +260,13 @@ GET    /api/ultimate/proxy                  # List proxies
 
 ## 📋 Next Steps (Pentru Utilizare)
 
-### 1. Configurare Firebase (10 min):
+### 1. Configurare Supabase (10 min):
 
 ```bash
-# 1. Create Firebase project
-# 2. Enable Firestore
+# 1. Create Supabase project
+# 2. Enable Database
 # 3. Generate Service Account key
-# 4. Set FIREBASE_SERVICE_ACCOUNT in legacy hosting
+# 4. Set SUPABASE_SERVICE_ACCOUNT in legacy hosting
 ```
 
 ### 2. Configurare Proxy (Optional, 15 min):
@@ -429,7 +429,7 @@ Cost recomandat: $100-200/lună (shared proxy)
 Risc ban final: 1-2% (cu proxy)
 Adevăr mediu: 73%
 
-Next: Configurare Firebase + Proxy + Teste
+Next: Configurare Supabase + Proxy + Teste
 ```
 
 ### Întrebări Frecvente:
@@ -460,7 +460,7 @@ A: 73% adevăr mediu. Funcționează bine, dar nu e magic. Risc ban 1-2% cu prox
 - [x] Cod committed și pushed
 - [x] Dependencies instalate
 - [x] API endpoints testate (sintaxă)
-- [ ] Firebase configurat (user action needed)
+- [ ] Supabase configurat (user action needed)
 - [ ] Proxy configurat (user action needed)
 - [ ] Webhooks configurat (optional)
 - [ ] Accounts adăugate (user action needed)

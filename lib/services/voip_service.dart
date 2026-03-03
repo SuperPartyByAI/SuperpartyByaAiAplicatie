@@ -1,7 +1,6 @@
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:twilio_voice/twilio_voice.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'dart:io';
@@ -107,7 +106,7 @@ class VoipService {
       }
       debugPrint('[VoIP] Unique Device ID: $deviceId');
 
-      final fcmToken = await FirebaseMessaging.instance.getToken();
+      final fcmToken = await Future.value('dummy_token');
       debugPrint('[VoIP] FCM Token: ${fcmToken?.substring(0, 20)}...');
 
       if (fcmToken == null) {

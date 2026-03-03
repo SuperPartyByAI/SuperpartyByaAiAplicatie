@@ -8,7 +8,7 @@ ADMIN_TOKEN=${2:-"your-admin-token"}
 
 if [ "$MODE" = "live" ]; then
   DRY_RUN="false"
-  echo "🔴 LIVE MODE - Will update Firestore"
+  echo "🔴 LIVE MODE - Will update Database"
 else
   DRY_RUN="true"
   echo "🧪 DRY RUN MODE - No changes will be made"

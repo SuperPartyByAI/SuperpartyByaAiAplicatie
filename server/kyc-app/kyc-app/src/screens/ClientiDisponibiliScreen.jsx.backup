@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { auth, db } from '../firebase';
-import { collection, query, where, onSnapshot, doc, getDoc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { auth, db } from '../supabase';
+import { collection, query, where, onSnapshot, doc, getDoc, updateDoc, serverTimestamp } from 'supabase/database';
 
 function ClientiDisponibiliScreen() {
   const navigate = useNavigate();
