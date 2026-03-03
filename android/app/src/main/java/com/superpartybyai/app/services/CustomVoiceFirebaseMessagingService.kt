@@ -183,6 +183,13 @@ class CustomVoiceFirebaseMessagingService : FirebaseMessagingService(), MessageL
                     putExtra("callSid", callSid)
                 }.also { LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(it) }
                 return // Explicitly return so we don't pass our custom payload to Twilio
+            } else if (data["type"] == "incoming_call") {
+                Log.d(TAG, "Forwarding custom incoming_call FCM payload to Flutter plugin...")
+                val intent = Intent("com.google.android.c2dm.intent.RECEIVE")
+                intent.setPackage(applicationContext.packageName)
+                intent.putExtras(remoteMessage.toIntent().extras ?: android.os.Bundle())
+                sendBroadcast(intent)
+                return
             }
 
             // ── STEP 2: Forward to Twilio Voice SDK for CallInvite processing ─

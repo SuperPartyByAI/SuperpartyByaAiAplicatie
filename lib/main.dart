@@ -7,8 +7,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:twilio_voice/twilio_voice.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-
-
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'dart:convert';
+import 'screens/incoming_call_screen.dart';
 import 'services/auth_service.dart';
 import 'widgets/global_inbox_badge.dart'; // GlobalInboxBadgeOverlay
 import 'package:superparty_app/services/backend_service.dart';
@@ -30,22 +31,51 @@ const _kAudioChannel       = 'com.superpartybyai.app/audio';
 const _kDiagChannel        = 'com.superpartybyai.app/diag';
 
 
+// ── Notifications ──
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+
 // ── FCM background handler (required by Twilio for incoming calls when app is background) ──
 @pragma('vm:entry-point')
 Future<void> _fcmBackgroundHandler(RemoteMessage message) async {
-  debugPrint('[FCM Background] Received: ${message.data}');
+  await Firebase.initializeApp();
+  await VoipService.handleBackgroundMessage(message.data);
 }
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Initialize FCM (Google Cloud Messaging) — required by Twilio SDK for incoming call push
+  // Initialize FCM (Google Cloud Messaging) and Local Notifications
   try {
     await Firebase.initializeApp();
     FirebaseMessaging.onBackgroundMessage(_fcmBackgroundHandler);
-    debugPrint('[FCM] ✅ Initialized');
+
+    const AndroidInitializationSettings initializationSettingsAndroid =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
+    final InitializationSettings initializationSettings =
+        InitializationSettings(android: initializationSettingsAndroid);
+    await flutterLocalNotificationsPlugin.initialize(
+        settings: initializationSettings,
+        onDidReceiveNotificationResponse: (NotificationResponse response) async {
+      if (response.payload != null) {
+        final data = jsonDecode(response.payload!);
+        final ctx = navigatorKey.currentContext;
+        if (ctx != null) {
+          Navigator.of(ctx).push(MaterialPageRoute(
+            builder: (_) => IncomingCallScreen(
+              conf: data['conf'] ?? '',
+              callSid: data['callSid'] ?? '',
+              caller: data['caller'] ?? 'Unknown',
+              sig: data['sig'] ?? '',
+              expires: data['expires'] ?? '',
+            ),
+          ));
+        }
+      }
+    });
+
+    debugPrint('[FCM & Notifications] ✅ Initialized');
   } catch (e) {
-    debugPrint('[FCM] ❌ Init error (non-fatal): $e');
+    debugPrint('[FCM & Notifications] ❌ Init error (non-fatal): $e');
   }
   
   try {

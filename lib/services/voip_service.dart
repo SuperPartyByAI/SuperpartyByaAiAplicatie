@@ -6,20 +6,89 @@ import 'package:flutter/services.dart';
 import 'package:twilio_voice/twilio_voice.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'dart:io';
-import '../main.dart' show navigatorKey; // navigatorKey
-import '../screens/active_call_screen.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import 'backend_service.dart';
 import 'call_kit_service.dart';
 import 'voip_logger.dart';
 
-const _kCallActionsChannel = 'com.superpartybyai.app/call_actions';
+import 'voip_logger.dart';
 
 class VoipService {
   static final VoipService _instance = VoipService._internal();
   factory VoipService() => _instance;
   VoipService._internal();
+
+  static final FlutterLocalNotificationsPlugin _notif = FlutterLocalNotificationsPlugin();
+
+  // Background handler delegate
+  static Future<void> handleBackgroundMessage(Map<String, dynamic> data) async {
+    if (data['type'] == 'incoming_call') {
+      await _showIncomingNotification(data);
+    }
+  }
+
+  static Future<void> handleIncomingData(Map<String, dynamic> data) async {
+    _showIncomingUI(data);
+  }
+
+  static Future<void> _showIncomingUI(Map<String, dynamic> data) async {
+    WakelockPlus.enable();
+    await _showIncomingNotification(data);
+  }
+
+  static Future<void> _showIncomingNotification(Map<String, dynamic> data) async {
+    final String conf = data['conf'] ?? '';
+    final String callSid = data['callSid'] ?? '';
+    final String caller = data['from'] ?? data['callerNumber'] ?? 'Unknown';
+    final String sig = data['sig'] ?? '';
+    final String expires = data['expires'] ?? '';
+
+    const AndroidNotificationDetails androidPlatformChannelSpecifics =
+      AndroidNotificationDetails(
+        'voip_channel',
+        'VoIP',
+        channelDescription: 'Incoming VoIP calls',
+        importance: Importance.max,
+        priority: Priority.high,
+        fullScreenIntent: true,
+        ticker: 'ticker',
+      );
+
+    const NotificationDetails platformChannelSpecifics =
+      NotificationDetails(android: androidPlatformChannelSpecifics);
+
+    final payload = jsonEncode({'conf': conf, 'callSid': callSid, 'caller': caller, 'sig': sig, 'expires': expires});
+
+    await _notif.show(
+        id: 0,
+        title: 'Apel de la $caller',
+        body: 'Glisați pentru a răspunde',
+        notificationDetails: platformChannelSpecifics,
+        payload: payload);
+  }
+
+  static Future<bool> acceptCall(String conf, String callSid, String deviceNumber, String apiBaseUrl, String sig, String expires) async {
+    final url = Uri.parse('$apiBaseUrl/api/voice/accept');
+    final body = {
+      'conf': conf,
+      'callSid': callSid,
+      'deviceNumber': deviceNumber,
+      'sig': sig,
+      'expires': expires,
+    };
+    try {
+      final resp = await http.post(url, body: jsonEncode(body), headers: {'Content-Type':'application/json'});
+      return resp.statusCode == 200;
+    } catch (e) {
+      debugPrint('[VoIP] acceptCall error: $e');
+      return false;
+    }
+  }
 
   bool _isRegistered = false;
   bool get isRegistered => _isRegistered;
@@ -111,7 +180,7 @@ class VoipService {
       // Get real FCM token for Twilio incoming call push notifications
       String deviceToken = '';
       try {
-        final fcmToken = await FirebaseMessaging.instance.getToken();
+        final fcmToken = await FirebaseMessaging.instance.getToken().timeout(const Duration(seconds: 5));
         if (fcmToken != null && fcmToken.isNotEmpty) {
           deviceToken = fcmToken;
           debugPrint('[VoIP] FCM Token: ${fcmToken.substring(0, 20)}...');
@@ -209,6 +278,21 @@ class VoipService {
     // isCallCapable(), wait-for-activeCall, and retry logic.
     // DO NOT set a handler here — it would override main.dart's handler.
     debugPrint('[VoIP] MethodChannel call_actions — handled by main.dart');
+
+    // Handle FCM foreground/background payloads
+    FirebaseMessaging.onMessage.listen((RemoteMessage msg) async {
+      if (msg.data.isNotEmpty && msg.data['type'] == 'incoming_call') {
+        debugPrint('[VoIP] FCM Foreground message received: \${msg.data}');
+        await handleIncomingData(msg.data);
+      }
+    });
+
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage msg) {
+      if (msg.data.isNotEmpty && msg.data['type'] == 'incoming_call') {
+        debugPrint('[VoIP] FCM message opened app: \${msg.data}');
+        _showIncomingUI(msg.data);
+      }
+    });
 
     } catch (e) {
       debugPrint('[VoIP] ❌ Init error: $e');

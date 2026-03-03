@@ -10,6 +10,52 @@ import twilio from 'twilio'; // Twilio Import
 
 import pino from "pino";
 import qrcode from "qrcode-terminal";
+import fetch from "node-fetch";
+import { GoogleAuth } from "google-auth-library";
+
+// --- FCM v1 Push Helper ---
+async function sendFcmPush(deviceToken, payload) {
+  try {
+    const auth = new GoogleAuth({
+      keyFile: path.join(process.cwd(), 'gpt-firebase-key.json'),
+      scopes: ['https://www.googleapis.com/auth/firebase.messaging'],
+    });
+    const client = await auth.getClient();
+    const accessToken = await client.getAccessToken();
+    
+    const projectId = 'superparty-frontend';
+    const url = `https://fcm.googleapis.com/v1/projects/${projectId}/messages:send`;
+    
+    const response = await fetch(url, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${accessToken.token}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        message: {
+          token: deviceToken,
+          data: payload,
+          android: {
+            priority: 'high'
+          },
+          apns: {
+            headers: { 'apns-priority': '10' }
+          }
+        }
+      })
+    });
+    
+    if (!response.ok) {
+      const errText = await response.text();
+      console.error('[FCM] Push failed:', response.status, errText);
+    } else {
+      console.log('[FCM] Push sent successfully to', deviceToken.substring(0, 15) + '...');
+    }
+  } catch (err) {
+    console.error('[FCM] Error sending push:', err);
+  }
+}
 
 /* ========== Structured Logger (pino JSON) ========== */
 const LOG_DIR = process.env.LOG_DIR || path.join(process.cwd(), 'logs');
@@ -544,35 +590,36 @@ app.post('/api/voice/incoming', async (req, res) => {
       // INCOMING CALL (From World -> To Mobile App)
       console.log(`[Twilio] Handling Incoming Call to App from: ${From}`);
 
-      // Short greeting — answerOnBridge prevents audio until client accepts
-      twiml.say({ language: 'ro-RO' }, 'Bun venit la Super Party. Vă conectăm acum.');
+      // Generate a conference name based on the incoming CallSid
+      const confName = `conf_${CallSid}`;
+      
+      // Short greeting — place caller in conference to wait
+      twiml.say({ language: 'ro-RO' }, 'Vă conectăm acum. Vă rugăm să aşteptaţi.');
+      
+      const dial = twiml.dial();
+      dial.conference({
+        startConferenceOnEnter: true,
+        endConferenceOnExit: true,
+        beep: false,
+        waitUrl: 'http://twimlets.com/holdmusic?Bucket=com.twilio.music.classical'
+      }, confName);
 
-      // Log incoming call (non-blocking, stub-safe)
+      // Log incoming call to Supabase
       try {
          await db.collection('active_incoming_calls').doc(CallSid).set({
            callSid: CallSid,
            from: From,
            to: To,
-           status: 'ringing',
+           status: 'waiting_in_conf',
+           confName: confName,
            timestamp: new Date().toISOString()
          });
       } catch(e) { /* stub no-op */ }
 
-      // Dial the Flutter app client — answerOnBridge prevents media bridge until answer
-      const dial = twiml.dial({
-        answerOnBridge: true,
-        callerId: From,
-        timeout: 30,
-        record: 'record-from-answer',
-        recordingStatusCallback: `${BASE_URL}/api/voice/recording-status`,
-        recordingStatusCallbackMethod: 'POST',
-        action: `${BASE_URL}/api/voice/dial-result`
-      });
-
       // Query registered VoIP clients from in-memory registry
       let identities = [];
-      for (const [identity, info] of registeredVoipClients) {
-        identities.push(identity);
+      for (const [id, info] of registeredVoipClients) {
+        identities.push({ id, ...info });
       }
 
       // If in-memory is empty, try loading from Supabase (PM2 restart recovery)
@@ -586,11 +633,12 @@ app.post('/api/voice/incoming', async (req, res) => {
             .limit(10);
           if (data && data.length > 0) {
             for (const row of data) {
-              registeredVoipClients.set(row.device_identity, {
+              const info = {
                 userId: row.user_id, deviceId: row.device_id,
                 fcmToken: row.fcm_token, registeredAt: new Date().toISOString()
-              });
-              identities.push(row.device_identity);
+              };
+              registeredVoipClients.set(row.device_identity, info);
+              identities.push({ id: row.device_identity, ...info });
             }
             console.log(`[Twilio] Recovered ${data.length} client(s) from Supabase`);
           }
@@ -599,21 +647,37 @@ app.post('/api/voice/incoming', async (req, res) => {
         }
       }
 
-      console.log(`[Twilio] VoIP clients in registry: ${identities.length}`, identities);
+      console.log(`[Twilio] VoIP clients in registry: ${identities.length}`);
       
       if (identities.length === 0) {
-        console.warn('[Twilio] No VoIP clients registered! Falling back to superparty_admin');
-        dial.client('superparty_admin');
+        console.warn('[Twilio] No VoIP clients registered! Fallback needed.');
+        // Could forward to operator here if desired
       } else {
-        for (const id of identities) {
-          console.log(`[Twilio] Dialing VoIP client: ${id}`);
-          dial.client({
-            statusCallback: `${BASE_URL}/api/voice/client-status`,
-            statusCallbackEvent: 'initiated ringing answered completed',
-          }, id);
+        // Send FCM Push to all registered clients to wake them up and show Incoming UI
+        const secret = process.env.VOIP_PUSH_SECRET || 'superparty_voip_secret_123';
+        const expires = Date.now() + 60000; // 60 seconds validity
+        
+        for (const client of identities) {
+          if (!client.fcmToken) continue;
+          
+          // Generate signature: HMAC(secret, confName|CallSid|expires)
+          const sigData = `${confName}|${CallSid}|${expires}`;
+          const sig = crypto.createHmac('sha256', secret).update(sigData).digest('hex');
+          
+          const payload = {
+            type: 'incoming_call',
+            callerNumber: From,
+            conf: confName,
+            callSid: CallSid,
+            expires: expires.toString(),
+            sig: sig
+          };
+          
+          console.log(`[Twilio] Sending FCM Push to client: ${client.id}`);
+          // Send push implicitly (not awaited)
+          sendFcmPush(client.fcmToken, payload);
         }
       }
-      // NOTE: No redirect after Dial — the action URL (dial-result) handles fallback
   }
 
   // Log TwiML for debugging
@@ -622,23 +686,57 @@ app.post('/api/voice/incoming', async (req, res) => {
   res.send(twiml.toString());
 });
 
-app.post('/api/voice/park-fallback', (req, res) => {
-  const { callSid } = req.query;
-  const twiml = new twilio.twiml.VoiceResponse();
-  console.log(`[Twilio] Call ${callSid} dropped by client, moving caller to holding conference...`);
-  const dial = twiml.dial();
-  dial.conference({
-    beep: false,
-    waitUrl: 'http://twimlets.com/holdmusic?Bucket=com.twilio.music.classical',
-    startConferenceOnEnter: true,
-    endConferenceOnExit: true
-  }, callSid);
-
-  res.type('text/xml');
-  res.send(twiml.toString());
+// ─── FCM FALLBACK: /api/voice/accept ──────────────────────────────
+app.post('/api/voice/accept', express.json(), async (req, res) => {
+  try {
+    const { conf, callSid, deviceNumber, sig, expires } = req.body;
+    
+    // Verify signature
+    const secret = process.env.VOIP_PUSH_SECRET || 'superparty_voip_secret_123';
+    const sigData = `${conf}|${callSid}|${expires}`;
+    const expectedSig = crypto.createHmac('sha256', secret).update(sigData).digest('hex');
+    
+    if (sig !== expectedSig) {
+      return res.status(403).json({ error: 'Invalid signature' });
+    }
+    if (Date.now() > parseInt(expires, 10)) {
+      return res.status(403).json({ error: 'Push token expired' });
+    }
+    
+    console.log(`[FCM Accept] User accepted call. Conf: ${conf}, Bridging device: ${deviceNumber}`);
+    
+    // Create outbound Twilio call to the device's actual phone number
+    const BASE_URL = process.env.PUBLIC_URL || 'http://89.167.115.150:3001';
+    
+    const call = await twilioClient.calls.create({
+      to: deviceNumber, // Flutter must provide the actual phone number to dial, e.g. +407...
+      from: process.env.TWILIO_CALLER_ID || '+40373805828',
+      url: `${BASE_URL}/api/voice/join-conference?conf=${encodeURIComponent(conf)}`
+    });
+    
+    res.json({ success: true, callSid: call.sid });
+  } catch (err) {
+    console.error('[FCM Accept] Error bridging call:', err);
+    res.status(500).json({ error: err.message });
+  }
 });
 
-// Dial result handler — called by Twilio after <Dial> in incoming call finishes
+// ─── FCM FALLBACK: /api/voice/join-conference ───────────────────────
+app.post('/api/voice/join-conference', (req, res) => {
+  const conf = req.query.conf;
+  const twiml = new twilio.twiml.VoiceResponse();
+  console.log(`[FCM Join] Device answered, joining conference: ${conf}`);
+  
+  twiml.dial().conference({
+    beep: false,
+    startConferenceOnEnter: true,
+    endConferenceOnExit: true
+  }, conf);
+  
+  res.type('text/xml').send(twiml.toString());
+});
+
+// Dial result handler — called by Twilio after <Dial> in OUTBOUND calls finishes (legacy)
 app.post('/api/voice/dial-result', (req, res) => {
   const dialStatus = req.body.DialCallStatus;
   const callSid = req.body.CallSid;
@@ -647,13 +745,10 @@ app.post('/api/voice/dial-result', (req, res) => {
   const twiml = new twilio.twiml.VoiceResponse();
 
   if (dialStatus === 'completed' || dialStatus === 'answered') {
-    // Call was successful — return empty TwiML (no further audio)
     console.log('[dial-result] Call completed successfully');
     return res.type('text/xml').send(twiml.toString());
   }
 
-  // Dial failed (no-answer, busy, failed, canceled)
-  // Transfer to operator phone or play message
   const operatorNumber = process.env.TWILIO_CALLER_ID || '+40373805828';
   console.log(`[dial-result] Dial failed (${dialStatus}), transferring to operator: ${operatorNumber}`);
   twiml.say({ language: 'ro-RO' }, 'Ne pare rău, operatorul nu este disponibil momentan. Vă rugăm să încercați mai târziu.');

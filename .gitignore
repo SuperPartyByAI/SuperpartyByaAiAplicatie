@@ -63,3 +63,4 @@ employees_personcodes.csv
 .hosting-access.env
 .env
 android/app/google-services.json
+google-services.json
