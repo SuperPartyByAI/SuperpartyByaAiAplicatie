@@ -92,7 +92,11 @@ import { makeCustomStore } from "./store.js";
 // Stub: prevents crash for legacy VoIP code that still references admin.*
 const admin = {
   apps: [true],
-  firestore: { FieldValue: { serverTimestamp: () => new Date().toISOString() } },
+  firestore: {
+    FieldValue: { serverTimestamp: () => new Date().toISOString() },
+    Timestamp: { fromMillis: (ms) => new Date(ms) },
+  },
+  database: { FieldValue: { serverTimestamp: () => new Date().toISOString() } },
   messaging: () => ({ send: async (m) => { console.warn('[Firebase STUB] messaging().send() called — ignored'); return null; } }),
   auth: () => ({ verifyIdToken: async (t) => { throw new Error('Firebase Auth removed — use Supabase Auth'); } }),
   credential: { cert: () => null },
@@ -116,7 +120,7 @@ const LID_MAPPING_FILE = "lid_mappings.json";
 const STORE_FILE = "baileys_store_multi.json";
 
 /* ========== Firebase Admin Init ========== */
-import { initFirebase, syncMessageToFirestore, uploadMediaToStorage, getSignedMediaUrl, setCanonicalMismatchCallback } from "./supabase-sync.mjs";
+import { supabase, initFirebase, syncMessageToFirestore, uploadMediaToStorage, getSignedMediaUrl, setCanonicalMismatchCallback } from "./supabase-sync.mjs";
 import multer from "multer";
 const upload = multer({ limits: { fileSize: 25 * 1024 * 1024 }, storage: multer.memoryStorage() });
 
@@ -961,10 +965,13 @@ app.get('/api/voice/getVoipToken', async (req, res) => {
       { identity: identity }
     );
     
-    // RESTORING PUSH CREDENTIAL: The SDK strictly enforces this value to exist in the token
-    // otherwise the backend VoIP client fails to establish SIP, even for foreground calls.
-    const PUSH_CREDENTIAL_SID = 'CR45fcd9835719e90895bf551b87e4ef48'; 
-    voiceGrant.pushCredentialSid = PUSH_CREDENTIAL_SID;
+    // PUSH CREDENTIAL: Required for VoIP push notifications (background calls).
+    // Set PUSH_CREDENTIAL_SID env var from Twilio Console → Push Credentials.
+    // Without a valid credential, calls only work when app is in foreground.
+    const PUSH_CREDENTIAL_SID = process.env.PUSH_CREDENTIAL_SID || '';
+    if (PUSH_CREDENTIAL_SID) {
+      voiceGrant.pushCredentialSid = PUSH_CREDENTIAL_SID;
+    }
 
     token.addGrant(voiceGrant);
 
@@ -1326,13 +1333,15 @@ async function requireAdminSecure(req, res, next) {
   const token = (auth && auth.startsWith('Bearer ') ? auth.split('Bearer ')[1] : null) || qToken;
   if (token === ADMIN_TOKEN) return next();
   
-  // 2. Verify Firebase ID token (cryptographic verification)
+  // 2. Verify Supabase JWT token (replaces Firebase verifyIdToken)
   if (!auth || !auth.startsWith('Bearer ')) {
     return res.status(401).json({ error: 'unauthorized', message: 'Missing Bearer token' });
   }
   try {
     const idToken = auth.split('Bearer ')[1];
-    const decoded = await admin.auth().verifyIdToken(idToken);
+    const { data: { user }, error } = await supabase.auth.getUser(idToken);
+    if (error || !user) throw new Error(error?.message || 'Invalid token');
+    const decoded = { uid: user.id, email: user.email, ...user.user_metadata };
     req.user = decoded;
     const email = decoded.email;
     
@@ -2620,7 +2629,7 @@ app.post("/api/admin/regenerate-all", requireAdminToken, async (req, res) => {
 
 /* ===== SECURE AUTH MIDDLEWARE & RESERVE ROUTES ===== */
 
-// Secure Firebase token verification middleware
+// Supabase JWT token verification middleware (replaces Firebase verifyIdToken)
 async function verifyFirebaseToken(req, res, next) {
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
@@ -2628,8 +2637,12 @@ async function verifyFirebaseToken(req, res, next) {
   }
   const token = authHeader.split('Bearer ')[1];
   try {
-    const decoded = await admin.auth().verifyIdToken(token);
-    req.user = decoded; // decoded.uid available
+    // Verify Supabase JWT by calling Supabase auth API
+    const { data: { user }, error } = await supabase.auth.getUser(token);
+    if (error || !user) {
+      throw new Error(error?.message || 'Invalid token');
+    }
+    req.user = { uid: user.id, email: user.email, ...user.user_metadata };
     return next();
   } catch (e) {
     console.error('Token verify error:', e && e.stack ? e.stack : e);
