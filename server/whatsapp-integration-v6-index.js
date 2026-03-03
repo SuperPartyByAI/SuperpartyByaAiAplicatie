@@ -1667,6 +1667,30 @@ async function generatePersonCode() {
   return 'SP-' + crypto.randomBytes(3).toString('hex').toUpperCase();
 }
 
+// ─── USER PHONE NUMBER UPDATE ──────────────────────────────────────────
+app.post('/api/user/phone', express.json(), checkAuth, async (req, res) => {
+  try {
+    const { phone } = req.body;
+    if (!phone) return res.status(400).json({ error: 'Phone number missing' });
+
+    // Update phone in supabase using the uid/email associated with the token auth
+    const userEmail = req.user.email;
+    if (!userEmail) return res.status(403).json({ error: 'No email in auth token' });
+
+    const { error } = await supabase
+      .from('employees')
+      .update({ phone: phone })
+      .eq('email', userEmail);
+
+    if (error) throw error;
+    res.json({ success: true, phone });
+  } catch (err) {
+    console.error('Error updating phone:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ─── PRIVACY SETTINGS ─────────────────────────────────────────────────────
 // ── Audit Logger ─────────────────────────────────────────────────────
 async function auditLog(action, details) {
   try {

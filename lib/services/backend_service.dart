@@ -442,6 +442,19 @@ class BackendService {
     return {};
   }
 
+  Future<void> updateUserPhone(String phone) async {
+    final headers = await _getHeaders();
+    final response = await http.post(
+      Uri.parse('$BASE_URL/user/phone'),
+      headers: headers,
+      body: jsonEncode({'phone': phone})
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to update phone: ${response.body}');
+    }
+  }
+
   Future<void> submitConsent(String version) async {
     final headers = await _getHeaders();
     final body = jsonEncode({

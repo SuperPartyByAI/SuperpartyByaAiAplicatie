@@ -43,7 +43,7 @@ class VoipService {
 
     try {
       // 1. Get short-lived JWT for WS Auth
-      final tokenUrl = Uri.parse('$apiBaseUrl/api/auth/get-ws-token?identity=$identity');
+      final tokenUrl = Uri.parse('$apiBaseUrl/auth/get-ws-token?identity=$identity');
       final resp = await http.get(tokenUrl);
       if (resp.statusCode != 200) {
         debugPrint('[VoIP WS] Failed to get WS token: ${resp.body}');

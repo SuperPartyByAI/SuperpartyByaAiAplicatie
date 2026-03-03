@@ -17,6 +17,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
   bool _isLoading = true;
   bool _aiAnalysisEnabled = true; // Default to true if missing, but we'll fetch
   final TextEditingController _deletionReasonController = TextEditingController();
+  final TextEditingController _employeePhoneController = TextEditingController();
 
   @override
   void initState() {
@@ -34,6 +35,9 @@ class _SettingsScreenState extends State<SettingsScreen> {
           // Usually consent implies 'v1' which implies broad agreement, but granular control is good.
           if (profile['privacySettings'] != null) {
              _aiAnalysisEnabled = profile['privacySettings']['aiAnalysisEnabled'] ?? true;
+          }
+          if (profile['phone'] != null) {
+            _employeePhoneController.text = profile['phone'] ?? '';
           }
           _isLoading = false;
         });
@@ -53,6 +57,22 @@ class _SettingsScreenState extends State<SettingsScreen> {
         // Revert on failure
         setState(() => _aiAnalysisEnabled = !value);
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Eroare: $e')));
+      }
+    }
+  }
+
+  Future<void> _updatePhone() async {
+    final backend = Provider.of<BackendService>(context, listen: false);
+    try {
+      await backend.updateUserPhone(_employeePhoneController.text.trim());
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Numărul GSM a fost salvat cu succes.')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Eroare la salvare: $e')));
       }
     }
   }
@@ -142,6 +162,50 @@ class _SettingsScreenState extends State<SettingsScreen> {
       body: ListView(
         padding: const EdgeInsets.all(16),
         children: [
+          _buildSectionHeader('Conexiune Apeluri PBX'),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Număr GSM Agent',
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  'Acesta este numărul telefonului curent pe care vei primi apelurile de legătură cu clienții (începe cu 07.. sau +40..)',
+                  style: TextStyle(fontSize: 12, color: Colors.grey),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: [
+                    Expanded(
+                      child: TextField(
+                        controller: _employeePhoneController,
+                        keyboardType: TextInputType.phone,
+                        decoration: const InputDecoration(
+                          hintText: 'ex. 07xxxxxxxx',
+                          border: OutlineInputBorder(),
+                          isDense: true,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                         backgroundColor: const Color(0xFF008069),
+                         foregroundColor: Colors.white,
+                      ),
+                      onPressed: _updatePhone,
+                      child: const Text('Salvează'),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          const Divider(),
           _buildSectionHeader('Confidențialitate AI'),
           SwitchListTile(
             title: const Text('Permite analiza AI a apelurilor'),
