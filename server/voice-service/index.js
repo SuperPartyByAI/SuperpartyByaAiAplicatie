@@ -406,18 +406,30 @@ app.post('/api/voice/incoming', async (req, res) => {
 });
 
 // ─── FCM FALLBACK: LEGACY ENDPOINTS RESTORED ──────────────────────────────
+const acceptedCallSids = new Set();
+// Periodically flush the deduplication memory buffer (10 minutes)
+setInterval(() => acceptedCallSids.clear(), 10 * 60 * 1000);
+
 app.post('/api/voice/accept', express.json(), async (req, res) => {
   try {
     console.log('[/api/voice/accept] incoming body:', req.body);
     const { callSid, apiSecret } = req.body;
     
-    if (apiSecret !== 'SuperpartyV6Secure' && req.headers['x-api-secret'] !== 'SuperpartyV6Secure') {
+    const pbxSecret = process.env.PBX_API_SECRET || 'SuperpartyV6Secure';
+    if (apiSecret !== pbxSecret && req.headers['x-api-secret'] !== pbxSecret) {
         return res.status(401).json({ ok: false, error: 'unauthorized: missing or invalid secure token' });
     }
 
     if (!callSid) {
       return res.status(400).json({ ok: false, error: 'missing callSid' });
     }
+
+    // IDEMPOTENCY LOCK: Prevent the concurrent Flutter+Kotlin "Double Out-Dial" race condition
+    if (acceptedCallSids.has(callSid)) {
+      console.log(`[/api/voice/accept] Idempotency Cache Catch: callSid ${callSid} already bridged. Ignoring duplicate request.`);
+      return res.json({ ok: true, callSid, dedupe: true });
+    }
+    acceptedCallSids.add(callSid);
 
     const confName = `conf_${callSid}`;
     let toNumber = null;
@@ -453,7 +465,8 @@ app.post('/api/voice/accept', express.json(), async (req, res) => {
 app.post('/api/voice/hangup', express.json(), async (req, res) => {
   const { callSid, apiSecret } = req.body || {};
   
-  if (apiSecret !== 'SuperpartyV6Secure' && req.headers['x-api-secret'] !== 'SuperpartyV6Secure') {
+  const pbxSecret = process.env.PBX_API_SECRET || 'SuperpartyV6Secure';
+  if (apiSecret !== pbxSecret && req.headers['x-api-secret'] !== pbxSecret) {
       return res.status(401).json({ ok: false, error: 'unauthorized' });
   }
   
