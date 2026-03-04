@@ -153,16 +153,22 @@ setInterval(() => {
 }, 30000);
 
 server.on('upgrade', (request, socket, head) => {
-  if (request.url.includes('/voip-ws')) {
-    wss.handleUpgrade(request, socket, head, (ws) => {
-      const url = new URL(request.url, `http://${request.headers.host}`);
-      const token = url.searchParams.get('token');
-      const identityParam = url.searchParams.get('identity');
-      
-      let identity = identityParam;
-      
-      if (token && token.length > 0) {
-        const JWT_SECRET = process.env.JWT_SECRET || process.env.SUPABASE_SERVICE_KEY || 'default_jwt_secret_please_change';
+  console.log(`[WS UPGRADE] Received upgrade request for URL: ${request.url}`);
+  try {
+    if (request.url.includes('/voip-ws')) {
+      console.log(`[WS UPGRADE] URL matched '/voip-ws'! Executing wss.handleUpgrade...`);
+      wss.handleUpgrade(request, socket, head, (ws) => {
+        console.log(`[WS UPGRADE] handleUpgrade callback triggered! Socket upgraded successfully.`);
+        const url = new URL(request.url, `http://${request.headers.host}`);
+        const token = url.searchParams.get('token');
+        const identityParam = url.searchParams.get('identity');
+        
+        console.log(`[WS UPGRADE] Parsed token: ${token ? 'YES' : 'NO'}, Parsed identityParam: ${identityParam || 'NONE'}`);
+        let identity = identityParam;
+        
+        if (token && token.length > 0) {
+          const JWT_SECRET = process.env.JWT_SECRET || process.env.SUPABASE_SERVICE_KEY || 'default_jwt_secret_please_change';
+          console.log(`[WS UPGRADE] Verifying JWT token...`);
         try {
           const decoded = jwt.verify(token, JWT_SECRET);
           identity = decoded.identity;
@@ -173,24 +179,31 @@ server.on('upgrade', (request, socket, head) => {
         }
       }
 
-      if (!identity) {
-        console.error('[WS] No identity provided');
-        ws.close(1008, 'Missing identity or token');
-        return;
-      }
-      
-      ws.isAlive = true;
-      ws.voipIdentity = identity;
-      ws.on('pong', () => { ws.isAlive = true; });
-      ws.on('message', (msg) => {
-        try {
-          const parsed = JSON.parse(msg);
-          if (parsed.type === 'ping') ws.send(JSON.stringify({ type: 'pong' }));
-        } catch(e) {}
+        if (!identity) {
+          console.error('[WS UPGRADE] No identity provided -> ws.close(1008)');
+          ws.close(1008, 'Missing identity or token');
+          return;
+        }
+        
+        console.log(`[WS UPGRADE] Identity verified: ${identity}. Finalizing connection state.`);
+        ws.isAlive = true;
+        ws.voipIdentity = identity;
+        ws.on('pong', () => { ws.isAlive = true; });
+        ws.on('message', (msg) => {
+          try {
+            const parsed = JSON.parse(msg);
+            if (parsed.type === 'ping') ws.send(JSON.stringify({ type: 'pong' }));
+          } catch(e) {}
+        });
+        console.log(`[WS UPGRADE] Emitting wss connection event for custom handlers.`);
+        wss.emit('connection', ws, request);
       });
-      wss.emit('connection', ws, request);
-    });
-  } else {
+    } else {
+      console.error(`[WS UPGRADE] URL '${request.url}' did NOT match '/voip-ws'! Destroying socket.`);
+      socket.destroy();
+    }
+  } catch (e) {
+    console.error(`[WS UPGRADE] EXCEPTION in upgrade handler:`, e);
     socket.destroy();
   }
 });
