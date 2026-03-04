@@ -166,6 +166,16 @@ class CustomVoiceFirebaseMessagingService : FirebaseMessagingService(), MessageL
 
         if (data.isNotEmpty()) {
             val msgType = data["twi_message_type"] ?: ""
+            
+            // ── CRITICAL FIX P0-1: ALWAYS pass native Twilio payloads to SDK to generate CallInvites! ──
+            if (msgType.startsWith("twilio.voice.")) {
+                Log.d(TAG, "Passing payload to Twilio Voice.handleMessage...")
+                val validTwilio = Voice.handleMessage(applicationContext, data, this)
+                if (!validTwilio) {
+                    Log.w(TAG, "⚠️ Twilio Voice.handleMessage rejected payload.")
+                }
+            }
+
             if (msgType == "twilio.voice.call") {
                 val rawFrom = data["twi_from"] ?: data["From"] ?: data["from"] ?: "Superparty"
                 val from = rawFrom.removePrefix("client:").removePrefix("+")

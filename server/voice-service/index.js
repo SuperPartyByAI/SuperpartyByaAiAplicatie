@@ -298,6 +298,13 @@ app.post('/api/voice/incoming', async (req, res) => {
     const twiml = new twilio.twiml.VoiceResponse();
   
     try {
+      // INCOMING CALL (From World -> To Mobile App)
+      // Generate a conference name based on the incoming CallSid
+      const confName = `conf_${CallSid}`;
+      
+      // Short greeting
+      twiml.say({ language: 'ro-RO' }, 'Vă conectăm acum. Vă rugăm să aşteptaţi.');
+
       let identities = [];
       for (const [id, info] of registeredVoipClients) {
         identities.push({ id, ...info });
@@ -337,18 +344,23 @@ app.post('/api/voice/incoming', async (req, res) => {
       } else {
         const actionUrl = `${BASE_URL}/api/voice/dial-status`;
         const dial = twiml.dial({ 
-          answerOnBridge: true,
-          timeout: 60, 
-          action: actionUrl 
+          action: actionUrl,
+          timeout: 60
         });
+        
+        // Put the inbound caller into the Hold Conference
+        dial.conference({
+          beep: false,
+          startConferenceOnEnter: true,
+          endConferenceOnExit: true,
+          waitUrl: 'http://twimlets.com/holdmusic?Bucket=com.twilio.music.ambient'
+        }, confName);
   
         const payload = {
           type: 'incoming_call',
           callerNumber: From,
           callSid: CallSid
         };
-  
-        dial.client(targetClient.id);
   
         const deliveredViaWs = sendIncomingToIdentity(targetClient.id, payload);
         
@@ -366,6 +378,92 @@ app.post('/api/voice/incoming', async (req, res) => {
   
     res.type('text/xml');
     res.send(twiml.toString());
+});
+
+// ─── FCM FALLBACK: LEGACY ENDPOINTS RESTORED ──────────────────────────────
+app.post('/api/voice/accept', express.json(), async (req, res) => {
+  try {
+    console.log('[/api/voice/accept] incoming body:', req.body);
+    const { callSid } = req.body;
+
+    if (!callSid) {
+      return res.status(400).json({ ok: false, error: 'missing callSid' });
+    }
+
+    const confName = `conf_${callSid}`;
+    let toNumber = null;
+    const clientIdentity = req.body.clientIdentity || req.body.deviceIdentity;
+    if (clientIdentity) {
+        toNumber = clientIdentity;
+    } else if (registeredVoipClients.size > 0) {
+        toNumber = Array.from(registeredVoipClients.values())[0].id || Array.from(registeredVoipClients.keys())[0];
+    } else {
+        try {
+          const { data } = await supabase.from('device_tokens').select('device_identity').order('last_seen_at', { ascending: false }).limit(1);
+          if (data && data.length > 0) toNumber = data[0].device_identity;
+        } catch(e) {}
+    }
+
+    if (!toNumber) return res.status(400).json({ ok: false, error: 'no deviceNumber available' });
+    if (!toNumber.includes('+') && !toNumber.startsWith('client:')) toNumber = `client:${toNumber}`;
+
+    console.log('[/api/voice/accept] creating Twilio call to', toNumber, ' bridging into ', confName);
+    const call = await twilioClient.calls.create({
+      to: toNumber,
+      from: process.env.TWILIO_CALLER_ID || '+40373805828',
+      url: `${BASE_URL}/api/voice/join-conference?conf=${encodeURIComponent(confName)}`
+    });
+
+    return res.json({ ok: true, callSid: call.sid });
+  } catch (err) {
+    console.error('[/api/voice/accept] unexpected error', err);
+    return res.status(500).json({ ok: false, error: 'internal' });
+  }
+});
+
+app.post('/api/voice/hangup', express.json(), async (req, res) => {
+  const { callSid } = req.body || {};
+  if (!callSid) return res.status(400).json({ ok: false, error: 'missing callSid' });
+
+  try {
+    const confName = `conf_${callSid}`;
+    console.log('[/api/voice/hangup] Terminating Conference', confName);
+
+    try {
+      if (twilioClient) await twilioClient.conferences(confName).update({ status: 'completed' });
+    } catch (restErr) {
+      console.warn('[/api/voice/hangup] Twilio Conference could not be updated', restErr.message);
+    }
+    
+    // Attempt to hangup the parent call as well
+    try {
+      if (twilioClient) await twilioClient.calls(callSid).update({ status: 'completed' });
+    } catch (e) {}
+
+    if (wss && wss.clients) {
+      const payload = JSON.stringify({ type: 'call_closed', conf: confName, by: 'server_hangup' });
+      wss.clients.forEach(c => {
+        if (c.readyState === 1 && c.voipIdentity) c.send(payload);
+      });
+    }
+
+    return res.json({ ok: true });
+  } catch (err) {
+    console.error('[/api/voice/hangup] Fatal error closing call', err);
+    return res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+app.post('/api/voice/join-conference', express.urlencoded({ extended: false }), (req, res) => {
+  console.log('[/api/voice/join-conference] joining conf:', req.query.conf);
+  const VoiceResponse = twilio.twiml.VoiceResponse;
+  const twiml = new VoiceResponse();
+  const dial = twiml.dial();
+  dial.conference({
+    startConferenceOnEnter: true,
+    endConferenceOnExit: true
+  }, req.query.conf);
+  res.type('text/xml').send(twiml.toString());
 });
 
 app.post('/api/voice/dial-status', (req, res) => {

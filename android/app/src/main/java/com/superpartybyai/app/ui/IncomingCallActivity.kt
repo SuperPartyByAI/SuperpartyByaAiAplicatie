@@ -111,7 +111,7 @@ class IncomingCallActivity : Activity() {
                 // we manually ping the Node PBX Backend from Kotlin so Twilio routes the audio!
                 Thread {
                     try {
-                        val url = java.net.URL("http://89.167.115.150:3001/api/voice/accept")
+                        val url = java.net.URL("http://91.98.16.90:3001/api/voice/accept")
                         val conn = url.openConnection() as java.net.HttpURLConnection
                         conn.requestMethod = "POST"
                         conn.setRequestProperty("Content-Type", "application/json")

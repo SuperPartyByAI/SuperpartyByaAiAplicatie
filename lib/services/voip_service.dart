@@ -434,7 +434,7 @@ class VoipService {
     if (callSid.isEmpty) return;
     try {
       final String confName = conf.isNotEmpty ? conf : 'conf_$callSid';
-      final Uri hangupUri = Uri.parse('http://89.167.115.150:3001/api/voice/hangup');
+      final Uri hangupUri = Uri.parse('${BackendService.VOICE_BASE_URL}/voice/hangup');
       final resp = await http.post(
         hangupUri,
         headers: {'Content-Type': 'application/json'},
@@ -458,7 +458,7 @@ class VoipService {
     if (callSid.isEmpty) return;
     try {
       final String confName = conf.isNotEmpty ? conf : 'conf_$callSid';
-      final Uri acceptUri = Uri.parse('http://89.167.115.150:3001/api/voice/accept');
+      final Uri acceptUri = Uri.parse('${BackendService.VOICE_BASE_URL}/voice/accept');
       
       String clientIdentity = 'SuperpartyApp';
       try {
