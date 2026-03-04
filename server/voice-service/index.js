@@ -214,10 +214,11 @@ server.on('upgrade', (request, socket, head) => {
 
 // Extracting Identity from Register
 app.post('/api/voice/registerDevice', async (req, res) => {
-  const { userId, deviceId, fcmToken } = req.body;
+  const { userId, deviceId } = req.body;
+  const fcmToken = req.body.fcmToken || 'WS_ONLY';
   
-  if (!userId || !deviceId || !fcmToken) {
-    return res.status(400).json({ error: 'Missing userId, deviceId, or fcmToken' });
+  if (!userId || !deviceId) {
+    return res.status(400).json({ error: 'Missing userId or deviceId' });
   }
 
   try {
@@ -311,6 +312,17 @@ app.post('/api/voice/incoming', async (req, res) => {
     const twiml = new twilio.twiml.VoiceResponse();
   
     try {
+      if (From && From.startsWith('client:')) {
+        // OUTBOUND CALL (App -> World)
+        console.log(`[PBX Twilio] Outbound detected from ${From} to ${To}`);
+        const outDial = twiml.dial({ callerId: process.env.TWILIO_CALLER_ID || '+40373805828' });
+        // Clean To number if it comes with prefixes
+        const cleanTo = To.replace('client:', '');
+        outDial.number(cleanTo);
+        res.type('text/xml');
+        return res.send(twiml.toString());
+      }
+
       // INCOMING CALL (From World -> To Mobile App)
       // Generate a conference name based on the incoming CallSid
       const confName = `conf_${CallSid}`;
@@ -397,7 +409,11 @@ app.post('/api/voice/incoming', async (req, res) => {
 app.post('/api/voice/accept', express.json(), async (req, res) => {
   try {
     console.log('[/api/voice/accept] incoming body:', req.body);
-    const { callSid } = req.body;
+    const { callSid, apiSecret } = req.body;
+    
+    if (apiSecret !== 'SuperpartyV6Secure' && req.headers['x-api-secret'] !== 'SuperpartyV6Secure') {
+        return res.status(401).json({ ok: false, error: 'unauthorized: missing or invalid secure token' });
+    }
 
     if (!callSid) {
       return res.status(400).json({ ok: false, error: 'missing callSid' });
@@ -435,7 +451,12 @@ app.post('/api/voice/accept', express.json(), async (req, res) => {
 });
 
 app.post('/api/voice/hangup', express.json(), async (req, res) => {
-  const { callSid } = req.body || {};
+  const { callSid, apiSecret } = req.body || {};
+  
+  if (apiSecret !== 'SuperpartyV6Secure' && req.headers['x-api-secret'] !== 'SuperpartyV6Secure') {
+      return res.status(401).json({ ok: false, error: 'unauthorized' });
+  }
+  
   if (!callSid) return res.status(400).json({ ok: false, error: 'missing callSid' });
 
   try {
@@ -443,7 +464,12 @@ app.post('/api/voice/hangup', express.json(), async (req, res) => {
     console.log('[/api/voice/hangup] Terminating Conference', confName);
 
     try {
-      if (twilioClient) await twilioClient.conferences(confName).update({ status: 'completed' });
+      if (twilioClient) {
+        const confs = await twilioClient.conferences.list({ friendlyName: confName, status: 'in-progress', limit: 1 });
+        if (confs.length > 0) {
+          await twilioClient.conferences(confs[0].sid).update({ status: 'completed' });
+        }
+      }
     } catch (restErr) {
       console.warn('[/api/voice/hangup] Twilio Conference could not be updated', restErr.message);
     }
