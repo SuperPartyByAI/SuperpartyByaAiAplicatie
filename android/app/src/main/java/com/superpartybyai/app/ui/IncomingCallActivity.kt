@@ -106,31 +106,44 @@ class IncomingCallActivity : Activity() {
                 stopRinging()
                 CustomVoiceFirebaseMessagingService.dismissCallNotification(applicationContext, callSid)
 
-                // ── DIRECT ACCEPT: bypass TelecomManager entirely via WebRTC ──
-                // On Huawei, TVConnectionService is blocked by TelecomManager.
-                // We accept the stored CallInvite directly via Twilio SDK.
-                val directCallListener = object : com.twilio.voice.Call.Listener {
-                    override fun onConnectFailure(call: com.twilio.voice.Call, error: com.twilio.voice.CallException) {
-                        Log.e(TAG, "Direct call connectFailure: ${error.message}")
+                // ── FORCE PBX AUDIO BRIDGE NATIVELY ──
+                // Because Dart SDK / Huawei background might be dead or restricted,
+                // we manually ping the Node PBX Backend from Kotlin so Twilio routes the audio!
+                Thread {
+                    try {
+                        val url = java.net.URL("http://89.167.115.150:3001/api/voice/accept")
+                        val conn = url.openConnection() as java.net.HttpURLConnection
+                        conn.requestMethod = "POST"
+                        conn.setRequestProperty("Content-Type", "application/json")
+                        conn.doOutput = true
+                        var clientIdentity = "SuperpartyApp"
+                        try {
+                            val prefs = applicationContext.getSharedPreferences("FlutterSharedPreferences", android.content.Context.MODE_PRIVATE)
+                            val storedIdentity = prefs.getString("flutter.twilio_client_identity", null)
+                            if (storedIdentity != null) {
+                                clientIdentity = storedIdentity
+                                Log.d(TAG, "SharedPrefs clientIdentity found: \$clientIdentity")
+                            }
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Failed reading SharedPreferences: \${e.message}")
+                        }
+                        
+                        val payload = "{\"conf\":\"conf_\$callSid\",\"callSid\":\"\$callSid\",\"deviceNumber\":\"SuperpartyApp\",\"clientIdentity\":\"\$clientIdentity\"}"
+                        val os = conn.outputStream
+                        os.write(payload.toByteArray(Charsets.UTF_8))
+                        os.flush()
+                        os.close()
+                        val code = conn.responseCode
+                        Log.d(TAG, "✅ Native PBX Accept ping result HTTP $code for sid=$callSid")
+                    } catch (e: Exception) {
+                        Log.e(TAG, "❌ Native PBX Accept Ping Failed: ${e.message}")
                     }
-                    override fun onRinging(call: com.twilio.voice.Call) {
-                        Log.d(TAG, "Direct call ringing: ${call.sid}")
-                    }
-                    override fun onConnected(call: com.twilio.voice.Call) {
-                        Log.d(TAG, "✅ Direct call CONNECTED: ${call.sid}")
-                    }
-                    override fun onReconnecting(call: com.twilio.voice.Call, error: com.twilio.voice.CallException) {}
-                    override fun onReconnected(call: com.twilio.voice.Call) {}
-                    override fun onDisconnected(call: com.twilio.voice.Call, error: com.twilio.voice.CallException?) {
-                        Log.d(TAG, "Direct call disconnected: ${error?.message}")
-                    }
-                }
-                val acceptedCall = CustomVoiceFirebaseMessagingService.acceptPendingCallInvite(applicationContext, directCallListener)
-                if (acceptedCall != null) {
-                    Log.d(TAG, "✅ Pending CallInvite accepted directly (Huawei bypass)")
-                } else {
-                    Log.w(TAG, "⚠️ No pending CallInvite – falling back to Flutter answer()")
-                }
+                }.start()
+
+                // ── FLUTTER WILL HANDLE ACCEPT ──
+                // Do not consume pendingCallInvite here. We send ACTION_ANSWER to MainActivity,
+                // which then calls Flutter's answerCall, which hits directAnswer and uses the invite.
+                Log.d(TAG, "Accept tapped — forwarding to Flutter via MainActivity")
 
                 // Navigate to active call screen via MainActivity
                 val mainIntent = Intent(applicationContext, MainActivity::class.java).apply {
@@ -144,7 +157,13 @@ class IncomingCallActivity : Activity() {
                     )
                 }
                 startActivity(mainIntent)
-                finish()
+                
+                // ── DELAY FINISH ──
+                // Prevent Huawei from blocking the microphone (Call Recording Privacy)
+                // by keeping this Activity alive until MainActivity is fully foregrounded.
+                android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
+                    finish()
+                }, 1500)
             }
         }
 
