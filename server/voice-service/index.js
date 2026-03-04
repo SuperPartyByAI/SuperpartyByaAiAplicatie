@@ -153,7 +153,7 @@ setInterval(() => {
 }, 30000);
 
 server.on('upgrade', (request, socket, head) => {
-  if (request.url.startsWith('/voip-ws')) {
+  if (request.url.includes('/voip-ws')) {
     wss.handleUpgrade(request, socket, head, (ws) => {
       const url = new URL(request.url, `http://${request.headers.host}`);
       const token = url.searchParams.get('token');
