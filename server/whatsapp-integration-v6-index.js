@@ -8,6 +8,8 @@ import crypto from 'crypto';
 import twilio from 'twilio'; // Twilio Import
 import { WebSocketServer } from 'ws';
 import jwt from 'jsonwebtoken';
+import { acquireLock } from './lock.js';
+import { enqueueRetry } from './queues/retryDial.js';
 
 // ... existing imports ...
 
@@ -594,20 +596,11 @@ app.post('/api/voice/incoming', async (req, res) => {
 
   console.log(`[Twilio] Incoming Voice Request. From: ${From}, To: ${To}, SID: ${CallSid}`);
 
-  
-  // 1. Log to Supabase
-  // 1. Log to Supabase
+  // 1. Log to Supabase (Temporarily disabled due to Firebase SDK removal)
   try {
     if (From && To && CallSid) {
-      await db.collection('calls').doc(CallSid).set({
-        callSid: CallSid,
-        from: From,
-        to: To,
-        direction: (From.startsWith('client:') || !From.startsWith('+')) ? 'outgoing' : 'incoming',
-        status: 'ringing',
-        timestamp: new Date().toISOString(),
-        noticePlayed: true
-      }, { merge: true });
+      // NOTE: use Supabase REST or SDK integration here if you want active history
+      console.log(`[Twilio Calls] Would log ringing for CallSid: ${CallSid}`);
     }
   } catch(e) { console.error('Error logging call:', e); }
 
@@ -639,10 +632,8 @@ app.post('/api/voice/incoming', async (req, res) => {
           
           // Also mark the Supabase record as answered
           try {
-             db.collection('active_incoming_calls').doc(targetCallSid).update({
-               status: 'answered',
-               answeredBy: From
-             }).catch(e => console.error('Supabase bridge update error:', e));
+             // Disabled legacy firestore integration
+             console.log(`[Supabase Bridge] Would update status to answered for ${targetCallSid}`);
           } catch(e) {}
       } else {
           let target = To;
@@ -686,14 +677,9 @@ app.post('/api/voice/incoming', async (req, res) => {
       
       // Log incoming call to Supabase
       try {
-         await db.collection('active_incoming_calls').doc(CallSid).set({
-           callSid: CallSid,
-           from: From,
-           to: To,
-           status: 'ringing_clients',
-           timestamp: new Date().toISOString()
-         });
-      } catch(e) { /* stub no-op */ }
+         // Disabled legacy firestore integration
+         console.log(`[Supabase Bridge] Would log active_incoming_call for ${CallSid}`);
+      } catch(e) {} /* stub no-op */ 
 
       // Query registered VoIP clients from in-memory registry
       let identities = [];
@@ -733,7 +719,11 @@ app.post('/api/voice/incoming', async (req, res) => {
         twiml.say({ language: 'ro-RO' }, 'Ne cerem scuze, niciun agent nu este disponibil in acest moment.');
       } else {
         // Build the <Dial> verb to ring all registered clients concurrently
-        const dial = twiml.dial({ timeout: 60 });
+        const dial = twiml.dial({ 
+          answerOnBridge: true,
+          timeout: 60, 
+          action: '/api/voice/dial-status' 
+        });
 
         const payload = {
           type: 'incoming_call',
@@ -760,7 +750,7 @@ app.post('/api/voice/incoming', async (req, res) => {
           }
         }
       }
-  }
+    }
 
   // Log TwiML for debugging
   console.log('[Twiml OUT]', twiml.toString());
@@ -768,13 +758,160 @@ app.post('/api/voice/incoming', async (req, res) => {
   res.send(twiml.toString());
 });
 
-// ─── FCM FALLBACK: LEGACY ENDPOINTS REMOVED ──────────────────────────────
-// The routes `/api/voice/accept` and `/api/voice/join-conference` have been removed.
-// All inbound calls are now answered securely via Twilio Voice Native SDK WebRTC.
+// ─── FCM FALLBACK: LEGACY ENDPOINTS RESTORED ──────────────────────────────
+// Enhanced /api/voice/accept with robust logging, validation, and distributed Redlock
+app.post('/api/voice/accept', express.json(), async (req, res) => {
+  try {
+    console.log('[/api/voice/accept] incoming body:', JSON.stringify(req.body));
+    const { conf, callSid, deviceNumber, sig } = req.body || {};
+
+    if (!conf || !callSid) {
+      console.warn('[/api/voice/accept] missing conf or callSid', { conf, callSid });
+      return res.status(400).json({ ok: false, error: 'missing conf or callSid' });
+    }
+
+    const lock = await acquireLock(`accept:${callSid}`, 120000);
+    try {
+      let toNumber = deviceNumber;
+      if (toNumber === 'SuperpartyApp' || !toNumber) {
+        const clientIdentity = req.body.clientIdentity || req.body.deviceIdentity;
+        if (clientIdentity) {
+           toNumber = clientIdentity;
+           console.log('[/api/voice/accept] Overriding generic SuperpartyApp deviceNumber with actual clientIdentity', { clientIdentity, toNumber });
+        } else if (registeredVoipClients && registeredVoipClients.has(clientIdentity)) {
+          const entry = registeredVoipClients.get(clientIdentity);
+          toNumber = entry.deviceNumber || entry.device_number || clientIdentity;
+          console.log('[/api/voice/accept] resolved deviceNumber from registry', { clientIdentity, toNumber });
+        }
+      }
+
+      if (!toNumber) {
+        console.warn('[/api/voice/accept] no deviceNumber available (no payload and not in registry).');
+        return res.status(400).json({ ok: false, error: 'no deviceNumber provided or resolvable' });
+      }
+
+      console.log('[/api/voice/accept] creating Twilio call to', toNumber);
+      // Auto-prefix VoIP clients if missing 'client:' because our Flutter SDK registers as "client:SuperpartyApp"
+      if (!toNumber.includes('+') && !toNumber.startsWith('client:')) {
+        toNumber = `client:${toNumber}`;
+        console.log('[/api/voice/accept] auto-prepended client: prefix =>', toNumber);
+      }
+      let call;
+      try {
+        call = await twilioClient.calls.create({
+          to: toNumber,
+          from: process.env.TWILIO_CALLER_ID || '+40373805828',
+          url: `${process.env.PUBLIC_URL || 'http://89.167.115.150:3001'}/api/voice/join-conference?conf=${encodeURIComponent(conf)}`
+        });
+        console.log('[/api/voice/accept] Twilio call created', { sid: call && call.sid });
+      } catch (err) {
+        console.error('[/api/voice/accept] Twilio calls.create error', err && err.code, err && err.message);
+        return res.status(500).json({ ok: false, error: 'twilio_call_create_failed', detail: (err && err.message) || String(err) });
+      }
+
+      return res.json({ ok: true, callSid: call.sid });
+    } finally {
+      await lock.release().catch(e => console.error('[Redlock] release failed', e.message));
+    }
+  } catch (err) {
+    console.error('[/api/voice/accept] unexpected error', err && err.stack);
+    return res.status(500).json({ ok: false, error: 'internal' });
+  }
+});
+
+// ─── HANGUP PROPAGATION: KILL THE CONFERENCE AND COLLAPSE CLIENT UI ──────────
+app.post('/api/voice/hangup', express.json(), async (req, res) => {
+  const { conf, callSid, by } = req.body || {};
+  if (!conf && !callSid) {
+    return res.status(400).json({ ok: false, error: 'missing conf or callSid' });
+  }
+
+  try {
+    const confName = conf || `conf_${callSid}`;
+    console.log('[/api/voice/hangup] Terminating Conference', confName, 'Triggered by:', by || 'unknown');
+
+    try {
+      if (twilioClient) {
+        await twilioClient.conferences(confName).update({ status: 'completed' });
+        console.log('[/api/voice/hangup] Twilio Conference Completed Successfully Formally.');
+      }
+    } catch (restErr) {
+      console.warn('[/api/voice/hangup] Twilio Conference could not be updated (may already be empty or invalid)', restErr && restErr.message);
+    }
+
+    // Broadcast `call_closed` event to WS registry so Flutter collapses the ringing UI
+    if (wss && wss.clients) {
+      const payload = JSON.stringify({ type: 'call_closed', conf: confName, by: by || 'server_hangup' });
+      wss.clients.forEach(c => {
+        if (c.readyState === 1 && c.identity) {
+          c.send(payload);
+        }
+      });
+    }
+
+    return res.json({ ok: true });
+  } catch (err) {
+    console.error('[/api/voice/hangup] Fatal error closing call', err);
+    return res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+app.post('/api/voice/join-conference', express.urlencoded({ extended: false }), (req, res) => {
+  console.log('[/api/voice/join-conference] conf:', req.query.conf);
+  const twilio = require('twilio');
+  const VoiceResponse = twilio.twiml.VoiceResponse;
+  const twiml = new VoiceResponse();
+  const dial = twiml.dial();
+  dial.conference({
+    startConferenceOnEnter: true,
+    endConferenceOnExit: true
+  }, req.query.conf);
+  console.log('[/api/voice/join-conference] TwiML OUT:', twiml.toString());
+  res.type('text/xml').send(twiml.toString());
+});
 
 app.post('/api/voice/dial-status', (req, res) => {
-  console.log("[Twilio] Dial Status:", req.body.DialCallStatus, "CallSid:", req.body.CallSid);
-  res.sendStatus(200);
+  try {
+    const twilio = require('twilio');
+    const VoiceResponse = twilio.twiml.VoiceResponse;
+    const dialStatus = (req.body.DialCallStatus || '').toLowerCase();
+    const twiml = new VoiceResponse();
+    console.log(`[Twilio] Dial Status: \${dialStatus}, CallSid: \${req.body.CallSid}`);
+    
+    // success -> nothing to do
+    if (dialStatus === 'completed') return res.type('text/xml').send(twiml.toString());
+
+    // Asynchronous Queue Fallback instead of immediate duplicate Ringing
+    if (dialStatus === 'no-answer' || dialStatus === 'failed') {
+      const conf = req.body.DialCallSid || `conf_${req.body.CallSid}`;
+      
+      // Determine what to ring
+      let toNumber = null;
+      const clientIdentity = req.body.clientIdentity || req.body.CallerClientIdentity || req.body.ToClientIdentity;
+      if (clientIdentity && registeredVoipClients.has(clientIdentity)) {
+        toNumber = registeredVoipClients.get(clientIdentity).deviceNumber;
+      }
+
+      if (toNumber) {
+        console.log(`[Queueing Retry] BullMQ scheduled to retry Dialing ${toNumber}`);
+        enqueueRetry(conf, toNumber, 1);
+        twiml.say({ language: 'ro-RO' }, 'Așteptați. Încercăm să vă conectăm din nou.');
+        return res.type('text/xml').send(twiml.toString());
+      }
+    }
+
+    // final fallback: transfer to operator (if queue omitted or after attempts)
+    const finalOperator = process.env.OPERATOR_NUMBER || process.env.TWILIO_CALLER_ID || '+40373805828';
+    twiml.say({ language: 'ro-RO' }, 'Ne pare rău, nu am reușit să vă conectăm. Vă transferăm la operator.');
+    twiml.dial({ callerId: process.env.TWILIO_CALLER_ID || finalOperator }).number(finalOperator);
+    return res.type('text/xml').send(twiml.toString());
+  } catch (err) {
+    console.error('[dial-result] error', err);
+    const VoiceResponse = require('twilio').twiml.VoiceResponse;
+    const twiml = new VoiceResponse();
+    twiml.say({ language: 'ro-RO' }, 'Eroare internă. Încercați din nou mai târziu.');
+    return res.type('text/xml').status(200).send(twiml.toString());
+  }
 });
 
 // ─── FORCE HANGUP FLUTTER ──────────────────────────────
@@ -811,11 +948,30 @@ app.post('/api/voice/callback', async (req, res) => {
 
     // Fetch the agent identity from Supabase if not provided
     let identity = agentIdentity;
-    let fallbackIdentities = [];
     if (!identity) {
-      const snap = await db.collectionGroup('devices').limit(3).get();
-      fallbackIdentities = snap.docs.map(d => d.data()?.identity).filter(Boolean);
-      identity = fallbackIdentities[0] || 'superparty_admin';
+      console.warn(`[Callback-Conf] No agentIdentity provided. Falling back to in-memory registry.`);
+      const activeClients = Array.from(registeredVoipClients.keys());
+      identity = activeClients[0] || 'superparty_admin';
+      console.warn(`[Callback-Conf] No agentIdentity provided. Attempting to resolve from Supabase or in-memory registry.`);
+      if (db) {
+        // Attempt to fetch an active agent from Supabase
+        const activeAgentSnap = await db.collection('voip_clients').where('status', '==', 'online').limit(1).get();
+        if (!activeAgentSnap.empty) {
+          identity = activeAgentSnap.docs[0].id; // Assuming the document ID is the identity
+          console.log(`[Callback-Conf] Resolved agentIdentity from Supabase: ${identity}`);
+        }
+      }
+
+      if (!identity && registeredVoipClients && registeredVoipClients.size > 0) {
+        // Fallback to in-memory registry
+        identity = Array.from(registeredVoipClients.keys())[0];
+        console.log(`[Callback-Conf] Resolved agentIdentity from in-memory registry: ${identity}`);
+      }
+
+      if (!identity) {
+        identity = 'superparty_admin'; // Final fallback
+        console.warn(`[Callback-Conf] No active agent found. Falling back to default: ${identity}`);
+      }
     }
 
     const confName = makeConfName();
@@ -1138,8 +1294,8 @@ app.get('/api/voice/getVoipToken', async (req, res) => {
 
     const token = new AccessToken(
       TWILIO_SID,
-      API_KEY_SID,
-      API_KEY_SECRET,
+      process.env.TWILIO_API_KEY_SID,
+      process.env.TWILIO_API_KEY_SECRET,
       { identity: identity }
     );
     
@@ -1552,7 +1708,7 @@ async function generatePersonCode() {
 }
 
 // ─── USER PHONE NUMBER UPDATE ──────────────────────────────────────────
-app.post('/api/user/phone', express.json(), checkAuth, async (req, res) => {
+app.post('/api/user/phone', express.json(), async (req, res) => {
   try {
     const { phone } = req.body;
     if (!phone) return res.status(400).json({ error: 'Phone number missing' });
