@@ -210,17 +210,28 @@ Future<void> answerIncomingCall(String from, String callSid) async {
   }
 
   try {
-    // ── INBOUND CONFERENCE BRIDGE (HUAWEI BYPASS) ──
-    // Audio bridging is handled entirely in Android Kotlin Native
-    // using `CustomVoiceFCM` autoAnswerNextCallSid Queue + Server Dial.
-    debugPrint('[main] 🚀 UI transitioned to ActiveCallScreen. Native SDK WebRTC is connected silently!');
-
-    // Request audio focus immediately for the system
+    // Request audio focus immediately
     try {
       await const MethodChannel(_kAudioChannel).invokeMethod('requestAudioFocusAndMode');
     } catch (_) {}
 
-    debugPrint('[main] ✨ Outbound dial complete. UI takes over audio stream.');
+    // 1) Try Huawei-safe directAnswer (accept pending CallInvite in native)
+    bool directAnswered = false;
+    try {
+      final directResult = await const MethodChannel(_kCallActionsChannel)
+          .invokeMethod<bool>('directAnswer');
+      directAnswered = directResult == true;
+      debugPrint('[main] directAnswer result: $directAnswered');
+    } catch (e) {
+      debugPrint('[main] directAnswer error (non-fatal): $e');
+    }
+
+    // 2) Fallback to Twilio SDK answer()
+    if (!directAnswered) {
+      debugPrint('[main] directAnswer=false → TwilioVoice.answer()');
+      final result = await TwilioVoice.instance.call.answer();
+      debugPrint('[main] Twilio answer() result: $result');
+    }
 
   } catch (e) {
     VoipService.clearCallAnswered(); // Clear guard on failure
