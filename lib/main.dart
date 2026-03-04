@@ -154,12 +154,19 @@ void _registerCallActionsHandler() {
 
     switch (call.method) {
       case 'answerCall':
+        // Fire explicit PBX Proxy Acknowledgement to bypass Huawei Telecom bugs
+        await VoipService.acceptCallFromServer('', callSid);
         await answerIncomingCall(from, callSid);
         break;
       case 'rejectCall':
         try {
+          VoipService.isRingingOrActive = false;
+          // Send Hangup signal to PBX server synchronously BEFORE we tear down
+          // the native local audio context to ensure it transmits correctly.
+          await VoipService.rejectCallFromServer('', callSid);
+
           await TwilioVoice.instance.call.hangUp();
-          debugPrint('[main] rejectCall done');
+          debugPrint('[main] rejectCall done and transmitted to Server.');
         } catch (e) {
           debugPrint('[main] rejectCall error: $e');
         }
@@ -178,6 +185,9 @@ void _registerCallActionsHandler() {
 Future<void> answerIncomingCall(String from, String callSid) async {
   VoipLogger.instance.logEvent('ACCEPT_TAPPED', extra: {'from': from, 'callSid': callSid});
   if (callSid.isNotEmpty) VoipLogger.instance.setLastCallSid(callSid);
+
+  // ── FORCE PBX AUDIO BRIDGE IMMEDIATELY BEFORE NATIVE CALLKIT HANGS THE THREAD ──
+  await VoipService.acceptCallFromServer('', callSid);
 
   // ── Navigate to ActiveCallScreen IMMEDIATELY so user sees the call UI ──
   final callerName = from.replaceFirst('client:', '').replaceFirst('+', '');
@@ -342,14 +352,24 @@ class _ApprovalGateState extends State<ApprovalGate> {
       if (mounted) {
         setState(() {
           _approved = employeeStatus['approved'] == true;
-          _isAdmin = employeeStatus['role'] == 'admin' || auth.currentUser?.email == 'ursache.andrei1995@gmail.com'; 
+          _isAdmin = employeeStatus['role'] == 'admin' || auth.currentUser?.email == 'ursache.andrei1995@gmail.com' || auth.currentUser?.email == 'superpartybyai@gmail.com'; 
           
-          // Assume consent given if user profile fails since we're migrating
           final String? version = userProfile['latestConsentVersion'];
-          _consentGiven = version == 'v1' || userProfile.isEmpty;
+          // Admins bypass the consent screen restriction to prevent VoIP interruption
+          _consentGiven = _isAdmin || version == 'v1' || userProfile.isEmpty;
 
           _loading = false;
           
+          // 🚨 CRITICAL ASYNC BYPASS: If a call was answered natively while we were
+          // waiting for these Futures to resolve, do NOT initialize VoIP (which kills
+          // active calls) and temporarily grant consent to unblock the UI.
+          if (VoipService.isRingingOrActive) {
+             debugPrint("[App] Future resolved but VoIP is currently active. Bypassing gates.");
+             // Force UI out of loading and consent directly into MainScreen
+             _consentGiven = true;
+             return;
+          }
+
           if ((_approved || _isAdmin) && _consentGiven) {
              debugPrint("[App] User approved & consented. Initializing VoIP...");
              final user = auth.currentUser;
@@ -408,6 +428,12 @@ class _ApprovalGateState extends State<ApprovalGate> {
 
     // 2. Consent Check (only if approved)
     if (!_consentGiven) {
+      // 🚨 CRITICAL BYPASS: Do not show ConsentScreen if the app was just launched by an Incoming Call push.
+      // If we render ConsentScreen, it will override the IncomingCallScreen layer.
+      if (VoipService.isRingingOrActive) {
+        debugPrint('[ApprovalGate] 🚨 Incoming Call detected! Bypassing ConsentScreen to allow IncomingCallScreen to render.');
+        return const MainScreen();
+      }
       return ConsentScreen(onConsentGiven: _onConsentSuccess);
     }
 

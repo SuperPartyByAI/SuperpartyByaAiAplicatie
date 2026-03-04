@@ -6,6 +6,8 @@ import fs from "fs";
 import path from 'path';
 import twilio from 'twilio';
 import { WebSocketServer } from 'ws';
+import fetch from "node-fetch";
+import jwt from "jsonwebtoken";
 import { GoogleAuth } from "google-auth-library";
 import pino from "pino";
 import promClient from 'prom-client';
@@ -118,6 +120,16 @@ async function loadDeviceTokensFromDB() {
 }
 loadDeviceTokensFromDB();
 
+// WS Token Generation
+app.get('/api/auth/get-ws-token', (req, res) => {
+  const identity = req.query.identity;
+  if (!identity) return res.status(400).json({ error: 'Missing identity parameter' });
+  
+  const JWT_SECRET = process.env.JWT_SECRET || process.env.SUPABASE_SERVICE_KEY || 'default_jwt_secret_please_change';
+  const token = jwt.sign({ identity }, JWT_SECRET, { expiresIn: '12h' });
+  res.json({ token, identity });
+});
+
 // Health Check
 app.get('/health', (req, res) => {
   res.status(200).json({ status: "ok", service: "voice-service" });
@@ -144,7 +156,28 @@ server.on('upgrade', (request, socket, head) => {
   if (request.url.startsWith('/voip-ws')) {
     wss.handleUpgrade(request, socket, head, (ws) => {
       const url = new URL(request.url, `http://${request.headers.host}`);
-      const identity = url.searchParams.get('identity');
+      const token = url.searchParams.get('token');
+      const identityParam = url.searchParams.get('identity');
+      
+      let identity = identityParam;
+      
+      if (token && token.length > 0) {
+        const JWT_SECRET = process.env.JWT_SECRET || process.env.SUPABASE_SERVICE_KEY || 'default_jwt_secret_please_change';
+        try {
+          const decoded = jwt.verify(token, JWT_SECRET);
+          identity = decoded.identity;
+        } catch(e) {
+          console.error('[WS] Invalid JWT token:', e.message);
+          ws.close(1008, 'Invalid token');
+          return;
+        }
+      }
+
+      if (!identity) {
+        console.error('[WS] No identity provided');
+        ws.close(1008, 'Missing identity or token');
+        return;
+      }
       
       ws.isAlive = true;
       ws.voipIdentity = identity;

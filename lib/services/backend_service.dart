@@ -10,8 +10,11 @@ class BackendService {
   // Update to your actual backend URL. 
   // CHANGE BACK TO IP because api.superparty.ro DNS is still pointing to Hosterion for the user's phone!
   static const String BASE_URL = 'http://89.167.115.150:3001/api';  // TEMP FIX 
+  // TODO: Set to https://voice.yourdomain.ro/api after Nginx is configured
+  static const String VOICE_BASE_URL = 'http://91.98.16.90:3001/api'; 
 
   String get baseUrl => BASE_URL;
+  String get voiceBaseUrl => VOICE_BASE_URL;
 
   static const String SUPABASE_API_URL = 'https://europe-west1-superparty-frontend.cloudfunctions.net/api';
   // static const String BASE_URL = 'http://127.0.0.1:3000/api'; // Debugging Local Fixes 
@@ -300,7 +303,7 @@ class BackendService {
     final uid = _authService.currentUser?.id;
     if (uid == null) throw Exception('Cannot register device: user not logged in.');
     
-    final url = Uri.parse('$BASE_URL/voice/registerDevice');
+    final url = Uri.parse('$VOICE_BASE_URL/voice/registerDevice');
     try {
       final headers = await _getHeaders();
       final body = jsonEncode({
@@ -323,7 +326,7 @@ class BackendService {
     final uid = _authService.currentUser?.id;
     if (uid == null) throw Exception('Cannot fetch VoIP token: user not logged in.');
     
-    final url = Uri.parse('$BASE_URL/voice/getVoipToken?userId=$uid&deviceId=$deviceId');
+    final url = Uri.parse('$VOICE_BASE_URL/voice/getVoipToken?userId=$uid&deviceId=$deviceId');
     try {
       final headers = await _getHeaders();
       final response = await http.get(url, headers: headers);

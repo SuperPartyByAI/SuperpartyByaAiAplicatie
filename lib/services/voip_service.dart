@@ -3,6 +3,8 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:superparty_app/widgets/global_inbox_badge.dart';
+import 'package:superparty_app/main.dart';
 import 'package:twilio_voice/twilio_voice.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'dart:io';
@@ -93,6 +95,17 @@ class VoipService {
             await handleIncomingData(pushPayload);
           } else if (data['type'] == 'registered') {
             debugPrint('[VoIP WS] Successfully registered on WebSocket Server');
+          } else if (data['type'] == 'call_closed') {
+            debugPrint('[VoIP WS] Server issued call_closed. Terminating Native Audio and Dismissing UI.');
+            try {
+              // 1. Terminate native audio immediately
+              await TwilioVoice.instance.call.hangUp();
+            } catch(e) {
+              debugPrint('[VoIP WS] Warning hanging up Twilio locally: $e');
+            }
+            
+            // 2. Clear Active UI components (IncomingCallScreen / ActiveCallScreen)
+            navigatorKey.currentState?.popUntil((route) => route.isFirst);
           }
         } catch (e) {
           debugPrint('[VoIP WS] Message parse error: $e');
@@ -117,6 +130,7 @@ class VoipService {
   }
 
   static Future<void> _showIncomingUI(Map<String, dynamic> data) async {
+    isRingingOrActive = true;
     WakelockPlus.enable();
     await _showIncomingNotification(data);
   }
@@ -156,6 +170,8 @@ class VoipService {
 
   bool _isRegistered = false;
   bool get isRegistered => _isRegistered;
+  static bool isRingingOrActive = false;
+
   String? _lastIdentity; // set during registerDevice, used in makeCall
 
   /// Set to true IMMEDIATELY after answer() is called to block any re-init
@@ -263,6 +279,7 @@ class VoipService {
       final accessToken = data['token'] as String;
       final identity = data['identity'] as String;
       _lastIdentity = identity; // save for outgoing calls
+      await prefs.setString('twilio_client_identity', identity);
       debugPrint('[VoIP] Token received for identity: $identity');
 
       // 5. Register with Twilio SDK (links FCM token → Twilio identity)
@@ -272,7 +289,7 @@ class VoipService {
       );
 
       // 6. Connect WebSocket Fallback (Huawei foreground support)
-      final apiBaseUrl = backendService.baseUrl;
+      final apiBaseUrl = backendService.voiceBaseUrl;
       final prefsDeviceNum = prefs.getString('user_phone'); // Or passed down if known
       _connectWebSocket(identity, prefsDeviceNum, apiBaseUrl);
 
@@ -406,7 +423,69 @@ class VoipService {
     try {
       await TwilioVoice.instance.call.hangUp();
     } catch (e) {
-      debugPrint('[VoIP] HangUp error: $e');
+      debugPrint('[VoIP API] Network error during hangup proxy request: $e');
+    }
+  }
+
+  /// Broadcasts a Reject signal directly to the NodeJS PBX to manually advance
+  /// Twilio Conference bindings into ACTIVE status when the local User hits "Answer".
+  /// Essential for Huawei where native Twilio SDK callbacks randomly stall.
+  static Future<void> rejectCallFromServer(String conf, String callSid) async {
+    if (callSid.isEmpty) return;
+    try {
+      final String confName = conf.isNotEmpty ? conf : 'conf_$callSid';
+      final Uri hangupUri = Uri.parse('http://89.167.115.150:3001/api/voice/hangup');
+      final resp = await http.post(
+        hangupUri,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'conf': confName,
+          'callSid': callSid,
+          'deviceNumber': 'SuperpartyApp'
+        })
+      );
+      if (resp.statusCode == 200) {
+        debugPrint('[VoIP API] Successfully notified Server to manually hangup Conference $confName.');
+      } else {
+        debugPrint('[VoIP API] Failed to manually hangup call remotely. statusCode: ${resp.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('[VoIP API] Network error during manual hangup proxy request: $e');
+    }
+  }
+
+  static Future<void> acceptCallFromServer(String conf, String callSid) async {
+    if (callSid.isEmpty) return;
+    try {
+      final String confName = conf.isNotEmpty ? conf : 'conf_$callSid';
+      final Uri acceptUri = Uri.parse('http://89.167.115.150:3001/api/voice/accept');
+      
+      String clientIdentity = 'SuperpartyApp';
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final stored = prefs.getString('twilio_client_identity');
+        if (stored != null) clientIdentity = stored;
+      } catch (e) {
+        debugPrint('[VoIP API] Error reading SharedPreferences for identity: $e');
+      }
+
+      final resp = await http.post(
+        acceptUri,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'conf': confName,
+          'callSid': callSid,
+          'deviceNumber': 'SuperpartyApp',
+          'clientIdentity': clientIdentity
+        })
+      );
+      if (resp.statusCode == 200) {
+        debugPrint('[VoIP API] Successfully notified Server to manually answer Conference $confName.');
+      } else {
+        debugPrint('[VoIP API] Failed to manually accept call remotely. statusCode: ${resp.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('[VoIP API] Network error during manual accept proxy request: $e');
     }
   }
 }

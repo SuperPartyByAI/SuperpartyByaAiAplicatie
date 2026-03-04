@@ -196,7 +196,7 @@ class _VoipOnboardingScreenState extends State<VoipOnboardingScreen>
       );
 
       final resp = await http.post(
-        Uri.parse('${BackendService.BASE_URL}/voice/diag'),
+        Uri.parse('${BackendService.VOICE_BASE_URL}/voice/diag'),
         headers: {
           'Content-Type': 'application/json',
           if (idToken != null) 'Authorization': 'Bearer $idToken',

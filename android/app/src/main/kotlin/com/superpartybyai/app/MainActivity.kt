@@ -114,14 +114,16 @@ class MainActivity : FlutterActivity() {
                                 runOnUiThread { ch.invokeMethod("callEnded", null) }
                             }
                         }
-                        val accepted = com.superpartybyai.app.services.CustomVoiceFirebaseMessagingService
-                            .acceptPendingCallInvite(applicationContext, directListener)
-                        if (accepted != null) {
-                            Log.d(TAG, "✅ directAnswer: CallInvite accepted, sid=${accepted.sid}")
-                            result.success(true)
-                        } else {
-                            Log.w(TAG, "directAnswer: no pending CallInvite — falling back")
-                            result.success(false)
+                        runOnUiThread {
+                            val accepted = com.superpartybyai.app.services.CustomVoiceFirebaseMessagingService
+                                .acceptPendingCallInvite(applicationContext, directListener)
+                            if (accepted != null) {
+                                Log.d(TAG, "✅ directAnswer: CallInvite accepted, sid=\${accepted.sid}")
+                                result.success(true)
+                            } else {
+                                Log.w(TAG, "directAnswer: no pending CallInvite — falling back")
+                                result.success(false)
+                            }
                         }
                     }
                     else -> result.notImplemented()

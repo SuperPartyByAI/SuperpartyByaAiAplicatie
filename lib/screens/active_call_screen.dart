@@ -125,30 +125,10 @@ class _ActiveCallScreenState extends State<ActiveCallScreen> {
   }
 
   void _hangUp() {
+    VoipService.isRingingOrActive = false;
+    VoipService.rejectCallFromServer('', _activeCallSid ?? '');
     TwilioVoice.instance.call.hangUp();
-    // Huawei workaround: SDK hangUp() doesn't disconnect — force via server
-    _forceHangupOnServer();
     _closeCall("Ending...");
-  }
-
-  Future<void> _forceHangupOnServer() async {
-    try {
-      final token = await Future.value(Supabase.instance.client.auth.currentSession?.accessToken);
-      await http.post(
-        Uri.parse('http://89.167.115.150:3001/api/voice/forceHangup'),
-        headers: {
-          'Content-Type': 'application/json',
-          if (token != null) 'Authorization': 'Bearer $token',
-        },
-        body: jsonEncode({
-          'callSid': _activeCallSid ?? '',
-          'terminateAll': true,
-        }),
-      ).timeout(const Duration(seconds: 5));
-      debugPrint('[ActiveCall] forceHangup sent to server');
-    } catch (e) {
-      debugPrint('[ActiveCall] forceHangup error: $e');
-    }
   }
 
   @override

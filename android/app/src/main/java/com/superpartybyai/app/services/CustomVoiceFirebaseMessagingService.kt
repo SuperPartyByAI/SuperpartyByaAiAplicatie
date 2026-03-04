@@ -61,6 +61,7 @@ class CustomVoiceFirebaseMessagingService : FirebaseMessagingService(), MessageL
             val invite = pendingCallInvite ?: return null
             pendingCallInvite = null 
             Log.d(TAG, "✅ acceptPendingCallInvite: accepting sid=${invite.callSid} directly via Twilio SDK")
+
             return invite.accept(context, listener)
         }
 
@@ -192,16 +193,6 @@ class CustomVoiceFirebaseMessagingService : FirebaseMessagingService(), MessageL
                 return
             }
 
-            // ── STEP 2: Forward to Twilio Voice SDK for CallInvite processing ─
-            // This is the CRITICAL step that was missing before. Without this,
-            // the Twilio SDK never creates a CallInvite, activeCall is always null,
-            // and answer() always fails.
-            val valid = Voice.handleMessage(applicationContext, data, this)
-            Log.d(TAG, "Voice.handleMessage valid=$valid")
-
-            if (!valid) {
-                Log.d(TAG, "Not a valid Twilio Voice payload — ignoring")
-            }
         }
     }
 

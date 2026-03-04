@@ -1,9 +1,12 @@
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/voip_service.dart';
 import '../services/backend_service.dart';
 import '../services/auth_service.dart';
 import '../services/supabase_service.dart';
+import 'package:http/http.dart' as http;
+import 'package:superparty_app/services/voip_service.dart';
 import '../screens/active_call_screen.dart';
 import 'package:twilio_voice/twilio_voice.dart';
 
@@ -37,10 +40,15 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
 
     try {
       debugPrint('[IncomingCallScreen] Accepting native WebRTC call via Twilio SDK...');
+      
+      // Fire our manual PBX acceptance to guarantee caller audio bridges smoothly
+      // before risking Huawei native SDK freezes
+      await VoipService.acceptCallFromServer('', widget.callSid);
+
       // Answer the WebRTC call directly
       await TwilioVoice.instance.call.answer();
       
-      // Navigate immediately to ActiveCallScreen so they see the Native UI
+      // Navigate immediately
       if (mounted) {
         Navigator.pop(context); // Close incoming custom screen
         Navigator.push(
@@ -107,7 +115,11 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
                       FloatingActionButton(
                         heroTag: 'decline_btn',
                         backgroundColor: Colors.redAccent,
-                        onPressed: () => Navigator.pop(context),
+                        onPressed: () {
+                          VoipService.isRingingOrActive = false;
+                          VoipService.rejectCallFromServer('', widget.callSid);
+                          Navigator.pop(context);
+                        },
                         child: const Icon(Icons.call_end, color: Colors.white, size: 30),
                       ),
                       const SizedBox(height: 12),
