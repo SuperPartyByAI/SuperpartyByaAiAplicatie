@@ -682,47 +682,50 @@ app.post('/api/voice/incoming', async (req, res) => {
       } catch(e) {} /* stub no-op */ 
 
       // Query registered VoIP clients from in-memory registry
+      // Get the single most recently active client to prevent multiple overlapping calls
       let identities = [];
       for (const [id, info] of registeredVoipClients) {
         identities.push({ id, ...info });
       }
+      identities.sort((a, b) => new Date(b.registeredAt).getTime() - new Date(a.registeredAt).getTime());
+      
+      let targetClient = identities.length > 0 ? identities[0] : null;
 
-      // If in-memory is empty, try loading from Supabase (PM2 restart recovery)
-      if (identities.length === 0) {
+      if (!targetClient) {
         console.warn('[Twilio] In-memory registry empty, loading from Supabase...');
         try {
           const { data } = await supabase
             .from('device_tokens')
-            .select('device_identity, user_id, device_id, fcm_token')
+            .select('device_identity, user_id, device_id, fcm_token, last_seen_at')
             .order('last_seen_at', { ascending: false })
-            .limit(10);
+            .limit(1);
           if (data && data.length > 0) {
-            for (const row of data) {
-              const info = {
-                userId: row.user_id, deviceId: row.device_id,
-                fcmToken: row.fcm_token, registeredAt: new Date().toISOString()
-              };
-              registeredVoipClients.set(row.device_identity, info);
-              identities.push({ id: row.device_identity, ...info });
-            }
-            console.log(`[Twilio] Recovered ${data.length} client(s) from Supabase`);
+            const row = data[0];
+            targetClient = {
+              id: row.device_identity,
+              userId: row.user_id, deviceId: row.device_id,
+              fcmToken: row.fcm_token, registeredAt: row.last_seen_at
+            };
+            registeredVoipClients.set(row.device_identity, targetClient);
+            console.log(`[Twilio] Recovered client from Supabase: ${targetClient.id}`);
           }
         } catch (e) {
           console.error('[Twilio] DB fallback failed:', e.message);
         }
       }
 
-      console.log(`[Twilio] VoIP clients in registry: ${identities.length}`);
+      console.log(`[Twilio] Target VoIP client: ${targetClient ? targetClient.id : 'NONE'}`);
       
-      if (identities.length === 0) {
+      if (!targetClient) {
         console.warn('[Twilio] No VoIP clients registered! Hanging up.');
         twiml.say({ language: 'ro-RO' }, 'Ne cerem scuze, niciun agent nu este disponibil in acest moment.');
       } else {
-        // Build the <Dial> verb to ring all registered clients concurrently
+        // Build the <Dial> verb to ring the single active client
+        const actionUrl = `${BASE_URL}/api/voice/dial-status`;
         const dial = twiml.dial({ 
           answerOnBridge: true,
           timeout: 60, 
-          action: '/api/voice/dial-status' 
+          action: actionUrl 
         });
 
         const payload = {
@@ -731,23 +734,18 @@ app.post('/api/voice/incoming', async (req, res) => {
           callSid: CallSid
         };
 
-        for (const client of identities) {
-          // Add this client to the Dial list
-          dial.client(client.id);
+        // Dial the specific client
+        dial.client(targetClient.id);
 
-          // 1. Try WebSocket Delivery First (for Huawei/custom UI)
-          const deliveredViaWs = sendIncomingToIdentity(client.id, payload);
-          
-          if (deliveredViaWs) {
-            console.log(`[Twilio] Woke client ${client.id} instantly via WebSocket`);
-            continue; 
-          }
-
-          // 2. Fallback to FCM Push Delivery if offline or WS unavailable
-          if (client.fcmToken && client.fcmToken !== 'WS_ONLY') {
-            console.log(`[Twilio] Sending FCM Push to wake client: ${client.id}`);
-            sendFcmPush(client.fcmToken, payload);
-          }
+        // 1. Try WebSocket Delivery First 
+        const deliveredViaWs = sendIncomingToIdentity(targetClient.id, payload);
+        
+        if (deliveredViaWs) {
+          console.log(`[Twilio] Woke client ${targetClient.id} instantly via WebSocket`);
+        } else if (targetClient.fcmToken && targetClient.fcmToken !== 'WS_ONLY') {
+          // 2. Fallback to FCM Push Delivery if WS unavailable
+          console.log(`[Twilio] Sending FCM Push to wake client: ${targetClient.id}`);
+          sendFcmPush(targetClient.fcmToken, payload);
         }
       }
     }
@@ -1225,8 +1223,8 @@ app.post('/api/voice/registerDevice', async (req, res) => {
     return res.status(400).send('Missing required fields: userId, deviceId');
   }
 
-  // Identity must match what getVoipToken uses for the Access Token
-  const identity = `${userId}_${deviceId}`;
+  // Identity logically requested by other parts of the system
+  const identity = `user_${userId}_dev_${deviceId}`;
   try {
     const now = new Date().toISOString();
     // 1) Store in in-memory registry
@@ -1278,8 +1276,18 @@ app.get('/api/voice/getVoipToken', async (req, res) => {
   }
   
   try {
-    // Build identity from userId+deviceId (no lookup needed — Supabase-only)
-    const identity = `${userId}_${deviceId}`;
+    // Query identity from DB instead of reconstructing it, to avoid token mismatch.
+    let identity = `user_${userId}_dev_${deviceId}`; // fallback base
+    const { data: dbIdentity, error: idErr } = await supabase.from('device_tokens')
+      .select('device_identity')
+      .eq('user_id', userId)
+      .eq('device_id', deviceId)
+      .maybeSingle();
+      
+    if (dbIdentity && dbIdentity.device_identity) {
+      identity = dbIdentity.device_identity;
+    }
+
     // Also register in VoIP client map (so incoming calls can find this device)
     registeredVoipClients.set(identity, { userId, deviceId, registeredAt: new Date().toISOString() });
     console.log(`[Twilio VoIP] Generating token for identity: ${identity} (total clients: ${registeredVoipClients.size})`);
@@ -1892,7 +1900,7 @@ app.post('/api/employees/request', async (req, res) => {
   }
 });
 
-const getAuth = () => admin.auth();
+
 
 
 // --- Admin Employee Management ---
@@ -1979,59 +1987,23 @@ app.post('/api/employees/:uid/approve', requireAdmin, async (req, res) => {
         let authUid = empData.uid; // Try existing field
         console.log(`[Auth] Attempting claim for docId=${uid}, email=${email}, existingAuthUid=${authUid}`);
         
-        try {
-             let userRecord;
-             // Try getting via UID if we have it
-             if (authUid) {
-                 try { 
-                    userRecord = await getAuth().getUser(authUid); 
-                    console.log(`[Auth] Found user via existing UID: ${authUid}`);
-                 } catch(e) {
-                    console.log(`[Auth] Failed lookup by existing UID ${authUid}: ${e.message}`);
-                 }
-             }
-             
-             // Fallback to email lookup
-             if (!userRecord && email) {
-                 try {
-                    userRecord = await getAuth().getUserByEmail(email);
-                    authUid = userRecord.uid;
-                    console.log(`[Auth] Found user via Email ${email}: ${authUid}`);
-                    // Save access to real UID in employee doc
-                    await docRef.set({ uid: authUid }, { merge: true }); 
-                 } catch(e) {
-                    console.error(`[Auth] Failed lookup by Email ${email}: ${e.message}`);
-                 }
-             }
+        // 3. CREATE USER PROFILE IN 'users' COLLECTION (if it doesn't exist)
+        // This ensures the "Profile" exists as requested by user, using the employee docId as uid
+        // In a Supabase context, this would typically be handled by a trigger or a separate user management flow
+        // For now, we'll use the Firestore docId as a pseudo-UID for the 'users' collection.
+        await db.collection('users').doc(uid).set({
+           email: email,
+           displayName: empData.displayName || '',
+           phone: empData.phone || '',
+           role: 'employee',
+           approved: true,
+           createdAt: empData.createdAt || new Date(),
+           // photoURL: userRecord.photoURL || '', // No userRecord here
+           uid: uid // Using the employee docId as the user uid
+        }, { merge: true });
+        console.log(`[Profile] Created/Updated user profile for ${uid}`);
 
-             if (userRecord) {
-                 // A. Set Claims
-                 await getAuth().setCustomUserClaims(userRecord.uid, { approved: true, role: 'employee' });
-                 console.log(`[Auth] SUCCESS: Custom claims set for email ${email} (uid: ${userRecord.uid})`);
-
-                 // B. CREATE USER PROFILE IN 'users' COLLECTION
-                 // This ensures the "Profile" exists as requested by user
-                 await db.collection('users').doc(userRecord.uid).set({
-                    email: email,
-                    displayName: empData.displayName || '',
-                    phone: empData.phone || '',
-                    role: 'employee',
-                    approved: true,
-                    createdAt: empData.createdAt || new Date(),
-                    photoURL: userRecord.photoURL || '',
-                    uid: userRecord.uid
-                 }, { merge: true });
-                 console.log(`[Profile] Created/Updated user profile for ${userRecord.uid}`);
-
-             } else {
-                 console.error(`[Auth] FATAL: Could not find Auth User for doc ${uid} / email ${email}`);
-             }
-        } catch (authErr) {
-            console.error(`[Auth] Unexpected error setting claims/profile:`, authErr);
-            // DO NOT THROW. Proceed to return success for DB update.
-        }
-
-        res.json({ status: 'approved', docId: uid, authUid });
+        res.json({ status: 'approved', docId: uid, authUid: uid }); // Return docId as authUid for consistency
     } catch(e) {
         console.error("Error approving:", e);
         res.status(500).json({error: e.message});
@@ -2047,10 +2019,11 @@ app.post('/api/employees/:uid/suspend', requireAdmin, async (req, res) => {
             suspendedAt: new Date()
         }, { merge: true });
 
-        // Remove Claim
-        try {
-             await getAuth().setCustomUserClaims(uid, { approved: false });
-        } catch (e) { /* ignore */ }
+        // Also update the 'users' collection if a profile exists
+        await db.collection('users').doc(uid).set({
+            approved: false,
+            suspended: true,
+        }, { merge: true });
 
         res.json({ status: 'suspended', uid });
     } catch(e) {
@@ -2062,17 +2035,14 @@ app.post('/api/employees/:uid/suspend', requireAdmin, async (req, res) => {
 app.post('/api/employees/:uid/reject', requireAdmin, async (req, res) => {
     try {
         const { uid } = req.params;
+        // 1. Update employee doc in Supabase/Firestore mock
         await db.collection('employees').doc(uid).set({ 
-            approved: false,
+            approved: false, 
             rejectedAt: new Date()
         }, { merge: true });
-
-        // Remove Claim
-        try {
-             await getAuth().setCustomUserClaims(uid, { approved: false });
-        } catch (e) { /* ignore */ }
-
-        res.json({ status: 'rejected', uid });
+        
+        // 2. Reject the request
+        res.json({ success: true, message: `Request for ${uid} rejected.` });
     } catch(e) {
         console.error("Error rejecting:", e);
         res.status(500).json({error: e.message});
