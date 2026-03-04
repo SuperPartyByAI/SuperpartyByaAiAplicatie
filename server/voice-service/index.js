@@ -17,6 +17,7 @@ import { supabase, db } from './supabase-sync.mjs';
 
 const app = express();
 app.use(cors());
+app.set('trust proxy', true);
 
 // Parse raw body for Twilio signatures, JSON for others
 app.use(express.json({
@@ -35,6 +36,49 @@ const TWILIO_TOKEN = process.env.TWILIO_AUTH_TOKEN;
 const TWIML_APP_SID = process.env.TWIML_APP_SID || process.env.TWILIO_TWIML_APP_SID;
 const twilioClient = (TWILIO_SID && TWILIO_TOKEN) ? twilio(TWILIO_SID, TWILIO_TOKEN) : null;
 
+// ─────────────────────────────────────────────────────────────
+// Supabase Bearer Auth (for app-originated endpoints)
+// ─────────────────────────────────────────────────────────────
+async function requireSupabaseUser(req, res, next) {
+  try {
+    const auth = req.get('authorization') || '';
+    const m = auth.match(/^Bearer\s+(.+)$/i);
+    if (!m) return res.status(401).json({ ok: false, error: 'missing_bearer' });
+    const token = m[1];
+    const { data, error } = await supabase.auth.getUser(token);
+    if (error || !data?.user) return res.status(401).json({ ok: false, error: 'invalid_bearer' });
+    req.supabaseUser = data.user;
+    req.supabaseAccessToken = token;
+    return next();
+  } catch (e) {
+    return res.status(500).json({ ok: false, error: 'auth_error' });
+  }
+}
+
+// ─────────────────────────────────────────────────────────────
+// Twilio Webhook Signature Validation
+// ─────────────────────────────────────────────────────────────
+function getPublicBaseUrl(req) {
+  const explicit = process.env.PUBLIC_URL || process.env.BASE_URL;
+  if (explicit) return explicit.replace(/\/$/, '');
+  const proto = (req.get('x-forwarded-proto') || req.protocol || 'http');
+  return `${proto}://${req.get('host')}`.replace(/\/$/, '');
+}
+
+function requireTwilioSignature(req, res, next) {
+  try {
+    if (!TWILIO_TOKEN) return res.status(500).send('twilio_not_configured');
+    const signature = req.get('x-twilio-signature');
+    if (!signature) return res.status(403).send('missing_twilio_signature');
+    const url = getPublicBaseUrl(req) + req.originalUrl;
+    const params = req.body || {};
+    const ok = twilio.validateRequest(TWILIO_TOKEN, signature, url, params);
+    if (!ok) return res.status(403).send('invalid_twilio_signature');
+    return next();
+  } catch (e) {
+    return res.status(403).send('twilio_signature_error');
+  }
+}
 // Logger
 const logger = pino({
   level: process.env.LOG_LEVEL || 'info',
@@ -121,9 +165,15 @@ async function loadDeviceTokensFromDB() {
 loadDeviceTokensFromDB();
 
 // WS Token Generation
-app.get('/api/auth/get-ws-token', (req, res) => {
+app.get('/api/auth/get-ws-token', requireSupabaseUser, (req, res) => {
   const identity = req.query.identity;
   if (!identity) return res.status(400).json({ error: 'Missing identity parameter' });
+  
+  // Prevent generating WS token for someone else's identity
+  const uid = req.supabaseUser.id;
+  if (!identity.startsWith(`user_${uid}_dev_`)) {
+    return res.status(403).json({ error: 'identity_not_owned' });
+  }
   
   const JWT_SECRET = process.env.JWT_SECRET || process.env.SUPABASE_SERVICE_KEY || 'default_jwt_secret_please_change';
   const token = jwt.sign({ identity }, JWT_SECRET, { expiresIn: '12h' });
@@ -213,12 +263,15 @@ server.on('upgrade', (request, socket, head) => {
 ========================================================= */
 
 // Extracting Identity from Register
-app.post('/api/voice/registerDevice', async (req, res) => {
+app.post('/api/voice/registerDevice', requireSupabaseUser, async (req, res) => {
   const { userId, deviceId } = req.body;
   const fcmToken = req.body.fcmToken || 'WS_ONLY';
   
   if (!userId || !deviceId) {
     return res.status(400).json({ error: 'Missing userId or deviceId' });
+  }
+  if (userId !== req.supabaseUser.id) {
+    return res.status(403).json({ error: 'user_mismatch' });
   }
 
   try {
@@ -250,7 +303,7 @@ app.post('/api/voice/registerDevice', async (req, res) => {
   }
 });
 
-app.get('/api/voice/getVoipToken', async (req, res) => {
+app.get('/api/voice/getVoipToken', requireSupabaseUser, async (req, res) => {
   try {
     const userId = req.query.userId;
     const deviceId = req.query.deviceId;
@@ -261,6 +314,9 @@ app.get('/api/voice/getVoipToken', async (req, res) => {
 
     if (!userId || !deviceId) {
        return res.status(400).json({ error: 'Missing userId or deviceId.' });
+    }
+    if (userId !== req.supabaseUser.id) {
+      return res.status(403).json({ error: 'user_mismatch' });
     }
 
     const { data: devices, error } = await supabase
@@ -306,7 +362,7 @@ app.get('/api/voice/getVoipToken', async (req, res) => {
   }
 });
 
-app.post('/api/voice/incoming', async (req, res) => {
+app.post('/api/voice/incoming', requireTwilioSignature, async (req, res) => {
     console.log('[PBX Twilio] Incoming Call Webhook Fired:', req.body);
     const { From, To, CallSid } = req.body;
     const twiml = new twilio.twiml.VoiceResponse();
@@ -410,40 +466,38 @@ const acceptedCallSids = new Set();
 // Periodically flush the deduplication memory buffer (10 minutes)
 setInterval(() => acceptedCallSids.clear(), 10 * 60 * 1000);
 
-app.post('/api/voice/accept', express.json(), async (req, res) => {
+app.post('/api/voice/accept', requireSupabaseUser, express.json(), async (req, res) => {
   try {
     console.log('[/api/voice/accept] incoming body:', req.body);
-    const { callSid, apiSecret } = req.body;
-    
-    const pbxSecret = process.env.PBX_API_SECRET || 'SuperpartyV6Secure';
-    if (apiSecret !== pbxSecret && req.headers['x-api-secret'] !== pbxSecret) {
-        return res.status(401).json({ ok: false, error: 'unauthorized: missing or invalid secure token' });
-    }
+    const { callSid, clientIdentity } = req.body;
 
     if (!callSid) {
       return res.status(400).json({ ok: false, error: 'missing callSid' });
     }
-
-    // IDEMPOTENCY LOCK: Prevent the concurrent Flutter+Kotlin "Double Out-Dial" race condition
-    if (acceptedCallSids.has(callSid)) {
-      console.log(`[/api/voice/accept] Idempotency Cache Catch: callSid ${callSid} already bridged. Ignoring duplicate request.`);
-      return res.json({ ok: true, callSid, dedupe: true });
+    if (acceptSeen(callSid)) {
+      return res.json({ ok: true, dedupe: true });
     }
-    acceptedCallSids.add(callSid);
+    if (!clientIdentity) {
+      return res.status(400).json({ ok: false, error: 'missing clientIdentity' });
+    }
+
+    // Ownership check: clientIdentity must belong to authenticated user
+    {
+      const { data, error } = await supabase
+        .from('device_tokens')
+        .select('user_id')
+        .eq('device_identity', clientIdentity)
+        .limit(1);
+      if (error || !data || data.length === 0) {
+        return res.status(403).json({ ok: false, error: 'identity_not_registered' });
+      }
+      if (data[0].user_id !== req.supabaseUser.id) {
+        return res.status(403).json({ ok: false, error: 'identity_not_owned' });
+      }
+    }
 
     const confName = `conf_${callSid}`;
-    let toNumber = null;
-    const clientIdentity = req.body.clientIdentity || req.body.deviceIdentity;
-    if (clientIdentity) {
-        toNumber = clientIdentity;
-    } else if (registeredVoipClients.size > 0) {
-        toNumber = Array.from(registeredVoipClients.values())[0].id || Array.from(registeredVoipClients.keys())[0];
-    } else {
-        try {
-          const { data } = await supabase.from('device_tokens').select('device_identity').order('last_seen_at', { ascending: false }).limit(1);
-          if (data && data.length > 0) toNumber = data[0].device_identity;
-        } catch(e) {}
-    }
+    let toNumber = clientIdentity;
 
     if (!toNumber) return res.status(400).json({ ok: false, error: 'no deviceNumber available' });
     if (!toNumber.includes('+') && !toNumber.startsWith('client:')) toNumber = `client:${toNumber}`;
@@ -462,19 +516,25 @@ app.post('/api/voice/accept', express.json(), async (req, res) => {
   }
 });
 
-app.post('/api/voice/hangup', express.json(), async (req, res) => {
-  const { callSid, apiSecret } = req.body || {};
-  
-  const pbxSecret = process.env.PBX_API_SECRET || 'SuperpartyV6Secure';
-  if (apiSecret !== pbxSecret && req.headers['x-api-secret'] !== pbxSecret) {
-      return res.status(401).json({ ok: false, error: 'unauthorized' });
-  }
-  
+app.post('/api/voice/hangup', requireSupabaseUser, express.json(), async (req, res) => {
+  const { callSid, clientIdentity } = req.body || {};
   if (!callSid) return res.status(400).json({ ok: false, error: 'missing callSid' });
 
   try {
     const confName = `conf_${callSid}`;
     console.log('[/api/voice/hangup] Terminating Conference', confName);
+
+    // Optional ownership check if clientIdentity is provided
+    if (clientIdentity) {
+      const { data } = await supabase
+        .from('device_tokens')
+        .select('user_id')
+        .eq('device_identity', clientIdentity)
+        .limit(1);
+      if (!data || data.length === 0 || data[0].user_id !== req.supabaseUser.id) {
+        return res.status(403).json({ ok: false, error: 'identity_not_owned' });
+      }
+    }
 
     try {
       if (twilioClient) {
@@ -506,7 +566,7 @@ app.post('/api/voice/hangup', express.json(), async (req, res) => {
   }
 });
 
-app.post('/api/voice/join-conference', express.urlencoded({ extended: false }), (req, res) => {
+app.post('/api/voice/join-conference', requireTwilioSignature, express.urlencoded({ extended: false }), (req, res) => {
   console.log('[/api/voice/join-conference] joining conf:', req.query.conf);
   const VoiceResponse = twilio.twiml.VoiceResponse;
   const twiml = new VoiceResponse();
@@ -518,7 +578,7 @@ app.post('/api/voice/join-conference', express.urlencoded({ extended: false }), 
   res.type('text/xml').send(twiml.toString());
 });
 
-app.post('/api/voice/dial-status', (req, res) => {
+app.post('/api/voice/dial-status', requireTwilioSignature, (req, res) => {
     console.log('[PBX Twilio] Dial Status Webhook:', req.body);
     const twiml = new twilio.twiml.VoiceResponse();
     const dialCallStatus = req.body.DialCallStatus;
@@ -535,7 +595,7 @@ app.post('/api/voice/dial-status', (req, res) => {
     res.send(twiml.toString());
 });
 
-app.post('/api/voice/status', async (req, res) => {
+app.post('/api/voice/status', requireTwilioSignature, async (req, res) => {
     console.log('[PBX Twilio] Master Call Status Webhook:', req.body);
     const { CallSid, CallStatus } = req.body;
     if (['completed', 'failed', 'busy', 'no-answer', 'canceled'].includes(CallStatus)) {
@@ -548,7 +608,7 @@ app.post('/api/voice/status', async (req, res) => {
     res.sendStatus(200);
 });
 
-app.post('/api/voice/cancel', async (req, res) => {
+app.post('/api/voice/cancel', requireSupabaseUser, async (req, res) => {
     const { callSid } = req.body;
     try {
       console.log(`[PBX Twilio] /api/voice/cancel requested for CallSid: ${callSid}`);

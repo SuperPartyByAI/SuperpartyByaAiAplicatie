@@ -15,6 +15,7 @@ import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import 'backend_service.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import 'call_kit_service.dart';
 import 'call_kit_service.dart';
 import 'voip_logger.dart';
@@ -46,7 +47,13 @@ class VoipService {
     try {
       // 1. Get short-lived JWT for WS Auth
       final tokenUrl = Uri.parse('$apiBaseUrl/auth/get-ws-token?identity=$identity');
-      final resp = await http.get(tokenUrl);
+      final accessToken = Supabase.instance.client.auth.currentSession?.accessToken;
+      final resp = await http.get(
+        tokenUrl,
+        headers: {
+          if (accessToken != null) 'Authorization': 'Bearer $accessToken',
+        },
+      );
       if (resp.statusCode != 200) {
         debugPrint('[VoIP WS] Failed to get WS token: ${resp.body}');
         _wsConnecting = false;
@@ -435,13 +442,26 @@ class VoipService {
     try {
       final String confName = conf.isNotEmpty ? conf : 'conf_$callSid';
       final Uri hangupUri = Uri.parse('${BackendService.VOICE_BASE_URL}/voice/hangup');
+      
+      final accessToken = Supabase.instance.client.auth.currentSession?.accessToken;
+      String clientIdentity = 'SuperpartyApp';
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final stored = prefs.getString('twilio_client_identity');
+        if (stored != null) clientIdentity = stored;
+      } catch (_) {}
+
       final resp = await http.post(
         hangupUri,
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          if (accessToken != null) 'Authorization': 'Bearer $accessToken',
+        },
         body: jsonEncode({
           'conf': confName,
           'callSid': callSid,
-          'deviceNumber': 'SuperpartyApp'
+          'deviceNumber': 'SuperpartyApp',
+          'clientIdentity': clientIdentity
         })
       );
       if (resp.statusCode == 200) {
@@ -469,9 +489,13 @@ class VoipService {
         debugPrint('[VoIP API] Error reading SharedPreferences for identity: $e');
       }
 
+      final accessToken = Supabase.instance.client.auth.currentSession?.accessToken;
       final resp = await http.post(
         acceptUri,
-        headers: {'Content-Type': 'application/json'},
+        headers: {
+          'Content-Type': 'application/json',
+          if (accessToken != null) 'Authorization': 'Bearer $accessToken',
+        },
         body: jsonEncode({
           'conf': confName,
           'callSid': callSid,
