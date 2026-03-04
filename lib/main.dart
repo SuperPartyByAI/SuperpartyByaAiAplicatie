@@ -154,13 +154,12 @@ void _registerCallActionsHandler() {
 
     switch (call.method) {
       case 'answerCall':
-        // Fire explicit PBX Proxy Acknowledgement to bypass Huawei Telecom bugs
-        await VoipService.acceptCallFromServer('', callSid);
+        // Outbound conference dial bypasses the native Twilio Telecom loop
         await answerIncomingCall(from, callSid);
         break;
       case 'rejectCall':
         try {
-          VoipService.isRingingOrActive = false;
+          VoipService.clearCallAnswered();
           // Send Hangup signal to PBX server synchronously BEFORE we tear down
           // the native local audio context to ensure it transmits correctly.
           await VoipService.rejectCallFromServer('', callSid);
@@ -186,7 +185,10 @@ Future<void> answerIncomingCall(String from, String callSid) async {
   VoipLogger.instance.logEvent('ACCEPT_TAPPED', extra: {'from': from, 'callSid': callSid});
   if (callSid.isNotEmpty) VoipLogger.instance.setLastCallSid(callSid);
 
-  // ── FORCE PBX AUDIO BRIDGE IMMEDIATELY BEFORE NATIVE CALLKIT HANGS THE THREAD ──
+  VoipService.setCallAnswered();
+
+  // ── PBX audio bridge (server-side) ──
+  // Call once here. Server has idempotency per CallSid anyway.
   await VoipService.acceptCallFromServer('', callSid);
 
   // ── Navigate to ActiveCallScreen IMMEDIATELY so user sees the call UI ──
@@ -208,40 +210,17 @@ Future<void> answerIncomingCall(String from, String callSid) async {
   }
 
   try {
-    // ── Set guard FIRST to block any concurrent VoIP re-init ──
-    // This MUST happen before answer() to prevent the race condition where
-    // ApprovalGate / login fires VoipService.init() → endAllCalls() → kills call.
-    VoipService.setCallAnswered();
-    debugPrint('[main] 🛡️ callAnsweredGuard SET — blocking VoIP re-init');
+    // ── INBOUND CONFERENCE BRIDGE (HUAWEI BYPASS) ──
+    // Audio bridging is handled entirely in Android Kotlin Native
+    // using `CustomVoiceFCM` autoAnswerNextCallSid Queue + Server Dial.
+    debugPrint('[main] 🚀 UI transitioned to ActiveCallScreen. Native SDK WebRTC is connected silently!');
 
-    // ── STEP 1: Try native directAnswer bypass (Huawei-safe) ──
-    debugPrint('[main] 📞 Trying directAnswer bypass...');
-    bool directAnswered = false;
+    // Request audio focus immediately for the system
     try {
-      final directResult = await const MethodChannel(_kCallActionsChannel)
-          .invokeMethod<bool>('directAnswer');
-      directAnswered = directResult == true;
-      debugPrint('[main] directAnswer result: $directAnswered');
-    } catch (e) {
-      debugPrint('[main] directAnswer channel error (non-fatal): $e');
-    }
-
-    // Request audio focus immediately
-    try {
-      await const MethodChannel(_kAudioChannel)
-          .invokeMethod('requestAudioFocusAndMode');
+      await const MethodChannel(_kAudioChannel).invokeMethod('requestAudioFocusAndMode');
     } catch (_) {}
 
-    if (directAnswered) {
-      debugPrint('[main] ✅ Call answered via directAnswer bypass!');
-      return;
-    }
-
-    // ── STEP 2: Fallback to standard Twilio SDK answer() ──
-    debugPrint('[main] directAnswer false — fallback to TwilioVoice.answer()...');
-    final result = await TwilioVoice.instance.call.answer();
-    debugPrint('[main] ✅ answer() result: $result');
-    debugPrint('[main] ✨ Call answered successfully.');
+    debugPrint('[main] ✨ Outbound dial complete. UI takes over audio stream.');
 
   } catch (e) {
     VoipService.clearCallAnswered(); // Clear guard on failure

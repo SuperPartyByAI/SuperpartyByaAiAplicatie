@@ -106,40 +106,6 @@ class IncomingCallActivity : Activity() {
                 stopRinging()
                 CustomVoiceFirebaseMessagingService.dismissCallNotification(applicationContext, callSid)
 
-                // ── FORCE PBX AUDIO BRIDGE NATIVELY ──
-                // Because Dart SDK / Huawei background might be dead or restricted,
-                // we manually ping the Node PBX Backend from Kotlin so Twilio routes the audio!
-                Thread {
-                    try {
-                        val url = java.net.URL("http://91.98.16.90:3001/api/voice/accept")
-                        val conn = url.openConnection() as java.net.HttpURLConnection
-                        conn.requestMethod = "POST"
-                        conn.setRequestProperty("Content-Type", "application/json")
-                        conn.doOutput = true
-                        var clientIdentity = "SuperpartyApp"
-                        try {
-                            val prefs = applicationContext.getSharedPreferences("FlutterSharedPreferences", android.content.Context.MODE_PRIVATE)
-                            val storedIdentity = prefs.getString("flutter.twilio_client_identity", null)
-                            if (storedIdentity != null) {
-                                clientIdentity = storedIdentity
-                                Log.d(TAG, "SharedPrefs clientIdentity found: \$clientIdentity")
-                            }
-                        } catch (e: Exception) {
-                            Log.e(TAG, "Failed reading SharedPreferences: \${e.message}")
-                        }
-                        
-                        val payload = "{\"conf\":\"conf_\$callSid\",\"callSid\":\"\$callSid\",\"deviceNumber\":\"SuperpartyApp\",\"clientIdentity\":\"\$clientIdentity\"}"
-                        val os = conn.outputStream
-                        os.write(payload.toByteArray(Charsets.UTF_8))
-                        os.flush()
-                        os.close()
-                        val code = conn.responseCode
-                        Log.d(TAG, "✅ Native PBX Accept ping result HTTP $code for sid=$callSid")
-                    } catch (e: Exception) {
-                        Log.e(TAG, "❌ Native PBX Accept Ping Failed: ${e.message}")
-                    }
-                }.start()
-
                 // ── FLUTTER WILL HANDLE ACCEPT ──
                 // Do not consume pendingCallInvite here. We send ACTION_ANSWER to MainActivity,
                 // which then calls Flutter's answerCall, which hits directAnswer and uses the invite.

@@ -626,7 +626,7 @@ app.post('/api/voice/cancel', requireSupabaseUser, async (req, res) => {
 
 
 // Callback logic for Dialing Outbounds (Agent to Client)
-app.post('/api/voice/callback', async (req, res) => {
+app.post('/api/voice/callback', requireSupabaseUser, async (req, res) => {
   const { fromDevice, toPhoneNumber } = req.body;
   
   if (!fromDevice || !toPhoneNumber) {
