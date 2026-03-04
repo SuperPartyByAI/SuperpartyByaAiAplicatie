@@ -218,7 +218,7 @@ app.post('/api/voice/registerDevice', async (req, res) => {
         device_identity: identity,
         last_seen_at: new Date().toISOString()
       }, {
-        onConflict: 'user_id,device_id'
+        onConflict: 'device_identity'
       });
 
     if (error) {
