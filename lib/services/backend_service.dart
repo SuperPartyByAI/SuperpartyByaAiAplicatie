@@ -7,8 +7,8 @@ import 'auth_service.dart';
 import 'supabase_service.dart';
 
 class BackendService {
-  // Update to your actual backend URL. 
-  // Pointing to the main Superparty platform (WhatsApp/Websocket/DB engine) on port 3000.
+  // TODO: Replace hardcoded IP with a named host or env-driven config.
+  // This is the WhatsApp/General backend server (different from voice.superparty.ro).
   static const String BASE_URL = 'http://89.167.115.150:3000/api';  // WhatsApp Backend Server
   
   static const String VOICE_BASE_URL = 'https://voice.superparty.ro/api';

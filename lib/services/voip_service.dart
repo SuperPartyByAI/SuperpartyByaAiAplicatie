@@ -128,8 +128,17 @@ class VoipService {
               debugPrint('[VoIP WS] Warning hanging up Twilio locally: $e');
             }
             
-            // 2. Clear Active UI components (IncomingCallScreen / ActiveCallScreen)
-            navigatorKey.currentState?.popUntil((route) => route.isFirst);
+            // 2. Clear Active UI — use canPop() loop (safe) instead of popUntil(isFirst)
+            // popUntil empties the stack leaving Flutter with no route → black screen
+            // if ActiveCallScreen pops again after this.
+            final nav = navigatorKey.currentState;
+            if (nav != null) {
+              while (nav.canPop()) {
+                nav.pop();
+              }
+            }
+            VoipService.isRingingOrActive = false;
+            WakelockPlus.disable();
           }
         } catch (e) {
           debugPrint('[VoIP WS] Message parse error: $e');

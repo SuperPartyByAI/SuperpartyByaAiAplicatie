@@ -11,6 +11,8 @@ import 'package:superparty_app/services/voip_service.dart';
 import '../screens/active_call_screen.dart';
 import 'package:twilio_voice/twilio_voice.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'dart:io';
 
 class IncomingCallScreen extends StatefulWidget {
   final String conf;
@@ -41,6 +43,12 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
     });
 
     try {
+      if (Platform.isAndroid) {
+        try {
+          await Permission.bluetoothConnect.request();
+          await Permission.bluetoothScan.request();
+        } catch (_) {}
+      }
       debugPrint('[IncomingCallScreen] Accepting native WebRTC call via Twilio SDK...');
       
       final prefs = await SharedPreferences.getInstance();

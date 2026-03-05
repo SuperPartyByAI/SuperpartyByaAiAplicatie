@@ -1,5 +1,6 @@
 import 'dart:io';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -198,6 +199,12 @@ void _registerCallActionsHandler() {
 
 Future<void> answerIncomingCall(String from, String callSid) async {
   VoipLogger.instance.logEvent('ACCEPT_TAPPED', extra: {'from': from, 'callSid': callSid});
+  try {
+    if (Platform.isAndroid) {
+      await Permission.bluetoothConnect.request();
+      await Permission.bluetoothScan.request();
+    }
+  } catch (_) {}
   if (callSid.isNotEmpty) VoipLogger.instance.setLastCallSid(callSid);
 
   VoipService.setCallAnswered();

@@ -80,10 +80,16 @@ class _ActiveCallScreenState extends State<ActiveCallScreen> {
     _inactivityTimer?.cancel();
     _releaseAudioFocus();
     VoipService.clearCallAnswered();
+    VoipService.isRingingOrActive = false;
     if (mounted) {
       setState(() => _status = status);
-      Future.delayed(const Duration(milliseconds: 1000), () {
-        if (mounted) Navigator.of(context).pop();
+      Future.delayed(const Duration(milliseconds: 400), () {
+        if (!mounted) return;
+        final nav = Navigator.of(context);
+        if (nav.canPop()) {
+          nav.pop();
+        }
+        // If canPop() is false, WS already cleared the stack → do nothing (no black screen)
       });
     }
   }

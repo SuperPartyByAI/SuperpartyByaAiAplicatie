@@ -106,9 +106,35 @@ const logger = pino({
 // VoIP Client Registry
 const registeredVoipClients = new Map();
 const pushAckMap = new Map();
+const wave2Map = new Map(); // callSid -> wave2 client objects (for cancel on winner)
+
+// --- FCM UNREGISTERED token cleanup ---
+async function markFcmTokenUnregistered(identity, deviceToken) {
+  try {
+    if (identity) {
+      await supabase
+        .from('device_tokens')
+        .update({ fcm_token: 'WS_ONLY' })
+        .eq('device_identity', identity);
+      const info = registeredVoipClients.get(identity);
+      if (info) { info.fcmToken = 'WS_ONLY'; registeredVoipClients.set(identity, info); }
+      console.log(`[FCM] Marked UNREGISTERED → WS_ONLY for identity=${identity}`);
+      return;
+    }
+    if (deviceToken) {
+      await supabase
+        .from('device_tokens')
+        .update({ fcm_token: 'WS_ONLY' })
+        .eq('fcm_token', deviceToken);
+      console.log(`[FCM] Marked UNREGISTERED → WS_ONLY for token=${deviceToken.substring(0, 10)}...`);
+    }
+  } catch (e) {
+    console.warn('[FCM] Failed to cleanup UNREGISTERED token:', e?.message || e);
+  }
+}
 
 // --- FCM v1 Push Helper ---
-async function sendFcmPush(deviceToken, payload) {
+async function sendFcmPush(deviceToken, payload, identity = null) {
   try {
     const auth = new GoogleAuth({
       keyFile: path.join(process.cwd(), 'gpt-firebase-key.json'),
@@ -134,9 +160,19 @@ async function sendFcmPush(deviceToken, payload) {
         }
       })
     });
-    
+
+    const bodyText = await response.text();
     if (!response.ok) {
-      console.error('[FCM] Push failed:', response.status, await response.text());
+      console.error('[FCM] Push failed:', response.status, bodyText);
+      // Auto-cleanup UNREGISTERED tokens
+      try {
+        const j = JSON.parse(bodyText);
+        const details = j?.error?.details || [];
+        const fcmErr = details.find(d => d?.errorCode) || null;
+        if (fcmErr?.errorCode === 'UNREGISTERED') {
+          await markFcmTokenUnregistered(identity, deviceToken);
+        }
+      } catch (_) { /* ignore JSON parse errors */ }
     } else {
       console.log('[FCM] Push sent successfully to', deviceToken.substring(0, 15) + '...');
     }
@@ -157,6 +193,19 @@ function sendIncomingToIdentity(identity, payload) {
     }
   });
   return delivered;
+}
+
+// Returns Set of identity strings currently connected via WebSocket
+function getWsOnlineIdentitySet() {
+  const s = new Set();
+  try {
+    wss.clients.forEach((client) => {
+      if (client && client.isAlive && client.readyState === 1 && client.voipIdentity) {
+        s.add(client.voipIdentity);
+      }
+    });
+  } catch (_) {}
+  return s;
 }
 
 // Load devices on startup
@@ -287,20 +336,35 @@ app.post('/api/voice/push-ack', express.json(), (req, res) => {
     if (!callSid || !identity || !ackToken) {
       return res.status(400).json({ error: 'missing_params' });
     }
-    const decoded = jwt.verify(ackToken, JWT_SECRET);
+
+    // If call is no longer pending on this node → late ACK, no error
+    if (!pushAckMap.has(callSid)) {
+      return res.status(200).json({ ok: false, late: true });
+    }
+
+    let decoded;
+    try {
+      decoded = jwt.verify(ackToken, JWT_SECRET);
+    } catch (err) {
+      if (err?.name === 'TokenExpiredError') {
+        // Expired token → return 200 (no 403 spam), do not add to ack map
+        console.debug(`[PBX ACK] Late/expired ack for ${callSid} from ${identity} (token expired)`);
+        return res.status(200).json({ ok: false, expired: true });
+      }
+      console.error('[PBX ACK] verify error:', err?.message || err);
+      return res.status(403).json({ error: 'invalid_token' });
+    }
+
     if (!decoded || decoded.callSid !== callSid) {
       return res.status(403).json({ error: 'invalid_ack_token' });
     }
-    
-    if (!pushAckMap.has(callSid)) {
-      pushAckMap.set(callSid, new Set());
-    }
+
     pushAckMap.get(callSid).add(identity);
     console.log(`[PBX ACK] Received push-ack for ${callSid} from ${identity}`);
     res.json({ ok: true });
   } catch (err) {
-    console.error('[PBX ACK] verify error:', err.message);
-    res.status(403).json({ error: 'invalid_token' });
+    console.error('[PBX ACK] unexpected error:', err?.message || err);
+    res.status(500).json({ error: 'internal' });
   }
 });
 
@@ -439,8 +503,16 @@ app.post('/api/voice/incoming', requireTwilioSignature, async (req, res) => {
         identities.push({ id, ...info });
       }
       identities.sort((a, b) => new Date(b.registeredAt).getTime() - new Date(a.registeredAt).getTime());
-      
-      let targetClients = identities.slice(0, 3); // Take top 3 devices
+
+      // Filter: exclude WS_ONLY devices that are not currently WS-connected
+      const wsOnline = getWsOnlineIdentitySet();
+      const candidates = identities.filter(c => {
+        const online = wsOnline.has(c.id);
+        const hasFcm = !!c.fcmToken && c.fcmToken !== 'WS_ONLY';
+        return online || hasFcm;
+      });
+
+      let targetClients = candidates.slice(0, 3); // Top 3 deliverable devices
   
       if (targetClients.length === 0) {
         console.warn('[PBX Twilio] In-memory registry empty, loading from Supabase...');
@@ -449,9 +521,9 @@ app.post('/api/voice/incoming', requireTwilioSignature, async (req, res) => {
             .from('device_tokens')
             .select('device_identity, user_id, device_id, fcm_token, last_seen_at')
             .order('last_seen_at', { ascending: false })
-            .limit(3);
+            .limit(20); // fetch more, then filter down to deliverable
           if (data && data.length > 0) {
-            targetClients = data.map(row => {
+            const recovered = data.map(row => {
               const clientInfo = {
                 id: row.device_identity,
                 userId: row.user_id, deviceId: row.device_id,
@@ -460,7 +532,14 @@ app.post('/api/voice/incoming', requireTwilioSignature, async (req, res) => {
               registeredVoipClients.set(row.device_identity, clientInfo);
               return clientInfo;
             });
-            console.log(`[PBX Twilio] Recovered ${targetClients.length} clients from Supabase.`);
+            const wsOnline2 = getWsOnlineIdentitySet();
+            const recoveredCandidates = recovered.filter(c => {
+              const online = wsOnline2.has(c.id);
+              const hasFcm = !!c.fcmToken && c.fcmToken !== 'WS_ONLY';
+              return online || hasFcm;
+            });
+            targetClients = recoveredCandidates.slice(0, 3);
+            console.log(`[PBX Twilio] Recovered ${recoveredCandidates.length} deliverable clients from Supabase. Using ${targetClients.length} for Wave-1.`);
           }
         } catch (e) {
           console.error('[PBX Twilio] DB fallback failed:', e.message);
@@ -482,7 +561,8 @@ app.post('/api/voice/incoming', requireTwilioSignature, async (req, res) => {
           waitUrl: 'http://twimlets.com/holdmusic?Bucket=com.twilio.music.ambient'
         }, confName);
   
-        const ackToken = jwt.sign({ callSid: CallSid }, JWT_SECRET, { expiresIn: '2m' });
+        const ACK_TOKEN_TTL = process.env.ACK_TOKEN_TTL || '15m';
+        const ackToken = jwt.sign({ callSid: CallSid }, JWT_SECRET, { expiresIn: ACK_TOKEN_TTL });
         pushAckMap.set(CallSid, new Set());
 
         const payload = {
@@ -498,7 +578,7 @@ app.post('/api/voice/incoming', requireTwilioSignature, async (req, res) => {
             console.log(`[PBX Twilio] Woke client ${client.id} instantly via WebSocket`);
           } else if (client.fcmToken && client.fcmToken !== 'WS_ONLY') {
             console.log(`[PBX Twilio] Sending FCM Push to wake client: ${client.id}`);
-            sendFcmPush(client.fcmToken, payload);
+            sendFcmPush(client.fcmToken, payload, client.id);
           }
         });
 
@@ -524,18 +604,20 @@ app.post('/api/voice/incoming', requireTwilioSignature, async (req, res) => {
           // IF NO WAVE 1 WINNER -> FIRE WAVE 2
           if (!winnerIdentity) {
             console.log(`[PBX] Call ${CallSid} had NO ACKs within ${ACK_WAIT_MS}ms! Initiating Wave-2 Fallback...`);
-            let wave2Clients = identities.slice(3, 6);
+            let wave2Clients = candidates.slice(3, 6);
             if (wave2Clients.length > 0) {
               console.log(`[PBX] Wave-2 target clients: ${wave2Clients.map(c => c.id).join(', ')}`);
               currentTargets = [...currentTargets, ...wave2Clients]; // Add Wave 2 to allowed winners
-              
+              wave2Map.set(CallSid, wave2Clients); // save for cancel on winner
+              setTimeout(() => wave2Map.delete(CallSid), 60_000); // safety cleanup
+
               wave2Clients.forEach(client => {
                 const deliveredViaWs = sendIncomingToIdentity(client.id, payload);
                 if (deliveredViaWs) {
                   console.log(`[PBX Twilio] Wave-2 Woke client ${client.id} instantly via WebSocket`);
                 } else if (client.fcmToken && client.fcmToken !== 'WS_ONLY') {
                   console.log(`[PBX Twilio] Wave-2 FCM Push to: ${client.id}`);
-                  sendFcmPush(client.fcmToken, payload);
+                  sendFcmPush(client.fcmToken, payload, client.id);
                 }
               });
 
@@ -565,15 +647,29 @@ app.post('/api/voice/incoming', requireTwilioSignature, async (req, res) => {
               if (client.id !== winnerIdentity) {
                 const cancelPayload = { type: 'CANCEL_RINGING_UI', target_action: 'CANCEL_RINGING_UI', callSid: CallSid };
                 if (!sendIncomingToIdentity(client.id, cancelPayload)) {
-                   if (client.fcmToken && client.fcmToken !== 'WS_ONLY') sendFcmPush(client.fcmToken, cancelPayload);
+                   if (client.fcmToken && client.fcmToken !== 'WS_ONLY') sendFcmPush(client.fcmToken, cancelPayload, client.id);
                 }
               }
             });
+            // Also cancel any Wave-2 devices that were notified but not in currentTargets
+            const w2Cancel = wave2Map.get(CallSid) || [];
+            w2Cancel.forEach(client => {
+              if (client.id !== winnerIdentity) {
+                const cancelPayload = { type: 'CANCEL_RINGING_UI', target_action: 'CANCEL_RINGING_UI', callSid: CallSid };
+                if (!sendIncomingToIdentity(client.id, cancelPayload)) {
+                  if (client.fcmToken && client.fcmToken !== 'WS_ONLY') sendFcmPush(client.fcmToken, cancelPayload, client.id);
+                }
+              }
+            });
+            wave2Map.delete(CallSid);
           } else {
             console.log(`[PBX] Call ${CallSid} had NO ACKs even after Wave-2! Ringing timeout.`);
           }
           
-          setTimeout(() => pushAckMap.delete(CallSid), 10000); // Cleanup map later
+          setTimeout(() => {
+            pushAckMap.delete(CallSid);
+            wave2Map.delete(CallSid);
+          }, 10000); // Cleanup maps later
         }, 0);
       }
     } catch (e) {
