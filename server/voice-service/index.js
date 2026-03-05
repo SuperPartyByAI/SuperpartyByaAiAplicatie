@@ -298,7 +298,7 @@ app.post('/api/voice/registerDevice', requireSupabaseUser, async (req, res) => {
       .from('device_tokens')
       .upsert({
         user_id: req.supabaseUser.id,
-        device_id: deviceId || 'unknown',
+        device_id: deviceId,
         device_identity: identity,
         fcm_token: fcmToken || 'WS_ONLY',
         last_seen_at: new Date().toISOString()
@@ -535,13 +535,18 @@ app.post('/api/voice/accept', requireSupabaseUser, express.json(), async (req, r
     if (!toNumber.includes('+') && !toNumber.startsWith('client:')) toNumber = `client:${toNumber}`;
 
     console.log('[/api/voice/accept] creating Twilio call to', toNumber, ' bridging into ', confName);
-    const call = await twilioClient.calls.create({
-      to: toNumber,
-      from: process.env.TWILIO_CALLER_ID || '+40373805828',
-      url: `${getExternalBaseUrl(req)}/api/voice/join-conference?conf=${encodeURIComponent(confName)}`
-    });
-
-    return res.json({ ok: true, callSid: call.sid });
+    try {
+      const call = await twilioClient.calls.create({
+        to: toNumber,
+        from: process.env.TWILIO_CALLER_ID || '+40373805828',
+        url: `${getExternalBaseUrl(req)}/api/voice/join-conference?conf=${encodeURIComponent(confName)}`
+      });
+      return res.json({ ok: true, callSid: call.sid });
+    } catch (twilioError) {
+      console.error('[PBX] Twilio call creation failed, rolling back idempotency lock:', twilioError.message);
+      await supabase.from('call_accepts').delete().eq('call_sid', callSid);
+      return res.status(500).json({ ok: false, error: 'Twilio call failed, lock rolled back' });
+    }
   } catch (err) {
     console.error('[/api/voice/accept] unexpected error', err);
     return res.status(500).json({ ok: false, error: 'internal' });
