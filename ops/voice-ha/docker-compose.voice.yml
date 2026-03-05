@@ -11,7 +11,7 @@ services:
       - "127.0.0.1:3001:3001"
     restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3001/health | grep -q 'ok'"]
+      test: ["CMD-SHELL", "curl -fsS http://127.0.0.1:3001/health | grep -q 'ok' || exit 1"]
       interval: 15s
       timeout: 5s
       retries: 10
