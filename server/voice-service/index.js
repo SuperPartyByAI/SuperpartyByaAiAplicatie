@@ -392,7 +392,14 @@ app.post('/api/voice/incoming', requireTwilioSignature, async (req, res) => {
         const outDial = twiml.dial({ callerId: process.env.TWILIO_CALLER_ID || '+40373805828' });
         // Clean To number if it comes with prefixes
         const cleanTo = To.replace('client:', '');
-        outDial.number(cleanTo);
+        if (cleanTo.startsWith('conf_')) {
+          outDial.conference(
+            { beep: false, startConferenceOnEnter: true, endConferenceOnExit: true },
+            cleanTo
+          );
+        } else {
+          outDial.number(cleanTo);
+        }
         res.type('text/xml');
         return res.send(twiml.toString());
       }
