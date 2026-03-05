@@ -487,23 +487,8 @@ app.post('/api/voice/incoming', requireTwilioSignature, async (req, res) => {
 });
 
 // ─────────────────────────────────────────────────────────────
-// Idempotency for /api/voice/accept (10 minutes per CallSid)
+// Idempotency for /api/voice/accept is now strictly enforced by the Supabase `call_accepts` table.
 // ─────────────────────────────────────────────────────────────
-const ACCEPT_TTL_MS = 10 * 60 * 1000;
-const acceptedCallSids = new Map(); // callSid -> timestamp
-function acceptSeen(callSid) {
-  const now = Date.now();
-  const t = acceptedCallSids.get(callSid);
-  if (t && (now - t) < ACCEPT_TTL_MS) return true;
-  acceptedCallSids.set(callSid, now);
-  return false;
-}
-setInterval(() => {
-  const now = Date.now();
-  for (const [sid, t] of acceptedCallSids.entries()) {
-    if (now - t > ACCEPT_TTL_MS) acceptedCallSids.delete(sid);
-  }
-}, 60 * 1000);
 
 app.post('/api/voice/accept', requireSupabaseUser, express.json(), async (req, res) => {
   try {
@@ -513,8 +498,22 @@ app.post('/api/voice/accept', requireSupabaseUser, express.json(), async (req, r
     if (!callSid) {
       return res.status(400).json({ ok: false, error: 'missing callSid' });
     }
-    if (acceptSeen(callSid)) {
-      return res.json({ ok: true, dedupe: true });
+    // ──────── LEVEL 2 ENTERPRISE IDEMPOTENCY ────────
+    const { error: insertError } = await supabase
+      .from('call_accepts')
+      .insert({ call_sid: callSid });
+      
+    if (insertError) {
+      if (insertError.code === '23505') { // Postgres Unique Violation
+        console.log(`[PBX DB-Locks] Deduplicated callSid at scale: ${callSid}`);
+        return res.json({ ok: true, dedupe: true });
+      }
+      if (insertError.code === '42P01') { // Undefined table
+        console.warn('[PBX] WARNING: `call_accepts` table missing! Bypassing idempotency lock (Level 1 Fallback). Run the SQL migration.');
+      } else {
+        console.error('[PBX] Error recording call accept in DB:', insertError.message);
+        return res.status(500).json({ ok: false, error: 'Database idempotency constraint failed' });
+      }
     }
     if (!clientIdentity) {
       return res.status(400).json({ ok: false, error: 'missing clientIdentity' });
