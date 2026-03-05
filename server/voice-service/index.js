@@ -39,6 +39,13 @@ const TWILIO_TOKEN = process.env.TWILIO_AUTH_TOKEN;
 const TWIML_APP_SID = process.env.TWIML_APP_SID || process.env.TWILIO_TWIML_APP_SID;
 const twilioClient = (TWILIO_SID && TWILIO_TOKEN) ? twilio(TWILIO_SID, TWILIO_TOKEN) : null;
 
+// Enforce JWT_SECRET for secure websocket authentication
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  console.error("FATAL ERROR: JWT_SECRET environment variable is missing! Refusing to boot PBX without secure signatures.");
+  process.exit(1);
+}
+
 // ─────────────────────────────────────────────────────────────
 // Supabase Bearer Auth (for app-originated endpoints)
 // ─────────────────────────────────────────────────────────────
@@ -184,7 +191,7 @@ app.get('/api/auth/get-ws-token', requireSupabaseUser, (req, res) => {
     return res.status(403).json({ error: 'identity_not_owned' });
   }
   
-  const JWT_SECRET = process.env.JWT_SECRET || process.env.SUPABASE_SERVICE_KEY || 'default_jwt_secret_please_change';
+  // strictly uses global JWT_SECRET
   const token = jwt.sign({ identity }, JWT_SECRET, { expiresIn: '12h' });
   res.json({ token, identity });
 });
@@ -226,7 +233,7 @@ server.on('upgrade', (request, socket, head) => {
         let identity = identityParam;
         
         if (token && token.length > 0) {
-          const JWT_SECRET = process.env.JWT_SECRET || process.env.SUPABASE_SERVICE_KEY || 'default_jwt_secret_please_change';
+          // strictly uses global JWT_SECRET
           console.log(`[WS UPGRADE] Verifying JWT token...`);
         try {
           const decoded = jwt.verify(token, JWT_SECRET);
