@@ -271,7 +271,8 @@ class CustomVoiceFirebaseMessagingService : FirebaseMessagingService(), MessageL
             } else {
                 Intent(applicationContext, TVConnectionService::class.java).apply {
                     action = TVConnectionService.ACTION_INCOMING_CALL
-                    putExtra(TVConnectionService.EXTRA_INCOMING_CALL_INVITE, callInvite)
+                    putExtra("callSid", callInvite.callSid)
+                    putExtra("from", callInvite.from)
                     applicationContext.startService(this)
                 }
             }
@@ -282,7 +283,8 @@ class CustomVoiceFirebaseMessagingService : FirebaseMessagingService(), MessageL
         // Notify Flutter via TVBroadcastReceiver (fires CallEvent.incoming)
         Intent(applicationContext, TVBroadcastReceiver::class.java).apply {
             action = TVBroadcastReceiver.ACTION_INCOMING_CALL
-            putExtra(TVBroadcastReceiver.EXTRA_CALL_INVITE, callInvite)
+            putExtra("callSid", callInvite.callSid)
+            putExtra("from", callInvite.from)
             putExtra(TVBroadcastReceiver.EXTRA_CALL_HANDLE, callInvite.callSid)
             LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(this)
         }
@@ -297,7 +299,7 @@ class CustomVoiceFirebaseMessagingService : FirebaseMessagingService(), MessageL
         // Forward to TVConnectionService
         Intent(applicationContext, TVConnectionService::class.java).apply {
             action = TVConnectionService.ACTION_CANCEL_CALL_INVITE
-            putExtra(TVConnectionService.EXTRA_CANCEL_CALL_INVITE, cancelledCallInvite)
+            putExtra("callSid", cancelledCallInvite.callSid)
             applicationContext.startService(this)
         }
         

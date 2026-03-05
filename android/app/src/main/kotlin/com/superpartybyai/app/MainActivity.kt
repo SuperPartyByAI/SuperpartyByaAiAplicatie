@@ -190,6 +190,7 @@ class MainActivity : FlutterActivity() {
         
         if (action == IncomingCallActivity.ACTION_ANSWER) {
             CustomVoiceFirebaseMessagingService.autoAnswerUntil = System.currentTimeMillis() + 15000
+            Log.d(TAG, "✅ MAIN ACTIVITY ANSWER RECEIVED! [sid=$sid, from=$from]")
             Log.d(TAG, "⏰ Set autoAnswer window for 15s for sid=$sid")
         }
 

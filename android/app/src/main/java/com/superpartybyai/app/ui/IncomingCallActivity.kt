@@ -102,7 +102,7 @@ class IncomingCallActivity : Activity() {
             setTextColor(Color.WHITE)
             textSize = 16f
             setOnClickListener {
-                Log.d(TAG, "Accept tapped")
+                Log.d(TAG, "Accept tapped! answering callSid=$callSid from=$callerFrom")
                 stopRinging()
                 CustomVoiceFirebaseMessagingService.dismissCallNotification(applicationContext, callSid)
 
