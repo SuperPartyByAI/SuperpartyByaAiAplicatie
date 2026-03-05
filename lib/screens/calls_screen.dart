@@ -177,60 +177,86 @@ class _CallsScreenState extends State<CallsScreen> {
   /// For incoming calls: the client is in `from`.
   /// For outbound calls or when `from` is our line: the client is in `to`.
   String _clientNumber(Map<String, dynamic> call) {
-    final direction = call['direction'] as String? ?? 'incoming';
+    final dir = (call['direction'] as String? ?? '').toLowerCase();
     final from = call['from'] as String? ?? '';
-    final to = call['to'] as String? ?? '';
-    final isOurLine = from.contains('373805828') || from.startsWith('client:');
-    final otherParty = (direction == 'incoming' && !isOurLine) ? from : to;
-    // Strip ALL non-digit characters (including '+') and return digits only.
-    // _callBack will prepend exactly one '+' for E.164 dialing.
+    final to   = call['to']   as String? ?? '';
+    // Our own line can appear as inbound (from=client PSTN) or as from in outbound
+    final ourLinePatterns = ['373805828', 'client:', 'superparty'];
+    final fromIsOurs = ourLinePatterns.any((p) => from.contains(p));
+    final toIsOurs   = ourLinePatterns.any((p) => to.contains(p));
+    final isInbound  = dir.startsWith('inbound') || dir == 'incoming';
+    // If from is ours, the other party is in `to`, and vice versa
+    String otherParty;
+    if (fromIsOurs)       otherParty = to;
+    else if (toIsOurs)    otherParty = from;
+    else if (isInbound)   otherParty = from;
+    else                  otherParty = to;
     return otherParty.replaceFirst('client:', '').replaceAll(RegExp(r'[^\d]'), '');
   }
 
   Future<void> _callBack(Map<String, dynamic> call) async {
-    if (_callingInProgress) return; // debounce
+    if (_callingInProgress) return;
     setState(() => _callingInProgress = true);
 
-    final digits = _clientNumber(call);
-    if (digits.isEmpty) {
-      setState(() => _callingInProgress = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Număr invalid pentru apel invers')),
-      );
-      return;
-    }
-    final number = '+$digits';
-    final displayNum = '0${digits.substring(digits.startsWith('40') ? 2 : 0)}';
-
-    debugPrint('CALL_FLOW: _callBack server-REST pt $number');
-
-    // Show the call screen immediately so user sees feedback
-    if (!mounted) return;
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (_) => ActiveCallScreen(remoteId: displayNum, isOutgoing: true),
-      ),
-    );
-
-    // Then trigger server-side outgoing call via REST API
     try {
+      final rawDigits = _clientNumber(call);
+      if (rawDigits.isEmpty) {
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Număr invalid pentru apel invers')),
+        );
+        return;
+      }
+
+      debugPrint('CALL_FLOW: _callBack rawDigits=$rawDigits');
+
+      // 1) Try direct outbound via Twilio Voice SDK (Huawei: directPlace bypass)
+      final voipOk = await VoipService().makeCall(rawDigits);
+      if (voipOk) {
+        if (!mounted) return;
+        Navigator.of(context).push(MaterialPageRoute(
+          builder: (_) => ActiveCallScreen(remoteId: _formatPhone(rawDigits), isOutgoing: true),
+        ));
+        return;
+      }
+
+      // 2) Fallback: server-side bridge (sends rawDigits; server normalizes to E.164)
       final token = await _getToken();
       final userId = Supabase.instance.client.auth.currentUser?.id;
+      if (userId == null) {
+        if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Nu ești logat. Reautentifică-te.')),
+        );
+        return;
+      }
+
+      debugPrint('CALL_FLOW: _callBack server-REST fallback to=$rawDigits userId=$userId');
       final resp = await http.post(
         Uri.parse('$_BASE/voice/makeCall'),
         headers: {
           'Content-Type': 'application/json',
           if (token != null) 'Authorization': 'Bearer $token',
         },
-        body: jsonEncode({'to': number, 'userId': userId}),
+        body: jsonEncode({'to': rawDigits, 'userId': userId}),
       ).timeout(const Duration(seconds: 15));
       debugPrint('CALL_FLOW: makeCall response ${resp.statusCode}: ${resp.body}');
-      if (resp.statusCode != 200 && mounted) {
-        ScaffoldMessenger.of(context)
-            .showSnackBar(SnackBar(content: Text('Eroare apel: ${resp.body}')));
+
+      if (resp.statusCode == 200) {
+        if (!mounted) return;
+        Navigator.of(context).push(MaterialPageRoute(
+          builder: (_) => ActiveCallScreen(remoteId: _formatPhone(rawDigits), isOutgoing: true),
+        ));
+      } else if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Eroare apel (${resp.statusCode}): ${resp.body}')),
+        );
       }
     } catch (e) {
-      debugPrint('CALL_FLOW: ERROR makeCall => $e');
+      debugPrint('CALL_FLOW: ERROR _callBack => $e');
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Eroare apel: $e')),
+      );
+    } finally {
+      if (mounted) setState(() => _callingInProgress = false);
     }
   }
 

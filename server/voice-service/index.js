@@ -911,18 +911,24 @@ app.post('/api/voice/callback', requireSupabaseUser, async (req, res) => {
 // Body: { to: "+407xxxxxxx", userId: "uuid" }
 // Resolves the caller's device identity from Supabase, then bridges PSTN + agent via conference.
 app.post('/api/voice/makeCall', requireSupabaseUser, express.json(), async (req, res) => {
-  const { to, userId } = req.body;
-
-  if (!to || !userId) {
-    return res.status(400).json({ error: 'Missing to or userId' });
+  const { to } = req.body;
+  const userId = req.supabaseUser?.id;
+  if (!to) {
+    return res.status(400).json({ error: 'Missing to' });
   }
 
   // Normalize to E.164
-  let toE164 = to.trim();
-  if (!toE164.startsWith('+')) {
+  let toE164 = to.toString().trim();
+  // fix: +07... → +407...
+  if (toE164.startsWith('+0')) {
+    toE164 = '+40' + toE164.substring(2);
+  } else if (!toE164.startsWith('+')) {
     if (toE164.startsWith('00')) toE164 = '+' + toE164.substring(2);
     else if (/^\d+$/.test(toE164) && toE164.startsWith('0') && toE164.length >= 9) toE164 = '+40' + toE164.substring(1);
-    else toE164 = '+' + toE164;
+    else toE164 = '+40' + toE164;
+  }
+  if (!/^\+\d{8,15}$/.test(toE164)) {
+    return res.status(400).json({ error: 'invalid_number', to: toE164 });
   }
 
   try {
