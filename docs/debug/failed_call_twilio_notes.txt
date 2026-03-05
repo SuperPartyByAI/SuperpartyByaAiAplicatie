@@ -1,0 +1,5 @@
+CallSid: CA123...
+Status: Completed
+Primary Webhook: https://voice.superparty.ro/api/voice/incoming (200 OK)
+Fallback Webhook: https://voice-dr.superparty.ro/api/voice/incoming (Not Triggered)
+Notes: Caller enters conf_CA123. Agent answers via client:..., dials conf_CA123.

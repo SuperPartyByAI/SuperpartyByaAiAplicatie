@@ -11,7 +11,7 @@ class BackendService {
   // CHANGE BACK TO IP because api.superparty.ro DNS is still pointing to Hosterion for the user's phone!
   static const String BASE_URL = 'http://89.167.115.150:3001/api';  // TEMP FIX 
   // TODO: Set to https://voice.yourdomain.ro/api after Nginx is configured
-  static const String VOICE_BASE_URL = 'http://91.98.16.90:3001/api'; 
+  static const String VOICE_BASE_URL = 'https://voice.superparty.ro/api'; 
 
   String get baseUrl => BASE_URL;
   String get voiceBaseUrl => VOICE_BASE_URL;
