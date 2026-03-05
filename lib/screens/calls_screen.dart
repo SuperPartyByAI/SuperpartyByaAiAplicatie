@@ -329,7 +329,7 @@ class _CallsScreenState extends State<CallsScreen> {
       debugPrint('[WA] POST /api/conversations phone=+$digits acc=$selectedAccountId');
       final token = await _getToken();
       final resp = await http.post(
-        Uri.parse('$_BASE/conversations'),
+        Uri.parse('${BackendService.BASE_URL}/conversations'),
         headers: {
           'Content-Type': 'application/json',
           if (token != null) 'Authorization': 'Bearer $token',
