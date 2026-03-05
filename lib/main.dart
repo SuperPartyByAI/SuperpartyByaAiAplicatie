@@ -234,9 +234,12 @@ Future<void> answerIncomingCall(String from, String callSid) async {
     if (ctx2 != null) {
       try { backend = Provider.of<BackendService>(ctx2, listen: false); } catch (_) {}
     }
-    if (backend != null) {
-      await VoipService().init(backend, forceReinit: false);
+    if (backend == null) {
+      debugPrint('[main] Context null, falling back to dynamic BackendService via transient AuthService');
+      backend = BackendService(AuthService());
     }
+    
+    await VoipService().init(backend, forceReinit: false);
     
     debugPrint('[main] dialing into conference room: $to with identity $identity');
     final placed = await TwilioVoice.instance.call.place(to: to, from: identity);

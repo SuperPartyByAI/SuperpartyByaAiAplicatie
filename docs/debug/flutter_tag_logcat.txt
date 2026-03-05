@@ -1,0 +1,8 @@
+03-04 21:01:51.377 26240 26240 E AndroidRuntime: android.os.BadParcelableException: ClassNotFoundException when unmarshalling: com.twilio.voice.CallInvite
+03-04 21:01:51.377 26240 26240 E AndroidRuntime: Caused by: java.lang.ClassNotFoundException: com.twilio.voice.CallInvite
+03-04 21:01:51.377 26240 26240 E AndroidRuntime: Caused by: java.lang.ClassNotFoundException: com.twilio.voice.CallInvite
+03-04 21:01:51.379 22444 22444 E AndroidRuntime: android.os.BadParcelableException: ClassNotFoundException when unmarshalling: com.twilio.voice.CallInvite
+03-04 21:01:51.379 22444 22444 E AndroidRuntime: Caused by: java.lang.ClassNotFoundException: com.twilio.voice.CallInvite
+03-04 21:01:51.379 22444 22444 E AndroidRuntime: Caused by: java.lang.ClassNotFoundException: com.twilio.voice.CallInvite
+03-05 05:13:06.591  1919  4712 W ProcBatteryStats: timer is running , not start, name: com.superpartybyai.app, uid: 10327, tag: io.flutter.plugins.firebase.messaging.FlutterFirebaseMessagingBackgroundService:launch
+03-05 05:14:06.594  1919  3095 W ProcBatteryStats: timer is not running , not stop, name: com.superpartybyai.app, uid: 10327, tag: io.flutter.plugins.firebase.messaging.FlutterFirebaseMessagingBackgroundService:launch
