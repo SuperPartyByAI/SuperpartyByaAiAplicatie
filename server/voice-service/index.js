@@ -502,13 +502,16 @@ app.post('/api/voice/incoming', requireTwilioSignature, async (req, res) => {
           }
         });
 
-        // Asynchronous ACK wait queue
+        // Asynchronous ACK wait queue (Wave 1 & Wave 2)
         let ACK_WAIT_MS = parseInt(process.env.ACK_WAIT_MS || '7000', 10);
         let POLL_INTERVAL_MS = 100;
         let maxIterations = Math.floor(ACK_WAIT_MS / POLL_INTERVAL_MS);
 
         setTimeout(async () => {
           let winnerIdentity = null;
+          let currentTargets = [...targetClients]; // Tracks who we pushed to
+
+          // WAIT FOR WAVE 1
           for (let i = 0; i < maxIterations; i++) {
             await new Promise(r => setTimeout(r, POLL_INTERVAL_MS));
             const acks = pushAckMap.get(CallSid);
@@ -518,28 +521,14 @@ app.post('/api/voice/incoming', requireTwilioSignature, async (req, res) => {
             }
           }
 
-          // Strict Winner Validation (must be in targetClients)
-          if (winnerIdentity && !targetClients.some(tc => tc.id === winnerIdentity)) {
-             console.warn(`[PBX] Warning: ACK winner ${winnerIdentity} is NOT in targetClients! Ignoring.`);
-             winnerIdentity = null;
-          }
-
-          if (winnerIdentity) {
-            console.log(`[PBX] Call ${CallSid} WON by ${winnerIdentity}. Canceling others.`);
-            targetClients.forEach(client => {
-              if (client.id !== winnerIdentity) {
-                const cancelPayload = { type: 'CANCEL_RINGING_UI', target_action: 'CANCEL_RINGING_UI', callSid: CallSid };
-                if (!sendIncomingToIdentity(client.id, cancelPayload)) {
-                   if (client.fcmToken && client.fcmToken !== 'WS_ONLY') sendFcmPush(client.fcmToken, cancelPayload);
-                }
-              }
-            });
-          } else {
+          // IF NO WAVE 1 WINNER -> FIRE WAVE 2
+          if (!winnerIdentity) {
             console.log(`[PBX] Call ${CallSid} had NO ACKs within ${ACK_WAIT_MS}ms! Initiating Wave-2 Fallback...`);
-            // Wave 2 Fan-out (ranks 4-6)
             let wave2Clients = identities.slice(3, 6);
             if (wave2Clients.length > 0) {
               console.log(`[PBX] Wave-2 target clients: ${wave2Clients.map(c => c.id).join(', ')}`);
+              currentTargets = [...currentTargets, ...wave2Clients]; // Add Wave 2 to allowed winners
+              
               wave2Clients.forEach(client => {
                 const deliveredViaWs = sendIncomingToIdentity(client.id, payload);
                 if (deliveredViaWs) {
@@ -549,10 +538,41 @@ app.post('/api/voice/incoming', requireTwilioSignature, async (req, res) => {
                   sendFcmPush(client.fcmToken, payload);
                 }
               });
+
+              // WAIT FOR WAVE 2
+              for (let i = 0; i < maxIterations; i++) {
+                await new Promise(r => setTimeout(r, POLL_INTERVAL_MS));
+                const acks = pushAckMap.get(CallSid);
+                if (acks && acks.size > 0) {
+                   winnerIdentity = Array.from(acks)[0];
+                   break;
+                }
+              }
             } else {
               console.log('[PBX] Wave-2: No additional agents available for fallback.');
             }
           }
+
+          // Strict Winner Validation (must be in any of the waves we fired)
+          if (winnerIdentity && !currentTargets.some(tc => tc.id === winnerIdentity)) {
+             console.warn(`[PBX] Warning: ACK winner ${winnerIdentity} is NOT in currentTargets! Ignoring.`);
+             winnerIdentity = null;
+          }
+
+          if (winnerIdentity) {
+            console.log(`[PBX] Call ${CallSid} WON by ${winnerIdentity}. Canceling others.`);
+            currentTargets.forEach(client => {
+              if (client.id !== winnerIdentity) {
+                const cancelPayload = { type: 'CANCEL_RINGING_UI', target_action: 'CANCEL_RINGING_UI', callSid: CallSid };
+                if (!sendIncomingToIdentity(client.id, cancelPayload)) {
+                   if (client.fcmToken && client.fcmToken !== 'WS_ONLY') sendFcmPush(client.fcmToken, cancelPayload);
+                }
+              }
+            });
+          } else {
+            console.log(`[PBX] Call ${CallSid} had NO ACKs even after Wave-2! Ringing timeout.`);
+          }
+          
           setTimeout(() => pushAckMap.delete(CallSid), 10000); // Cleanup map later
         }, 0);
       }
