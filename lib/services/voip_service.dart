@@ -466,6 +466,7 @@ class VoipService {
   Future<void> hangUp() async {
     try {
       await TwilioVoice.instance.call.hangUp();
+      await const MethodChannel('com.superpartybyai.app/call_actions').invokeMethod('directHangup');
     } catch (e) {
       debugPrint('[VoIP API] Network error during hangup proxy request: $e');
     }

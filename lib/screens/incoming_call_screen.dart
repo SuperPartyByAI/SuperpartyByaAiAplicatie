@@ -178,7 +178,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
             ),
             const SizedBox(height: 30),
             Text(
-              'Apel de la \${widget.caller}',
+              'Apel de la ${widget.caller}',
               style: const TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 10),
@@ -202,6 +202,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
                         onPressed: () {
                           VoipService.isRingingOrActive = false;
                           VoipService.rejectCallFromServer('', widget.callSid);
+                          MethodChannel('com.superpartybyai.app/call_actions').invokeMethod('directHangup');
                           Navigator.pop(context);
                         },
                         child: const Icon(Icons.call_end, color: Colors.white, size: 30),

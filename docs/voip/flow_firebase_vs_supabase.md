@@ -69,7 +69,6 @@ sequenceDiagram
     alt Are CallInvite stocat nativ?
         Main->>Native: directAnswer -> acceptPendingCallInvite()
     else Fără invite nativ
-    else Fără invite nativ
         Main->>Native: directPlace (Voice.connect bypass Telecom)
         Native-->>PBX: /api/voice/incoming route outbound
         PBX-->>Native: Join conf_CAxxx

@@ -113,22 +113,22 @@ class MainActivity : FlutterActivity() {
 
                         val listener = object : com.twilio.voice.Call.Listener {
                             override fun onConnectFailure(c: com.twilio.voice.Call, e: com.twilio.voice.CallException) {
-                                Log.e(TAG, "directPlace onConnectFailure: \${e.message}")
+                                Log.e(TAG, "directPlace onConnectFailure: ${e.message}")
                                 directOutboundCall = null
                                 runOnUiThread { callMethodChannel?.invokeMethod("callConnectFailure", mapOf("message" to (e.message ?: "connect failure"))) }
                             }
                             override fun onRinging(c: com.twilio.voice.Call) {
-                                Log.d(TAG, "directPlace onRinging sid=\${c.sid}")
+                                Log.d(TAG, "directPlace onRinging sid=${c.sid}")
                                 runOnUiThread { callMethodChannel?.invokeMethod("callRinging", mapOf("sid" to c.sid)) }
                             }
                             override fun onConnected(c: com.twilio.voice.Call) {
-                                Log.d(TAG, "✅ directPlace onConnected sid=\${c.sid}")
+                                Log.d(TAG, "✅ directPlace onConnected sid=${c.sid}")
                                 runOnUiThread { callMethodChannel?.invokeMethod("callConnected", mapOf("sid" to c.sid)) }
                             }
                             override fun onReconnecting(c: com.twilio.voice.Call, e: com.twilio.voice.CallException) {}
                             override fun onReconnected(c: com.twilio.voice.Call) {}
                             override fun onDisconnected(c: com.twilio.voice.Call, e: com.twilio.voice.CallException?) {
-                                Log.d(TAG, "directPlace onDisconnected: \${e?.message}")
+                                Log.d(TAG, "directPlace onDisconnected: ${e?.message}")
                                 directOutboundCall = null
                                 runOnUiThread { callMethodChannel?.invokeMethod("callEnded", null) }
                             }
