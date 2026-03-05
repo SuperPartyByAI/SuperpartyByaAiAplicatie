@@ -9,6 +9,7 @@ import 'package:http/http.dart' as http;
 import 'package:superparty_app/services/voip_service.dart';
 import '../screens/active_call_screen.dart';
 import 'package:twilio_voice/twilio_voice.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class IncomingCallScreen extends StatefulWidget {
   final String conf;
@@ -41,10 +42,13 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
     try {
       debugPrint('[IncomingCallScreen] Accepting native WebRTC call via Twilio SDK...');
       
-      // Because the PBX forces callers into a Conference and no longer emits `CallInvites`,
-      // we must natively dial OUT to the conference room to bridge the audio loop.
-      final confRoom = widget.conf.isNotEmpty ? widget.conf : 'conf_${widget.callSid}';
-      await TwilioVoice.instance.call.place(to: confRoom, from: 'SuperpartyApp');
+      final prefs = await SharedPreferences.getInstance();
+      final identity = prefs.getString('twilio_client_identity') ?? 'superparty';
+      
+      final confRoomRaw = widget.conf.isNotEmpty ? widget.conf : 'conf_${widget.callSid}';
+      final to = confRoomRaw.startsWith('client:') ? confRoomRaw : 'client:$confRoomRaw';
+      
+      await TwilioVoice.instance.call.place(to: to, from: identity);
       
       // Navigate immediately
       if (mounted) {

@@ -379,8 +379,8 @@ app.get('/api/voice/getVoipToken', requireSupabaseUser, async (req, res) => {
 });
 
 app.post('/api/voice/incoming', requireTwilioSignature, async (req, res) => {
-    console.log('[PBX Twilio] Incoming Call Webhook Fired:', req.body);
     const { From, To, CallSid } = req.body;
+    console.log(`[PBX Twilio] Incoming Call Webhook Fired. From: ${From}, To: ${To}, CallSid: ${CallSid}`);
     const twiml = new twilio.twiml.VoiceResponse();
   
     try {
@@ -391,6 +391,7 @@ app.post('/api/voice/incoming', requireTwilioSignature, async (req, res) => {
         // Clean To number if it comes with prefixes
         const cleanTo = To.replace('client:', '');
         if (cleanTo.startsWith('conf_')) {
+          console.log(`[PBX Twilio] OUTBOUND conference dial requested: ${cleanTo}`);
           outDial.conference(
             { beep: false, startConferenceOnEnter: true, endConferenceOnExit: true },
             cleanTo

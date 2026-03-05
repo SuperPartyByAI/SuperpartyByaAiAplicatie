@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
@@ -211,9 +212,16 @@ Future<void> answerIncomingCall(String from, String callSid) async {
       await const MethodChannel(_kAudioChannel).invokeMethod('requestAudioFocusAndMode');
     } catch (_) {}
 
-    // NOU: conference-first -> intrăm în conf_<CallSid>
-    final confRoom = 'conf_$callSid';
-    await TwilioVoice.instance.call.place(to: confRoom, from: 'SuperpartyApp');
+    // Conference-first: agent must DIAL into conf_<CallSid>
+    final prefs = await SharedPreferences.getInstance();
+    final identity = prefs.getString('twilio_client_identity') ?? 'superparty';
+    
+    final confStr = callSid.isNotEmpty ? callSid : 'unknown_callsid';
+    final confRoomRaw = confStr.startsWith('conf_') ? confStr : 'conf_$confStr';
+    final to = confRoomRaw.startsWith('client:') ? confRoomRaw : 'client:$confRoomRaw';
+    
+    debugPrint('[main] dialing into conference room: $to with identity $identity');
+    await TwilioVoice.instance.call.place(to: to, from: identity);
 
 
   } catch (e) {

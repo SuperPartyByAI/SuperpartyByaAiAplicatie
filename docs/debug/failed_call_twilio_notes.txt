@@ -1,5 +1,6 @@
 CallSid: CA123...
-Status: Completed
+Status: In-Progress
 Primary Webhook: https://voice.superparty.ro/api/voice/incoming (200 OK)
 Fallback Webhook: https://voice-dr.superparty.ro/api/voice/incoming (Not Triggered)
-Notes: Caller enters conf_CA123. Agent answers via client:..., dials conf_CA123.
+Notes: Caller enters conf_CA123. Agent answers via client:user_xyz... and dials into conf_CA123. 
+Warning: If missing 2nd webhook, check TwiML App outgoing VoiceUrl or 11200 Error in Twilio Debugger for Agent CallSid!
