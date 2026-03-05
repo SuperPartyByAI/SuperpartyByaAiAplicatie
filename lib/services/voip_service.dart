@@ -150,7 +150,37 @@ class VoipService {
   }
 
   static Future<void> handleIncomingData(Map<String, dynamic> data) async {
+    _sendPushAck(data);
     _showIncomingUI(data);
+  }
+
+  static Future<void> _sendPushAck(Map<String, dynamic> data) async {
+    final ackToken = data['ackToken'];
+    final callSid = data['callSid'] ?? data['twi_call_sid'];
+    if (ackToken == null || callSid == null) return;
+    
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final identity = prefs.getString('twilio_client_identity');
+      if (identity == null || identity.isEmpty) return;
+
+      final url = Uri.parse('https://voice.superparty.ro/api/voice/push-ack');
+      http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'callSid': callSid,
+          'identity': identity,
+          'ackToken': ackToken,
+        }),
+      ).then((response) {
+        debugPrint('[VoIP ACK] Sent Flutter push-ack for $callSid!');
+      }).catchError((e) {
+        debugPrint('[VoIP ACK] Error sending push-ack: $e');
+      });
+    } catch (e) {
+      debugPrint('[VoIP ACK] Exception in push-ack: $e');
+    }
   }
 
   static Future<void> _showIncomingUI(Map<String, dynamic> data) async {

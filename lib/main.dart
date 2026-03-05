@@ -44,6 +44,7 @@ Future<void> _fcmBackgroundHandler(RemoteMessage message) async {
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await VoipService.ensureDeviceFlagsInitialized();
 
   // --- Android dedupe: if native UI is already active, suppress Flutter UI/notification ---
   try {

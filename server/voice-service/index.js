@@ -105,6 +105,7 @@ const logger = pino({
 
 // VoIP Client Registry
 const registeredVoipClients = new Map();
+const pushAckMap = new Map();
 
 // --- FCM v1 Push Helper ---
 async function sendFcmPush(deviceToken, payload) {
@@ -280,6 +281,29 @@ server.on('upgrade', (request, socket, head) => {
    TWILIO VOIP ENDPOINTS 
 ========================================================= */
 
+app.post('/api/voice/push-ack', express.json(), (req, res) => {
+  try {
+    const { callSid, identity, ackToken } = req.body;
+    if (!callSid || !identity || !ackToken) {
+      return res.status(400).json({ error: 'missing_params' });
+    }
+    const decoded = jwt.verify(ackToken, JWT_SECRET);
+    if (!decoded || decoded.callSid !== callSid) {
+      return res.status(403).json({ error: 'invalid_ack_token' });
+    }
+    
+    if (!pushAckMap.has(callSid)) {
+      pushAckMap.set(callSid, new Set());
+    }
+    pushAckMap.get(callSid).add(identity);
+    console.log(`[PBX ACK] Received push-ack for ${callSid} from ${identity}`);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('[PBX ACK] verify error:', err.message);
+    res.status(403).json({ error: 'invalid_token' });
+  }
+});
+
 // Extracting Identity from Register
 app.post('/api/voice/registerDevice', requireSupabaseUser, async (req, res) => {
   const { userId, deviceId } = req.body;
@@ -384,7 +408,11 @@ app.post('/api/voice/incoming', requireTwilioSignature, async (req, res) => {
     const twiml = new twilio.twiml.VoiceResponse();
   
     try {
-      const cleanTo = To ? To.replace('client:', '') : '';
+      let cleanTo = To ? To.replace('client:', '') : '';
+      if (!cleanTo && req.body.Called) {
+          cleanTo = req.body.Called.replace('client:', '');
+      }
+
       if (cleanTo.startsWith('conf_')) {
         console.log(`[PBX Twilio] OUTBOUND conference join (To=${To}, cleanTo=${cleanTo}, From=${From}, CallSid=${CallSid})`);
         const outDial = twiml.dial({ callerId: process.env.TWILIO_CALLER_ID || '+40373805828' });
@@ -403,10 +431,7 @@ app.post('/api/voice/incoming', requireTwilioSignature, async (req, res) => {
       }
 
       // INCOMING CALL (From World -> To Mobile App)
-      // Generate a conference name based on the incoming CallSid
       const confName = `conf_${CallSid}`;
-      
-      // Short greeting
       twiml.say({ language: 'ro-RO' }, 'Vă conectăm acum. Vă rugăm să aşteptaţi.');
 
       let identities = [];
@@ -415,44 +440,41 @@ app.post('/api/voice/incoming', requireTwilioSignature, async (req, res) => {
       }
       identities.sort((a, b) => new Date(b.registeredAt).getTime() - new Date(a.registeredAt).getTime());
       
-      let targetClient = identities.length > 0 ? identities[0] : null;
+      let targetClients = identities.slice(0, 3); // Take top 3 devices
   
-      if (!targetClient) {
+      if (targetClients.length === 0) {
         console.warn('[PBX Twilio] In-memory registry empty, loading from Supabase...');
         try {
           const { data } = await supabase
             .from('device_tokens')
             .select('device_identity, user_id, device_id, fcm_token, last_seen_at')
             .order('last_seen_at', { ascending: false })
-            .limit(1);
+            .limit(3);
           if (data && data.length > 0) {
-            const row = data[0];
-            targetClient = {
-              id: row.device_identity,
-              userId: row.user_id, deviceId: row.device_id,
-              fcmToken: row.fcm_token, registeredAt: row.last_seen_at
-            };
-            registeredVoipClients.set(row.device_identity, targetClient);
-            console.log(`[PBX Twilio] Recovered client from Supabase: ${targetClient.id}`);
+            targetClients = data.map(row => {
+              const clientInfo = {
+                id: row.device_identity,
+                userId: row.user_id, deviceId: row.device_id,
+                fcmToken: row.fcm_token, registeredAt: row.last_seen_at
+              };
+              registeredVoipClients.set(row.device_identity, clientInfo);
+              return clientInfo;
+            });
+            console.log(`[PBX Twilio] Recovered ${targetClients.length} clients from Supabase.`);
           }
         } catch (e) {
           console.error('[PBX Twilio] DB fallback failed:', e.message);
         }
       }
   
-      console.log(`[PBX Twilio] Target VoIP client: ${targetClient ? targetClient.id : 'NONE'}`);
-      
-      if (!targetClient) {
+      if (targetClients.length === 0) {
         console.warn('[PBX Twilio] No VoIP clients registered! Hanging up.');
         twiml.say({ language: 'ro-RO' }, 'Ne cerem scuze, niciun agent nu este disponibil in acest moment.');
       } else {
+        targetClients.forEach(tc => console.log(`[PBX Twilio] Target VoIP client fan-out: ${tc.id}`));
+
         const actionUrl = `${getExternalBaseUrl(req)}/api/voice/dial-status`;
-        const dial = twiml.dial({ 
-          action: actionUrl,
-          timeout: 60
-        });
-        
-        // Put the inbound caller into the Hold Conference
+        const dial = twiml.dial({ action: actionUrl, timeout: 60 });
         dial.conference({
           beep: false,
           startConferenceOnEnter: true,
@@ -460,20 +482,53 @@ app.post('/api/voice/incoming', requireTwilioSignature, async (req, res) => {
           waitUrl: 'http://twimlets.com/holdmusic?Bucket=com.twilio.music.ambient'
         }, confName);
   
+        const ackToken = jwt.sign({ callSid: CallSid }, JWT_SECRET, { expiresIn: '2m' });
+        pushAckMap.set(CallSid, new Set());
+
         const payload = {
           type: 'incoming_call',
           callerNumber: From,
-          callSid: CallSid
+          callSid: CallSid,
+          ackToken: ackToken
         };
   
-        const deliveredViaWs = sendIncomingToIdentity(targetClient.id, payload);
-        
-        if (deliveredViaWs) {
-          console.log(`[PBX Twilio] Woke client ${targetClient.id} instantly via WebSocket`);
-        } else if (targetClient.fcmToken && targetClient.fcmToken !== 'WS_ONLY') {
-          console.log(`[PBX Twilio] Sending FCM Push to wake client: ${targetClient.id}`);
-          sendFcmPush(targetClient.fcmToken, payload);
-        }
+        targetClients.forEach(client => {
+          const deliveredViaWs = sendIncomingToIdentity(client.id, payload);
+          if (deliveredViaWs) {
+            console.log(`[PBX Twilio] Woke client ${client.id} instantly via WebSocket`);
+          } else if (client.fcmToken && client.fcmToken !== 'WS_ONLY') {
+            console.log(`[PBX Twilio] Sending FCM Push to wake client: ${client.id}`);
+            sendFcmPush(client.fcmToken, payload);
+          }
+        });
+
+        // Asynchronous ACK wait queue
+        setTimeout(async () => {
+          let winnerIdentity = null;
+          for (let i = 0; i < 35; i++) {
+            await new Promise(r => setTimeout(r, 100)); // 3.5 sec poll
+            const acks = pushAckMap.get(CallSid);
+            if (acks && acks.size > 0) {
+               winnerIdentity = Array.from(acks)[0];
+               break;
+            }
+          }
+
+          if (winnerIdentity) {
+            console.log(`[PBX] Call ${CallSid} WON by ${winnerIdentity}. Canceling others.`);
+            targetClients.forEach(client => {
+              if (client.id !== winnerIdentity) {
+                const cancelPayload = { type: 'CANCEL_RINGING_UI', callSid: CallSid };
+                if (!sendIncomingToIdentity(client.id, cancelPayload)) {
+                   if (client.fcmToken && client.fcmToken !== 'WS_ONLY') sendFcmPush(client.fcmToken, cancelPayload);
+                }
+              }
+            });
+          } else {
+            console.log(`[PBX] Call ${CallSid} had NO ACKs within 3.5 seconds! Ringing timeout.`);
+          }
+          setTimeout(() => pushAckMap.delete(CallSid), 10000); // Cleanup map later
+        }, 0);
       }
     } catch (e) {
       console.error('[PBX Twilio] Incoming webhook error:', e);

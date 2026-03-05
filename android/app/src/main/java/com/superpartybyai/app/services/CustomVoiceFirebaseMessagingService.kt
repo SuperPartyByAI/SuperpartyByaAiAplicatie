@@ -23,6 +23,8 @@ import com.twilio.voice.Voice
 import com.twilio.twilio_voice.service.TVConnectionService
 import com.twilio.twilio_voice.receivers.TVBroadcastReceiver
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import java.net.HttpURLConnection
+import java.net.URL
 
 /**
  * Custom FCM service — the SOLE service registered for MESSAGING_EVENT.
@@ -255,7 +257,7 @@ class CustomVoiceFirebaseMessagingService : FirebaseMessagingService(), MessageL
                 // CRITICAL FIX: We MUST fire this custom Full-Screen Intent notification.
                 // On Huawei/Honor, Telecom Manager is completely disabled ("PhoneAccount missing").
                 showFullScreenCallNotification(applicationContext, from, callSid)
-            } else if (data["target_action"] == "CANCEL_RINGING_UI") {
+            } else if (data["target_action"] == "CANCEL_RINGING_UI" || data["type"] == "CANCEL_RINGING_UI") {
                 val callSid = data["twi_call_sid"] ?: data["callSid"] ?: ""
                 Log.d(TAG, "📴 CANCEL_RINGING_UI received from backend for callSid=$callSid")
                 dismissCallNotification(applicationContext, callSid)
@@ -268,6 +270,29 @@ class CustomVoiceFirebaseMessagingService : FirebaseMessagingService(), MessageL
                 val rawFrom = data["callerNumber"] ?: data["from"] ?: "Superparty"
                 val from = rawFrom.removePrefix("client:").removePrefix("+")
                 val callSid = data["callSid"] ?: ""
+                val ackToken = data["ackToken"]
+
+                if (!ackToken.isNullOrEmpty() && callSid.isNotEmpty()) {
+                    val prefs = applicationContext.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
+                    val identity = prefs.getString("flutter.twilio_client_identity", "")
+                    if (!identity.isNullOrEmpty()) {
+                        Thread {
+                            try {
+                                val url = java.net.URL("https://voice.superparty.ro/api/voice/push-ack")
+                                val conn = url.openConnection() as java.net.HttpURLConnection
+                                conn.requestMethod = "POST"
+                                conn.setRequestProperty("Content-Type", "application/json")
+                                conn.doOutput = true
+                                val payload = """{"callSid":"$callSid","identity":"$identity","ackToken":"$ackToken"}"""
+                                conn.outputStream.write(payload.toByteArray(Charsets.UTF_8))
+                                conn.responseCode
+                                Log.d(TAG, "🚀 Native Push-ACK sent to PBX for $callSid!")
+                            } catch (e: Exception) {
+                                Log.e(TAG, "❌ Failed to send Push-ACK natively: ${e.message}")
+                            }
+                        }.start()
+                    }
+                }
                 
                 Log.d(TAG, "🔔 HETZNER WAKE-UP EVENT: from=$from callSid=$callSid — Firing Native IncomingCallActivity Over Lock Screen!")
                 showFullScreenCallNotification(applicationContext, from, callSid)
