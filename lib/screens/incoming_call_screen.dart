@@ -45,7 +45,16 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
       final prefs = await SharedPreferences.getInstance();
       final identity = prefs.getString('twilio_client_identity') ?? 'superparty';
       
-      final confRoomRaw = widget.conf.isNotEmpty ? widget.conf : 'conf_${widget.callSid}';
+      String confStr = widget.callSid;
+      if (confStr.isEmpty || !confStr.startsWith('CA')) {
+        final fallbackSid = prefs.getString('last_incoming_call_sid') ?? '';
+        if (fallbackSid.startsWith('CA')) confStr = fallbackSid;
+      }
+      if (confStr.isEmpty || !confStr.startsWith('CA')) {
+        debugPrint('[IncomingCallScreen] ❌ No valid Twilio CallSid available for conference join. Aborting.');
+        return;
+      }
+      final confRoomRaw = confStr.startsWith('conf_') ? confStr : 'conf_$confStr';
       final to = confRoomRaw.startsWith('client:') ? confRoomRaw : 'client:$confRoomRaw';
       
       BackendService? backend;

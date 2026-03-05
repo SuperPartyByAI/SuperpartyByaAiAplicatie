@@ -145,6 +145,14 @@ class VoipService {
   static Future<void> _showIncomingNotification(Map<String, dynamic> data) async {
     final String conf = data['conf'] ?? '';
     final String callSid = data['callSid'] ?? '';
+    
+    // Persist last incoming Twilio CallSid so lockscreen Answer always joins the correct conference
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (callSid.isNotEmpty && callSid.startsWith('CA')) {
+        await prefs.setString('last_incoming_call_sid', callSid);
+      }
+    } catch (_) {}
     final String caller = data['from'] ?? data['callerNumber'] ?? 'Unknown';
     final String sig = data['sig'] ?? '';
     final String expires = data['expires'] ?? '';

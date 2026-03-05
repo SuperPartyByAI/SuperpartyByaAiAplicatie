@@ -216,7 +216,16 @@ Future<void> answerIncomingCall(String from, String callSid) async {
     final prefs = await SharedPreferences.getInstance();
     final identity = prefs.getString('twilio_client_identity') ?? 'superparty';
     
-    final confStr = callSid.isNotEmpty ? callSid : 'unknown_callsid';
+    // Use real Twilio CallSid (CA...) from args; if missing, fallback to last_incoming_call_sid
+    String confStr = callSid;
+    if (confStr.isEmpty || !confStr.startsWith('CA')) {
+      final fallbackSid = prefs.getString('last_incoming_call_sid') ?? '';
+      if (fallbackSid.startsWith('CA')) confStr = fallbackSid;
+    }
+    if (confStr.isEmpty || !confStr.startsWith('CA')) {
+      debugPrint('[main] ❌ No valid Twilio CallSid available for conference join. Aborting place(). callSid=$callSid');
+      return;
+    }
     final confRoomRaw = confStr.startsWith('conf_') ? confStr : 'conf_$confStr';
     final to = confRoomRaw.startsWith('client:') ? confRoomRaw : 'client:$confRoomRaw';
     

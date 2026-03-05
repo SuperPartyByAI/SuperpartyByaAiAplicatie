@@ -8,10 +8,10 @@ import 'supabase_service.dart';
 
 class BackendService {
   // Update to your actual backend URL. 
-  // CHANGE BACK TO IP because api.superparty.ro DNS is still pointing to Hosterion for the user's phone!
-  static const String BASE_URL = 'http://89.167.115.150:3001/api';  // TEMP FIX 
-  // TODO: Set to https://voice.yourdomain.ro/api after Nginx is configured
-  static const String VOICE_BASE_URL = 'https://voice.superparty.ro/api'; 
+  // Pointing to the main Superparty platform (WhatsApp/Websocket/DB engine) on port 3000.
+  static const String BASE_URL = 'http://89.167.115.150:3000/api';  // WhatsApp Backend Server
+  
+  static const String VOICE_BASE_URL = 'https://voice.superparty.ro/api';
 
   String get baseUrl => BASE_URL;
   String get voiceBaseUrl => VOICE_BASE_URL;
