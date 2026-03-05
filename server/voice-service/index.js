@@ -297,14 +297,12 @@ app.post('/api/voice/registerDevice', requireSupabaseUser, async (req, res) => {
     const { data, error } = await supabase
       .from('device_tokens')
       .upsert({
-        user_id: userId,
-        device_id: deviceId,
-        fcm_token: fcmToken,
+        user_id: req.supabaseUser.id,
+        device_id: deviceId || 'unknown',
         device_identity: identity,
+        fcm_token: fcmToken || 'WS_ONLY',
         last_seen_at: new Date().toISOString()
-      }, {
-        onConflict: 'device_identity'
-      });
+      }, { onConflict: 'user_id, device_id' });
 
     if (error) {
       console.error('[VoIP PBX] Error saving device token:', error.message);
@@ -508,12 +506,8 @@ app.post('/api/voice/accept', requireSupabaseUser, express.json(), async (req, r
         console.log(`[PBX DB-Locks] Deduplicated callSid at scale: ${callSid}`);
         return res.json({ ok: true, dedupe: true });
       }
-      if (insertError.code === '42P01') { // Undefined table
-        console.warn('[PBX] WARNING: `call_accepts` table missing! Bypassing idempotency lock (Level 1 Fallback). Run the SQL migration.');
-      } else {
-        console.error('[PBX] Error recording call accept in DB:', insertError.message);
-        return res.status(500).json({ ok: false, error: 'Database idempotency constraint failed' });
-      }
+      console.error('[PBX] Error recording call accept in DB:', insertError.message);
+      return res.status(500).json({ ok: false, error: 'Database idempotency constraint failed' });
     }
     if (!clientIdentity) {
       return res.status(400).json({ ok: false, error: 'missing clientIdentity' });
