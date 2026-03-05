@@ -279,17 +279,21 @@ Future<void> answerIncomingCall(String from, String callSid) async {
             }
 
             if (accessToken != null && accessToken.isNotEmpty) {
-              final placedNative = await const MethodChannel('com.superpartybyai.app/call_actions').invokeMethod<bool>(
-                'directPlace',
-                {'accessToken': accessToken, 'to': to},
-              );
+              if (VoipService.isHuaweiOrHonor) {
+                final placedNative = await const MethodChannel('com.superpartybyai.app/call_actions').invokeMethod<bool>(
+                  'directPlace',
+                  {'accessToken': accessToken, 'to': to},
+                );
 
-              if (placedNative == true) {
-                placed = true;
-                debugPrint('[main] ✅ directPlace SUCCESS (native Voice.connect) on attempt ${i + 1}. Skip call.place.');
-                break;
+                if (placedNative == true) {
+                  placed = true;
+                  debugPrint('[main] ✅ directPlace SUCCESS (native Voice.connect) on attempt ${i + 1}. Skip call.place.');
+                  break;
+                } else {
+                  debugPrint('[main] ⚠️ directPlace returned false. Fallback to call.place.');
+                }
               } else {
-                debugPrint('[main] ⚠️ directPlace returned false. Fallback to call.place.');
+                 debugPrint('[main] ℹ️ Skipping directPlace on non-Huawei device.');
               }
             } else {
               debugPrint('[main] ⚠️ No twilio_access_token available for directPlace.');

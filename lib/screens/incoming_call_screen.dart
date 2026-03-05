@@ -105,15 +105,19 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
         }
 
         if (accessToken != null && accessToken.isNotEmpty) {
-          final placedNative = await const MethodChannel('com.superpartybyai.app/call_actions').invokeMethod<bool>(
-            'directPlace',
-            {'accessToken': accessToken, 'to': to},
-          );
-          if (placedNative == true) {
-             placed = true;
-             debugPrint('[IncomingCallScreen] ✅ directPlace SUCCESS (native Voice.connect). Skip call.place.');
+          if (VoipService.isHuaweiOrHonor) {
+            final placedNative = await const MethodChannel('com.superpartybyai.app/call_actions').invokeMethod<bool>(
+              'directPlace',
+              {'accessToken': accessToken, 'to': to},
+            );
+            if (placedNative == true) {
+               placed = true;
+               debugPrint('[IncomingCallScreen] ✅ directPlace SUCCESS (native Voice.connect). Skip call.place.');
+            } else {
+               debugPrint('[IncomingCallScreen] ⚠️ directPlace returned false. Fallback to call.place.');
+            }
           } else {
-             debugPrint('[IncomingCallScreen] ⚠️ directPlace returned false. Fallback to call.place.');
+             debugPrint('[IncomingCallScreen] ℹ️ Skipping directPlace on non-Huawei device.');
           }
         }
       } catch (e) {

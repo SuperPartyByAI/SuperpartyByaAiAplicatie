@@ -21,11 +21,14 @@ import 'call_kit_service.dart';
 import 'voip_logger.dart';
 import 'package:web_socket_channel/io.dart';
 import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 
 class VoipService {
   static final VoipService _instance = VoipService._internal();
   factory VoipService() => _instance;
   VoipService._internal();
+
+  static bool isHuaweiOrHonor = false;
 
   static final FlutterLocalNotificationsPlugin _notif = FlutterLocalNotificationsPlugin();
 
@@ -223,6 +226,15 @@ class VoipService {
   }
 
   Future<void> init(BackendService backendService, {bool forceReinit = false}) async {
+    try {
+      if (Platform.isAndroid) {
+        final deviceInfo = DeviceInfoPlugin();
+        final androidInfo = await deviceInfo.androidInfo;
+        final manufacturer = androidInfo.manufacturer.toLowerCase();
+        isHuaweiOrHonor = manufacturer == 'huawei' || manufacturer == 'honor';
+      }
+    } catch (_) {}
+
     if (_isRegistered && !forceReinit) {
       debugPrint('[VoIP] Already initialized — skipping. Use forceReinit:true to re-register.');
       return;
