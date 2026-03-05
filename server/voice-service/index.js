@@ -461,10 +461,24 @@ app.post('/api/voice/incoming', requireTwilioSignature, async (req, res) => {
     res.send(twiml.toString());
 });
 
-// ─── FCM FALLBACK: LEGACY ENDPOINTS RESTORED ──────────────────────────────
-const acceptedCallSids = new Set();
-// Periodically flush the deduplication memory buffer (10 minutes)
-setInterval(() => acceptedCallSids.clear(), 10 * 60 * 1000);
+// ─────────────────────────────────────────────────────────────
+// Idempotency for /api/voice/accept (10 minutes per CallSid)
+// ─────────────────────────────────────────────────────────────
+const ACCEPT_TTL_MS = 10 * 60 * 1000;
+const acceptedCallSids = new Map(); // callSid -> timestamp
+function acceptSeen(callSid) {
+  const now = Date.now();
+  const t = acceptedCallSids.get(callSid);
+  if (t && (now - t) < ACCEPT_TTL_MS) return true;
+  acceptedCallSids.set(callSid, now);
+  return false;
+}
+setInterval(() => {
+  const now = Date.now();
+  for (const [sid, t] of acceptedCallSids.entries()) {
+    if (now - t > ACCEPT_TTL_MS) acceptedCallSids.delete(sid);
+  }
+}, 60 * 1000);
 
 app.post('/api/voice/accept', requireSupabaseUser, express.json(), async (req, res) => {
   try {
@@ -682,7 +696,7 @@ app.post('/api/voice/bridge-agent', (req, res) => {
   res.send(twiml.toString());
 });
 
-app.get('/api/voice/calls', async (req, res) => {
+app.get('/api/voice/calls', requireSupabaseUser, async (req, res) => {
     try {
       if (!twilioClient) {
          return res.status(500).json({ error: 'Twilio Client Nu Este Configurat.' });
@@ -696,7 +710,7 @@ app.get('/api/voice/calls', async (req, res) => {
     }
 });
 
-app.get('/api/voice/calls/:sid', async (req, res) => {
+app.get('/api/voice/calls/:sid', requireSupabaseUser, async (req, res) => {
     try {
       if (!twilioClient) {
          return res.status(500).json({ error: 'Twilio Client Nu Este Configurat.' });
