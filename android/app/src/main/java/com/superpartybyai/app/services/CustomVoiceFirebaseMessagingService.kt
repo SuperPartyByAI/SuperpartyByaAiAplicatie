@@ -262,15 +262,21 @@ class CustomVoiceFirebaseMessagingService : FirebaseMessagingService(), MessageL
             return 
         }
 
-        // Try to forward to TVConnectionService (will fail silently on Huawei – that's OK)
+        // Try to forward to TVConnectionService (except on Huawei/Honor to prevent crash loop)
         try {
-            Intent(applicationContext, TVConnectionService::class.java).apply {
-                action = TVConnectionService.ACTION_INCOMING_CALL
-                putExtra(TVConnectionService.EXTRA_INCOMING_CALL_INVITE, callInvite)
-                applicationContext.startService(this)
+            val m = Build.MANUFACTURER.lowercase()
+            val isHuawei = m.contains("huawei") || m.contains("honor")
+            if (isHuawei) {
+                Log.d(TAG, "🚫 Huawei/Honor detected! Skipping TVConnectionService completely to prevent crash loop.")
+            } else {
+                Intent(applicationContext, TVConnectionService::class.java).apply {
+                    action = TVConnectionService.ACTION_INCOMING_CALL
+                    putExtra(TVConnectionService.EXTRA_INCOMING_CALL_INVITE, callInvite)
+                    applicationContext.startService(this)
+                }
             }
         } catch (e: Exception) {
-            Log.w(TAG, "TVConnectionService unavailable (expected on Huawei): ${e.message}")
+            Log.w(TAG, "TVConnectionService unavailable: ${e.message}")
         }
 
         // Notify Flutter via TVBroadcastReceiver (fires CallEvent.incoming)

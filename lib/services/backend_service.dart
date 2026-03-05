@@ -252,6 +252,30 @@ class BackendService {
       rethrow;
     }
   }
+
+  Future<bool> acceptPbxCall(String callSid, String clientIdentity) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.post(
+        Uri.parse('$voiceBaseUrl/voice/accept'),
+        headers: headers,
+        body: jsonEncode({
+          'callSid': callSid,
+          'clientIdentity': clientIdentity,
+        }),
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        debugPrint('[BackendService] /api/voice/accept success for $callSid');
+        return true;
+      } else {
+        debugPrint('[BackendService] /api/voice/accept failed: ${response.statusCode} - ${response.body}');
+        return false;
+      }
+    } catch (e) {
+      debugPrint('[BackendService] acceptPbxCall error: $e');
+      return false;
+    }
+  }
   // --- Employee Authentication & Approval ---
 
   Future<void> requestEmployeeAccess(String displayName, String phone) async {

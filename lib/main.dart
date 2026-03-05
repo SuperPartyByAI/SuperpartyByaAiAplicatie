@@ -239,18 +239,13 @@ Future<void> answerIncomingCall(String from, String callSid) async {
       backend = BackendService(AuthService());
     }
     
-    await VoipService().init(backend, forceReinit: false);
-    
-    debugPrint('[main] dialing into conference room: $to with identity $identity');
-    final placed = await TwilioVoice.instance.call.place(to: to, from: identity);
-    debugPrint('[main] call.place result=$placed to=$to from=$identity');
+    debugPrint('[main] ACCEPTing call via server-bridge: POST /api/voice/accept for sid=$callSid, identity=$identity');
+    final accepted = await backend.acceptPbxCall(callSid, identity);
+    debugPrint('[main] /api/voice/accept result=$accepted');
 
-    if (placed != true && backend != null) {
-      debugPrint('[main] call.place failed -> forceReinit + retry');
-      await VoipService().init(backend, forceReinit: true);
-      await Future.delayed(const Duration(seconds: 2));
-      final placed2 = await TwilioVoice.instance.call.place(to: to, from: identity);
-      debugPrint('[main] call.place retry result=$placed2');
+    if (!accepted) {
+      debugPrint('[main] Server-bridge failed, alerting backend error flow.');
+      VoipService.clearCallAnswered();
     }
 
 

@@ -187,6 +187,12 @@ class MainActivity : FlutterActivity() {
         if (action != IncomingCallActivity.ACTION_ANSWER && action != IncomingCallActivity.ACTION_REJECT) return
         val from = intent.getStringExtra("from") ?: "Superparty"
         val sid  = intent.getStringExtra("twilio_call_sid") ?: ""
+        
+        if (action == IncomingCallActivity.ACTION_ANSWER) {
+            CustomVoiceFirebaseMessagingService.autoAnswerUntil = System.currentTimeMillis() + 15000
+            Log.d(TAG, "⏰ Set autoAnswer window for 15s for sid=$sid")
+        }
+
         pendingQueue.addLast(PendingAction(action, from, sid))
         Log.d(TAG, "Stored pending (queue size=${pendingQueue.size}): action=$action from=$from sid=$sid")
     }
