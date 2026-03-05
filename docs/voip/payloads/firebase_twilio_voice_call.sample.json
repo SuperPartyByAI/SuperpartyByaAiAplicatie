@@ -1,0 +1,9 @@
+{
+  "twi_message_type": "twilio.voice.call",
+  "twi_call_sid": "CA1234567890abcdef1234567890abcdef",
+  "twi_from": "client:superparty",
+  "twi_to": "client:agent123",
+  "twi_account_sid": "ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx",
+  "twi_bridge_token": "eyJhbGciOi...",
+  "from": "client:superparty"
+}
