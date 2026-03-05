@@ -121,7 +121,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
       }
 
       if (!placed) {
-        placed = await TwilioVoice.instance.call.place(to: to, from: identity);
+        placed = await TwilioVoice.instance.call.place(to: to, from: identity) ?? false;
         debugPrint('[IncomingCallScreen] call.place result=$placed to=$to from=$identity');
       }
       if (placed != true && backend != null) {
