@@ -1,0 +1,21 @@
+03-04 21:01:51.377 26240 26240 E AndroidRuntime: android.os.BadParcelableException: ClassNotFoundException when unmarshalling: com.twilio.voice.CallInvite
+03-04 21:01:51.377 26240 26240 E AndroidRuntime: 	at android.telecom.Call.areBundlesEqual(Call.java:3009)
+03-04 21:01:51.377 26240 26240 E AndroidRuntime: 	at android.telecom.Call.areBundlesEqual(Call.java:3012)
+03-04 21:01:51.377 26240 26240 E AndroidRuntime: 	at android.telecom.Call.-$$Nest$smareBundlesEqual(Unknown Source:0)
+03-04 21:01:51.377 26240 26240 E AndroidRuntime: 	at android.telecom.Call$Details.equals(Call.java:1168)
+03-04 21:01:51.377 26240 26240 E AndroidRuntime: 	at android.telecom.Call.internalUpdate(Call.java:2556)
+03-04 21:01:51.377 26240 26240 E AndroidRuntime: 	at android.telecom.Phone.internalUpdateCall(Phone.java:210)
+03-04 21:01:51.377 26240 26240 E AndroidRuntime: 	at android.telecom.InCallService$1.handleMessage(InCallService.java:302)
+03-04 21:01:51.377 26240 26240 E AndroidRuntime: Caused by: java.lang.ClassNotFoundException: com.twilio.voice.CallInvite
+03-04 21:01:51.377 26240 26240 E AndroidRuntime: Caused by: java.lang.ClassNotFoundException: com.twilio.voice.CallInvite
+03-04 21:01:51.379 22444 22444 E AndroidRuntime: android.os.BadParcelableException: ClassNotFoundException when unmarshalling: com.twilio.voice.CallInvite
+03-04 21:01:51.379 22444 22444 E AndroidRuntime: 	at android.telecom.Call.areBundlesEqual(Call.java:3009)
+03-04 21:01:51.379 22444 22444 E AndroidRuntime: 	at android.telecom.Call.areBundlesEqual(Call.java:3012)
+03-04 21:01:51.379 22444 22444 E AndroidRuntime: 	at android.telecom.Call.-$$Nest$smareBundlesEqual(Unknown Source:0)
+03-04 21:01:51.379 22444 22444 E AndroidRuntime: 	at android.telecom.Call$Details.equals(Call.java:1168)
+03-04 21:01:51.379 22444 22444 E AndroidRuntime: 	at android.telecom.Call.internalUpdate(Call.java:2556)
+03-04 21:01:51.379 22444 22444 E AndroidRuntime: 	at android.telecom.Phone.internalUpdateCall(Phone.java:210)
+03-04 21:01:51.379 22444 22444 E AndroidRuntime: 	at android.telecom.InCallService$1.handleMessage(InCallService.java:302)
+03-04 21:01:51.379 22444 22444 E AndroidRuntime: Caused by: java.lang.ClassNotFoundException: com.twilio.voice.CallInvite
+03-04 21:01:51.379 22444 22444 E AndroidRuntime: Caused by: java.lang.ClassNotFoundException: com.twilio.voice.CallInvite
+03-05 06:00:51.536  1919  2434 I PackageManager: setEnabledSetting pkg:com.android.vending, className:com.google.android.finsky.transparentmainactivity.TransparentMainActivity, newState:0, flags:1, userId:0, CallingPid:17104, CallingUid:10140
