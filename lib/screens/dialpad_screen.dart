@@ -32,20 +32,30 @@ class _DialpadScreenState extends State<DialpadScreen> {
     
     debugPrint('CALL_FLOW: Dialpad _call PRESSED pt $number');
 
+    bool ok = false;
     try {
       debugPrint('CALL_FLOW: invoking voip.makeCall($number)');
       final voip = VoipService();
-      await voip.makeCall(number);
-      debugPrint('CALL_FLOW: makeCall finished without throwing');
+      ok = await voip.makeCall(number);
+      debugPrint('CALL_FLOW: makeCall returned ok=$ok');
     } catch (e, st) {
       debugPrint('CALL_FLOW: ERROR in Dialpad _call => $e\n$st');
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Eroare apel: $e')));
       }
-      return; 
+      return;
     }
 
-    // Navigate immediately to Active Call Screen
+    if (!ok) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Apelul nu a pornit. Folosește format +40… (ex: +407xxxxxxx)')),
+        );
+      }
+      return;
+    }
+
+    // Navigate to Active Call Screen only if call was placed successfully
     if (!mounted) return;
     Navigator.push(
       context,

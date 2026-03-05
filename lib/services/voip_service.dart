@@ -489,8 +489,28 @@ class VoipService {
     debugPrint('[VoIP] ═══ Init complete ═══');
   }
 
-  Future<void> makeCall(String to) async {
-    debugPrint('CALL_FLOW: VoipService.makeCall STARTED pt $to');
+  /// Normalizes a phone number to E.164 format.
+  /// Romanian heuristic: 07xxxxxxxx → +407xxxxxxx, 00xx… → +xx…
+  String _normalizeToE164(String input) {
+    var s = input.trim().replaceAll(RegExp(r'[\s\-\(\)]'), '');
+    if (s.startsWith('+')) return s;
+    if (s.startsWith('00')) return '+${s.substring(2)}';
+    if (RegExp(r'^\d+$').hasMatch(s)) {
+      if (s.startsWith('0') && s.length >= 9 && s.length <= 10) return '+40${s.substring(1)}';
+      if (s.startsWith('40') && s.length >= 10) return '+$s';
+    }
+    return s;
+  }
+
+  Future<bool> makeCall(String to) async {
+    await ensureDeviceFlagsInitialized();
+    final normalizedTo = _normalizeToE164(to);
+    debugPrint('CALL_FLOW: VoipService.makeCall STARTED raw=$to normalized=$normalizedTo');
+
+    if (!normalizedTo.startsWith('+')) {
+      debugPrint('CALL_FLOW: ❌ Invalid PSTN number (need E.164 like +407xxxxxxx)');
+      return false;
+    }
 
     final mic = await Permission.microphone.status;
     if (!mic.isGranted) {
@@ -498,26 +518,64 @@ class VoipService {
       await Permission.microphone.request();
     }
 
+    // Android 12+/14: keep BT connect granted (AudioSwitch)
+    if (Platform.isAndroid) {
+      try {
+        final bt = await Permission.bluetoothConnect.request();
+        debugPrint('CALL_FLOW: BluetoothConnect granted=${bt.isGranted}');
+      } catch (_) {}
+    }
+
+    final prefs = await SharedPreferences.getInstance();
+    final accessToken = prefs.getString('twilio_access_token') ?? '';
+    final identity = _lastIdentity ?? prefs.getString('twilio_client_identity') ?? '';
+
+    if (identity.isEmpty) {
+      debugPrint('CALL_FLOW: ❌ Missing twilio_client_identity (VoIP not initialized?)');
+      return false;
+    }
+
     try {
-      debugPrint('CALL_FLOW: Requesting TwilioVoice.instance.registerPhoneAccount() before call...');
-      await TwilioVoice.instance.registerPhoneAccount();
-      
-      if (Platform.isAndroid) {
-        // Checking if user has toggled the Calling Account ON via Android Settings
-        final ok = await const MethodChannel('com.superpartybyai.app/diag').invokeMethod('isCallCapable');
-        if (ok != true) {
-          debugPrint('CALL_FLOW: ❌ PhoneAccount disabled (ignoring due to UX update).');
+      // Huawei/Honor: bypass Telecom completely via native Voice.connect
+      if (Platform.isAndroid && isHuaweiOrHonor && accessToken.isNotEmpty) {
+        debugPrint('CALL_FLOW: Huawei detected → trying native directPlace first');
+        try {
+          final placedNative = await const MethodChannel('com.superpartybyai.app/call_actions')
+              .invokeMethod<bool>('directPlace', {
+            'accessToken': accessToken,
+            'to': normalizedTo,
+          });
+          if (placedNative == true) {
+            debugPrint('CALL_FLOW: ✅ directPlace SUCCESS (native Voice.connect)');
+            return true;
+          }
+          debugPrint('CALL_FLOW: ⚠️ directPlace returned false → fallback to call.place');
+        } catch (e) {
+          debugPrint('CALL_FLOW: ❌ directPlace exception: $e → fallback to call.place');
         }
+      }
+
+      // Non-Huawei path (or Huawei fallback)
+      debugPrint('CALL_FLOW: registerPhoneAccount() (non-fatal)');
+      try { await TwilioVoice.instance.registerPhoneAccount(); } catch (e) {
+        debugPrint('CALL_FLOW: registerPhoneAccount failed (non-fatal): $e');
+      }
+
+      if (Platform.isAndroid) {
+        final ok = await const MethodChannel('com.superpartybyai.app/diag').invokeMethod('isCallCapable');
+        if (ok != true) debugPrint('CALL_FLOW: ❌ PhoneAccount disabled (ignoring due to UX update).');
       }
 
       debugPrint('CALL_FLOW: await TwilioVoice.instance.call.place()');
       final result = await TwilioVoice.instance.call.place(
-        to: to,
-        from: _lastIdentity ?? 'superparty',
+        to: normalizedTo,
+        from: identity,
       );
       debugPrint('CALL_FLOW: Call placed result: $result');
+      return result == true;
     } catch (e, st) {
       debugPrint('CALL_FLOW: ❌ Call error in try/catch: $e\n$st');
+      return false;
     }
   }
 

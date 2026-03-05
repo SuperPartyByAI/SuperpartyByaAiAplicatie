@@ -907,6 +907,69 @@ app.post('/api/voice/callback', requireSupabaseUser, async (req, res) => {
   }
 });
 
+// POST /api/voice/makeCall — triggered by CallsScreen "callback" button
+// Body: { to: "+407xxxxxxx", userId: "uuid" }
+// Resolves the caller's device identity from Supabase, then bridges PSTN + agent via conference.
+app.post('/api/voice/makeCall', requireSupabaseUser, express.json(), async (req, res) => {
+  const { to, userId } = req.body;
+
+  if (!to || !userId) {
+    return res.status(400).json({ error: 'Missing to or userId' });
+  }
+
+  // Normalize to E.164
+  let toE164 = to.trim();
+  if (!toE164.startsWith('+')) {
+    if (toE164.startsWith('00')) toE164 = '+' + toE164.substring(2);
+    else if (/^\d+$/.test(toE164) && toE164.startsWith('0') && toE164.length >= 9) toE164 = '+40' + toE164.substring(1);
+    else toE164 = '+' + toE164;
+  }
+
+  try {
+    // Resolve device identity for this user (most recently registered device)
+    const { data: devices, error } = await supabase
+      .from('device_tokens')
+      .select('device_identity')
+      .eq('user_id', userId)
+      .order('last_seen_at', { ascending: false })
+      .limit(1);
+
+    if (error || !devices || devices.length === 0) {
+      console.warn(`[makeCall] No device found for userId=${userId}`);
+      return res.status(404).json({ error: 'No registered device for this user' });
+    }
+
+    const agentIdentity = devices[0].device_identity;
+    const confName = 'outbound_' + Date.now();
+    const actionUrl = `${getExternalBaseUrl(req)}/api/voice/dial-status`;
+    const callerNumber = process.env.TWILIO_CALLER_ID || process.env.TWILIO_PHONE_NUMBER;
+
+    console.log(`[makeCall] Bridging agent=${agentIdentity} to PSTN=${toE164} via conf=${confName}`);
+
+    // Leg 1: Call the PSTN number
+    const pstnCall = await twilioClient.calls.create({
+      to: toE164,
+      from: callerNumber,
+      twiml: `<Response><Dial action="${actionUrl}"><Conference beep="false" startConferenceOnEnter="true" endConferenceOnExit="true">${confName}</Conference></Dial></Response>`
+    });
+
+    // Leg 2: Call the agent's device (SDK client)
+    const agentCall = await twilioClient.calls.create({
+      to: `client:${agentIdentity}`,
+      from: callerNumber,
+      twiml: `<Response><Dial action="${actionUrl}"><Conference beep="false" startConferenceOnEnter="true" endConferenceOnExit="false">${confName}</Conference></Dial></Response>`
+    });
+
+    console.log(`[makeCall] ✅ pstnSid=${pstnCall.sid} agentSid=${agentCall.sid}`);
+    res.json({ ok: true, pstnCallSid: pstnCall.sid, agentCallSid: agentCall.sid, conferenceName: confName });
+
+  } catch (err) {
+    console.error('[makeCall] Error:', err.message || err);
+    res.status(500).json({ error: err.message || 'Internal error' });
+  }
+});
+
+
 // Outgoing bridging (if used by specific webhooks or legacy integrations)
 app.post('/api/voice/bridge-agent', requireTwilioSignature, (req, res) => {
   const twiml = new twilio.twiml.VoiceResponse();
