@@ -191,7 +191,7 @@ class VoipService {
 
   static Future<void> _showIncomingNotification(Map<String, dynamic> data) async {
     final String conf = data['conf'] ?? '';
-    final String callSid = data['callSid'] ?? '';
+    final String callSid = (data['callSid'] ?? data['twi_call_sid'] ?? '').toString();
     
     // --- Android dedupe: if native UI is already active, suppress Flutter UI/notification ---
     if (Platform.isAndroid && callSid.isNotEmpty) {
