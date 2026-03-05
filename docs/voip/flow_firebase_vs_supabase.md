@@ -69,9 +69,10 @@ sequenceDiagram
     alt Are CallInvite stocat nativ?
         Main->>Native: directAnswer -> acceptPendingCallInvite()
     else Fără invite nativ
-        Main->>Twilio SDK: TwilioVoice.call.place(to: client:conf_CAxxx)
-        Twilio SDK-->>PBX: /api/voice/incoming route outbound
-        PBX-->>Twilio SDK: Join conf_CAxxx
+    else Fără invite nativ
+        Main->>Native: directPlace (Voice.connect bypass Telecom)
+        Native-->>PBX: /api/voice/incoming route outbound
+        PBX-->>Native: Join conf_CAxxx
     end
 ```
 

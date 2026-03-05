@@ -270,7 +270,31 @@ Future<void> answerIncomingCall(String from, String callSid) async {
     for (int i = 0; i < 8; i++) {
         debugPrint('[main] dialing into conference room: $to with identity $identity (Attempt ${i + 1})');
         try {
-            await VoipService().init(backend, forceReinit: i > 0);
+            // 1) try native directPlace (bypass Telecom)
+            final prefs = await SharedPreferences.getInstance();
+            String? accessToken = prefs.getString('twilio_access_token');
+            if (accessToken == null || accessToken.isEmpty) {
+              await VoipService().init(backend, forceReinit: true);
+              accessToken = prefs.getString('twilio_access_token');
+            }
+
+            if (accessToken != null && accessToken.isNotEmpty) {
+              final placedNative = await const MethodChannel('com.superpartybyai.app/call_actions').invokeMethod<bool>(
+                'directPlace',
+                {'accessToken': accessToken, 'to': to},
+              );
+
+              if (placedNative == true) {
+                placed = true;
+                debugPrint('[main] ✅ directPlace SUCCESS (native Voice.connect) on attempt ${i + 1}. Skip call.place.');
+                break;
+              } else {
+                debugPrint('[main] ⚠️ directPlace returned false. Fallback to call.place.');
+              }
+            } else {
+              debugPrint('[main] ⚠️ No twilio_access_token available for directPlace.');
+              await VoipService().init(backend, forceReinit: i > 0);
+            }
             
             bool isReg = VoipService().isRegistered;
             debugPrint('[main] Did VoipService.init actually run setTokens? _isRegistered=$isReg');

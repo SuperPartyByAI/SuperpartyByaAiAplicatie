@@ -237,9 +237,14 @@ class VoipService {
     // activeCall check is a secondary safeguard once Twilio SDK updates its state.
     final activeCall = TwilioVoice.instance.call.activeCall;
     if (activeCall != null) {
-      debugPrint('[VoIP] ⚠️ activeCall present — skipping re-init (activeCall=${activeCall.to})');
-      _isRegistered = true;
-      return;
+      if (forceReinit) {
+        debugPrint('[VoIP] activeCall present but forceReinit=true -> attempting hangUp then continue');
+        try { await TwilioVoice.instance.call.hangUp(); } catch (_) {}
+      } else {
+        debugPrint('[VoIP] ⚠️ activeCall present — skipping re-init (activeCall=${activeCall.to})');
+        _isRegistered = true;
+        return;
+      }
     }
 
     // if user tapped Answer, DO NOT clear UIs, but allow Init to continue registering tokens

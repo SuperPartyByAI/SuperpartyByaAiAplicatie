@@ -22,6 +22,8 @@ import com.twilio.twilio_voice.receivers.TVBroadcastReceiver as TwilioTVBroadcas
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
+import com.twilio.voice.ConnectOptions
+import com.twilio.voice.Voice
 
 class MainActivity : FlutterActivity() {
 
@@ -30,6 +32,9 @@ class MainActivity : FlutterActivity() {
         private const val CALL_CHANNEL  = "com.superpartybyai.app/call_actions"
         private const val AUDIO_CHANNEL = "com.superpartybyai.app/audio"
         private const val DIAG_CHANNEL  = "com.superpartybyai.app/diag"
+
+        @Volatile
+        private var directOutboundCall: com.twilio.voice.Call? = null
     }
 
     private var callMethodChannel: MethodChannel? = null
@@ -93,6 +98,67 @@ class MainActivity : FlutterActivity() {
                         isFlutterReady = true
                         dispatchPendingAction(ch)
                         result.success(true)
+                    }
+                    "directPlace" -> {
+                        val args = call.arguments as? Map<*, *> ?: emptyMap<Any, Any>()
+                        val accessToken = args["accessToken"] as? String ?: ""
+                        val to = args["to"] as? String ?: ""
+                        if (accessToken.isBlank() || to.isBlank()) {
+                            Log.w(TAG, "directPlace: missing accessToken/to")
+                            result.success(false)
+                            return@setMethodCallHandler
+                        }
+
+                        Log.d(TAG, "directPlace: Voice.connect to=$to (bypass Telecom)")
+
+                        val listener = object : com.twilio.voice.Call.Listener {
+                            override fun onConnectFailure(c: com.twilio.voice.Call, e: com.twilio.voice.CallException) {
+                                Log.e(TAG, "directPlace onConnectFailure: \${e.message}")
+                                directOutboundCall = null
+                                runOnUiThread { callMethodChannel?.invokeMethod("callConnectFailure", mapOf("message" to (e.message ?: "connect failure"))) }
+                            }
+                            override fun onRinging(c: com.twilio.voice.Call) {
+                                Log.d(TAG, "directPlace onRinging sid=\${c.sid}")
+                                runOnUiThread { callMethodChannel?.invokeMethod("callRinging", mapOf("sid" to c.sid)) }
+                            }
+                            override fun onConnected(c: com.twilio.voice.Call) {
+                                Log.d(TAG, "✅ directPlace onConnected sid=\${c.sid}")
+                                runOnUiThread { callMethodChannel?.invokeMethod("callConnected", mapOf("sid" to c.sid)) }
+                            }
+                            override fun onReconnecting(c: com.twilio.voice.Call, e: com.twilio.voice.CallException) {}
+                            override fun onReconnected(c: com.twilio.voice.Call) {}
+                            override fun onDisconnected(c: com.twilio.voice.Call, e: com.twilio.voice.CallException?) {
+                                Log.d(TAG, "directPlace onDisconnected: \${e?.message}")
+                                directOutboundCall = null
+                                runOnUiThread { callMethodChannel?.invokeMethod("callEnded", null) }
+                            }
+                        }
+
+                        runOnUiThread {
+                            // opțional: dacă exista un call vechi, închide-l
+                            runCatching { directOutboundCall?.disconnect() }
+                            directOutboundCall = null
+
+                            val connectOptions = ConnectOptions.Builder(accessToken)
+                                .params(mapOf("To" to to))   // IMPORTANT: TwiML/PBX rutează după To=client:conf_...
+                                .build()
+
+                            val c = Voice.connect(applicationContext, connectOptions, listener)
+                            directOutboundCall = c
+                            result.success(c != null)
+                        }
+                    }
+                    "directHangup" -> {
+                        runOnUiThread {
+                            val c = directOutboundCall
+                            directOutboundCall = null
+                            if (c != null) {
+                                runCatching { c.disconnect() }
+                                result.success(true)
+                            } else {
+                                result.success(false)
+                            }
+                        }
                     }
                     "directAnswer" -> {
                         // Bypass TVConnectionService entirely — accept stored CallInvite directly.

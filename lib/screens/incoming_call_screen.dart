@@ -95,9 +95,35 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
       }
 
       // 2️⃣ FALLBACK: Outbound dial to conference
-      final placed = await TwilioVoice.instance.call.place(to: to, from: identity);
-      debugPrint('[IncomingCallScreen] call.place result=$placed to=$to from=$identity');
+      bool placed = false;
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        String? accessToken = prefs.getString('twilio_access_token');
+        if (accessToken == null || accessToken.isEmpty) {
+          if (backend != null) await VoipService().init(backend, forceReinit: true);
+          accessToken = prefs.getString('twilio_access_token');
+        }
 
+        if (accessToken != null && accessToken.isNotEmpty) {
+          final placedNative = await const MethodChannel('com.superpartybyai.app/call_actions').invokeMethod<bool>(
+            'directPlace',
+            {'accessToken': accessToken, 'to': to},
+          );
+          if (placedNative == true) {
+             placed = true;
+             debugPrint('[IncomingCallScreen] ✅ directPlace SUCCESS (native Voice.connect). Skip call.place.');
+          } else {
+             debugPrint('[IncomingCallScreen] ⚠️ directPlace returned false. Fallback to call.place.');
+          }
+        }
+      } catch (e) {
+        debugPrint('[IncomingCallScreen] ❌ directPlace exception: $e. Fallback to call.place.');
+      }
+
+      if (!placed) {
+        placed = await TwilioVoice.instance.call.place(to: to, from: identity);
+        debugPrint('[IncomingCallScreen] call.place result=$placed to=$to from=$identity');
+      }
       if (placed != true && backend != null) {
         debugPrint('[IncomingCallScreen] call.place failed -> forceReinit + retry');
         await VoipService().init(backend, forceReinit: true);
