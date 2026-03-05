@@ -239,7 +239,21 @@ Future<void> answerIncomingCall(String from, String callSid) async {
       backend = BackendService(AuthService());
     }
     
-    // Try to connect to the conference via outbound TCP dial (Huawei safe)
+    // 1️⃣ ATTEMPT NATIVE DIRECT ANSWER (Huawei/Honor Bypass using stored CallInvite)
+    try {
+      debugPrint('[main] Attempting directAnswer via Native Platform Channel...');
+      final bool directAccepted = await MethodChannel('com.superpartybyai.app/call_actions').invokeMethod('directAnswer') ?? false;
+      if (directAccepted) {
+         debugPrint('[main] ✅ directAnswer SUCCESS! Bypassing call.place fallback.');
+         return; // We are successfully bridged via the original Twilio SIP payload!
+      } else {
+         debugPrint('[main] ⚠️ directAnswer returned false (no pending invite). Falling back to call.place.');
+      }
+    } catch (e) {
+      debugPrint('[main] ❌ directAnswer exception: $e. Falling back to call.place.');
+    }
+    
+    // 2️⃣ FALLBACK: Try to connect to the conference via outbound TCP dial (Huawei safe)
     bool placed = false;
     for (int i = 0; i < 8; i++) {
         debugPrint('[main] dialing into conference room: $to with identity $identity (Attempt ${i + 1})');

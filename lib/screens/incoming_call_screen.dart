@@ -1,5 +1,6 @@
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../services/voip_service.dart';
 import '../services/backend_service.dart';
@@ -63,6 +64,37 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
         await VoipService().init(backend, forceReinit: false); 
       }
 
+      // 1️⃣ ATTEMPT NATIVE DIRECT ANSWER (Huawei Bypass)
+      try {
+        // Request audio focus immediately for native TCP WebRTC bridge
+        try {
+          await MethodChannel('com.superpartybyai.app/audio').invokeMethod('requestAudioFocusAndMode');
+        } catch (_) {}
+
+        debugPrint('[IncomingCallScreen] Attempting directAnswer via Native Platform Channel...');
+        final bool directAccepted = await MethodChannel('com.superpartybyai.app/call_actions').invokeMethod('directAnswer') ?? false;
+        if (directAccepted) {
+           debugPrint('[IncomingCallScreen] ✅ directAnswer SUCCESS! Bypassing call.place fallback.');
+           if (mounted) {
+             Navigator.pop(context); // Close incoming custom screen
+             Navigator.push(
+               context,
+               MaterialPageRoute(
+                 builder: (_) => ActiveCallScreen(
+                   remoteId: widget.caller,
+                   isOutgoing: false,
+                   callSid: widget.callSid,
+                 ),
+               ),
+             );
+           }
+           return; 
+        }
+      } catch (e) {
+        debugPrint('[IncomingCallScreen] ❌ directAnswer exception: $e');
+      }
+
+      // 2️⃣ FALLBACK: Outbound dial to conference
       final placed = await TwilioVoice.instance.call.place(to: to, from: identity);
       debugPrint('[IncomingCallScreen] call.place result=$placed to=$to from=$identity');
 
