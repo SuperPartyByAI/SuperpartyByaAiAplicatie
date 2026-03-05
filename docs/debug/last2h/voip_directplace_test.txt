@@ -1,0 +1,9 @@
+03-05 08:04:54.492 I flutter : [main] ⚠️ directAnswer returned false (no pending invite). Falling back to call.place.
+03-05 08:04:54.493 I flutter : [main] dialing into conference room: client:conf_CA4eebfc1110034a780def1a5bba65bce5 with identity user_f4... (Attempt 1)
+03-05 08:04:54.512 D [MainActivity]: directPlace: Voice.connect to=client:conf_CA4eebfc1110034a780def1a5bba65bce5 (bypass Telecom)
+03-05 08:04:54.549 I flutter : [main] ✅ directPlace SUCCESS (native Voice.connect) on attempt 1. Skip call.place.
+03-05 08:04:59.722 D [MainActivity]: directPlace onRinging sid=CA8993d7bcd9ca1c73d6f0a57df31cfeea
+03-05 08:04:59.723 I flutter : [main] ← MethodChannel: callRinging args={sid: CA8993d7bcd9ca1c73d6f0a57df31cfeea}
+03-05 08:05:01.617 D [MainActivity]: ✅ directPlace onConnected sid=CA8993d7bcd9ca1c73d6f0a57df31cfeea
+03-05 08:05:01.618 I flutter : [main] ← MethodChannel: callConnected args={sid: CA8993d7bcd9ca1c73d6f0a57df31cfeea}
+03-05 08:05:09.612 D/[MainActivity]( 7777): directPlace onDisconnected: null

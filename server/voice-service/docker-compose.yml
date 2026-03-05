@@ -1,0 +1,22 @@
+version: '3.8'
+
+services:
+  voice-service:
+    build: .
+    container_name: superparty-voice
+    restart: always
+    env_file:
+      - .env
+    ports:
+      - "3001:3001"
+    volumes:
+      - ./logs:/usr/src/app/logs
+    deploy:
+      resources:
+        limits:
+          memory: 1G
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"

@@ -1,12 +1,17 @@
 import 'dart:io';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:twilio_voice/twilio_voice.dart';
-
-
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'dart:convert';
+import 'screens/incoming_call_screen.dart';
 import 'services/auth_service.dart';
 import 'widgets/global_inbox_badge.dart'; // GlobalInboxBadgeOverlay
 import 'package:superparty_app/services/backend_service.dart';
@@ -28,9 +33,66 @@ const _kAudioChannel       = 'com.superpartybyai.app/audio';
 const _kDiagChannel        = 'com.superpartybyai.app/diag';
 
 
+// ── Notifications ──
+final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
+
+// ── FCM background handler (required by Twilio for incoming calls when app is background) ──
+@pragma('vm:entry-point')
+Future<void> _fcmBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp();
+  await VoipService.handleBackgroundMessage(message.data);
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await VoipService.ensureDeviceFlagsInitialized();
+
+  // --- Android dedupe: if native UI is already active, suppress Flutter UI/notification ---
+  try {
+    if (Platform.isAndroid) {
+      final prefs = await SharedPreferences.getInstance();
+      final until = prefs.getInt('native_ringing_until') ?? 0;
+      final now = DateTime.now().millisecondsSinceEpoch;
+      if (now < until) {
+        debugPrint('[main] 🔕 Cold start blocked: Android native ringing UI is currently active.');
+        VoipService.isRingingOrActive = true;
+      }
+    }
+  } catch (_) {}
+
+  // Initialize FCM (Google Cloud Messaging) and Local Notifications
+  try {
+    await Firebase.initializeApp();
+    FirebaseMessaging.onBackgroundMessage(_fcmBackgroundHandler);
+
+    const AndroidInitializationSettings initializationSettingsAndroid =
+        AndroidInitializationSettings('@mipmap/ic_launcher');
+    final InitializationSettings initializationSettings =
+        InitializationSettings(android: initializationSettingsAndroid);
+    await flutterLocalNotificationsPlugin.initialize(
+        settings: initializationSettings,
+        onDidReceiveNotificationResponse: (NotificationResponse response) async {
+      if (response.payload != null) {
+        final data = jsonDecode(response.payload!);
+        final ctx = navigatorKey.currentContext;
+        if (ctx != null) {
+          Navigator.of(ctx).push(MaterialPageRoute(
+            builder: (_) => IncomingCallScreen(
+              conf: data['conf'] ?? '',
+              callSid: data['callSid'] ?? '',
+              caller: data['caller'] ?? 'Unknown',
+              sig: data['sig'] ?? '',
+              expires: data['expires'] ?? '',
+            ),
+          ));
+        }
+      }
+    });
+
+    debugPrint('[FCM & Notifications] ✅ Initialized');
+  } catch (e) {
+    debugPrint('[FCM & Notifications] ❌ Init error (non-fatal): $e');
+  }
   
   try {
 
@@ -108,12 +170,18 @@ void _registerCallActionsHandler() {
 
     switch (call.method) {
       case 'answerCall':
+        // Outbound conference dial bypasses the native Twilio Telecom loop
         await answerIncomingCall(from, callSid);
         break;
       case 'rejectCall':
         try {
+          VoipService.clearCallAnswered();
+          // Send Hangup signal to PBX server synchronously BEFORE we tear down
+          // the native local audio context to ensure it transmits correctly.
+          await VoipService.rejectCallFromServer('', callSid);
+
           await TwilioVoice.instance.call.hangUp();
-          debugPrint('[main] rejectCall done');
+          debugPrint('[main] rejectCall done and transmitted to Server.');
         } catch (e) {
           debugPrint('[main] rejectCall error: $e');
         }
@@ -131,7 +199,15 @@ void _registerCallActionsHandler() {
 
 Future<void> answerIncomingCall(String from, String callSid) async {
   VoipLogger.instance.logEvent('ACCEPT_TAPPED', extra: {'from': from, 'callSid': callSid});
+  try {
+    if (Platform.isAndroid) {
+      await Permission.bluetoothConnect.request();
+      await Permission.bluetoothScan.request();
+    }
+  } catch (_) {}
   if (callSid.isNotEmpty) VoipLogger.instance.setLastCallSid(callSid);
+
+  VoipService.setCallAnswered();
 
   // ── Navigate to ActiveCallScreen IMMEDIATELY so user sees the call UI ──
   final callerName = from.replaceFirst('client:', '').replaceFirst('+', '');
@@ -152,40 +228,109 @@ Future<void> answerIncomingCall(String from, String callSid) async {
   }
 
   try {
-    // ── Set guard FIRST to block any concurrent VoIP re-init ──
-    // This MUST happen before answer() to prevent the race condition where
-    // ApprovalGate / login fires VoipService.init() → endAllCalls() → kills call.
-    VoipService.setCallAnswered();
-    debugPrint('[main] 🛡️ callAnsweredGuard SET — blocking VoIP re-init');
-
-    // ── STEP 1: Try native directAnswer bypass (Huawei-safe) ──
-    debugPrint('[main] 📞 Trying directAnswer bypass...');
-    bool directAnswered = false;
-    try {
-      final directResult = await const MethodChannel(_kCallActionsChannel)
-          .invokeMethod<bool>('directAnswer');
-      directAnswered = directResult == true;
-      debugPrint('[main] directAnswer result: $directAnswered');
-    } catch (e) {
-      debugPrint('[main] directAnswer channel error (non-fatal): $e');
-    }
-
     // Request audio focus immediately
     try {
-      await const MethodChannel(_kAudioChannel)
-          .invokeMethod('requestAudioFocusAndMode');
+      await const MethodChannel(_kAudioChannel).invokeMethod('requestAudioFocusAndMode');
     } catch (_) {}
 
-    if (directAnswered) {
-      debugPrint('[main] ✅ Call answered via directAnswer bypass!');
+    // Conference-first: agent must DIAL into conf_<CallSid>
+    final prefs = await SharedPreferences.getInstance();
+    final identity = prefs.getString('twilio_client_identity') ?? 'superparty';
+    
+    // Use real Twilio CallSid (CA...) from args; if missing, fallback to last_incoming_call_sid
+    String confStr = callSid;
+    if (confStr.isEmpty || !confStr.startsWith('CA')) {
+      final fallbackSid = prefs.getString('last_incoming_call_sid') ?? '';
+      if (fallbackSid.startsWith('CA')) confStr = fallbackSid;
+    }
+    if (confStr.isEmpty || !confStr.startsWith('CA')) {
+      debugPrint('[main] ❌ No valid Twilio CallSid available for conference join. Aborting place(). callSid=$callSid');
       return;
     }
+    final confRoomRaw = confStr.startsWith('conf_') ? confStr : 'conf_$confStr';
+    final to = confRoomRaw.startsWith('client:') ? confRoomRaw : 'client:$confRoomRaw';
+    
+    final ctx2 = navigatorKey.currentContext;
+    BackendService? backend;
+    if (ctx2 != null) {
+      try { backend = Provider.of<BackendService>(ctx2, listen: false); } catch (_) {}
+    }
+    if (backend == null) {
+      debugPrint('[main] Context null, falling back to dynamic BackendService via transient AuthService');
+      backend = BackendService(AuthService());
+    }
+    
+    // 1️⃣ ATTEMPT NATIVE DIRECT ANSWER (Huawei/Honor Bypass using stored CallInvite)
+    try {
+      debugPrint('[main] Attempting directAnswer via Native Platform Channel...');
+      final bool directAccepted = await MethodChannel('com.superpartybyai.app/call_actions').invokeMethod('directAnswer') ?? false;
+      if (directAccepted) {
+         debugPrint('[main] ✅ directAnswer SUCCESS! Bypassing call.place fallback.');
+         return; // We are successfully bridged via the original Twilio SIP payload!
+      } else {
+         debugPrint('[main] ⚠️ directAnswer returned false (no pending invite). Falling back to call.place.');
+      }
+    } catch (e) {
+      debugPrint('[main] ❌ directAnswer exception: $e. Falling back to call.place.');
+    }
+    // 2️⃣ FALLBACK: Try to connect to the conference via outbound TCP dial (Huawei safe)
+    bool placed = false;
+    for (int i = 0; i < 8; i++) {
+        debugPrint('[main] dialing into conference room: $to with identity $identity (Attempt ${i + 1})');
+        try {
+            // 1) try native directPlace (bypass Telecom)
+            final prefs = await SharedPreferences.getInstance();
+            String? accessToken = prefs.getString('twilio_access_token');
+            if (accessToken == null || accessToken.isEmpty) {
+              await VoipService().init(backend, forceReinit: true);
+              accessToken = prefs.getString('twilio_access_token');
+            }
 
-    // ── STEP 2: Fallback to standard Twilio SDK answer() ──
-    debugPrint('[main] directAnswer false — fallback to TwilioVoice.answer()...');
-    final result = await TwilioVoice.instance.call.answer();
-    debugPrint('[main] ✅ answer() result: $result');
-    debugPrint('[main] ✨ Call answered successfully.');
+            if (accessToken != null && accessToken.isNotEmpty) {
+              await VoipService.ensureDeviceFlagsInitialized();
+              if (VoipService.isHuaweiOrHonor) {
+                final placedNative = await const MethodChannel('com.superpartybyai.app/call_actions').invokeMethod<bool>(
+                  'directPlace',
+                  {'accessToken': accessToken, 'to': to},
+                );
+
+                if (placedNative == true) {
+                  placed = true;
+                  debugPrint('[main] ✅ directPlace SUCCESS (native Voice.connect) on attempt ${i + 1}. Skip call.place.');
+                  break;
+                } else {
+                  debugPrint('[main] ⚠️ directPlace returned false. Fallback to call.place.');
+                }
+              } else {
+                 debugPrint('[main] ℹ️ Skipping directPlace on non-Huawei device.');
+              }
+            } else {
+              debugPrint('[main] ⚠️ No twilio_access_token available for directPlace.');
+              await VoipService().init(backend, forceReinit: i > 0);
+            }
+            
+            bool isReg = VoipService().isRegistered;
+            debugPrint('[main] Did VoipService.init actually run setTokens? _isRegistered=$isReg');
+            
+            final r = await TwilioVoice.instance.call.place(to: to, from: identity);
+            debugPrint('[main] call.place returned: $r');
+            
+            if (r == true) {
+                placed = true;
+                debugPrint('[main] call.place success on attempt ${i + 1}');
+                break;
+            }
+        } catch (e) {
+            debugPrint('[main] call.place exception: $e');
+        }
+        await Future.delayed(const Duration(milliseconds: 300));
+    }
+
+    if (!placed) {
+        debugPrint('[main] call.place completely failed after 8 retries.');
+        VoipService.clearCallAnswered();
+    }
+
 
   } catch (e) {
     VoipService.clearCallAnswered(); // Clear guard on failure
@@ -271,21 +416,24 @@ class _ApprovalGateState extends State<ApprovalGate> {
   }
 
   void _checkStatus() async {
+    debugPrint('[_checkStatus] STARTED');
     final backend = Provider.of<BackendService>(context, listen: false);
     final auth = Provider.of<AuthService>(context, listen: false);
     
     try {
       // Fetch Employee Status and User Profile CONCURRENTLY to speed up app startup
+      debugPrint('[_checkStatus] calling Future.wait...');
       final results = await Future.wait([
         backend.getMyStatus().catchError((e) {
-          debugPrint('Error getting my status: $e');
+          debugPrint('[_checkStatus] getMyStatus error: $e');
           return <String, dynamic>{};
         }),
         backend.getUserProfile().catchError((profileErr) {
-          debugPrint('[App] getUserProfile failed: $profileErr');
+          debugPrint('[_checkStatus] getUserProfile error: $profileErr');
           return <String, dynamic>{};
         }),
       ]);
+      debugPrint('[_checkStatus] Future.wait COMPLETE');
 
       final employeeStatus = results[0] as Map<String, dynamic>;
       Map<String, dynamic> userProfile = results[1] as Map<String, dynamic>;
@@ -293,14 +441,24 @@ class _ApprovalGateState extends State<ApprovalGate> {
       if (mounted) {
         setState(() {
           _approved = employeeStatus['approved'] == true;
-          _isAdmin = employeeStatus['role'] == 'admin' || auth.currentUser?.email == 'ursache.andrei1995@gmail.com'; 
+          _isAdmin = employeeStatus['role'] == 'admin' || auth.currentUser?.email == 'ursache.andrei1995@gmail.com' || auth.currentUser?.email == 'superpartybyai@gmail.com'; 
           
-          // Assume consent given if user profile fails since we're migrating
           final String? version = userProfile['latestConsentVersion'];
-          _consentGiven = version == 'v1' || userProfile.isEmpty;
+          // Admins bypass the consent screen restriction to prevent VoIP interruption
+          _consentGiven = _isAdmin || version == 'v1' || userProfile.isEmpty;
 
           _loading = false;
           
+          // 🚨 CRITICAL ASYNC BYPASS: If a call was answered natively while we were
+          // waiting for these Futures to resolve, do NOT initialize VoIP (which kills
+          // active calls) and temporarily grant consent to unblock the UI.
+          if (VoipService.isRingingOrActive) {
+             debugPrint("[App] Future resolved but VoIP is currently active. Bypassing gates.");
+             // Force UI out of loading and consent directly into MainScreen
+             _consentGiven = true;
+             return;
+          }
+
           if ((_approved || _isAdmin) && _consentGiven) {
              debugPrint("[App] User approved & consented. Initializing VoIP...");
              final user = auth.currentUser;
@@ -359,6 +517,12 @@ class _ApprovalGateState extends State<ApprovalGate> {
 
     // 2. Consent Check (only if approved)
     if (!_consentGiven) {
+      // 🚨 CRITICAL BYPASS: Do not show ConsentScreen if the app was just launched by an Incoming Call push.
+      // If we render ConsentScreen, it will override the IncomingCallScreen layer.
+      if (VoipService.isRingingOrActive) {
+        debugPrint('[ApprovalGate] 🚨 Incoming Call detected! Bypassing ConsentScreen to allow IncomingCallScreen to render.');
+        return const MainScreen();
+      }
       return ConsentScreen(onConsentGiven: _onConsentSuccess);
     }
 

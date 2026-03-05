@@ -1,26 +1,263 @@
+// Push notifications handled by Twilio SDK via FCM
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:superparty_app/widgets/global_inbox_badge.dart';
+import 'package:superparty_app/main.dart';
 import 'package:twilio_voice/twilio_voice.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'dart:io';
-import '../main.dart' show navigatorKey; // navigatorKey
-import '../screens/active_call_screen.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:wakelock_plus/wakelock_plus.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:uuid/uuid.dart';
 import 'backend_service.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'call_kit_service.dart';
 import 'call_kit_service.dart';
 import 'voip_logger.dart';
-
-const _kCallActionsChannel = 'com.superpartybyai.app/call_actions';
+import 'package:web_socket_channel/io.dart';
+import 'package:web_socket_channel/web_socket_channel.dart';
+import 'package:device_info_plus/device_info_plus.dart';
 
 class VoipService {
   static final VoipService _instance = VoipService._internal();
   factory VoipService() => _instance;
   VoipService._internal();
 
+  static bool isHuaweiOrHonor = false;
+  static bool _deviceFlagsInitialized = false;
+
+  static Future<void> ensureDeviceFlagsInitialized() async {
+    if (_deviceFlagsInitialized) return;
+    try {
+      if (Platform.isAndroid) {
+        final deviceInfo = DeviceInfoPlugin();
+        final androidInfo = await deviceInfo.androidInfo;
+        final manufacturer = androidInfo.manufacturer.toLowerCase();
+        isHuaweiOrHonor = manufacturer == 'huawei' || manufacturer == 'honor';
+      }
+    } catch (_) {}
+    _deviceFlagsInitialized = true;
+  }
+
+  static final FlutterLocalNotificationsPlugin _notif = FlutterLocalNotificationsPlugin();
+
+  // Background handler delegate
+  static Future<void> handleBackgroundMessage(Map<String, dynamic> data) async {
+    if (data['type'] == 'incoming_call') {
+      await _showIncomingNotification(data);
+    }
+  }
+
+  // WebSocket Connection instance
+  IOWebSocketChannel? _wsChannel;
+  bool _wsConnecting = false;
+
+  Future<void> _connectWebSocket(String identity, String? deviceNumber, String apiBaseUrl) async {
+    if (_wsConnecting) return;
+    _wsConnecting = true;
+
+    try {
+      // 1. Get short-lived JWT for WS Auth
+      final tokenUrl = Uri.parse('$apiBaseUrl/auth/get-ws-token?identity=$identity');
+      final accessToken = Supabase.instance.client.auth.currentSession?.accessToken;
+      final resp = await http.get(
+        tokenUrl,
+        headers: {
+          if (accessToken != null) 'Authorization': 'Bearer $accessToken',
+        },
+      );
+      if (resp.statusCode != 200) {
+        debugPrint('[VoIP WS] Failed to get WS token: ${resp.body}');
+        _wsConnecting = false;
+        return;
+      }
+      
+      final jwtToken = jsonDecode(resp.body)['token'];
+      if (jwtToken == null) {
+        _wsConnecting = false;
+        return;
+      }
+
+      // Convert http/https to ws/wss
+      final wsBaseUrl = apiBaseUrl.startsWith('https') 
+          ? apiBaseUrl.replaceFirst('https', 'wss') 
+          : apiBaseUrl.replaceFirst('http', 'ws');
+
+      final wsUri = Uri.parse('$wsBaseUrl/voip-ws?token=$jwtToken');
+      debugPrint('[VoIP WS] Connecting to: $wsUri');
+
+      _wsChannel = IOWebSocketChannel.connect(wsUri, pingInterval: const Duration(seconds: 20));
+      
+      // 2. Register identity over WS
+      _wsChannel!.sink.add(jsonEncode({
+        'type': 'register',
+        'identity': identity,
+        'deviceNumber': deviceNumber ?? 'unknown',
+      }));
+
+      // 3. Listen for Incoming WS Calls
+      _wsChannel!.stream.listen((message) async {
+        try {
+          final data = jsonDecode(message);
+          if (data['type'] == 'incoming_call') {
+            debugPrint('[VoIP WS] Foreground message received via WS: $data');
+            // Show the exact same incoming UI as FCM Push 
+            // (Note: we cast values to String to match expected map format from native FCM)
+            final Map<String, dynamic> pushPayload = {
+               'type': data['type']?.toString(),
+               'conf': data['conf']?.toString(),
+               'callSid': data['callSid']?.toString(),
+               'callerNumber': data['callerNumber']?.toString(),
+               'sig': data['sig']?.toString(),
+               'expires': data['expires']?.toString(),
+            };
+            await handleIncomingData(pushPayload);
+          } else if (data['type'] == 'registered') {
+            debugPrint('[VoIP WS] Successfully registered on WebSocket Server');
+          } else if (data['type'] == 'call_closed' || data['type'] == 'call_ended') {
+            debugPrint('[VoIP WS] Server issued ${data['type']}. Terminating Native Audio and Dismissing UI.');
+            try {
+              // 1. Terminate native audio immediately
+              await TwilioVoice.instance.call.hangUp();
+            } catch(e) {
+              debugPrint('[VoIP WS] Warning hanging up Twilio locally: $e');
+            }
+            
+            // 2. Clear Active UI — use canPop() loop (safe) instead of popUntil(isFirst)
+            // popUntil empties the stack leaving Flutter with no route → black screen
+            // if ActiveCallScreen pops again after this.
+            final nav = navigatorKey.currentState;
+            if (nav != null) {
+              while (nav.canPop()) {
+                nav.pop();
+              }
+            }
+            VoipService.isRingingOrActive = false;
+            WakelockPlus.disable();
+          }
+        } catch (e) {
+          debugPrint('[VoIP WS] Message parse error: $e');
+        }
+      }, onDone: () {
+        debugPrint('[VoIP WS] Connection closed. Attempting reconnect in 10s...');
+        _wsConnecting = false;
+        _wsChannel = null;
+        Future.delayed(const Duration(seconds: 10), () => _connectWebSocket(identity, deviceNumber, apiBaseUrl));
+      }, onError: (err) {
+        debugPrint('[VoIP WS] Connection error: $err');
+      });
+
+    } catch (e) {
+      debugPrint('[VoIP WS] Setup exception: $e');
+      _wsConnecting = false;
+    }
+  }
+
+  static Future<void> handleIncomingData(Map<String, dynamic> data) async {
+    _sendPushAck(data);
+    _showIncomingUI(data);
+  }
+
+  static Future<void> _sendPushAck(Map<String, dynamic> data) async {
+    final ackToken = data['ackToken'];
+    final callSid = data['callSid'] ?? data['twi_call_sid'];
+    if (ackToken == null || callSid == null) return;
+    
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final identity = prefs.getString('twilio_client_identity');
+      if (identity == null || identity.isEmpty) return;
+
+      final url = Uri.parse('https://voice.superparty.ro/api/voice/push-ack');
+      http.post(
+        url,
+        headers: {'Content-Type': 'application/json'},
+        body: jsonEncode({
+          'callSid': callSid,
+          'identity': identity,
+          'ackToken': ackToken,
+        }),
+      ).then((response) {
+        debugPrint('[VoIP ACK] Sent Flutter push-ack for $callSid!');
+      }).catchError((e) {
+        debugPrint('[VoIP ACK] Error sending push-ack: $e');
+      });
+    } catch (e) {
+      debugPrint('[VoIP ACK] Exception in push-ack: $e');
+    }
+  }
+
+  static Future<void> _showIncomingUI(Map<String, dynamic> data) async {
+    isRingingOrActive = true;
+    WakelockPlus.enable();
+    await _showIncomingNotification(data);
+  }
+
+  static Future<void> _showIncomingNotification(Map<String, dynamic> data) async {
+    final String conf = data['conf'] ?? '';
+    final String callSid = (data['callSid'] ?? data['twi_call_sid'] ?? '').toString();
+    
+    // --- Android dedupe: if native UI is already active, suppress Flutter UI/notification ---
+    if (Platform.isAndroid && callSid.isNotEmpty) {
+      final prefs = await SharedPreferences.getInstance();
+      final nativeSid = prefs.getString('native_ringing_call_sid');     // without "flutter." in Dart
+      final nativeUntil = prefs.getInt('native_ringing_until') ?? 0;    // Long -> int in Dart
+      final now = DateTime.now().millisecondsSinceEpoch;
+
+      if (nativeSid == callSid && now < nativeUntil) {
+        debugPrint('[VoIP] Suppressing Flutter incoming notification (native already ringing) sid=$callSid');
+        // lock flag to prevent ConsentScreen collisions
+        isRingingOrActive = true;
+        return;
+      }
+    }
+    
+    // Persist last incoming Twilio CallSid so lockscreen Answer always joins the correct conference
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      if (callSid.isNotEmpty && callSid.startsWith('CA')) {
+        await prefs.setString('last_incoming_call_sid', callSid);
+      }
+    } catch (_) {}
+    final String caller = data['from'] ?? data['callerNumber'] ?? 'Unknown';
+    final String sig = data['sig'] ?? '';
+    final String expires = data['expires'] ?? '';
+
+    const AndroidNotificationDetails androidPlatformChannelSpecifics =
+      AndroidNotificationDetails(
+        'voip_channel',
+        'VoIP',
+        channelDescription: 'Incoming VoIP calls',
+        importance: Importance.max,
+        priority: Priority.high,
+        fullScreenIntent: true,
+        ticker: 'ticker',
+      );
+
+    const NotificationDetails platformChannelSpecifics =
+      NotificationDetails(android: androidPlatformChannelSpecifics);
+
+    final payload = jsonEncode({'conf': conf, 'callSid': callSid, 'caller': caller, 'sig': sig, 'expires': expires});
+
+    await _notif.show(
+        id: 0,
+        title: 'Apel de la $caller',
+        body: 'Glisați pentru a răspunde',
+        notificationDetails: platformChannelSpecifics,
+        payload: payload);
+  }
+
+
+
   bool _isRegistered = false;
   bool get isRegistered => _isRegistered;
+  static bool isRingingOrActive = false;
+
   String? _lastIdentity; // set during registerDevice, used in makeCall
 
   /// Set to true IMMEDIATELY after answer() is called to block any re-init
@@ -42,6 +279,8 @@ class VoipService {
   }
 
   Future<void> init(BackendService backendService, {bool forceReinit = false}) async {
+    await ensureDeviceFlagsInitialized();
+
     if (_isRegistered && !forceReinit) {
       debugPrint('[VoIP] Already initialized — skipping. Use forceReinit:true to re-register.');
       return;
@@ -55,17 +294,30 @@ class VoipService {
     // callAnsweredGuard is set immediately when answer() succeeds.
     // activeCall check is a secondary safeguard once Twilio SDK updates its state.
     final activeCall = TwilioVoice.instance.call.activeCall;
-    if (callAnsweredGuard || activeCall != null) {
-      debugPrint('[VoIP] ⚠️ Call active/answered guard — skipping re-init (callAnsweredGuard=$callAnsweredGuard, activeCall=${activeCall?.to})');
-      _isRegistered = true;
-      return;
+    if (activeCall != null) {
+      if (forceReinit) {
+        debugPrint('[VoIP] activeCall present but forceReinit=true -> attempting hangUp then continue');
+        try { await TwilioVoice.instance.call.hangUp(); } catch (_) {}
+      } else {
+        debugPrint('[VoIP] ⚠️ activeCall present — skipping re-init (activeCall=${activeCall.to})');
+        _isRegistered = true;
+        return;
+      }
+    }
+
+    // if user tapped Answer, DO NOT clear UIs, but allow Init to continue registering tokens
+    final skipUiCleanup = callAnsweredGuard;
+    if (skipUiCleanup) {
+      debugPrint('[VoIP] callAnsweredGuard active — skipping endAllCalls, continuing token registration');
     }
 
     // Clear ALL stale CallKit call UIs from previous sessions BEFORE re-registering.
     // Without this, every app restart re-shows all pending/missed calls simultaneously.
     try {
-      await FlutterCallkitIncoming.endAllCalls();
-      debugPrint('[VoIP] 🧹 Cleared stale CallKit calls');
+      if (!skipUiCleanup) {
+        await FlutterCallkitIncoming.endAllCalls();
+        debugPrint('[VoIP] 🧹 Cleared stale CallKit calls');
+      }
     } catch (e) {
       debugPrint('[VoIP] endAllCalls error (non-fatal): $e');
     }
@@ -106,29 +358,42 @@ class VoipService {
       }
       debugPrint('[VoIP] Unique Device ID: $deviceId');
 
-      final fcmToken = await Future.value('dummy_token');
-      debugPrint('[VoIP] FCM Token: ${fcmToken != null && fcmToken.length > 20 ? fcmToken.substring(0, 20) : fcmToken}...');
-
-      if (fcmToken == null) {
-        debugPrint('[VoIP] ❌ FCM token is null — cannot register');
-        return;
+      // Get real FCM token for Twilio incoming call push notifications
+      String deviceToken = '';
+      try {
+        final fcmToken = await FirebaseMessaging.instance.getToken().timeout(const Duration(seconds: 5));
+        if (fcmToken != null && fcmToken.isNotEmpty) {
+          deviceToken = fcmToken;
+          debugPrint('[VoIP] FCM Token: ${fcmToken.substring(0, 20)}...');
+        } else {
+          debugPrint('[VoIP] ⚠️ FCM token null — WebSocket-only mode (foreground calls only)');
+        }
+      } catch (e) {
+        debugPrint('[VoIP] ⚠️ FCM error ($e) — WebSocket-only mode (foreground calls only)');
       }
 
       // 4b. Register device and FCM token with backend
-      await backendService.registerDevice(deviceId, fcmToken);
+      await backendService.registerDevice(deviceId, deviceToken);
 
       // 4c. Fetch Voip token for this specific device identity
       final data = await backendService.getVoipTokenForDevice(deviceId);
       final accessToken = data['token'] as String;
       final identity = data['identity'] as String;
       _lastIdentity = identity; // save for outgoing calls
+      await prefs.setString('twilio_client_identity', identity);
+      await prefs.setString('twilio_access_token', accessToken);
       debugPrint('[VoIP] Token received for identity: $identity');
 
       // 5. Register with Twilio SDK (links FCM token → Twilio identity)
       final result = await TwilioVoice.instance.setTokens(
         accessToken: accessToken,
-        deviceToken: fcmToken,
+        deviceToken: deviceToken,
       );
+
+      // 6. Connect WebSocket Fallback (Huawei foreground support)
+      final apiBaseUrl = backendService.voiceBaseUrl;
+      final prefsDeviceNum = prefs.getString('user_phone'); // Or passed down if known
+      _connectWebSocket(identity, prefsDeviceNum, apiBaseUrl);
 
       if (result == true) {
         _isRegistered = true;
@@ -202,6 +467,21 @@ class VoipService {
     // DO NOT set a handler here — it would override main.dart's handler.
     debugPrint('[VoIP] MethodChannel call_actions — handled by main.dart');
 
+    // Handle FCM foreground/background payloads
+    FirebaseMessaging.onMessage.listen((RemoteMessage msg) async {
+      if (msg.data.isNotEmpty && msg.data['type'] == 'incoming_call') {
+        debugPrint('[VoIP] FCM Foreground message received: \${msg.data}');
+        await handleIncomingData(msg.data);
+      }
+    });
+
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage msg) {
+      if (msg.data.isNotEmpty && msg.data['type'] == 'incoming_call') {
+        debugPrint('[VoIP] FCM message opened app: \${msg.data}');
+        _showIncomingUI(msg.data);
+      }
+    });
+
     } catch (e) {
       debugPrint('[VoIP] ❌ Init error: $e');
     }
@@ -244,8 +524,88 @@ class VoipService {
   Future<void> hangUp() async {
     try {
       await TwilioVoice.instance.call.hangUp();
+      await const MethodChannel('com.superpartybyai.app/call_actions').invokeMethod('directHangup');
     } catch (e) {
-      debugPrint('[VoIP] HangUp error: $e');
+      debugPrint('[VoIP API] Network error during hangup proxy request: $e');
+    }
+  }
+
+  /// Broadcasts a Reject signal directly to the NodeJS PBX to manually advance
+  /// Twilio Conference bindings into ACTIVE status when the local User hits "Answer".
+  /// Essential for Huawei where native Twilio SDK callbacks randomly stall.
+  static Future<void> rejectCallFromServer(String conf, String callSid) async {
+    if (callSid.isEmpty) return;
+    try {
+      final String confName = conf.isNotEmpty ? conf : 'conf_$callSid';
+      final Uri hangupUri = Uri.parse('${BackendService.VOICE_BASE_URL}/voice/hangup');
+      
+      final accessToken = Supabase.instance.client.auth.currentSession?.accessToken;
+      String clientIdentity = 'SuperpartyApp';
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final stored = prefs.getString('twilio_client_identity');
+        if (stored != null) clientIdentity = stored;
+      } catch (_) {}
+
+      final resp = await http.post(
+        hangupUri,
+        headers: {
+          'Content-Type': 'application/json',
+          if (accessToken != null) 'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode({
+          'conf': confName,
+          'callSid': callSid,
+          'deviceNumber': 'SuperpartyApp',
+          'clientIdentity': clientIdentity
+        })
+      );
+      if (resp.statusCode == 200) {
+        debugPrint('[VoIP API] Successfully notified Server to manually hangup Conference $confName.');
+      } else {
+        debugPrint('[VoIP API] Failed to manually hangup call remotely. statusCode: ${resp.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('[VoIP API] Network error during manual hangup proxy request: $e');
+    }
+  }
+
+  static Future<void> acceptCallFromServer(String conf, String callSid) async {
+    if (callSid.isEmpty) return;
+    try {
+      final String confName = conf.isNotEmpty ? conf : 'conf_$callSid';
+      final Uri acceptUri = Uri.parse('${BackendService.VOICE_BASE_URL}/voice/accept');
+      
+      String clientIdentity = 'SuperpartyApp';
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        final stored = prefs.getString('twilio_client_identity');
+        if (stored != null) clientIdentity = stored;
+      } catch (e) {
+        debugPrint('[VoIP API] Error reading SharedPreferences for identity: $e');
+      }
+
+      final accessToken = Supabase.instance.client.auth.currentSession?.accessToken;
+      final resp = await http.post(
+        acceptUri,
+        headers: {
+          'Content-Type': 'application/json',
+          if (accessToken != null) 'Authorization': 'Bearer $accessToken',
+        },
+        body: jsonEncode({
+          'conf': confName,
+          'callSid': callSid,
+          'deviceNumber': 'SuperpartyApp',
+          'clientIdentity': clientIdentity
+        })
+      );
+      if (resp.statusCode == 200) {
+        debugPrint('[VoIP API] Successfully notified Server to manually answer Conference $confName.');
+      } else {
+        debugPrint('[VoIP API] Failed to manually accept call remotely. statusCode: ${resp.statusCode}');
+      }
+    } catch (e) {
+      debugPrint('[VoIP API] Network error during manual accept proxy request: $e');
     }
   }
 }

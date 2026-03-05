@@ -67,7 +67,7 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
     try {
       final idToken = await auth.getIdToken();
       final resp = await http.get(
-        Uri.parse('${BackendService.BASE_URL}/voice/token'),
+        Uri.parse('${BackendService.VOICE_BASE_URL}/voice/token'),
         headers: {'Authorization': 'Bearer $idToken'},
       );
       if (resp.statusCode == 200) {
@@ -112,7 +112,7 @@ class _DiagnosticsScreenState extends State<DiagnosticsScreen> {
     _appendLog('Trimit simulate_push → server...');
     try {
       final resp = await http.post(
-        Uri.parse('${BackendService.BASE_URL}/voice/simulate_push'),
+        Uri.parse('${BackendService.VOICE_BASE_URL}/voice/simulate_push'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer ${await Provider.of<AuthService>(context, listen: false).getIdToken()}',

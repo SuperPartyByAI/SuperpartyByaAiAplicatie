@@ -23,6 +23,8 @@ import com.twilio.voice.Voice
 import com.twilio.twilio_voice.service.TVConnectionService
 import com.twilio.twilio_voice.receivers.TVBroadcastReceiver
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
+import java.net.HttpURLConnection
+import java.net.URL
 
 /**
  * Custom FCM service — the SOLE service registered for MESSAGING_EVENT.
@@ -49,9 +51,63 @@ class CustomVoiceFirebaseMessagingService : FirebaseMessagingService(), MessageL
         const val CHANNEL_NAME = "Apeluri VoIP Superparty"
         const val NOTIFICATION_ID = 9001
 
+        private const val NATIVE_RINGING_SID_KEY   = "flutter.native_ringing_call_sid"
+        private const val NATIVE_RINGING_UNTIL_KEY = "flutter.native_ringing_until"
+        private const val NATIVE_RINGING_TTL_MS    = 45_000L
+
+        private fun markNativeRinging(context: Context, callSid: String) {
+            if (callSid.isEmpty()) return
+            val prefs = context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
+            val now = System.currentTimeMillis()
+            prefs.edit()
+                .putString(NATIVE_RINGING_SID_KEY, callSid)
+                .putLong(NATIVE_RINGING_UNTIL_KEY, now + NATIVE_RINGING_TTL_MS)
+                .apply()
+        }
+
+        private fun isNativeRingingDuplicate(context: Context, callSid: String): Boolean {
+            if (callSid.isEmpty()) return false
+            val prefs = context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
+            val sid = prefs.getString(NATIVE_RINGING_SID_KEY, null)
+            val until = prefs.getLong(NATIVE_RINGING_UNTIL_KEY, 0L)
+            val now = System.currentTimeMillis()
+            return (sid == callSid && now < until)
+        }
+
+        private fun clearNativeRinging(context: Context, callSid: String) {
+            val prefs = context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
+            val sid = prefs.getString(NATIVE_RINGING_SID_KEY, null)
+            if (sid == callSid) {
+                prefs.edit()
+                    .remove(NATIVE_RINGING_SID_KEY)
+                    .remove(NATIVE_RINGING_UNTIL_KEY)
+                    .apply()
+            }
+        }
+
         // Static storage for pending CallInvite – allows direct accept() without TelecomManager
         @Volatile
         var pendingCallInvite: com.twilio.voice.CallInvite? = null
+
+        // Anti-Loop Auto-Answer Interceptor
+        @Volatile
+        var autoAnswerUntil: Long? = null
+
+        // Anti-Loop Block for Hetzner Wake-Up Redundancy
+        val answeredCallSids = mutableSetOf<String>()
+
+        private val autoAnswerListener = object : com.twilio.voice.Call.Listener {
+            override fun onConnectFailure(call: com.twilio.voice.Call, error: com.twilio.voice.CallException) {}
+            override fun onRinging(call: com.twilio.voice.Call) {}
+            override fun onConnected(call: com.twilio.voice.Call) {
+                Log.d(TAG, "✅ Auto-Answer successful natively for sid=${call.sid}")
+            }
+            override fun onReconnecting(call: com.twilio.voice.Call, error: com.twilio.voice.CallException) {}
+            override fun onReconnected(call: com.twilio.voice.Call) {}
+            override fun onDisconnected(call: com.twilio.voice.Call, error: com.twilio.voice.CallException?) {
+                Log.d(TAG, "Auto-Answer Disconnected: ${error?.message}")
+            }
+        }
 
         /**
          * Accept the stored CallInvite directly, bypassing TelecomManager entirely.
@@ -61,6 +117,7 @@ class CustomVoiceFirebaseMessagingService : FirebaseMessagingService(), MessageL
             val invite = pendingCallInvite ?: return null
             pendingCallInvite = null 
             Log.d(TAG, "✅ acceptPendingCallInvite: accepting sid=${invite.callSid} directly via Twilio SDK")
+
             return invite.accept(context, listener)
         }
 
@@ -105,6 +162,18 @@ class CustomVoiceFirebaseMessagingService : FirebaseMessagingService(), MessageL
         }
 
         fun showFullScreenCallNotification(context: Context, callerName: String, callSid: String = "") {
+            val now = System.currentTimeMillis()
+            val until = autoAnswerUntil
+            if (answeredCallSids.contains(callSid) || (until != null && now < until)) {
+                Log.d(TAG, "🔕 Suppressing duplicate FullScreenNotification for sid=$callSid (already answered/in progress)")
+                return
+            }
+            
+            if (isNativeRingingDuplicate(context, callSid)) {
+                Log.d(TAG, "🔕 Suppressing duplicate native ringing UI for sid=$callSid (already ringing)")
+                return
+            }
+
             createCallChannel(context)
             val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
@@ -138,6 +207,8 @@ class CustomVoiceFirebaseMessagingService : FirebaseMessagingService(), MessageL
 
             val notifId = if (callSid.isNotEmpty()) callSid.hashCode() else NOTIFICATION_ID
             Log.d(TAG, "📲 Firing full-screen notification for: $callerName (ID: $notifId)")
+            
+            markNativeRinging(context, callSid)
             nm.notify(notifId, notification)
         }
 
@@ -145,6 +216,8 @@ class CustomVoiceFirebaseMessagingService : FirebaseMessagingService(), MessageL
             val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             val notifId = if (callSid.isNotEmpty()) callSid.hashCode() else NOTIFICATION_ID
             nm.cancel(notifId)
+            
+            if (callSid.isNotEmpty()) clearNativeRinging(context, callSid)
         }
     }
 
@@ -165,6 +238,16 @@ class CustomVoiceFirebaseMessagingService : FirebaseMessagingService(), MessageL
 
         if (data.isNotEmpty()) {
             val msgType = data["twi_message_type"] ?: ""
+            
+            // ── CRITICAL FIX P0-1: ALWAYS pass native Twilio payloads to SDK to generate CallInvites! ──
+            if (msgType.startsWith("twilio.voice.")) {
+                Log.d(TAG, "Passing payload to Twilio Voice.handleMessage...")
+                val validTwilio = Voice.handleMessage(applicationContext, data, this)
+                if (!validTwilio) {
+                    Log.w(TAG, "⚠️ Twilio Voice.handleMessage rejected payload.")
+                }
+            }
+
             if (msgType == "twilio.voice.call") {
                 val rawFrom = data["twi_from"] ?: data["From"] ?: data["from"] ?: "Superparty"
                 val from = rawFrom.removePrefix("client:").removePrefix("+")
@@ -174,27 +257,54 @@ class CustomVoiceFirebaseMessagingService : FirebaseMessagingService(), MessageL
                 // CRITICAL FIX: We MUST fire this custom Full-Screen Intent notification.
                 // On Huawei/Honor, Telecom Manager is completely disabled ("PhoneAccount missing").
                 showFullScreenCallNotification(applicationContext, from, callSid)
-            } else if (data["target_action"] == "CANCEL_RINGING_UI") {
-                val callSid = data["twi_call_sid"] ?: ""
+            } else if (data["target_action"] == "CANCEL_RINGING_UI" || data["type"] == "CANCEL_RINGING_UI") {
+                val callSid = data["twi_call_sid"] ?: data["callSid"] ?: ""
                 Log.d(TAG, "📴 CANCEL_RINGING_UI received from backend for callSid=$callSid")
                 dismissCallNotification(applicationContext, callSid)
                 
                 Intent("com.superpartybyai.app/CALL_CANCELLED").apply {
                     putExtra("callSid", callSid)
                 }.also { LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(it) }
-                return // Explicitly return so we don't pass our custom payload to Twilio
+                return
+            } else if (data["type"] == "incoming_call") {
+                val rawFrom = data["callerNumber"] ?: data["from"] ?: "Superparty"
+                val from = rawFrom.removePrefix("client:").removePrefix("+")
+                val callSid = data["callSid"] ?: ""
+                val ackToken = data["ackToken"]
+
+                if (!ackToken.isNullOrEmpty() && callSid.isNotEmpty()) {
+                    val prefs = applicationContext.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
+                    val identity = prefs.getString("flutter.twilio_client_identity", "")
+                    if (!identity.isNullOrEmpty()) {
+                        Thread {
+                            try {
+                                val url = java.net.URL("https://voice.superparty.ro/api/voice/push-ack")
+                                val conn = url.openConnection() as java.net.HttpURLConnection
+                                conn.requestMethod = "POST"
+                                conn.setRequestProperty("Content-Type", "application/json")
+                                conn.doOutput = true
+                                val payload = """{"callSid":"$callSid","identity":"$identity","ackToken":"$ackToken"}"""
+                                conn.outputStream.write(payload.toByteArray(Charsets.UTF_8))
+                                conn.responseCode
+                                Log.d(TAG, "🚀 Native Push-ACK sent to PBX for $callSid!")
+                            } catch (e: Exception) {
+                                Log.e(TAG, "❌ Failed to send Push-ACK natively: ${e.message}")
+                            }
+                        }.start()
+                    }
+                }
+                
+                Log.d(TAG, "🔔 HETZNER WAKE-UP EVENT: from=$from callSid=$callSid — Firing Native IncomingCallActivity Over Lock Screen!")
+                showFullScreenCallNotification(applicationContext, from, callSid)
+
+                Log.d(TAG, "Also forwarding custom incoming_call FCM payload to Flutter plugin...")
+                val intent = Intent("com.google.android.c2dm.intent.RECEIVE")
+                intent.setPackage(applicationContext.packageName)
+                intent.putExtras(remoteMessage.toIntent().extras ?: android.os.Bundle())
+                sendBroadcast(intent)
+                return
             }
 
-            // ── STEP 2: Forward to Twilio Voice SDK for CallInvite processing ─
-            // This is the CRITICAL step that was missing before. Without this,
-            // the Twilio SDK never creates a CallInvite, activeCall is always null,
-            // and answer() always fails.
-            val valid = Voice.handleMessage(applicationContext, data, this)
-            Log.d(TAG, "Voice.handleMessage valid=$valid")
-
-            if (!valid) {
-                Log.d(TAG, "Not a valid Twilio Voice payload — ignoring")
-            }
         }
     }
 
@@ -208,21 +318,41 @@ class CustomVoiceFirebaseMessagingService : FirebaseMessagingService(), MessageL
         pendingCallInvite = callInvite
         Log.d(TAG, "📦 Stored pendingCallInvite for direct accept on restrictive device")
 
-        // Try to forward to TVConnectionService (will fail silently on Huawei – that's OK)
+        // ── ANTI-LOOP INTERCEPTOR ──
+        val now = System.currentTimeMillis()
+        val until = autoAnswerUntil
+        if (until != null && now < until) {
+            Log.d(TAG, "⚡️ RACE CONDITION WON! Auto-answering CallInvite...")
+            autoAnswerUntil = null // consume 
+            answeredCallSids.add(callInvite.callSid) // mask the new SID so it doesn't loop via other vectors
+            callInvite.accept(applicationContext, autoAnswerListener)
+            // MUST return here to prevent TVConnectionService/TelecomManager from ringing!
+            return 
+        }
+
+        // Try to forward to TVConnectionService (except on Huawei/Honor to prevent crash loop)
         try {
-            Intent(applicationContext, TVConnectionService::class.java).apply {
-                action = TVConnectionService.ACTION_INCOMING_CALL
-                putExtra(TVConnectionService.EXTRA_INCOMING_CALL_INVITE, callInvite)
-                applicationContext.startService(this)
+            val m = Build.MANUFACTURER.lowercase()
+            val isHuawei = m.contains("huawei") || m.contains("honor")
+            if (isHuawei) {
+                Log.d(TAG, "🚫 Huawei/Honor detected! Skipping TVConnectionService completely to prevent crash loop.")
+            } else {
+                Intent(applicationContext, TVConnectionService::class.java).apply {
+                    action = TVConnectionService.ACTION_INCOMING_CALL
+                    putExtra("callSid", callInvite.callSid)
+                    putExtra("from", callInvite.from)
+                    applicationContext.startService(this)
+                }
             }
         } catch (e: Exception) {
-            Log.w(TAG, "TVConnectionService unavailable (expected on Huawei): ${e.message}")
+            Log.w(TAG, "TVConnectionService unavailable: ${e.message}")
         }
 
         // Notify Flutter via TVBroadcastReceiver (fires CallEvent.incoming)
         Intent(applicationContext, TVBroadcastReceiver::class.java).apply {
             action = TVBroadcastReceiver.ACTION_INCOMING_CALL
-            putExtra(TVBroadcastReceiver.EXTRA_CALL_INVITE, callInvite)
+            putExtra("callSid", callInvite.callSid)
+            putExtra("from", callInvite.from)
             putExtra(TVBroadcastReceiver.EXTRA_CALL_HANDLE, callInvite.callSid)
             LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(this)
         }
@@ -237,7 +367,7 @@ class CustomVoiceFirebaseMessagingService : FirebaseMessagingService(), MessageL
         // Forward to TVConnectionService
         Intent(applicationContext, TVConnectionService::class.java).apply {
             action = TVConnectionService.ACTION_CANCEL_CALL_INVITE
-            putExtra(TVConnectionService.EXTRA_CANCEL_CALL_INVITE, cancelledCallInvite)
+            putExtra("callSid", cancelledCallInvite.callSid)
             applicationContext.startService(this)
         }
         

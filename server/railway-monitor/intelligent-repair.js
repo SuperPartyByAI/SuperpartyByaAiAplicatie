@@ -197,7 +197,7 @@ class IntelligentRepair {
       console.log(`📚 Learned: ${fixApplied} works for ${failureType}`);
     }
 
-    // Save to persistent storage (Firestore)
+    // Save to persistent storage (Supabase)
     await this.saveFailureHistory();
   }
 
@@ -451,8 +451,8 @@ class IntelligentRepair {
   }
 
   async saveFailureHistory() {
-    // Save to Firestore
-    // Implementation depends on Firestore setup
+    // Save to Supabase
+    // Implementation depends on Supabase setup
   }
 
   sleep(ms) {

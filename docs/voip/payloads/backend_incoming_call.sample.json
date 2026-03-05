@@ -1,0 +1,8 @@
+{
+  "type": "incoming_call",
+  "callerNumber": "+407XXXXXXXX",
+  "callSid": "CA1234567890abcdef1234567890abcdef",
+  "conf": "conf_CA1234567890abcdef1234567890abcdef",
+  "sig": "signature_hash",
+  "expires": "1710000000000"
+}

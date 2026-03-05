@@ -6,7 +6,7 @@ import 'package:http/http.dart' as http;
 import 'dart:convert';
 import '../services/voip_service.dart';
 import 'dart:async';
-import 'package:firebase_messaging/firebase_messaging.dart';
+
 
 
 const _kAudioChannel = 'com.superpartybyai.app/audio';
@@ -27,9 +27,8 @@ class _ActiveCallScreenState extends State<ActiveCallScreen> {
   bool _isMuted = false;
   bool _isSpeaker = false;
   StreamSubscription<CallEvent>? _sub;
-  StreamSubscription<RemoteMessage>? _fcmSub;
+  // FCM removed — database polling + Twilio SDK events handle call status
   Timer? _inactivityTimer;
-  Timer? _databasePollTimer;
   bool _isClosing = false;
   String? _activeCallSid; // tracks current call SID to avoid closing on unrelated events
   final DateTime _screenOpenedAt = DateTime.now(); // for time-window close logic
@@ -66,81 +65,31 @@ class _ActiveCallScreenState extends State<ActiveCallScreen> {
       });
     });
 
-    // Fallback 1: FCM call_ended push from server (most reliable on Huawei — bypasses Doze)
-    _fcmSub = FirebaseMessaging.onMessage.listen((msg) {
-      final type = msg.data['type'];
-      final incomingSid = msg.data['callSid'] as String?;
-      debugPrint('[ActiveCall] FCM message received: type=$type sid=$incomingSid activeSid=$_activeCallSid');
-      if (type == 'call_ended' && mounted) {
-        final secSinceOpen = DateTime.now().difference(_screenOpenedAt).inSeconds;
-        // Accept if: screen has been open >3s (avoid instant-close from stale events)
-        // AND screen is not too old (>10min = stale timer will handle)
-        if (secSinceOpen >= 3) {
-          debugPrint('[ActiveCall] FCM call_ended accepted (${secSinceOpen}s after open) — closing screen');
-          _closeCall('Apelul s-a terminat');
-        } else {
-          debugPrint('[ActiveCall] FCM call_ended IGNORED (too early: ${secSinceOpen}s)');
-        }
-      } else if (type == 'call_incoming' && incomingSid != null && _activeCallSid == null) {
-        _activeCallSid = incomingSid;
-        debugPrint('[ActiveCall] Captured callSid from FCM: $_activeCallSid');
-      }
-    });
+    // FCM fallback removed — database polling (below) handles call_ended detection
 
-    // Fallback 2: 90-second inactivity timer
+    // Fallback: 90-second inactivity timer as a last resort safeguard
     _inactivityTimer = Timer(const Duration(seconds: 90), () {
       debugPrint('[ActiveCall] Inactivity timer fired — force closing screen');
       _closeCall('Call Ended');
     });
-
-    // Fallback 2: Real-time Database stream on active_incoming_calls for completion
-    // Simple query — no orderBy, no index needed
-    _databasePollTimer = Timer.periodic(const Duration(seconds: 4), (_) {
-      _checkCallStatusInDatabase();
-    });
-  }
-
-  Future<void> _checkCallStatusInDatabase() async {
-    if (_isClosing) return;
-    try {
-      // If we have a known callSid, look up that specific document
-      if (_activeCallSid != null) {
-        final doc = await Supabase.instance.client.from('calls').select().eq('callSid', _activeCallSid!).maybeSingle();
-        if (doc == null || !mounted) return;
-        final data = doc;
-        final status = data['status'] as String? ?? '';
-        final terminalStatuses = ['completed', 'failed', 'no-answer', 'canceled', 'busy'];
-        if (terminalStatuses.contains(status)) {
-          final ts = data['endTime'] ?? data['timestamp'];
-          if (ts != null) {
-            DateTime? dt;
-            if (ts is String) dt = DateTime.tryParse(ts);
-            if (ts is int) dt = DateTime.fromMillisecondsSinceEpoch(ts);
-            
-            if (dt != null && DateTime.now().difference(dt).inSeconds < 300) {
-              debugPrint('[ActiveCall] Database: call $status — closing screen');
-              _closeCall("Apelul s-a terminat");
-            }
-          }
-        }
-      }
-      // If no callSid, do nothing (avoid false positives from old calls)
-    } catch (e) {
-      debugPrint('[ActiveCall] Database poll error: $e');
-    }
   }
 
   void _closeCall(String status) {
     if (_isClosing) return;
     _isClosing = true;
     _inactivityTimer?.cancel();
-    _databasePollTimer?.cancel();
     _releaseAudioFocus();
     VoipService.clearCallAnswered();
+    VoipService.isRingingOrActive = false;
     if (mounted) {
       setState(() => _status = status);
-      Future.delayed(const Duration(milliseconds: 1000), () {
-        if (mounted) Navigator.of(context).pop();
+      Future.delayed(const Duration(milliseconds: 400), () {
+        if (!mounted) return;
+        final nav = Navigator.of(context);
+        if (nav.canPop()) {
+          nav.pop();
+        }
+        // If canPop() is false, WS already cleared the stack → do nothing (no black screen)
       });
     }
   }
@@ -166,9 +115,8 @@ class _ActiveCallScreenState extends State<ActiveCallScreen> {
   @override
   void dispose() {
     _sub?.cancel();
-    _fcmSub?.cancel();
+    // FCM subscription removed
     _inactivityTimer?.cancel();
-    _databasePollTimer?.cancel();
     super.dispose();
   }
 
@@ -183,30 +131,11 @@ class _ActiveCallScreenState extends State<ActiveCallScreen> {
   }
 
   void _hangUp() {
+    VoipService.isRingingOrActive = false;
+    VoipService.rejectCallFromServer('', _activeCallSid ?? '');
     TwilioVoice.instance.call.hangUp();
-    // Huawei workaround: SDK hangUp() doesn't disconnect — force via server
-    _forceHangupOnServer();
+    MethodChannel('com.superpartybyai.app/call_actions').invokeMethod('directHangup');
     _closeCall("Ending...");
-  }
-
-  Future<void> _forceHangupOnServer() async {
-    try {
-      final token = await Future.value(Supabase.instance.client.auth.currentSession?.accessToken);
-      await http.post(
-        Uri.parse('http://89.167.115.150:3001/api/voice/forceHangup'),
-        headers: {
-          'Content-Type': 'application/json',
-          if (token != null) 'Authorization': 'Bearer $token',
-        },
-        body: jsonEncode({
-          'callSid': _activeCallSid ?? '',
-          'terminateAll': true,
-        }),
-      ).timeout(const Duration(seconds: 5));
-      debugPrint('[ActiveCall] forceHangup sent to server');
-    } catch (e) {
-      debugPrint('[ActiveCall] forceHangup error: $e');
-    }
   }
 
   @override

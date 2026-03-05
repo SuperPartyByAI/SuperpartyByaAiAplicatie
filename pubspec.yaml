@@ -16,7 +16,7 @@ publish_to: "none" # Remove this line if you wish to publish to pub.dev
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
 # In Windows, build-name is used as the major, minor, and patch parts
 # of the product and file versions while build-number is used as the build suffix.
-version: 1.0.6+54
+version: 1.0.6+56
 
 environment:
   sdk: ^3.10.7
@@ -60,7 +60,12 @@ dependencies:
   http_parser: ^4.1.0
   file_picker: ^10.3.10
   flutter_linkify: ^6.0.0
+  # FCM (Google Cloud Messaging) — required by Twilio SDK for incoming call push
+  firebase_core: ^4.4.0
   firebase_messaging: ^16.1.1
+  flutter_local_notifications: ^20.1.0
+  wakelock_plus: ^1.4.0
+  web_socket_channel: ^3.0.3
 
 dev_dependencies:
   flutter_test:

@@ -1,0 +1,16 @@
+--------- beginning of system
+03-05 05:13:09.224  5149  5149 V ActivityThread: Handling launch of ActivityRecord{42d098e token=android.os.BinderProxy@59fc589 {com.superpartybyai.app/com.superpartybyai.app.ui.IncomingCallActivity}}
+03-05 05:13:09.278  5149  5149 V ActivityThread: callActivityOnCreate
+03-05 05:13:09.583  5149  5149 I ActivityThread: add activity client record, r= ActivityRecord{42d098e token=android.os.BinderProxy@59fc589 {com.superpartybyai.app/com.superpartybyai.app.ui.IncomingCallActivity}} token= android.os.BinderProxy@59fc589
+03-05 05:13:09.606  5149  5149 D RtgSched: resetRtgSchedHandle failed enable:1
+03-05 05:13:09.757  5149  5149 I HwForceDarkManager: setAllowedHwForceDark:false package:com.superpartybyai.app mCurrProcessState:0 mIsPackageNameChange:false hwForceDarkState:0 isViewAllowedForceDark:true isLastHonorForceDark:false
+03-05 05:13:10.156  5149  5149 I VRI[IncomingCallActivity]: send MSG_WINDOW_FOCUS_CHANGED msg
+03-05 05:13:11.022  5149  5149 D ActivityThread: Won't deliver top position change in state=5
+03-05 05:13:11.022  5149  5149 I ActivityThread: Performing restart of ActivityRecord{a3a8682 token=android.os.BinderProxy@efa0dcd {com.superpartybyai.app/com.superpartybyai.app.MainActivity}} start=false callers:android.app.servertransaction.TransactionExecutor.performLifecycleSequence:264 android.app.servertransaction.TransactionExecutor.cycleToPath:219 android.app.servertransaction.TransactionExecutor.cycleToPath:201 android.app.servertransaction.TransactionExecutor.executeCallbacks:149 android.app.servertransaction.TransactionExecutor.execute:104 android.app.ActivityThread$H.handleMessage:3078 android.os.Handler.dispatchMessage:117 android.os.Looper.loopOnce:210 android.os.Looper.loop:302 android.app.ActivityThread.main:9675 
+03-05 05:13:11.080  5149  5149 I VRI[IncomingCallActivity]: send MSG_WINDOW_FOCUS_CHANGED msg
+03-05 05:13:11.498  5149  5149 I ViewRootImpl: focus window changed, set pointer icon to default
+03-05 05:13:11.588  5149  5149 I VRI[MainActivity]: send MSG_WINDOW_FOCUS_CHANGED msg
+03-05 05:13:12.518  5149  5149 I ActivityThread: Remove activity client record, r= ActivityRecord{42d098e token=android.os.BinderProxy@59fc589 {com.superpartybyai.app/com.superpartybyai.app.ui.IncomingCallActivity}} token= android.os.BinderProxy@59fc589
+03-05 05:13:12.518  5149  5149 I VRI[IncomingCallActivity]: dispatchDetachedFromWindow in doDie
+03-05 05:14:41.490  5149  5149 I VRI[MainActivity]: send MSG_WINDOW_FOCUS_CHANGED msg
+03-05 05:14:41.508  5149  5149 D RtgSched: resetRtgSchedHandle failed enable:0

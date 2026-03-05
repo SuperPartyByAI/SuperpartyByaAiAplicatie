@@ -1,0 +1,100 @@
+[PBX Twilio] Incoming Call Webhook Fired: [Object: null prototype] {
+  Called: '+40373805828',
+  ToState: '',
+  CallerCountry: 'RO',
+  Direction: 'inbound',
+  CallerState: '',
+  ToZip: '',
+  CallSid: 'CA9e32e70f8a438ba520011c9bfd4bf1c1',
+  To: '+40373805828',
+  CallerZip: '',
+  ToCountry: 'RO',
+  CallToken: '%7B%22parentCallInfoToken%22%3A%22eyJhbGciOiJFUzI1NiJ9.eyJjYWxsU2lkIjoiQ0E5ZTMyZTcwZjhhNDM4YmE1MjAwMTFjOWJmZDRiZjFjMSIsImZyb20iOiIrNDA3NjExMDMxMjkiLCJ0byI6Iis0MDM3MzgwNTgyOCIsImlhdCI6IjE3NzI2ODAzODUifQ.Tf-eZQ-lBw_reM3VIJ3NaLyLMVWRk8CojmOWVvYFq0zWonQIfW_s4jql1aydX0WU2fAMvZDBvVsDGOwmr3LLbg%22%2C%22identityHeaderTokens%22%3A%5B%5D%7D',
+  CalledZip: '',
+  ApiVersion: '2010-04-01',
+  CalledCity: '',
+  CallStatus: 'ringing',
+  From: '+40761103129',
+  AccountSid: 'AC***REDACTED***',
+  CalledCountry: 'RO',
+  CallerCity: '',
+  ToCity: '',
+  FromCountry: 'RO',
+  Caller: '+40761103129',
+  FromCity: '',
+  CalledState: '',
+  FromZip: '',
+  FromState: ''
+}
+[PBX Twilio] Target VoIP client: user_f4433058-176e-4720-aa23-ed31a571a2be_dev_8726bfa9-81ac-44e6-9f4b-ac996e9b8e38
+[PBX Twilio] Sending FCM Push to wake client: user_f4433058-176e-4720-aa23-ed31a571a2be_dev_8726bfa9-81ac-44e6-9f4b-ac996e9b8e38
+[FCM] Push sent successfully to csO1XFGDR-2ZiG5...
+[WS UPGRADE] Received upgrade request for URL: /api/voip-ws?token=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZGVudGl0eSI6InVzZXJfZjQ0MzMwNTgtMTc2ZS00NzIwLWFhMjMtZWQzMWE1NzFhMmJlX2Rldl84NzI2YmZhOS04MWFjLTQ0ZTYtOWY0Yi1hYzk5NmU5YjhlMzgiLCJpYXQiOjE3NzI2ODAzOTcsImV4cCI6MTc3MjcyMzU5N30.QxefWCsfgWuK9Jg38Oc6Xyw_g13tokOWV-MdKm0td7U
+[WS UPGRADE] URL matched '/voip-ws'! Executing wss.handleUpgrade...
+[WS UPGRADE] handleUpgrade callback triggered! Socket upgraded successfully.
+[WS UPGRADE] Parsed token: YES, Parsed identityParam: NONE
+[WS UPGRADE] Verifying JWT token...
+[WS UPGRADE] Identity verified: user_f4433058-176e-4720-aa23-ed31a571a2be_dev_8726bfa9-81ac-44e6-9f4b-ac996e9b8e38. Finalizing connection state.
+[WS UPGRADE] Emitting wss connection event for custom handlers.
+[PBX Twilio] Dial Status Webhook: [Object: null prototype] {
+  Called: '+40373805828',
+  ToState: '',
+  DialCallStatus: 'answered',
+  CallerCountry: 'RO',
+  Direction: 'inbound',
+  CallerState: '',
+  ToZip: '',
+  CallSid: 'CA9e32e70f8a438ba520011c9bfd4bf1c1',
+  To: '+40373805828',
+  CallerZip: '',
+  ToCountry: 'RO',
+  CalledZip: '',
+  ApiVersion: '2010-04-01',
+  CalledCity: '',
+  CallStatus: 'completed',
+  From: '+40761103129',
+  AccountSid: 'AC***REDACTED***',
+  CalledCountry: 'RO',
+  CallerCity: '',
+  ToCity: '',
+  FromCountry: 'RO',
+  Caller: '+40761103129',
+  FromCity: '',
+  ConferenceSid: 'CFbf8ffa4e2fbb4c55ee3313e21093aa91',
+  CalledState: '',
+  FromZip: '',
+  FromState: ''
+}
+[PBX Twilio] Master Call Status Webhook: [Object: null prototype] {
+  Called: '+40373805828',
+  ToState: '',
+  CallerCountry: 'RO',
+  Direction: 'inbound',
+  Timestamp: 'Thu, 05 Mar 2026 03:13:35 +0000',
+  CallbackSource: 'call-progress-events',
+  CallerState: '',
+  ToZip: '',
+  SequenceNumber: '0',
+  CallSid: 'CA9e32e70f8a438ba520011c9bfd4bf1c1',
+  To: '+40373805828',
+  CallerZip: '',
+  ToCountry: 'RO',
+  CalledZip: '',
+  ApiVersion: '2010-04-01',
+  CalledCity: '',
+  CallStatus: 'completed',
+  Duration: '1',
+  From: '+40761103129',
+  CallDuration: '29',
+  AccountSid: 'AC***REDACTED***',
+  CalledCountry: 'RO',
+  CallerCity: '',
+  ToCity: '',
+  FromCountry: 'RO',
+  Caller: '+40761103129',
+  FromCity: '',
+  CalledState: '',
+  FromZip: '',
+  FromState: ''
+}
+[PBX Twilio] Call CA9e32e70f8a438ba520011c9bfd4bf1c1 ended with status completed. Waking WebSocket clients to clear UI.

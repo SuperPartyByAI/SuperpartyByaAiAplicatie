@@ -7,9 +7,15 @@ import 'auth_service.dart';
 import 'supabase_service.dart';
 
 class BackendService {
-  // Update to your actual backend URL. 
-  // CHANGE BACK TO IP because api.superparty.ro DNS is still pointing to Hosterion for the user's phone!
-  static const String BASE_URL = 'http://89.167.115.150:3001/api';  // TEMP FIX 
+  // TODO: Replace hardcoded IP with a named host or env-driven config.
+  // This is the WhatsApp/General backend server (different from voice.superparty.ro).
+  static const String BASE_URL = 'http://89.167.115.150:3000/api';  // WhatsApp Backend Server
+  
+  static const String VOICE_BASE_URL = 'https://voice.superparty.ro/api';
+
+  String get baseUrl => BASE_URL;
+  String get voiceBaseUrl => VOICE_BASE_URL;
+
   static const String SUPABASE_API_URL = 'https://europe-west1-superparty-frontend.cloudfunctions.net/api';
   // static const String BASE_URL = 'http://127.0.0.1:3000/api'; // Debugging Local Fixes 
   
@@ -246,6 +252,30 @@ class BackendService {
       rethrow;
     }
   }
+
+  Future<bool> acceptPbxCall(String callSid, String clientIdentity) async {
+    try {
+      final headers = await _getHeaders();
+      final response = await http.post(
+        Uri.parse('$voiceBaseUrl/voice/accept'),
+        headers: headers,
+        body: jsonEncode({
+          'callSid': callSid,
+          'clientIdentity': clientIdentity,
+        }),
+      );
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        debugPrint('[BackendService] /api/voice/accept success for $callSid');
+        return true;
+      } else {
+        debugPrint('[BackendService] /api/voice/accept failed: ${response.statusCode} - ${response.body}');
+        return false;
+      }
+    } catch (e) {
+      debugPrint('[BackendService] acceptPbxCall error: $e');
+      return false;
+    }
+  }
   // --- Employee Authentication & Approval ---
 
   Future<void> requestEmployeeAccess(String displayName, String phone) async {
@@ -272,9 +302,12 @@ class BackendService {
   Future<Map<String, dynamic>> getMyStatus() async {
     try {
       final email = _authService.currentUser?.email;
+      debugPrint('[getMyStatus] email=$email');
       if (email == null) return {};
       
-      final rows = await SupabaseService.select('employees', filters: {'email': 'eq.$email'}, limit: 1);
+      final rows = await SupabaseService.select('employees', filters: {'email': 'eq.$email'}, limit: 1)
+          .timeout(const Duration(seconds: 4));
+      debugPrint('[getMyStatus] got ${rows.length} rows');
       if (rows.isNotEmpty) {
         final row = rows.first;
         return {
@@ -285,7 +318,7 @@ class BackendService {
       }
       return {'status': 'not_found'};
     } catch (e) {
-      debugPrint('Error getting status: $e');
+      debugPrint('[getMyStatus] Error: $e');
       return {};
     }
   }
@@ -294,7 +327,7 @@ class BackendService {
     final uid = _authService.currentUser?.id;
     if (uid == null) throw Exception('Cannot register device: user not logged in.');
     
-    final url = Uri.parse('$BASE_URL/voice/registerDevice');
+    final url = Uri.parse('$VOICE_BASE_URL/voice/registerDevice');
     try {
       final headers = await _getHeaders();
       final body = jsonEncode({
@@ -317,7 +350,7 @@ class BackendService {
     final uid = _authService.currentUser?.id;
     if (uid == null) throw Exception('Cannot fetch VoIP token: user not logged in.');
     
-    final url = Uri.parse('$BASE_URL/voice/getVoipToken?userId=$uid&deviceId=$deviceId');
+    final url = Uri.parse('$VOICE_BASE_URL/voice/getVoipToken?userId=$uid&deviceId=$deviceId');
     try {
       final headers = await _getHeaders();
       final response = await http.get(url, headers: headers);
@@ -434,6 +467,19 @@ class BackendService {
       debugPrint('Error getting user profile: $e');
     }
     return {};
+  }
+
+  Future<void> updateUserPhone(String phone) async {
+    final headers = await _getHeaders();
+    final response = await http.post(
+      Uri.parse('$BASE_URL/user/phone'),
+      headers: headers,
+      body: jsonEncode({'phone': phone})
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to update phone: ${response.body}');
+    }
   }
 
   Future<void> submitConsent(String version) async {

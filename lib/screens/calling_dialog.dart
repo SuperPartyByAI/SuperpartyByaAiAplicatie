@@ -4,7 +4,9 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
-const String _BASE = 'http://89.167.115.150:3001/api';
+import 'package:superparty_app/services/backend_service.dart';
+
+const String _BASE = BackendService.VOICE_BASE_URL;
 
 class CallingDialog extends StatefulWidget {
   final String number;

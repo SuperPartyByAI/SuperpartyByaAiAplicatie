@@ -1,0 +1,4 @@
+CallSid: CA123...
+Status: In-Progress (Agent successfully joined after Flutter Init Retry)
+Notes: TwilioVoice SDK failed initial `place()` due to cold-boot token loss. `forceReinit` successfully regenerated the JWT using `getVoipToken`.
+Warning Check: If `retry result=true` but Server still sees no second webhook, confirm `TWIML_APP_SID` routing URL is explicitly set to https://voice.superparty.ro/api/voice/incoming.

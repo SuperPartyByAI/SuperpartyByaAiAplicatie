@@ -15,7 +15,9 @@ import 'recordings_screen.dart';
 import 'calling_dialog.dart';
 import 'active_call_screen.dart';
 
-const String _BASE = 'http://89.167.115.150:3001/api';
+import 'package:superparty_app/services/backend_service.dart';
+
+const String _BASE = BackendService.VOICE_BASE_URL;
 
 class CallsScreen extends StatefulWidget {
   const CallsScreen({super.key});
@@ -327,7 +329,7 @@ class _CallsScreenState extends State<CallsScreen> {
       debugPrint('[WA] POST /api/conversations phone=+$digits acc=$selectedAccountId');
       final token = await _getToken();
       final resp = await http.post(
-        Uri.parse('$_BASE/conversations'),
+        Uri.parse('${BackendService.BASE_URL}/conversations'),
         headers: {
           'Content-Type': 'application/json',
           if (token != null) 'Authorization': 'Bearer $token',
