@@ -53,6 +53,26 @@ class CustomVoiceFirebaseMessagingService : FirebaseMessagingService(), MessageL
         @Volatile
         var pendingCallInvite: com.twilio.voice.CallInvite? = null
 
+        // Anti-Loop Auto-Answer Interceptor
+        @Volatile
+        var autoAnswerUntil: Long? = null
+
+        // Anti-Loop Block for Hetzner Wake-Up Redundancy
+        val answeredCallSids = mutableSetOf<String>()
+
+        private val autoAnswerListener = object : com.twilio.voice.Call.Listener {
+            override fun onConnectFailure(call: com.twilio.voice.Call, error: com.twilio.voice.CallException) {}
+            override fun onRinging(call: com.twilio.voice.Call) {}
+            override fun onConnected(call: com.twilio.voice.Call) {
+                Log.d(TAG, "✅ Auto-Answer successful natively for sid=${call.sid}")
+            }
+            override fun onReconnecting(call: com.twilio.voice.Call, error: com.twilio.voice.CallException) {}
+            override fun onReconnected(call: com.twilio.voice.Call) {}
+            override fun onDisconnected(call: com.twilio.voice.Call, error: com.twilio.voice.CallException?) {
+                Log.d(TAG, "Auto-Answer Disconnected: ${error?.message}")
+            }
+        }
+
         /**
          * Accept the stored CallInvite directly, bypassing TelecomManager entirely.
          * Used on Huawei/Honor devices where TelecomManager is blocked.
@@ -106,6 +126,13 @@ class CustomVoiceFirebaseMessagingService : FirebaseMessagingService(), MessageL
         }
 
         fun showFullScreenCallNotification(context: Context, callerName: String, callSid: String = "") {
+            val now = System.currentTimeMillis()
+            val until = autoAnswerUntil
+            if (answeredCallSids.contains(callSid) || (until != null && now < until)) {
+                Log.d(TAG, "🔕 Suppressing duplicate FullScreenNotification for sid=$callSid (already answered/in progress)")
+                return
+            }
+
             createCallChannel(context)
             val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
 
@@ -186,16 +213,23 @@ class CustomVoiceFirebaseMessagingService : FirebaseMessagingService(), MessageL
                 // On Huawei/Honor, Telecom Manager is completely disabled ("PhoneAccount missing").
                 showFullScreenCallNotification(applicationContext, from, callSid)
             } else if (data["target_action"] == "CANCEL_RINGING_UI") {
-                val callSid = data["twi_call_sid"] ?: ""
+                val callSid = data["twi_call_sid"] ?: data["callSid"] ?: ""
                 Log.d(TAG, "📴 CANCEL_RINGING_UI received from backend for callSid=$callSid")
                 dismissCallNotification(applicationContext, callSid)
                 
                 Intent("com.superpartybyai.app/CALL_CANCELLED").apply {
                     putExtra("callSid", callSid)
                 }.also { LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(it) }
-                return // Explicitly return so we don't pass our custom payload to Twilio
+                return
             } else if (data["type"] == "incoming_call") {
-                Log.d(TAG, "Forwarding custom incoming_call FCM payload to Flutter plugin...")
+                val rawFrom = data["callerNumber"] ?: data["from"] ?: "Superparty"
+                val from = rawFrom.removePrefix("client:").removePrefix("+")
+                val callSid = data["callSid"] ?: ""
+                
+                Log.d(TAG, "🔔 HETZNER WAKE-UP EVENT: from=$from callSid=$callSid — Firing Native IncomingCallActivity Over Lock Screen!")
+                showFullScreenCallNotification(applicationContext, from, callSid)
+
+                Log.d(TAG, "Also forwarding custom incoming_call FCM payload to Flutter plugin...")
                 val intent = Intent("com.google.android.c2dm.intent.RECEIVE")
                 intent.setPackage(applicationContext.packageName)
                 intent.putExtras(remoteMessage.toIntent().extras ?: android.os.Bundle())
@@ -215,6 +249,18 @@ class CustomVoiceFirebaseMessagingService : FirebaseMessagingService(), MessageL
         // Store CallInvite statically so we can accept it directly on Huawei (no TelecomManager)
         pendingCallInvite = callInvite
         Log.d(TAG, "📦 Stored pendingCallInvite for direct accept on restrictive device")
+
+        // ── ANTI-LOOP INTERCEPTOR ──
+        val now = System.currentTimeMillis()
+        val until = autoAnswerUntil
+        if (until != null && now < until) {
+            Log.d(TAG, "⚡️ RACE CONDITION WON! Auto-answering CallInvite...")
+            autoAnswerUntil = null // consume 
+            answeredCallSids.add(callInvite.callSid) // mask the new SID so it doesn't loop via other vectors
+            callInvite.accept(applicationContext, autoAnswerListener)
+            // MUST return here to prevent TVConnectionService/TelecomManager from ringing!
+            return 
+        }
 
         // Try to forward to TVConnectionService (will fail silently on Huawei – that's OK)
         try {

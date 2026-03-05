@@ -41,12 +41,10 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
     try {
       debugPrint('[IncomingCallScreen] Accepting native WebRTC call via Twilio SDK...');
       
-      // Fire our manual PBX acceptance to guarantee caller audio bridges smoothly
-      // before risking Huawei native SDK freezes
-      await VoipService.acceptCallFromServer('', widget.callSid);
-
-      // Answer the WebRTC call directly
-      await TwilioVoice.instance.call.answer();
+      // Because the PBX forces callers into a Conference and no longer emits `CallInvites`,
+      // we must natively dial OUT to the conference room to bridge the audio loop.
+      final confRoom = widget.conf.isNotEmpty ? widget.conf : 'conf_${widget.callSid}';
+      await TwilioVoice.instance.call.place(to: confRoom, from: 'SuperpartyApp');
       
       // Navigate immediately
       if (mounted) {
