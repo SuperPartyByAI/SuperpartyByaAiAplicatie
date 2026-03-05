@@ -279,6 +279,7 @@ Future<void> answerIncomingCall(String from, String callSid) async {
             }
 
             if (accessToken != null && accessToken.isNotEmpty) {
+              await VoipService.ensureDeviceFlagsInitialized();
               if (VoipService.isHuaweiOrHonor) {
                 final placedNative = await const MethodChannel('com.superpartybyai.app/call_actions').invokeMethod<bool>(
                   'directPlace',

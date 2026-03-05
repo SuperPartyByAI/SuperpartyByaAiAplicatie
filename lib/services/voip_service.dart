@@ -29,6 +29,20 @@ class VoipService {
   VoipService._internal();
 
   static bool isHuaweiOrHonor = false;
+  static bool _deviceFlagsInitialized = false;
+
+  static Future<void> ensureDeviceFlagsInitialized() async {
+    if (_deviceFlagsInitialized) return;
+    try {
+      if (Platform.isAndroid) {
+        final deviceInfo = DeviceInfoPlugin();
+        final androidInfo = await deviceInfo.androidInfo;
+        final manufacturer = androidInfo.manufacturer.toLowerCase();
+        isHuaweiOrHonor = manufacturer == 'huawei' || manufacturer == 'honor';
+      }
+    } catch (_) {}
+    _deviceFlagsInitialized = true;
+  }
 
   static final FlutterLocalNotificationsPlugin _notif = FlutterLocalNotificationsPlugin();
 
@@ -226,14 +240,7 @@ class VoipService {
   }
 
   Future<void> init(BackendService backendService, {bool forceReinit = false}) async {
-    try {
-      if (Platform.isAndroid) {
-        final deviceInfo = DeviceInfoPlugin();
-        final androidInfo = await deviceInfo.androidInfo;
-        final manufacturer = androidInfo.manufacturer.toLowerCase();
-        isHuaweiOrHonor = manufacturer == 'huawei' || manufacturer == 'honor';
-      }
-    } catch (_) {}
+    await ensureDeviceFlagsInitialized();
 
     if (_isRegistered && !forceReinit) {
       debugPrint('[VoIP] Already initialized — skipping. Use forceReinit:true to re-register.');
