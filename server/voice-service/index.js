@@ -39,10 +39,12 @@ const TWILIO_TOKEN = process.env.TWILIO_AUTH_TOKEN;
 const TWIML_APP_SID = process.env.TWIML_APP_SID || process.env.TWILIO_TWIML_APP_SID;
 const twilioClient = (TWILIO_SID && TWILIO_TOKEN) ? twilio(TWILIO_SID, TWILIO_TOKEN) : null;
 
-// Enforce JWT_SECRET for secure websocket authentication
+// ─────────────────────────────────────────────────────────────
+// WS JWT SECRET (FAIL-FAST, NO FALLBACK)
+// ─────────────────────────────────────────────────────────────
 const JWT_SECRET = process.env.JWT_SECRET;
 if (!JWT_SECRET) {
-  console.error("FATAL ERROR: JWT_SECRET environment variable is missing! Refusing to boot PBX without secure signatures.");
+  console.error('FATAL ERROR: JWT_SECRET environment variable is missing!');
   process.exit(1);
 }
 
