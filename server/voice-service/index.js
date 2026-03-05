@@ -28,7 +28,10 @@ app.use(express.json({
 app.use(express.urlencoded({ extended: false }));
 
 const PORT = process.env.PORT || 3001;
-const BASE_URL = process.env.BASE_URL || `http://localhost:${PORT}`;
+// BASE_URL is used to build callback URLs Twilio must reach.
+// Keep it externally reachable (IP or https domain).
+const BASE_URL = (process.env.BASE_URL || process.env.PUBLIC_URL || `http://localhost:${PORT}`).replace(/\/$/, '');
+const ENV_PUBLIC_URL = (process.env.PUBLIC_URL || process.env.BASE_URL || '').replace(/\/$/, '');
 
 // Twilio Config
 const TWILIO_SID = process.env.TWILIO_ACCOUNT_SID;
@@ -63,6 +66,12 @@ function getPublicBaseUrl(req) {
   if (explicit) return explicit.replace(/\/$/, '');
   const proto = (req.get('x-forwarded-proto') || req.protocol || 'http');
   return `${proto}://${req.get('host')}`.replace(/\/$/, '');
+}
+
+// External base URL to hand to Twilio in TwiML + REST callbacks.
+// Prefer explicit env (PUBLIC_URL/BASE_URL), else fall back to request host.
+function getExternalBaseUrl(req) {
+  return ENV_PUBLIC_URL || getPublicBaseUrl(req);
 }
 
 function requireTwilioSignature(req, res, next) {
@@ -423,7 +432,7 @@ app.post('/api/voice/incoming', requireTwilioSignature, async (req, res) => {
         console.warn('[PBX Twilio] No VoIP clients registered! Hanging up.');
         twiml.say({ language: 'ro-RO' }, 'Ne cerem scuze, niciun agent nu este disponibil in acest moment.');
       } else {
-        const actionUrl = `${BASE_URL}/api/voice/dial-status`;
+        const actionUrl = `${getExternalBaseUrl(req)}/api/voice/dial-status`;
         const dial = twiml.dial({ 
           action: actionUrl,
           timeout: 60
@@ -520,7 +529,7 @@ app.post('/api/voice/accept', requireSupabaseUser, express.json(), async (req, r
     const call = await twilioClient.calls.create({
       to: toNumber,
       from: process.env.TWILIO_CALLER_ID || '+40373805828',
-      url: `${BASE_URL}/api/voice/join-conference?conf=${encodeURIComponent(confName)}`
+      url: `${getExternalBaseUrl(req)}/api/voice/join-conference?conf=${encodeURIComponent(confName)}`
     });
 
     return res.json({ ok: true, callSid: call.sid });
@@ -659,7 +668,7 @@ app.post('/api/voice/callback', requireSupabaseUser, async (req, res) => {
     }
 
     const confName = 'agentOutbound_' + Date.now();
-    const actionUrl = `${BASE_URL}/api/voice/dial-status`;
+    const actionUrl = `${getExternalBaseUrl(req)}/api/voice/dial-status`;
 
     const clientCall = await twilioClient.calls.create({
       to: toPhoneNumber,
@@ -688,7 +697,7 @@ app.post('/api/voice/callback', requireSupabaseUser, async (req, res) => {
 });
 
 // Outgoing bridging (if used by specific webhooks or legacy integrations)
-app.post('/api/voice/bridge-agent', (req, res) => {
+app.post('/api/voice/bridge-agent', requireTwilioSignature, (req, res) => {
   const twiml = new twilio.twiml.VoiceResponse();
   twiml.say({ language: 'ro-RO' }, 'Se transferă apelul, vă rugăm așteptați.');
   twiml.dial({ answerOnBridge: true }).client(req.body.targetAgentIdentity);
