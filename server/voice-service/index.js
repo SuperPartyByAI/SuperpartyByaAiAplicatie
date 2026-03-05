@@ -384,21 +384,20 @@ app.post('/api/voice/incoming', requireTwilioSignature, async (req, res) => {
     const twiml = new twilio.twiml.VoiceResponse();
   
     try {
+      const cleanTo = To ? To.replace('client:', '') : '';
+      if (cleanTo.startsWith('conf_')) {
+        console.log(`[PBX Twilio] OUTBOUND conference join (To=${To}, cleanTo=${cleanTo}, From=${From}, CallSid=${CallSid})`);
+        const outDial = twiml.dial({ callerId: process.env.TWILIO_CALLER_ID || '+40373805828' });
+        outDial.conference({ beep: false, startConferenceOnEnter: true, endConferenceOnExit: true }, cleanTo);
+        res.type('text/xml');
+        return res.send(twiml.toString());
+      }
+
       if (From && From.startsWith('client:')) {
         // OUTBOUND CALL (App -> World)
         console.log(`[PBX Twilio] Outbound detected from ${From} to ${To}`);
         const outDial = twiml.dial({ callerId: process.env.TWILIO_CALLER_ID || '+40373805828' });
-        // Clean To number if it comes with prefixes
-        const cleanTo = To.replace('client:', '');
-        if (cleanTo.startsWith('conf_')) {
-          console.log(`[PBX Twilio] OUTBOUND conference dial requested: ${cleanTo}`);
-          outDial.conference(
-            { beep: false, startConferenceOnEnter: true, endConferenceOnExit: true },
-            cleanTo
-          );
-        } else {
-          outDial.number(cleanTo);
-        }
+        outDial.number(cleanTo);
         res.type('text/xml');
         return res.send(twiml.toString());
       }
