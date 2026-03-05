@@ -146,6 +146,21 @@ class VoipService {
     final String conf = data['conf'] ?? '';
     final String callSid = data['callSid'] ?? '';
     
+    // --- Android dedupe: if native UI is already active, suppress Flutter UI/notification ---
+    if (Platform.isAndroid && callSid.isNotEmpty) {
+      final prefs = await SharedPreferences.getInstance();
+      final nativeSid = prefs.getString('native_ringing_call_sid');     // without "flutter." in Dart
+      final nativeUntil = prefs.getInt('native_ringing_until') ?? 0;    // Long -> int in Dart
+      final now = DateTime.now().millisecondsSinceEpoch;
+
+      if (nativeSid == callSid && now < nativeUntil) {
+        debugPrint('[VoIP] Suppressing Flutter incoming notification (native already ringing) sid=$callSid');
+        // lock flag to prevent ConsentScreen collisions
+        isRingingOrActive = true;
+        return;
+      }
+    }
+    
     // Persist last incoming Twilio CallSid so lockscreen Answer always joins the correct conference
     try {
       final prefs = await SharedPreferences.getInstance();

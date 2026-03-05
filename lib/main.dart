@@ -45,6 +45,19 @@ Future<void> _fcmBackgroundHandler(RemoteMessage message) async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
+  // --- Android dedupe: if native UI is already active, suppress Flutter UI/notification ---
+  try {
+    if (Platform.isAndroid) {
+      final prefs = await SharedPreferences.getInstance();
+      final until = prefs.getInt('native_ringing_until') ?? 0;
+      final now = DateTime.now().millisecondsSinceEpoch;
+      if (now < until) {
+        debugPrint('[main] 🔕 Cold start blocked: Android native ringing UI is currently active.');
+        VoipService.isRingingOrActive = true;
+      }
+    }
+  } catch (_) {}
+
   // Initialize FCM (Google Cloud Messaging) and Local Notifications
   try {
     await Firebase.initializeApp();

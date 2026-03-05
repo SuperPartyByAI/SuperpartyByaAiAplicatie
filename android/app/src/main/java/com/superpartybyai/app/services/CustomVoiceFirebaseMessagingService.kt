@@ -49,6 +49,40 @@ class CustomVoiceFirebaseMessagingService : FirebaseMessagingService(), MessageL
         const val CHANNEL_NAME = "Apeluri VoIP Superparty"
         const val NOTIFICATION_ID = 9001
 
+        private const val NATIVE_RINGING_SID_KEY   = "flutter.native_ringing_call_sid"
+        private const val NATIVE_RINGING_UNTIL_KEY = "flutter.native_ringing_until"
+        private const val NATIVE_RINGING_TTL_MS    = 45_000L
+
+        private fun markNativeRinging(context: Context, callSid: String) {
+            if (callSid.isEmpty()) return
+            val prefs = context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
+            val now = System.currentTimeMillis()
+            prefs.edit()
+                .putString(NATIVE_RINGING_SID_KEY, callSid)
+                .putLong(NATIVE_RINGING_UNTIL_KEY, now + NATIVE_RINGING_TTL_MS)
+                .apply()
+        }
+
+        private fun isNativeRingingDuplicate(context: Context, callSid: String): Boolean {
+            if (callSid.isEmpty()) return false
+            val prefs = context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
+            val sid = prefs.getString(NATIVE_RINGING_SID_KEY, null)
+            val until = prefs.getLong(NATIVE_RINGING_UNTIL_KEY, 0L)
+            val now = System.currentTimeMillis()
+            return (sid == callSid && now < until)
+        }
+
+        private fun clearNativeRinging(context: Context, callSid: String) {
+            val prefs = context.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
+            val sid = prefs.getString(NATIVE_RINGING_SID_KEY, null)
+            if (sid == callSid) {
+                prefs.edit()
+                    .remove(NATIVE_RINGING_SID_KEY)
+                    .remove(NATIVE_RINGING_UNTIL_KEY)
+                    .apply()
+            }
+        }
+
         // Static storage for pending CallInvite – allows direct accept() without TelecomManager
         @Volatile
         var pendingCallInvite: com.twilio.voice.CallInvite? = null
@@ -132,6 +166,11 @@ class CustomVoiceFirebaseMessagingService : FirebaseMessagingService(), MessageL
                 Log.d(TAG, "🔕 Suppressing duplicate FullScreenNotification for sid=$callSid (already answered/in progress)")
                 return
             }
+            
+            if (isNativeRingingDuplicate(context, callSid)) {
+                Log.d(TAG, "🔕 Suppressing duplicate native ringing UI for sid=$callSid (already ringing)")
+                return
+            }
 
             createCallChannel(context)
             val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -166,6 +205,8 @@ class CustomVoiceFirebaseMessagingService : FirebaseMessagingService(), MessageL
 
             val notifId = if (callSid.isNotEmpty()) callSid.hashCode() else NOTIFICATION_ID
             Log.d(TAG, "📲 Firing full-screen notification for: $callerName (ID: $notifId)")
+            
+            markNativeRinging(context, callSid)
             nm.notify(notifId, notification)
         }
 
@@ -173,6 +214,8 @@ class CustomVoiceFirebaseMessagingService : FirebaseMessagingService(), MessageL
             val nm = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             val notifId = if (callSid.isNotEmpty()) callSid.hashCode() else NOTIFICATION_ID
             nm.cancel(notifId)
+            
+            if (callSid.isNotEmpty()) clearNativeRinging(context, callSid)
         }
     }
 
