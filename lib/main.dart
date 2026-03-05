@@ -265,7 +265,6 @@ Future<void> answerIncomingCall(String from, String callSid) async {
     } catch (e) {
       debugPrint('[main] ❌ directAnswer exception: $e. Falling back to call.place.');
     }
-    
     // 2️⃣ FALLBACK: Try to connect to the conference via outbound TCP dial (Huawei safe)
     bool placed = false;
     for (int i = 0; i < 8; i++) {
@@ -273,7 +272,12 @@ Future<void> answerIncomingCall(String from, String callSid) async {
         try {
             await VoipService().init(backend, forceReinit: i > 0);
             
+            bool isReg = VoipService().isRegistered;
+            debugPrint('[main] Did VoipService.init actually run setTokens? _isRegistered=$isReg');
+            
             final r = await TwilioVoice.instance.call.place(to: to, from: identity);
+            debugPrint('[main] call.place returned: $r');
+            
             if (r == true) {
                 placed = true;
                 debugPrint('[main] call.place success on attempt ${i + 1}');

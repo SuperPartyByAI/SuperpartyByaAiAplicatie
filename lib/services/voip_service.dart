@@ -236,17 +236,25 @@ class VoipService {
     // callAnsweredGuard is set immediately when answer() succeeds.
     // activeCall check is a secondary safeguard once Twilio SDK updates its state.
     final activeCall = TwilioVoice.instance.call.activeCall;
-    if (callAnsweredGuard || activeCall != null) {
-      debugPrint('[VoIP] ⚠️ Call active/answered guard — skipping re-init (callAnsweredGuard=$callAnsweredGuard, activeCall=${activeCall?.to})');
+    if (activeCall != null) {
+      debugPrint('[VoIP] ⚠️ activeCall present — skipping re-init (activeCall=${activeCall.to})');
       _isRegistered = true;
       return;
+    }
+
+    // if user tapped Answer, DO NOT clear UIs, but allow Init to continue registering tokens
+    final skipUiCleanup = callAnsweredGuard;
+    if (skipUiCleanup) {
+      debugPrint('[VoIP] callAnsweredGuard active — skipping endAllCalls, continuing token registration');
     }
 
     // Clear ALL stale CallKit call UIs from previous sessions BEFORE re-registering.
     // Without this, every app restart re-shows all pending/missed calls simultaneously.
     try {
-      await FlutterCallkitIncoming.endAllCalls();
-      debugPrint('[VoIP] 🧹 Cleared stale CallKit calls');
+      if (!skipUiCleanup) {
+        await FlutterCallkitIncoming.endAllCalls();
+        debugPrint('[VoIP] 🧹 Cleared stale CallKit calls');
+      }
     } catch (e) {
       debugPrint('[VoIP] endAllCalls error (non-fatal): $e');
     }
@@ -310,6 +318,7 @@ class VoipService {
       final identity = data['identity'] as String;
       _lastIdentity = identity; // save for outgoing calls
       await prefs.setString('twilio_client_identity', identity);
+      await prefs.setString('twilio_access_token', accessToken);
       debugPrint('[VoIP] Token received for identity: $identity');
 
       // 5. Register with Twilio SDK (links FCM token → Twilio identity)
