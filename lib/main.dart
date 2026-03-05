@@ -187,10 +187,6 @@ Future<void> answerIncomingCall(String from, String callSid) async {
 
   VoipService.setCallAnswered();
 
-  // ── PBX audio bridge (server-side) ──
-  // Call once here. Server has idempotency per CallSid anyway.
-  await VoipService.acceptCallFromServer('', callSid);
-
   // ── Navigate to ActiveCallScreen IMMEDIATELY so user sees the call UI ──
   final callerName = from.replaceFirst('client:', '').replaceFirst('+', '');
   final ctx = navigatorKey.currentContext;
@@ -215,23 +211,10 @@ Future<void> answerIncomingCall(String from, String callSid) async {
       await const MethodChannel(_kAudioChannel).invokeMethod('requestAudioFocusAndMode');
     } catch (_) {}
 
-    // 1) Try Huawei-safe directAnswer (accept pending CallInvite in native)
-    bool directAnswered = false;
-    try {
-      final directResult = await const MethodChannel(_kCallActionsChannel)
-          .invokeMethod<bool>('directAnswer');
-      directAnswered = directResult == true;
-      debugPrint('[main] directAnswer result: $directAnswered');
-    } catch (e) {
-      debugPrint('[main] directAnswer error (non-fatal): $e');
-    }
+    // NOU: conference-first -> intrăm în conf_<CallSid>
+    final confRoom = 'conf_$callSid';
+    await TwilioVoice.instance.call.place(to: confRoom, from: 'SuperpartyApp');
 
-    // 2) Fallback to Twilio SDK answer()
-    if (!directAnswered) {
-      debugPrint('[main] directAnswer=false → TwilioVoice.answer()');
-      final result = await TwilioVoice.instance.call.answer();
-      debugPrint('[main] Twilio answer() result: $result');
-    }
 
   } catch (e) {
     VoipService.clearCallAnswered(); // Clear guard on failure

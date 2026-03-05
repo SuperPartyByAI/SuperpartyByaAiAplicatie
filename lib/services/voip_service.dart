@@ -102,8 +102,8 @@ class VoipService {
             await handleIncomingData(pushPayload);
           } else if (data['type'] == 'registered') {
             debugPrint('[VoIP WS] Successfully registered on WebSocket Server');
-          } else if (data['type'] == 'call_closed') {
-            debugPrint('[VoIP WS] Server issued call_closed. Terminating Native Audio and Dismissing UI.');
+          } else if (data['type'] == 'call_closed' || data['type'] == 'call_ended') {
+            debugPrint('[VoIP WS] Server issued ${data['type']}. Terminating Native Audio and Dismissing UI.');
             try {
               // 1. Terminate native audio immediately
               await TwilioVoice.instance.call.hangUp();
