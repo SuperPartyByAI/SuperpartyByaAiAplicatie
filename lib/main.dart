@@ -220,8 +220,26 @@ Future<void> answerIncomingCall(String from, String callSid) async {
     final confRoomRaw = confStr.startsWith('conf_') ? confStr : 'conf_$confStr';
     final to = confRoomRaw.startsWith('client:') ? confRoomRaw : 'client:$confRoomRaw';
     
+    final ctx2 = navigatorKey.currentContext;
+    BackendService? backend;
+    if (ctx2 != null) {
+      try { backend = Provider.of<BackendService>(ctx2, listen: false); } catch (_) {}
+    }
+    if (backend != null) {
+      await VoipService().init(backend, forceReinit: false);
+    }
+    
     debugPrint('[main] dialing into conference room: $to with identity $identity');
-    await TwilioVoice.instance.call.place(to: to, from: identity);
+    final placed = await TwilioVoice.instance.call.place(to: to, from: identity);
+    debugPrint('[main] call.place result=$placed to=$to from=$identity');
+
+    if (placed != true && backend != null) {
+      debugPrint('[main] call.place failed -> forceReinit + retry');
+      await VoipService().init(backend, forceReinit: true);
+      await Future.delayed(const Duration(seconds: 2));
+      final placed2 = await TwilioVoice.instance.call.place(to: to, from: identity);
+      debugPrint('[main] call.place retry result=$placed2');
+    }
 
 
   } catch (e) {

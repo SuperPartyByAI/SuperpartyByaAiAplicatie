@@ -48,7 +48,22 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
       final confRoomRaw = widget.conf.isNotEmpty ? widget.conf : 'conf_${widget.callSid}';
       final to = confRoomRaw.startsWith('client:') ? confRoomRaw : 'client:$confRoomRaw';
       
-      await TwilioVoice.instance.call.place(to: to, from: identity);
+      BackendService? backend;
+      try { backend = Provider.of<BackendService>(context, listen: false); } catch (_) {}
+      if (backend != null) {
+        await VoipService().init(backend, forceReinit: false); 
+      }
+
+      final placed = await TwilioVoice.instance.call.place(to: to, from: identity);
+      debugPrint('[IncomingCallScreen] call.place result=$placed to=$to from=$identity');
+
+      if (placed != true && backend != null) {
+        debugPrint('[IncomingCallScreen] call.place failed -> forceReinit + retry');
+        await VoipService().init(backend, forceReinit: true);
+        await Future.delayed(const Duration(seconds: 2));
+        final placed2 = await TwilioVoice.instance.call.place(to: to, from: identity);
+        debugPrint('[IncomingCallScreen] call.place retry result=$placed2');
+      }
       
       // Navigate immediately
       if (mounted) {

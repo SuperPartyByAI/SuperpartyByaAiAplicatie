@@ -1,3 +1,7 @@
-D/VoIP WS : [VoIP WS] incoming_call received
-D/Flutter : [main] dialing into conference room: client:conf_CA123 with identity user_xyz_dev_123
+D/Flutter : [main] dialing into conference room: client:conf_CA123 with identity ...
 D/TwilioVoice: placing call to client:conf_CA123...
+D/Flutter : [main] call.place result=false to=client:conf_CA123 from=user_XYZ
+D/Flutter : [main] call.place failed -> forceReinit + retry
+D/VoIP WS : [VoIP WS] initializing with backend instance
+D/TwilioVoice: placing call to client:conf_CA123...
+D/Flutter : [main] call.place retry result=true
