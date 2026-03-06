@@ -2,9 +2,9 @@
  * wa-reconciler.mjs — Watchdog / Cron process (pm2, restarts every 5 min)
  * Checks: queue depth, DLQ, CONNECTED sessions, stale sessions
  */
-import { readFileSync } from 'fs';
-import pathMod from 'path';
-import { fileURLToPath } from 'url';
+import { readFileSync } from 'node:fs';
+import pathMod from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 (function loadEnv() {
   try {
@@ -12,7 +12,7 @@ import { fileURLToPath } from 'url';
     const envPath = pathMod.join(__dir, '.env');
     if (readFileSync && readFileSync(envPath)) {
       const lines = readFileSync(envPath, 'utf8').split('\n');
-      for (const l of lines) { const m = l.match(/^([A-Za-z_][A-Za-z0-9_]*)=(.*)$/); if (m && !process.env[m[1]]) process.env[m[1]] = m[2]; }
+      for (const l of lines) { const m = l.match(/^([A-Za-z_]\w*)=(.*)$/); if (m && !process.env[m[1]]) process.env[m[1]] = m[2]; }
     }
   } catch {}
 })();
@@ -28,9 +28,9 @@ const eventsQ = new Queue('wa-events', { connection: REDIS });
 const dlqQ    = new Queue('wa-dlq',    { connection: REDIS });
 
 // Thresholds
-const QUEUE_DEPTH_ALERT  = parseInt(process.env.QUEUE_DEPTH_ALERT  || '1000', 10);
-const DLQ_ALERT_THRESHOLD = parseInt(process.env.DLQ_ALERT_THRESHOLD || '0',    10);
-const MIN_CONNECTED_PCTG = parseFloat(process.env.MIN_CONNECTED_PCTG || '0.5');
+const QUEUE_DEPTH_ALERT   = Number.parseInt(process.env.QUEUE_DEPTH_ALERT   || '1000', 10);
+const DLQ_ALERT_THRESHOLD = Number.parseInt(process.env.DLQ_ALERT_THRESHOLD || '0',    10);
+const MIN_CONNECTED_PCTG  = Number.parseFloat(process.env.MIN_CONNECTED_PCTG || '0.5');
 
 async function run() {
   const ts = new Date().toISOString();
@@ -55,13 +55,14 @@ async function run() {
 
   // 3) Session CONNECTED ratio from Supabase
   try {
-    const { data: total } = await sb.from('wa_accounts').select('id', { count: 'exact', head: true });
-    const { data: connected } = await sb.from('wa_accounts').select('id', { count: 'exact', head: true }).eq('state', 'connected');
-    const totalCount     = (total )?.length ?? 0;
-    const connectedCount = (connected )?.length ?? 0;
-    console.log(`[Reconciler] Sessions: ${connectedCount}/${totalCount} connected`);
-    if (totalCount > 0 && connectedCount / totalCount < MIN_CONNECTED_PCTG) {
-      console.error(`[Reconciler] ⚠️  ALERT: Only ${connectedCount}/${totalCount} accounts CONNECTED (< ${MIN_CONNECTED_PCTG*100}%)`);
+    const { count: totalCount, error: e1 }     = await sb.from('wa_accounts').select('*', { count: 'exact', head: true });
+    const { count: connectedCount, error: e2 } = await sb.from('wa_accounts').select('*', { count: 'exact', head: true }).eq('state', 'connected');
+    if (e1 || e2) throw new Error((e1 || e2).message);
+    const total     = totalCount     ?? 0;
+    const connected = connectedCount ?? 0;
+    console.log(`[Reconciler] Sessions: ${connected}/${total} connected`);
+    if (total > 0 && connected / total < MIN_CONNECTED_PCTG) {
+      console.error(`[Reconciler] ⚠️  ALERT: Only ${connected}/${total} accounts CONNECTED (< ${MIN_CONNECTED_PCTG*100}%)`);
     }
   } catch (e) {
     console.error('[Reconciler] Failed to check session states:', e.message);
@@ -85,4 +86,4 @@ async function run() {
   // process completes — pm2 cron_restart handles scheduling
 }
 
-run().catch(e => { console.error('[Reconciler] Fatal:', e); process.exit(1); });
+await run().catch(e => { console.error('[Reconciler] Fatal:', e); process.exit(1); });

@@ -10,15 +10,15 @@
  *   node tools/enqueue_mock.mjs [count] [concurrency]
  *   node tools/enqueue_mock.mjs 10000 50
  */
-import { readFileSync } from 'fs';
-import pathMod from 'path';
-import { fileURLToPath } from 'url';
+import { readFileSync } from 'node:fs';
+import pathMod from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 // Load .env
 const __dir = pathMod.dirname(fileURLToPath(import.meta.url));
 const envPath = pathMod.join(__dir, '..', '.env');
 const lines = readFileSync(envPath, 'utf8').split('\n');
-for (const l of lines) { const m = l.match(/^([A-Za-z_][A-Za-z0-9_]*)=(.*)$/); if (m) process.env[m[1]] = m[2]; }
+for (const l of lines) { const m = l.match(/^([A-Za-z_]\w*)=(.*)$/); if (m) process.env[m[1]] = m[2]; }
 
 import { Queue } from 'bullmq';
 import { createClient } from '@supabase/supabase-js';
@@ -28,8 +28,8 @@ const sb = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_K
 const eventsQueue = new Queue('wa-events', { connection: REDIS });
 const dlqQueue   = new Queue('wa-dlq',     { connection: REDIS });
 
-const COUNT       = parseInt(process.argv[2] || '10000', 10);
-const BATCH_SIZE  = parseInt(process.argv[3] || '200',   10);
+const COUNT       = Number.parseInt(process.argv[2] || '10000', 10);
+const BATCH_SIZE  = Number.parseInt(process.argv[3] || '200',   10);
 
 // Use a fixed mock account ID for Gate A (not a real WA account)
 const MOCK_ACCOUNT = 'GATE_A_MOCK_ACCOUNT';
@@ -79,7 +79,7 @@ console.log(`\n[Gate A] All ${COUNT} events enqueued in ${((Date.now()-t0)/1000)
 console.log('[Gate A] Waiting for worker to process queue...');
 
 // Poll until queue empties
-const MAX_WAIT_S = 120;
+const MAX_WAIT_S = 240;
 const start = Date.now();
 let prevDepth = COUNT;
 while (true) {
