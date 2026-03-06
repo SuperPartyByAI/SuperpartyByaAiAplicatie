@@ -120,6 +120,29 @@ class VoipService {
             await handleIncomingData(pushPayload);
           } else if (data['type'] == 'registered') {
             debugPrint('[VoIP WS] Successfully registered on WebSocket Server');
+            // Reconcile immediately after WS registration to catch missed events
+            unawaited(_reconcileActiveCalls(apiBaseUrl, jwtToken));
+          } else if (data['type'] == 'active-calls-snapshot') {
+            // Server-side source of truth — sent immediately on every WS connect
+            final activeCalls = (data['activeCalls'] as List? ?? []);
+            debugPrint('[VoIP WS] active-calls-snapshot: ${activeCalls.length} calls');
+            if (activeCalls.isEmpty) {
+              if (isRingingOrActive) {
+                debugPrint('[VoIP Reconcile] Snapshot empty — clearing stale UI');
+                unawaited(clearStaleIncomingUi());
+              }
+            } else if (!isRingingOrActive) {
+              debugPrint('[VoIP Reconcile] Late connect — triggering missed incoming from snapshot');
+              final call = activeCalls.first as Map<String, dynamic>;
+              unawaited(handleIncomingData({
+                'type': 'incoming_call',
+                'callSid': call['callSid']?.toString() ?? '',
+                'callerNumber': call['from']?.toString() ?? 'Unknown',
+                'conf': '',
+                'sig': '',
+                'expires': '${DateTime.now().add(const Duration(minutes: 2)).millisecondsSinceEpoch}',
+              }));
+            }
           } else if (data['type'] == 'call_closed' || data['type'] == 'call_ended') {
             final wsSid = data['callSid']?.toString();
             debugPrint('[VoIP WS] Server issued ${data['type']} sid=$wsSid — full cleanup');
@@ -364,6 +387,57 @@ class VoipService {
       }
     } catch (e) {
       debugPrint('[VoIP Cleanup] clearStaleStartupRinging error: $e');
+    }
+  }
+
+  // ── Cache for reconcile on app resume ─────────────────────────────────────
+  static String? _lastApiBaseUrl;
+  static String? _lastWsToken;
+
+  /// Polls GET /api/voice/active-calls for a durable source of truth.
+  /// Called on WS connect (after registered) and app resume.
+  static Future<void> _reconcileActiveCalls(String apiBaseUrl, String? token) async {
+    _lastApiBaseUrl = apiBaseUrl;
+    _lastWsToken = token;
+    try {
+      final headers = <String, String>{};
+      if (token != null) headers['Authorization'] = 'Bearer $token';
+      final resp = await http.get(
+        Uri.parse('$apiBaseUrl/api/voice/active-calls'),
+        headers: headers,
+      ).timeout(const Duration(seconds: 5));
+      if (resp.statusCode != 200) {
+        debugPrint('[VoIP Reconcile] /active-calls ${resp.statusCode}');
+        return;
+      }
+      final body = jsonDecode(resp.body) as Map<String, dynamic>;
+      final activeCalls = (body['activeCalls'] as List? ?? []);
+      debugPrint('[VoIP Reconcile] /active-calls: ${activeCalls.length} calls');
+      if (activeCalls.isEmpty && isRingingOrActive) {
+        debugPrint('[VoIP Reconcile] No active calls — clearing stale UI');
+        await clearStaleIncomingUi();
+      } else if (activeCalls.isNotEmpty && !isRingingOrActive) {
+        debugPrint('[VoIP Reconcile] Missed incoming_call — triggering from snapshot');
+        final call = activeCalls.first as Map<String, dynamic>;
+        await handleIncomingData({
+          'type': 'incoming_call',
+          'callSid': call['callSid']?.toString() ?? '',
+          'callerNumber': call['from']?.toString() ?? 'Unknown',
+          'conf': '',
+          'sig': '',
+          'expires': '${DateTime.now().add(const Duration(minutes: 2)).millisecondsSinceEpoch}',
+        });
+      }
+    } catch (e) {
+      debugPrint('[VoIP Reconcile] Error: $e');
+    }
+  }
+
+  /// Called from AppLifecycleState.resumed
+  static Future<void> reconcileOnResume() async {
+    if (_lastApiBaseUrl != null) {
+      debugPrint('[VoIP Reconcile] App resumed — reconciling');
+      await _reconcileActiveCalls(_lastApiBaseUrl!, _lastWsToken);
     }
   }
 
