@@ -1,8 +1,8 @@
 name: CI — Smoke Tests (WA Outbox + Voice + Syntax)
 
-# NOTE: outbox smoke rulează contra Supabase PROD cu prefix ci_<timestamp>
-# Cleanup garantat în always() — rows ci_* sunt șterse indiferent de rezultat
-# TODO: izolare completă = Supabase project CI separat (backlog)
+# CI Supabase: IZOLAT de prod — foloseste CI_SUPABASE_URL (project separat)
+# URL: https://vpacynuyljmiatcqemho.supabase.co (Frankfurt, free tier)
+# Schema: outbox_messages + claim_outbox_batch identice cu prod (fara date reale)
 
 on:
   push:
@@ -16,8 +16,8 @@ jobs:
     name: WA Outbox Validation (7 scenarii)
     runs-on: ubuntu-latest
     env:
-      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-      SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+      SUPABASE_URL: ${{ secrets.CI_SUPABASE_URL }}
+      SUPABASE_SERVICE_KEY: ${{ secrets.CI_SUPABASE_SERVICE_KEY }}
 
     steps:
       - uses: actions/checkout@v4
@@ -27,6 +27,17 @@ jobs:
         with:
           node-version: "20"
 
+      - name: Verify CI Supabase isolation
+        run: |
+          # Confirma ca nu se foloseste URL-ul de prod
+          PROD_URL="ilkphpidhuytucxlglqi.supabase.co"
+          CI_URL="${{ secrets.CI_SUPABASE_URL }}"
+          if echo "$CI_URL" | grep -q "$PROD_URL"; then
+            echo "❌ CRITICAL: CI foloseste Supabase PROD! Oprire imediata."
+            exit 1
+          fi
+          echo "✅ CI izolat de prod: $CI_URL"
+
       - name: Run outbox validation
         id: outbox-run
         run: node .github/scripts/validate-outbox.mjs
@@ -34,8 +45,8 @@ jobs:
       - name: Cleanup CI rows (always runs)
         if: always()
         env:
-          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          SUPABASE_URL: ${{ secrets.CI_SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.CI_SUPABASE_SERVICE_KEY }}
         run: |
           node -e "
           const url=process.env.SUPABASE_URL+'/rest/v1/outbox_messages?account_id=like.ci-%25';
@@ -56,12 +67,10 @@ jobs:
           test -f server/voice/package.json && echo "✅ package.json" || { echo "❌ MISSING package.json"; exit 1; }
           test -f server/voice/Dockerfile && echo "✅ Dockerfile" || { echo "❌ MISSING Dockerfile"; exit 1; }
           test -f server/voice/supabase-sync.mjs && echo "✅ supabase-sync.mjs" || { echo "❌ MISSING supabase-sync"; exit 1; }
-          # Hardening checks critice
           grep -q "pruneStaleZsetMembers" server/voice/index.js && echo "✅ ZSET prune" || { echo "❌ ZSET prune MISSING"; exit 1; }
           grep -q "setActiveCall" server/voice/index.js && echo "✅ Redis state" || { echo "❌ Redis state MISSING"; exit 1; }
           grep -q "activeCallsMap.set" server/voice/index.js && { echo "❌ STALE activeCallsMap.set found!"; exit 1; } || echo "✅ no stale map"
           grep -q "ioredis" server/voice/package.json && echo "✅ ioredis în deps" || { echo "❌ ioredis MISSING"; exit 1; }
-          # Security: no hardcoded URLs in supabase-sync
           grep -q "ilkphpidhuytucxlglqi" server/voice/supabase-sync.mjs && { echo "❌ hardcoded Supabase URL!"; exit 1; } || echo "✅ no hardcoded Supabase URL"
           echo "✅ Voice integrity: ALL PASSED"
 
