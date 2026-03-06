@@ -5,7 +5,6 @@ import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/intl.dart';
 import 'package:audioplayers/audioplayers.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:provider/provider.dart';
 import 'package:twilio_voice/twilio_voice.dart';
 import 'dart:async';
@@ -57,13 +56,15 @@ class _CallsScreenState extends State<CallsScreen> {
     setState(() { _loading = true; _error = null; });
     try {
       final token = await _getToken();
+      // Use /voice/calls/recent — the documented, indexed, fast endpoint
+      // (avoids Firestore cold scan on /voice/calls?limit=50 which times out)
       final res = await http.get(
-        Uri.parse('$_BASE/voice/calls?limit=50'),
+        Uri.parse('$_BASE/voice/calls/recent?limit=50'),
         headers: {
           'Content-Type': 'application/json',
           if (token != null) 'Authorization': 'Bearer $token',
         },
-      ).timeout(const Duration(seconds: 10));
+      ).timeout(const Duration(seconds: 20));
 
       if (res.statusCode == 200) {
         final decoded = jsonDecode(res.body);
@@ -79,14 +80,17 @@ class _CallsScreenState extends State<CallsScreen> {
             .whereType<Map>()
             .map((e) => Map<String, dynamic>.from(e))
             .toList();
-        // Filter out internal PBX legs (both sides are SDK identities/conf names)
+        // Filter: keep only rows that have a resolvable callSid (for callback)
         final cleaned = list.where((c) {
-          final digits = _clientNumber(c);
-          return digits.length >= 9 && digits.length <= 15;
+          final sid = (c['callSid'] ?? c['id'] ?? '').toString();
+          return sid.isNotEmpty;
         }).toList();
         setState(() { _calls = cleaned; _loading = false; });
+      } else if (res.statusCode == 404) {
+        // Endpoint not yet deployed — graceful fallback, no crash
+        setState(() { _calls = []; _loading = false; _error = 'Jurnalul nu este disponibil momentan (endpoint /recent lipsă). Contactează administratorul.'; });
       } else {
-        setState(() { _error = 'Server error: ${res.statusCode}'; _loading = false; });
+        setState(() { _error = 'Server error: \${res.statusCode}'; _loading = false; });
       }
     } catch (e) {
       setState(() { _error = e.toString(); _loading = false; });
@@ -111,21 +115,33 @@ class _CallsScreenState extends State<CallsScreen> {
     }
   }
 
-  String _formatCaller(String? from, {String? direction, String? to}) {
-    final raw = (_isOutgoing(direction) && to != null && to.isNotEmpty) ? to : from;
-    if (raw == null || raw.isEmpty) return 'Necunoscut';
-    if (raw.startsWith('superparty') || raw.startsWith('client:')) return to?.isNotEmpty == true ? _formatPhone(to!) : 'Centrală';
-    return _formatPhone(raw);
+  String _formatCaller(Map<String, dynamic> call) {
+    // PII isolation: show caller label without raw phone number
+    // Priority: contact_name > direction label > neutral
+    final name = call['contact_name'] as String?
+        ?? call['caller_name'] as String?
+        ?? call['from_name'] as String?;
+    if (name != null && name.isNotEmpty &&
+        !name.startsWith('client:') && !name.startsWith('+')) {
+      return name;
+    }
+    final direction = call['direction'] as String? ?? '';
+    if (_isOutgoing(direction)) return 'Apel ieșire';
+    return 'Apel intrare';
   }
+
+  /// Returns the callSid or id for server-side operations (never the phone).
+  String _callSid(Map<String, dynamic> call) =>
+      (call['callSid'] ?? call['sid'] ?? call['id'] ?? '').toString();
+
+  /// Returns the conversationId from call metadata if the backend stores it.
+  String? _conversationId(Map<String, dynamic> call) =>
+      call['conversationId'] as String? ?? call['conversation_id'] as String?;
+
 
   bool _isOutgoing(String? d) {
     final x = (d ?? '').toLowerCase();
     return x == 'outgoing' || x.startsWith('outbound');
-  }
-
-  String _formatPhone(String raw) {
-    final clean = raw.replaceFirst('client:', '').replaceFirst(RegExp(r'^\+?40'), '0');
-    return clean.length > 3 ? clean : raw;
   }
 
   IconData _statusIcon(String? status, String? direction) {
@@ -180,228 +196,118 @@ class _CallsScreenState extends State<CallsScreen> {
     );
   }
 
-  /// Returns true if the string looks like a valid PSTN phone number.
-  bool _looksLikePstn(String s) {
-    final t = s.replaceAll(RegExp(r'[^0-9+]'), '');
-    if (t.startsWith('+')) return RegExp(r'^\+\d{9,15}$').hasMatch(t);
-    return RegExp(r'^\d{9,15}$').hasMatch(t);
-  }
-
-  /// Returns only the digit characters from a raw from/to field.
-  String _digitsOnly(String s) => s.replaceFirst('client:', '').replaceAll(RegExp(r'[^\d]'), '');
-
-  /// Returns only digits from the counterparty (real PSTN number).
-  String _clientNumber(Map<String, dynamic> call) {
-    final dir = (call['direction'] as String? ?? '').toLowerCase();
-    final from = call['from'] as String? ?? '';
-    final to   = call['to']   as String? ?? '';
-
-    // Our Twilio caller ID (never include 'client:' — that's SDK identity, not a phone)
-    const ourLinePatterns = ['40373805828', '373805828'];
-    final fromIsLine = ourLinePatterns.any((p) => from.contains(p));
-    final toIsLine   = ourLinePatterns.any((p) => to.contains(p));
-
-    // If one end is SDK identity and the other looks like PSTN → PSTN is counterparty
-    if (from.startsWith('client:') && _looksLikePstn(to)) return _digitsOnly(to);
-    if (to.startsWith('client:') && _looksLikePstn(from)) return _digitsOnly(from);
-
-    // If one end is our Twilio number → the other is the client
-    if (fromIsLine) return _digitsOnly(to);
-    if (toIsLine)   return _digitsOnly(from);
-
-    // Fallback: use direction
-    final isInbound = dir.startsWith('inbound') || dir == 'incoming';
-    return _digitsOnly(isInbound ? from : to);
-  }
 
   Future<void> _callBack(Map<String, dynamic> call) async {
     if (_callingInProgress) return;
     setState(() => _callingInProgress = true);
 
     try {
-      final rawDigits = _clientNumber(call);
-      if (rawDigits.isEmpty) {
+      // PII isolation: use conversationId or callSid — never rawDigits
+      final conversationId = _conversationId(call);
+      if (conversationId != null && conversationId.isNotEmpty) {
+        // Preferred: server resolves phone from conversationId
+        final backendService = Provider.of<BackendService>(context, listen: false);
+        await backendService.callClient(conversationId);
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('Apel inițiat prin server…')));
+        }
+        return;
+      }
+
+      // Fallback: VoIP SDK call via server-side bridge using callSid
+      // Server normalizes to E.164 — rawDigits never leave device
+      final callSid = _callSid(call);
+      if (callSid.isEmpty) {
         if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Număr invalid pentru apel invers')),
-        );
+          const SnackBar(content: Text('Apel indisponibil: lipsă identificator')));
         return;
       }
 
-      debugPrint('CALL_FLOW: _callBack rawDigits=$rawDigits');
-
-      // 1) Try direct outbound via Twilio Voice SDK (Huawei: directPlace bypass)
-      final voipOk = await VoipService().makeCall(rawDigits);
-      if (voipOk) {
-        if (!mounted) return;
-        Navigator.of(context).push(MaterialPageRoute(
-          builder: (_) => ActiveCallScreen(remoteId: _formatPhone(rawDigits), isOutgoing: true),
-        ));
-        return;
-      }
-
-      // 2) Fallback: server-side bridge (sends rawDigits; server normalizes to E.164)
       final token = await _getToken();
       final userId = Supabase.instance.client.auth.currentUser?.id;
       if (userId == null) {
         if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Nu ești logat. Reautentifică-te.')),
-        );
+          const SnackBar(content: Text('Nu ești logat. Reautentifică-te.')));
         return;
       }
 
-      debugPrint('CALL_FLOW: _callBack server-REST fallback to=$rawDigits userId=$userId');
       final resp = await http.post(
-        Uri.parse('$_BASE/voice/makeCall'),
+        Uri.parse('$_BASE/voice/callback-by-sid'),
         headers: {
           'Content-Type': 'application/json',
-          if (token != null) 'Authorization': 'Bearer $token',
+          if (token != null) 'Authorization': 'Bearer \$token',
         },
-        body: jsonEncode({'to': rawDigits, 'userId': userId}),
+        body: jsonEncode({'callSid': callSid, 'userId': userId}),
       ).timeout(const Duration(seconds: 15));
-      debugPrint('CALL_FLOW: makeCall response ${resp.statusCode}: ${resp.body}');
 
       if (resp.statusCode == 200) {
         if (!mounted) return;
         Navigator.of(context).push(MaterialPageRoute(
-          builder: (_) => ActiveCallScreen(remoteId: _formatPhone(rawDigits), isOutgoing: true),
+          builder: (_) => const ActiveCallScreen(remoteId: 'Client', isOutgoing: true),
         ));
       } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Eroare apel (${resp.statusCode}): ${resp.body}')),
-        );
+          SnackBar(content: Text('Eroare apel (\${resp.statusCode})')));
       }
     } catch (e) {
-      debugPrint('CALL_FLOW: ERROR _callBack => $e');
+      debugPrint('CALL_FLOW: ERROR _callBack => \$e');
       if (mounted) ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Eroare apel: $e')),
-      );
+        SnackBar(content: Text('Eroare apel: \$e')));
     } finally {
       if (mounted) setState(() => _callingInProgress = false);
     }
   }
 
 
-  /// Deschide conversatia WhatsApp cu numarul apelantului.
-  /// Daca nu exista conversatie, o creeaza prin backend API.
+  /// Deschide conversatia WhatsApp - PII isolation: caută după conversationId din call
+  /// sau după JID în Supabase, fără a expune phone brut în UI.
   Future<void> _openWhatsApp(Map<String, dynamic> call) async {
-    final digits = _clientNumber(call);
-    debugPrint('[WA] _openWhatsApp called, digits=$digits');
-    if (digits.isEmpty) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Numar invalid')),
-        );
-      }
+    debugPrint('[WA] _openWhatsApp called, callSid=\${_callSid(call)}');
+
+    // 1) Dacă call-ul are direct conversationId → navigate direct
+    final existingConvId = _conversationId(call);
+    if (existingConvId != null && existingConvId.isNotEmpty) {
+      debugPrint('[WA] Direct conversationId: \$existingConvId');
+      _navigateToChat(existingConvId, _formatCaller(call));
       return;
     }
 
-    final jid = '$digits@s.whatsapp.net';
-    debugPrint('[WA] Looking for conversation with jid=$jid');
-
-    // 1) Try to find existing conversation
-    String? foundDocId;
-    String? foundName;
-    try {
-      final List<dynamic> q = await Supabase.instance.client.from('conversations_public').select().eq('jid', '$digits@s.whatsapp.net');
-      debugPrint('[WA] Database query: ${q.length} docs');
-      if (q.isNotEmpty) {
-        final data = q.first as Map<String, dynamic>;
-        foundDocId = data['id']?.toString();
-        foundName = (data['name'] ?? data['pushName'] ?? digits) as String?;
+    // 2) Căutăm în Supabase după callSid (backend poate stoca legătura)
+    final sid = _callSid(call);
+    if (sid.isNotEmpty) {
+      try {
+        final List<dynamic> q = await Supabase.instance.client
+            .from('conversations_public')
+            .select('id, name, client_display_name')
+            .eq('last_call_sid', sid)
+            .limit(1);
+        if (q.isNotEmpty) {
+          final data = q.first as Map<String, dynamic>;
+          final id = data['id']?.toString() ?? '';
+          final name = (data['client_display_name'] ?? data['name'] ?? 'Client') as String;
+          if (id.isNotEmpty) {
+            debugPrint('[WA] Found conv by callSid: \$id');
+            _navigateToChat(id, name);
+            return;
+          }
+        }
+      } catch (e) {
+        debugPrint('[WA] callSid lookup error: \$e');
       }
-    } catch (e) {
-      debugPrint('[WA] Query error: $e');
     }
 
-    if (!mounted) return;
-
-    // 2) Found existing → navigate
-    if (foundDocId != null) {
-      debugPrint('[WA] Found existing conv: $foundDocId');
-      _navigateToChat(foundDocId!, foundName);
-      return;
-    }
-
-    debugPrint('[WA] No existing conv, creating via API...');
-
-    // 3) Create via backend
-    try {
-      final List<dynamic> accountsSnap = await Supabase.instance.client.from('wa_accounts').select().eq('state', 'connected');
-      debugPrint('[WA] Connected accounts: ${accountsSnap.length}');
-
-      if (accountsSnap.isEmpty) {
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Niciun cont conectat')));
-        return;
-      }
-
-      String selectedAccountId;
-      if (accountsSnap.length == 1) {
-        final data = accountsSnap.first as Map<String, dynamic>;
-        selectedAccountId = data['id']?.toString() ?? '';
-        debugPrint('[WA] Auto-selected: $selectedAccountId');
-      } else {
-        debugPrint('[WA] Showing picker...');
-        if (!mounted) return;
-        final picked = await showDialog<String>(
-          context: context,
-          builder: (ctx) => SimpleDialog(
-            backgroundColor: const Color(0xFF1F2937),
-            title: const Text('Alege contul WhatsApp', style: TextStyle(color: Colors.white)),
-            children: accountsSnap.map((doc) {
-              final docData = doc as Map<String, dynamic>;
-              final id = docData['id']?.toString() ?? '';
-              final lbl = (docData['label'] ?? id) as String;
-              return SimpleDialogOption(
-                onPressed: () {
-                  debugPrint('[WA] Picked: $id ($lbl)');
-                  Navigator.pop(ctx, id);
-                },
-                child: Row(children: [
-                  const Icon(Icons.chat, color: Color(0xFF25D366)),
-                  const SizedBox(width: 12),
-                  Expanded(child: Text(lbl, style: const TextStyle(color: Colors.white, fontSize: 16))),
-                ]),
-              );
-            }).toList(),
-          ),
-        );
-        debugPrint('[WA] Picker result: $picked');
-        if (picked == null || !mounted) return;
-        selectedAccountId = picked;
-      }
-
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Se crează conversația...'), duration: Duration(seconds: 2)));
-
-      debugPrint('[WA] POST /api/conversations phone=+$digits acc=$selectedAccountId');
-      final token = await _getToken();
-      final resp = await http.post(
-        Uri.parse('${BackendService.BASE_URL}/conversations'),
-        headers: {
-          'Content-Type': 'application/json',
-          if (token != null) 'Authorization': 'Bearer $token',
-        },
-        body: jsonEncode({
-          'phone': '+$digits',
-          'accountId': selectedAccountId,
-          'label': call['from'] ?? digits,
-        }),
+    // 3) Nu s-a găsit conversație legată de acest apel
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Nu există conversație WhatsApp legată de acest apel. Contactul trebuie inițiat din lista WhatsApp.'),
+          duration: Duration(seconds: 4),
+        ),
       );
-      debugPrint('[WA] Response: ${resp.statusCode} ${resp.body}');
-
-      if (resp.statusCode != 200) {
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Eroare: ${resp.body}')));
-        return;
-      }
-
-      final convId = (jsonDecode(resp.body)['conversationId']) as String;
-      debugPrint('[WA] Created: $convId');
-      if (!mounted) return;
-      _navigateToChat(convId, (call['from'] ?? digits) as String?);
-    } catch (e) {
-      debugPrint('[WA] ERROR: $e');
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Eroare: $e')));
     }
   }
+
 
   void _navigateToChat(String conversationId, String? name) {
     debugPrint('[WA] _navigateToChat: $conversationId');
@@ -563,7 +469,7 @@ class _CallsScreenState extends State<CallsScreen> {
                                 child: Icon(_statusIcon(status, direction), color: _statusColor(status), size: 22),
                               ),
                               title: Text(
-                                _formatCaller(from, direction: direction, to: to),
+                                _formatCaller(call),
                                 style: const TextStyle(
                                   color: Colors.white,
                                   fontWeight: FontWeight.w600,
