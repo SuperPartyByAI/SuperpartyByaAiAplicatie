@@ -194,7 +194,10 @@ void _registerCallActionsHandler() {
         VoipService.clearCallAnswered();
         VoipService.isRingingOrActive = false;
         try { await WakelockPlus.disable(); } catch (_) {}
-        try { await TwilioVoice.instance.call.hangUp(); } catch (_) {}
+        try {
+          final activeForEnd = TwilioVoice.instance.call.activeCall;
+          if (activeForEnd != null) await TwilioVoice.instance.call.hangUp();
+        } catch (_) {}
         final nav = navigatorKey.currentState;
         if (nav != null && nav.canPop()) nav.pop();
         break;
@@ -204,6 +207,10 @@ void _registerCallActionsHandler() {
         VoipService.clearCallAnswered();
         VoipService.isRingingOrActive = false;
         try { await WakelockPlus.disable(); } catch (_) {}
+        try {
+          final activeForFail = TwilioVoice.instance.call.activeCall;
+          if (activeForFail != null) await TwilioVoice.instance.call.hangUp();
+        } catch (_) {}
         final nav2 = navigatorKey.currentState;
         if (nav2 != null && nav2.canPop()) nav2.pop();
         break;

@@ -133,7 +133,10 @@ class _ActiveCallScreenState extends State<ActiveCallScreen> {
   void _hangUp() {
     VoipService.isRingingOrActive = false;
     VoipService.rejectCallFromServer('', _activeCallSid ?? '');
-    TwilioVoice.instance.call.hangUp();
+    final activeForHangup = TwilioVoice.instance.call.activeCall;
+    if (activeForHangup != null) {
+      TwilioVoice.instance.call.hangUp();
+    }
     MethodChannel('com.superpartybyai.app/call_actions').invokeMethod('directHangup');
     _closeCall("Ending...");
   }

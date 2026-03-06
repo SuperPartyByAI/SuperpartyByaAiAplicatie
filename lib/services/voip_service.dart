@@ -122,8 +122,11 @@ class VoipService {
           } else if (data['type'] == 'call_closed' || data['type'] == 'call_ended') {
             debugPrint('[VoIP WS] Server issued ${data['type']}. Terminating Native Audio and Dismissing UI.');
             try {
-              // 1. Terminate native audio immediately
-              await TwilioVoice.instance.call.hangUp();
+              // 1. Terminate native audio only if plugin has an active call
+              final activeForWs = TwilioVoice.instance.call.activeCall;
+              if (activeForWs != null) {
+                await TwilioVoice.instance.call.hangUp();
+              }
             } catch(e) {
               debugPrint('[VoIP WS] Warning hanging up Twilio locally: $e');
             }
