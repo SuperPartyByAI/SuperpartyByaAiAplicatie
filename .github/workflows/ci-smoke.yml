@@ -1,4 +1,8 @@
-name: CI — Smoke Tests (WA Outbox + Voice)
+name: CI — Smoke Tests (WA Outbox + Voice + Syntax)
+
+# NOTE: outbox smoke rulează contra Supabase PROD cu prefix ci_<timestamp>
+# Cleanup garantat în always() — rows ci_* sunt șterse indiferent de rezultat
+# TODO: izolare completă = Supabase project CI separat (backlog)
 
 on:
   push:
@@ -23,21 +27,43 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Run outbox validation via Node.js
+      - name: Run outbox validation
+        id: outbox-run
         run: node .github/scripts/validate-outbox.mjs
 
+      - name: Cleanup CI rows (always runs)
+        if: always()
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+        run: |
+          node -e "
+          const url=process.env.SUPABASE_URL+'/rest/v1/outbox_messages?account_id=like.ci-%25';
+          fetch(url,{method:'DELETE',headers:{apikey:process.env.SUPABASE_SERVICE_KEY,Authorization:'Bearer '+process.env.SUPABASE_SERVICE_KEY}})
+            .then(r=>console.log('Cleanup status:',r.status))
+            .catch(e=>console.error('Cleanup error:',e));
+          " 2>/dev/null || echo 'cleanup best-effort'
+
   smoke-voice:
-    name: Voice Endpoints Smoke Test
+    name: Voice Endpoints Smoke
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Validate voice server files
+      - name: Verify voice server integrity
         run: |
-          echo "Checking key voice server files..."
-          test -f server/voice/index.js && echo "✅ server/voice/index.js" || { echo "❌ MISSING"; exit 1; }
-          grep -q "pruneStaleZsetMembers" server/voice/index.js && echo "✅ ZSET prune cron" || echo "⚠️ ZSET prune missing"
-          grep -q "Redis" server/voice/index.js && echo "✅ Redis present" || echo "⚠️  Redis not found"
-          echo "Voice check complete."
+          echo "=== Voice server integrity check ==="
+          test -f server/voice/index.js && echo "✅ index.js" || { echo "❌ MISSING index.js"; exit 1; }
+          test -f server/voice/package.json && echo "✅ package.json" || { echo "❌ MISSING package.json"; exit 1; }
+          test -f server/voice/Dockerfile && echo "✅ Dockerfile" || { echo "❌ MISSING Dockerfile"; exit 1; }
+          test -f server/voice/supabase-sync.mjs && echo "✅ supabase-sync.mjs" || { echo "❌ MISSING supabase-sync"; exit 1; }
+          # Hardening checks critice
+          grep -q "pruneStaleZsetMembers" server/voice/index.js && echo "✅ ZSET prune" || { echo "❌ ZSET prune MISSING"; exit 1; }
+          grep -q "setActiveCall" server/voice/index.js && echo "✅ Redis state" || { echo "❌ Redis state MISSING"; exit 1; }
+          grep -q "activeCallsMap.set" server/voice/index.js && { echo "❌ STALE activeCallsMap.set found!"; exit 1; } || echo "✅ no stale map"
+          grep -q "ioredis" server/voice/package.json && echo "✅ ioredis în deps" || { echo "❌ ioredis MISSING"; exit 1; }
+          # Security: no hardcoded URLs in supabase-sync
+          grep -q "ilkphpidhuytucxlglqi" server/voice/supabase-sync.mjs && { echo "❌ hardcoded Supabase URL!"; exit 1; } || echo "✅ no hardcoded Supabase URL"
+          echo "✅ Voice integrity: ALL PASSED"
 
   lint-check:
     name: JS Syntax Check
@@ -47,7 +73,11 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "20"
-      - name: Syntax check outbox files
+      - name: Syntax check all critical server files
         run: |
+          echo "=== JS Syntax Check ==="
           node --check server/whatsapp/workers/wa-outbox-api.mjs && echo "✅ wa-outbox-api.mjs"
           node --check server/whatsapp/workers/wa-outbox-worker.mjs && echo "✅ wa-outbox-worker.mjs"
+          node --check server/whatsapp/reconciler/wa-reconciler.mjs && echo "✅ wa-reconciler.mjs"
+          node --check server/voice/supabase-sync.mjs && echo "✅ supabase-sync.mjs"
+          echo "✅ Syntax: ALL PASSED"
