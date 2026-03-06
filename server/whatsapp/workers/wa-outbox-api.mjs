@@ -27,7 +27,7 @@ export function registerOutboxRoutes(app, supabase, requireAuth, sessionManager 
       }
 
       // Normalize JID
-      const toJid = to.includes('@') ? to : `${to.replaceAll(/\D/g, '')}@s.whatsapp.net`;
+      const toJid = to.includes('@') ? to : `${to.replace(/\D/g, '')}@s.whatsapp.net`;
 
       // Generate idempotency key if not provided (account:to:timestamp bucket 5min)
       const iKey = idempotencyKey || `${accountId}:${toJid}:${Math.floor(Date.now() / 300000)}`;
@@ -62,7 +62,7 @@ export function registerOutboxRoutes(app, supabase, requireAuth, sessionManager 
   app.post('/api/wa/send-direct', async (req, res) => {
     // Internal-only token guard
     const authHeader = req.get('authorization') || '';
-    const token = authHeader.replaceAll(/^Bearer\s+/i, '');
+    const token = authHeader.replace(/^Bearer\s+/i, '');
     const internalToken = process.env.WA_INTERNAL_TOKEN;
     if (!internalToken || token !== internalToken) {
       return res.status(403).json({ ok: false, error: 'forbidden: internal endpoint' });
@@ -75,7 +75,7 @@ export function registerOutboxRoutes(app, supabase, requireAuth, sessionManager 
       }
 
       // Normalize JID
-      const jid = to.includes('@') ? to : `${to.replaceAll(/\D/g, '')}@s.whatsapp.net`;
+      const jid = to.includes('@') ? to : `${to.replace(/\D/g, '')}@s.whatsapp.net`;
 
       if (!sessionManager) {
         // Fallback: sessionManager not injected — return error, do not re-enqueue
