@@ -11,6 +11,7 @@ import jwt from "jsonwebtoken";
 import { GoogleAuth } from "google-auth-library";
 import pino from "pino";
 import promClient from 'prom-client';
+import Redis from 'ioredis';
 
 // Supabase Adapter
 import { supabase, db } from './supabase-sync.mjs';
@@ -107,7 +108,35 @@ const logger = pino({
 const registeredVoipClients = new Map();
 const pushAckMap = new Map();
 const wave2Map = new Map();
-const activeCallsMap = new Map(); // callSid → {callSid,from,to,startedAt} for reconcile // callSid -> wave2 client objects (for cancel on winner)
+// ── REDIS-BACKED ACTIVE CALL STORE ──────────────────────────────────────────
+// Replaces in-memory activeCallsMap. Survives container restart.
+// Keys: active_call:<callSid>  TTL: 10 minutes
+const REDIS_URL = process.env.REDIS_URL || 'redis://127.0.0.1:6379';
+const CALL_TTL_SEC = 600; // 10 min
+const redis = new Redis(REDIS_URL, { lazyConnect: true, maxRetriesPerRequest: 3 });
+redis.on('error', (e) => console.warn('[Redis] Error:', e.message));
+redis.connect()
+  .then(() => console.log('[Redis] Connected to', REDIS_URL))
+  .catch(e => console.error('[Redis] Connect failed:', e.message));
+
+async function setActiveCall(callSid, data) {
+  try { await redis.setex(`active_call:${callSid}`, CALL_TTL_SEC, JSON.stringify({ ...data, startedAt: Date.now() })); }
+  catch (e) { console.warn('[Redis] setActiveCall failed:', e.message); }
+}
+
+async function deleteActiveCall(callSid) {
+  try { await redis.del(`active_call:${callSid}`); }
+  catch (e) { console.warn('[Redis] deleteActiveCall failed:', e.message); }
+}
+
+async function getActiveCalls() {
+  try {
+    const keys = await redis.keys('active_call:*');
+    if (!keys.length) return [];
+    const values = await redis.mget(...keys);
+    return values.filter(Boolean).map(v => { try { return JSON.parse(v); } catch { return null; } }).filter(Boolean);
+  } catch (e) { console.warn('[Redis] getActiveCalls failed:', e.message); return []; }
+}
 
 // --- FCM UNREGISTERED token cleanup ---
 async function markFcmTokenUnregistered(identity, deviceToken) {
@@ -318,9 +347,13 @@ server.on('upgrade', (request, socket, head) => {
         wss.emit('connection', ws, request);
         // Snapshot: send active calls to this client immediately on connect
         try {
-          const snap = Array.from(activeCallsMap.values());
-          ws.send(JSON.stringify({ type: 'active-calls-snapshot', activeCalls: snap }));
-          console.log(`[WS] Snapshot sent to ${identity}: ${snap.length} active calls`);
+          // Load from Redis (durable source of truth)
+          getActiveCalls().then(snap => {
+            try {
+              ws.send(JSON.stringify({ type: 'active-calls-snapshot', activeCalls: snap }));
+              console.log(`[WS] Snapshot sent to ${identity}: ${snap.length} active calls (Redis)`);
+            } catch(e) {}
+          }).catch(() => {});
         } catch(e) {}
       });
     } else {
@@ -851,10 +884,12 @@ app.post('/api/voice/status', requireTwilioSignature, async (req, res) => {
     res.sendStatus(200);
 });
 
-app.get('/api/voice/active-calls', async (req, res) => {
-  const now = Date.now();
-  activeCallsMap.forEach((v, k) => { if (now - v.startedAt > 300000) activeCallsMap.delete(k); });
-  res.json({ activeCalls: Array.from(activeCallsMap.values()) });
+app.get('/api/voice/active-calls', requireSupabaseUser, async (req, res) => {
+  // Auth required — only authenticated agents can read active call state
+  try {
+    const calls = await getActiveCalls();
+    res.json({ activeCalls: calls });
+  } catch (e) { res.status(500).json({ error: e.message }); }
 });
 app.post('/api/voice/cancel', requireSupabaseUser, async (req, res) => {
     const { callSid } = req.body;

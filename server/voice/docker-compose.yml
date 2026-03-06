@@ -1,0 +1,54 @@
+version: '3.8'
+
+# Superparty Voice Stack
+# Deploy: docker compose up -d
+# Requires: .env.voice file with all secrets
+
+services:
+  redis:
+    image: redis:7-alpine
+    container_name: superparty-redis
+    restart: unless-stopped
+    networks:
+      - superparty-network
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes --maxmemory 64mb --maxmemory-policy allkeys-lru
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  voice:
+    image: voice-service-redis:latest
+    container_name: superparty-voice
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    networks:
+      - superparty-network
+    ports:
+      - "127.0.0.1:3001:3001"
+    environment:
+      - REDIS_URL=redis://superparty-redis:6379
+      - PORT=3001
+    env_file:
+      - .env.voice   # Contains TWILIO_*, SUPABASE_*, JWT_SECRET — NOT committed
+    depends_on:
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3001/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+networks:
+  superparty-network:
+    driver: bridge
+
+volumes:
+  redis-data:
+    driver: local
