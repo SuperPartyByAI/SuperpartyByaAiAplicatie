@@ -167,7 +167,7 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
         final conv = await SupabaseService.getById(
           'conversations',
           id: widget.conversationId,
-          select: 'id,name,jid,phone,photo_url,assigned_employee_id,assigned_employee_name,account_label',
+          select: 'id,name,jid,photo_url,assigned_employee_id,assigned_employee_name,account_label',
         );
         if (mounted) setState(() => _conversation = conv);
       }
@@ -203,50 +203,39 @@ class _ChatDetailScreenState extends State<ChatDetailScreen> {
     }
   }
 
-  // --- Avatar tap handler: show real phone only for special email ---
+  // --- Avatar tap handler: agent-safe, no phone exposed ---
   Future<void> _onAvatarTap(BuildContext context) async {
-    final authService = Provider.of<AuthService>(context, listen: false);
-    final userEmail = authService.currentUser?.email?.toLowerCase();
-    const allowedEmail = 'ursache.andrei1995@gmail.com';
-
-    final showRealNumber = (userEmail != null && userEmail == allowedEmail);
-    final phone = (_conversation?['phone'] ?? '').toString();
-    final waName = (_conversation?['name'] ?? _conversation?['client_display_name'] ?? widget.name ?? '').toString();
-
-    debugPrint('[AvatarTap] userEmail=$userEmail showRealNumber=$showRealNumber');
-    debugPrint('[AvatarTap] phone=$phone waName=$waName');
-
-    final content = showRealNumber ? (phone.isNotEmpty ? phone : 'Număr indisponibil') : (waName.isNotEmpty ? waName : 'Nume WhatsApp indisponibil');
+    final displayName = (_conversation?['name'] ?? _conversation?['client_display_name'] ?? widget.name ?? '').toString();
 
     await showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(showRealNumber ? 'Număr client' : 'Nume WhatsApp'),
-        content: SelectableText(content),
+        title: Text(displayName.isNotEmpty ? displayName : 'Client'),
+        content: const Text('Apel inițiat prin serverul SuperParty.'),
         actions: [
-          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Închide')),
-          if (showRealNumber && phone.isNotEmpty)
-            TextButton(
-              onPressed: () {
-                Clipboard.setData(ClipboardData(text: phone));
-                Navigator.of(ctx).pop();
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Număr copiat în clipboard')));
-              },
-              child: const Text('Copiază'),
-            ),
-          if (showRealNumber && phone.isNotEmpty)
-            TextButton(
-              onPressed: () async {
-                final uri = Uri.parse('tel:$phone');
-                if (await canLaunchUrl(uri)) {
-                  await launchUrl(uri);
-                } else {
-                  if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Nu pot iniția apel')));
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Închide'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.of(ctx).pop();
+              try {
+                final backendService = Provider.of<BackendService>(context, listen: false);
+                await backendService.callClient(widget.conversationId);
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Apel inițiat…')));
                 }
-                if (ctx.mounted) Navigator.of(ctx).pop();
-              },
-              child: const Text('Sună'),
-            ),
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Eroare apel: $e')));
+                }
+              }
+            },
+            child: const Text('Sună'),
+          ),
         ],
       ),
     );

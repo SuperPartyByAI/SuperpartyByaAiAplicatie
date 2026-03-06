@@ -452,7 +452,23 @@ class BackendService {
     );
     if (response.statusCode != 200) throw Exception(response.body);
   }
-  // --- Compliance & Privacy (GDPR) ---
+
+  /// Initiates an outbound call to the client identified by [conversationId].
+  /// The backend resolves the real phone number server-side — the number is
+  /// NEVER exposed to the Flutter app (PII isolation).
+  Future<void> callClient(String conversationId) async {
+    final headers = await _getHeaders();
+    final response = await http.post(
+      Uri.parse('$VOICE_BASE_URL/voice/call-client'),
+      headers: headers,
+      body: jsonEncode({'conversationId': conversationId}),
+    );
+    if (response.statusCode < 200 || response.statusCode >= 300) {
+      throw Exception('callClient failed: HTTP ${response.statusCode} — ${response.body}');
+    }
+    debugPrint('[BackendService] callClient initiated for conversationId=$conversationId');
+  }
+
 
   Future<Map<String, dynamic>> getUserProfile() async {
     try {

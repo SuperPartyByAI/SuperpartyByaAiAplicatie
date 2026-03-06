@@ -1,29 +1,13 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import '../services/supabase_service.dart';
 import '../services/auth_service.dart';
+import '../services/backend_service.dart';
 import 'chat_detail_screen.dart';
 
-Future<http.Response> getWithRetry(Uri uri, {int retries = 3, Duration timeout = const Duration(seconds:15)}) async {
-  int attempt = 0;
-  while (true) {
-    try {
-      final resp = await http.get(uri).timeout(timeout);
-      return resp;
-    } catch (e) {
-      attempt++;
-      if (attempt >= retries) rethrow;
-      await Future.delayed(Duration(seconds: 1 << attempt)); 
-    }
-  }
-}
+
 
 class ConversationsRepo {
   final SupabaseClient supabase;
@@ -147,80 +131,59 @@ class _ChatListScreenState extends State<ChatListScreen> {
     await _loadNextPage();
   }
 
-  // --- Avatar tap handler: show real phone only for admin ---
+  // --- Avatar tap handler: agent-safe, no phone exposed ---
   Future<void> _onAvatarTap(BuildContext context, Map<String, dynamic> row) async {
-    final authService = Provider.of<AuthService>(context, listen: false);
-    final userEmail = authService.currentUser?.email?.toLowerCase();
-    const allowedEmail = 'ursache.andrei1995@gmail.com';
-
-    final jid = (row['jid'] ?? row['id'] ?? '').toString();
-    String phone = (row['phone'] ?? '').toString();
-
-    // Fallback extraction from JID just like Detail screen
-    if (phone.isEmpty) {
-      String candidate = '';
-      if (jid.contains('_')) {
-        candidate = jid.split('_').last.split('@').first;
-      } else if (jid.contains('@')) {
-        candidate = jid.split('@').first;
-      }
-      if (candidate.isNotEmpty) {
-        final digitsOnly = candidate.replaceAll(RegExp(r'\D'), '');
-        if (digitsOnly.isNotEmpty) {
-          if (candidate.startsWith('+')) {
-            phone = candidate;
-          } else {
-            if (digitsOnly.startsWith('0')) {
-              phone = '+40${digitsOnly.replaceFirst(RegExp(r'^0+'), '')}';
-            } else if (digitsOnly.length >= 9) {
-              phone = '+$digitsOnly';
-            } else {
-              phone = digitsOnly;
-            }
-          }
-        }
-      }
-    }
-
-    final waName = (row['name'] ?? row['client_display_name'] ?? '').toString();
-    final showRealNumber = (userEmail != null && userEmail == allowedEmail);
-
-    debugPrint('[AvatarTap] userEmail=$userEmail showRealNumber=$showRealNumber');
-    debugPrint('[AvatarTap] phone=$phone jid=$jid waName=$waName');
-
-    final content = showRealNumber && phone.isNotEmpty
-        ? phone
-        : (waName.isNotEmpty ? waName : 'Număr ascuns (Agent)');
+    final conversationId = (row['id'] ?? '').toString();
+    final displayName = _resolveDisplayName(row);
+    final status = row['identity_resolution_status']?.toString() ?? 'unknown';
+    final isPartial = status == 'partial' || status == 'unresolved';
 
     await showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
-        title: Text(showRealNumber ? 'Număr client' : 'Nume WhatsApp'),
-        content: SelectableText(content),
+        title: Text(displayName.isNotEmpty ? displayName : 'Client'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(
+                  isPartial ? Icons.warning_amber_rounded : Icons.verified_user,
+                  size: 16,
+                  color: isPartial ? Colors.orange : Colors.green,
+                ),
+                const SizedBox(width: 6),
+                Text(isPartial ? 'Identitate parțială' : 'Identitate rezolvată',
+                    style: const TextStyle(fontSize: 13, color: Colors.grey)),
+              ],
+            ),
+          ],
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.of(ctx).pop(), child: const Text('Închide')),
-          if (showRealNumber && phone.isNotEmpty)
-            TextButton(
-              onPressed: () {
-                Clipboard.setData(ClipboardData(text: phone));
-                Navigator.of(ctx).pop();
-                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Număr copiat în clipboard')));
-              },
-              child: const Text('Copiază'),
-            ),
-          if (showRealNumber && phone.isNotEmpty)
-            TextButton(
-              onPressed: () async {
-                final uri = Uri.parse('tel:$phone');
-                if (await canLaunchUrl(uri)) {
-                  await launchUrl(uri);
-                } else {
-                  if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Nu pot iniția apel')));
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: const Text('Închide'),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.of(ctx).pop();
+              try {
+                final backendService = Provider.of<BackendService>(context, listen: false);
+                await backendService.callClient(conversationId);
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Apel inițiat…')));
                 }
-                if (ctx.mounted) Navigator.of(ctx).pop();
-              },
-              child: const Text('Sună'),
-            ),
+              } catch (e) {
+                if (mounted) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Eroare apel: $e')));
+                }
+              }
+            },
+            child: const Text('Sună'),
+          ),
         ],
       ),
     );
@@ -232,19 +195,14 @@ class _ChatListScreenState extends State<ChatListScreen> {
     return (s != null && s.isNotEmpty) ? s : null;
   }
 
-  String? _inferFromJid(String? jid) {
-    if (jid == null || jid.isEmpty) return null;
-    final local = jid.split('@').first;
-    // Only return if looks like a phone number (digits only)
-    if (RegExp(r'^\d{7,15}$').hasMatch(local)) return local;
-    return null;
-  }
-
+  // NOTE: No phone_e164 or JID derivation — agent sees only display name.
   String _resolveDisplayName(Map<String, dynamic> row) {
-    return _nonEmpty(row['client_display_name'])
-      ?? _nonEmpty(row['phone_e164'])
-      ?? _inferFromJid(row['jid']?.toString())
-      ?? '[Identitate nerezolvată]';
+    final status = row['identity_resolution_status']?.toString();
+    final displayName = _nonEmpty(row['client_display_name']);
+    if (displayName != null) return displayName;
+    // Neutral placeholder — never exposes a phone number
+    final suffix = (status == 'partial' || status == 'unresolved') ? ' ⚠' : '';
+    return 'Client$suffix';
   }
 
   bool _isIdentityPartial(Map<String, dynamic> row) {
