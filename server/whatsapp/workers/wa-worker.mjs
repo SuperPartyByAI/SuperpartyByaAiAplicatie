@@ -26,7 +26,7 @@ import { fileURLToPath } from 'url';
 
 import { createClient } from '@supabase/supabase-js';
 import { randomUUID } from 'crypto';
-import { resolveOrCreateIdentity } from '../lib/identity-resolver.mjs';
+import { resolveOrCreateIdentity } from './lib/identity-resolver.mjs';
 
 const SUPABASE_URL = process.env.SUPABASE_URL || '';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || '';
