@@ -869,10 +869,10 @@ app.get('/api/voice/getVoipToken', async (req, res) => {
     
     // PUSH CREDENTIAL: from env only — no hardcoded fallback
     const PUSH_CREDENTIAL_SID = process.env.TWILIO_PUSH_CREDENTIAL_SID;
-    if (!PUSH_CREDENTIAL_SID) {
-      console.warn('[VoIP] TWILIO_PUSH_CREDENTIAL_SID not set — push notifications disabled for this token');
-    } else {
+    if (PUSH_CREDENTIAL_SID) {
       voiceGrant.pushCredentialSid = PUSH_CREDENTIAL_SID;
+    } else {
+      console.warn('[VoIP] TWILIO_PUSH_CREDENTIAL_SID not set — push notifications disabled for this token');
     }
 
     token.addGrant(voiceGrant);
@@ -2397,8 +2397,9 @@ function issueWsToken(identity) {
   let sig;
   try {
     sig = crypto.createHmac('sha256', WS_SECRET).update(b64).digest('base64url');
-  } catch(e) {
-    // Fallback: use hash without HMAC
+  } catch (hmacError) {
+    // HMAC failed — fallback to hash (should not happen in normal operation)
+    console.error('[WS] HMAC failed, using hash fallback:', hmacError.message);
     sig = crypto.createHash('sha256').update(b64 + WS_SECRET).digest('base64url');
   }
   return `${b64}.${sig}`;

@@ -98,7 +98,8 @@ async function upsertMessage(accountId, msg) {
 
   // 2) Ensure conversation exists — write all fields Flutter ChatListScreen needs
   const convId = `${accountId}_${jid}`;
-  const lastPreview = text ? text.slice(0, 100) : (isMedia ? '[Media]' : '');
+  const mediaPreview = isMedia ? '[Media]' : '';
+  const lastPreview = text ? text.slice(0, 100) : mediaPreview;
   await sb.from('conversations').upsert({
     id:                   convId,
     account_id:           accountId,
