@@ -317,7 +317,7 @@ app.post('/api/voice/incoming', async (req, res) => {
       // NOTE: NO compliance message here — it causes the SDK session to timeout before connecting
       console.log(`[Twilio] Handling Outgoing Call from App (${From}) to: ${To}`);
 
-      const CALLER_ID = process.env.TWILIO_CALLER_ID || process.env.TWILIO_PHONE_NUMBER || '+40373810882';
+      const CALLER_ID = process.env.TWILIO_CALLER_ID || process.env.TWILIO_PHONE_NUMBER;
 
       if (!To || To.includes('centrala')) {
           twiml.say({ language: 'ro-RO' }, 'Ați sunat la Centrală. Testul de apel este reușit. O zi bună!');
@@ -436,7 +436,7 @@ app.post('/api/voice/bridge-agent', async (req, res) => {
     
     const call = await twilioClient.calls.create({
       to: `client:${agentIdentity}`,
-      from: process.env.TWILIO_CALLER_ID || process.env.TWILIO_PHONE_NUMBER || '+40373810882', // from env
+      from: process.env.TWILIO_CALLER_ID || process.env.TWILIO_PHONE_NUMBER, // from env
       twiml: `<Response><Dial><Conference beep="false" startConferenceOnEnter="true" endConferenceOnExit="true">${callSid}</Conference></Dial></Response>`,
     });
 
@@ -481,7 +481,7 @@ app.post('/api/voice/callback', async (req, res) => {
     const { to, agentIdentity } = req.body;
     if (!to) return res.status(400).json({ error: 'Missing `to` phone number' });
 
-    const CALLER_ID = process.env.TWILIO_CALLER_ID || '+40373805828';
+    const CALLER_ID = process.env.TWILIO_CALLER_ID;
     const BASE_URL  = process.env.PUBLIC_URL || 'https://voice.superparty.ro';
 
     // Fetch the agent identity from Firestore if not provided
@@ -532,7 +532,7 @@ app.all('/api/voice/callback-connect', (req, res) => {
   // identity can be in query (GET) or body (POST — Twilio uses POST)
   const identity = req.query.identity || req.body?.identity || 'superparty_admin';
   // 'to' is the client's number, we use it as callerId so the agent knows who is calling
-  const to = req.query.to || req.body?.to || req.body?.To || '+40373810882';
+  const to = req.query.to || req.body?.to || req.body?.To;
   
   console.log(`[CallbackConnect] Bridging call to agent identity: ${identity}, callerId: ${to}`);
   const twiml = new twilio.twiml.VoiceResponse();
@@ -867,10 +867,13 @@ app.get('/api/voice/getVoipToken', async (req, res) => {
       { identity: identity }
     );
     
-    // RESTORING PUSH CREDENTIAL: The SDK strictly enforces this value to exist in the token
-    // otherwise the backend VoIP client fails to establish SIP, even for foreground calls.
-    const PUSH_CREDENTIAL_SID = 'CR45fcd9835719e90895bf551b87e4ef48'; 
-    voiceGrant.pushCredentialSid = PUSH_CREDENTIAL_SID;
+    // PUSH CREDENTIAL: from env only — no hardcoded fallback
+    const PUSH_CREDENTIAL_SID = process.env.TWILIO_PUSH_CREDENTIAL_SID;
+    if (!PUSH_CREDENTIAL_SID) {
+      console.warn('[VoIP] TWILIO_PUSH_CREDENTIAL_SID not set — push notifications disabled for this token');
+    } else {
+      voiceGrant.pushCredentialSid = PUSH_CREDENTIAL_SID;
+    }
 
     token.addGrant(voiceGrant);
 

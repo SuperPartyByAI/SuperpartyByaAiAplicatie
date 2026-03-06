@@ -1,127 +1,107 @@
 #!/usr/bin/env bash
-# monitor_superparty.sh — Alerting minim obligatoriu
-# Rulează via crontab la fiecare 5 minute pe fiecare VPS
-# Crontab: */5 * * * * bash /root/monitor_superparty.sh >> /var/log/monitor.log 2>&1
+# monitor_superparty.sh v2 — Alerting cu ntfy.sh push notifications
+# Crontab: */5 * * * * bash /root/monitor_superparty.sh
+# Subscribe: https://ntfy.sh/superparty-prod-alerts (pe orice browser/app ntfy)
 #
-# Alerting: folosește ALERT_WEBHOOK_URL (Discord/Slack webhook) dacă e setat
-# Altfel: loghează în /var/log/monitor.log și trimite email dacă mail e configurat
+# Configurare ALERT_WEBHOOK_URL în .env pentru custom webhook (Discord/Slack)
+# Altfel: folosim ntfy.sh topic fix (public, dar cu URL greu de ghicit)
 set -euo pipefail
 
+source "$(dirname "$0")/../.env" 2>/dev/null || \
+  source /root/whatsapp-integration-v6/.env 2>/dev/null || true
+
+# ── ALERT CHANNEL ────────────────────────────────────────────
+NTFY_TOPIC="${NTFY_TOPIC:-superparty-prod-alerts-sp2026}"
 ALERT_WEBHOOK_URL="${ALERT_WEBHOOK_URL:-}"
 LOG_FILE="/var/log/monitor_superparty.log"
 NOW=$(date '+%Y-%m-%d %H:%M:%S')
 SERVER="${SERVER_NAME:-$(hostname)}"
 
-# Supabase pentru DLQ check
-SUPA_URL="${SUPABASE_URL:-}"
-SUPA_KEY="${SUPABASE_SERVICE_KEY:-}"
-
-ALERTS=""
+ALERTS=()
 CHECKS=0
 PASSED=0
 
-log()   { echo "[$NOW] $1" | tee -a "$LOG_FILE"; }
-alert() { ALERTS="${ALERTS}\n🚨 [$SERVER] $1"; log "ALERT: $1"; }
+log()   { echo "[$NOW] $1" >> "$LOG_FILE"; }
 pass()  { PASSED=$((PASSED+1)); CHECKS=$((CHECKS+1)); log "OK: $1"; }
-fail()  { CHECKS=$((CHECKS+1)); alert "$1"; }
+alert() { CHECKS=$((CHECKS+1)); ALERTS+=("$1"); log "ALERT: $1"; }
 
 send_alert() {
-  local msg="$1"
+  local title="$1"
+  local msg="$2"
+  # ntfy.sh (free, no signup)
+  curl -sf -X POST "https://ntfy.sh/$NTFY_TOPIC" \
+    -H "Title: 🚨 $title" \
+    -H "Priority: urgent" \
+    -H "Tags: rotating_light" \
+    -d "$msg" > /dev/null 2>&1 || true
+
+  # Custom webhook (Discord/Slack format)
   if [ -n "$ALERT_WEBHOOK_URL" ]; then
     curl -sf -X POST "$ALERT_WEBHOOK_URL" \
       -H "Content-Type: application/json" \
-      -d "{\"content\": \"$msg\"}" > /dev/null 2>&1 || true
+      -d "{\"content\":\"🚨 **[$SERVER]** $title\\n$msg\"}" > /dev/null 2>&1 || true
   fi
-  # Fallback: email (se poate configura cu mailx/sendmail)
-  # echo "$msg" | mail -s "ALERT: $SERVER" ops@superparty.ro 2>/dev/null || true
 }
 
 # ══════════════════════════════════════════════════
 # CHECK 1: WA Server Health
 # ══════════════════════════════════════════════════
-WA_HEALTH=$(curl -sf --max-time 5 http://localhost:3001/health 2>/dev/null | python3 -c "import sys,json;d=json.load(sys.stdin);print(d.get('status','ERR'))" 2>/dev/null || echo "FAIL")
-if [ "$WA_HEALTH" = "ok" ]; then
-  pass "WA health: ok"
-else
-  fail "WA health: $WA_HEALTH (server down?)"
-fi
+WA_HEALTH=$(curl -sf --max-time 5 http://localhost:3001/health 2>/dev/null \
+  | python3 -c "import sys,json;print(json.load(sys.stdin).get('status','ERR'))" 2>/dev/null \
+  || echo "FAIL")
+[ "$WA_HEALTH" = "ok" ] && pass "WA health ok" || alert "WA health FAIL ($WA_HEALTH) — server down?"
 
 # ══════════════════════════════════════════════════
-# CHECK 2: PM2 Worker Status (WA VPS)
+# CHECK 2: PM2 Worker Status
 # ══════════════════════════════════════════════════
 if command -v pm2 &>/dev/null; then
-  WA_WORKER=$(pm2 describe wa-outbox-worker 2>/dev/null | grep "status" | grep -o "online\|stopped\|errored" | head -1)
-  if [ "$WA_WORKER" = "online" ]; then
-    pass "wa-outbox-worker: online"
-  else
-    fail "wa-outbox-worker: $WA_WORKER — restart: pm2 start wa-outbox-worker"
-  fi
+  WW=$(pm2 describe wa-outbox-worker 2>/dev/null | grep "│ status" | grep -o "online\|stopped\|errored" | head -1)
+  [ "$WW" = "online" ] && pass "wa-outbox-worker online" || alert "wa-outbox-worker: $WW — run: pm2 start wa-outbox-worker"
 fi
 
 # ══════════════════════════════════════════════════
-# CHECK 3: Redis Availability (Voice VPS)
+# CHECK 3: Redis (Voice VPS only)
 # ══════════════════════════════════════════════════
 if command -v redis-cli &>/dev/null; then
   REDIS_PING=$(redis-cli ping 2>/dev/null || echo "FAIL")
-  if [ "$REDIS_PING" = "PONG" ]; then
-    pass "Redis: PONG"
-  else
-    fail "Redis: DOWN — voice active calls state unavailable"
-  fi
+  [ "$REDIS_PING" = "PONG" ] && pass "Redis PONG" || alert "Redis DOWN — voice state unavailable"
 
-  # CHECK 4: ZSET orphan check (once per hour)
-  if [ "$(date '+%M')" = "00" ]; then
-    ZSET_SIZE=$(redis-cli ZCARD active_calls_idx 2>/dev/null || echo "0")
-    KEYS_SIZE=$(redis-cli KEYS "active_call:*" 2>/dev/null | wc -l)
-    if [ "$ZSET_SIZE" != "$KEYS_SIZE" ] && [ "$ZSET_SIZE" -gt 0 ]; then
-      fail "ZSET orphan drift: idx=$ZSET_SIZE vs keys=$KEYS_SIZE — prune will fix in <5min"
-    else
-      pass "Redis ZSET consistent: $ZSET_SIZE entries"
-    fi
+  # ZSET orphan check (hourly)
+  if [ "$(date '+%M')" = "00" ] || [ "$(date '+%M')" = "30" ]; then
+    ZSET=$(redis-cli ZCARD active_calls_idx 2>/dev/null || echo "0")
+    KEYS=$(redis-cli KEYS "active_call:*" 2>/dev/null | wc -l)
+    [ "$ZSET" != "$KEYS" ] && [ "$ZSET" -gt 0 ] && \
+      alert "ZSET orphan drift: idx=$ZSET vs keys=$KEYS" || pass "ZSET consistent ($ZSET)"
   fi
 fi
 
 # ══════════════════════════════════════════════════
-# CHECK 5: Outbox DLQ depth (WA — via Supabase)
+# CHECK 4: Outbox DLQ + Queue depth (Supabase)
 # ══════════════════════════════════════════════════
+SUPA_URL="${SUPABASE_URL:-}"
+SUPA_KEY="${SUPABASE_SERVICE_KEY:-}"
+
 if [ -n "$SUPA_URL" ] && [ -n "$SUPA_KEY" ]; then
   DLQ=$(curl -sf --max-time 5 \
-    "$SUPA_URL/rest/v1/outbox_messages?status=eq.dead&select=count" \
-    -H "apikey: $SUPA_KEY" -H "Authorization: Bearer $SUPA_KEY" \
-    -H "Prefer: count=exact" \
-    -o /dev/null -w "%{http_code}" 2>/dev/null || echo "ERR")
-
-  DLQ_COUNT=$(curl -sf --max-time 5 \
     "$SUPA_URL/rest/v1/outbox_messages?status=eq.dead&select=id" \
     -H "apikey: $SUPA_KEY" -H "Authorization: Bearer $SUPA_KEY" 2>/dev/null | \
-    python3 -c "import sys,json;d=json.load(sys.stdin);print(len(d))" 2>/dev/null || echo "0")
+    python3 -c "import sys,json;print(len(json.load(sys.stdin)))" 2>/dev/null || echo "0")
+  [ "$DLQ" -gt 0 ] && alert "Outbox DLQ: $DLQ dead messages — POST /debug/outbox/replay" || pass "DLQ=0"
 
-  if [ "$DLQ_COUNT" -gt 0 ]; then
-    fail "Outbox DLQ: $DLQ_COUNT dead messages — replay: POST /debug/outbox/replay"
-  else
-    pass "Outbox DLQ: 0"
-  fi
-
-  # CHECK 6: Queue depth (queued > 50 și nu scade = worker blocat)
-  QUEUE_COUNT=$(curl -sf --max-time 5 \
+  QLEN=$(curl -sf --max-time 5 \
     "$SUPA_URL/rest/v1/outbox_messages?status=eq.queued&select=id" \
     -H "apikey: $SUPA_KEY" -H "Authorization: Bearer $SUPA_KEY" 2>/dev/null | \
-    python3 -c "import sys,json;d=json.load(sys.stdin);print(len(d))" 2>/dev/null || echo "0")
-
-  if [ "$QUEUE_COUNT" -gt 50 ]; then
-    fail "Outbox queue deep: $QUEUE_COUNT messages queued — worker may be stuck"
-  else
-    pass "Outbox queue: $QUEUE_COUNT"
-  fi
+    python3 -c "import sys,json;print(len(json.load(sys.stdin)))" 2>/dev/null || echo "0")
+  [ "$QLEN" -gt 50 ] && alert "Queue deep: $QLEN queued — worker stuck?" || pass "Queue=$QLEN"
 fi
 
 # ══════════════════════════════════════════════════
-# SUMMARY + SEND ALERT
+# SUMMARY + SEND ALL ALERTS
 # ══════════════════════════════════════════════════
-log "Monitor summary: $PASSED/$CHECKS OK"
+log "Checks: $PASSED/$CHECKS OK | Alerts: ${#ALERTS[@]}"
 
-if [ -n "$ALERTS" ]; then
-  MSG="**SUPERPARTY ALERT** [$NOW] $SERVER\\n$(echo -e "$ALERTS")"
-  send_alert "$MSG"
-  log "Alerts sent"
+if [ ${#ALERTS[@]} -gt 0 ]; then
+  ALERT_BODY=$(printf '%s\n' "${ALERTS[@]}")
+  send_alert "SUPERPARTY $SERVER" "$ALERT_BODY"
+  echo "[$NOW] ALERTS SENT: $ALERT_BODY" >> "$LOG_FILE"
 fi

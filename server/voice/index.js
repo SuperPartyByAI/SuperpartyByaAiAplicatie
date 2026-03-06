@@ -613,7 +613,7 @@ app.post('/api/voice/incoming', requireTwilioSignature, async (req, res) => {
 
       if (cleanTo.startsWith('conf_')) {
         console.log(`[PBX Twilio] OUTBOUND conference join (To=${To}, cleanTo=${cleanTo}, From=${From}, CallSid=${CallSid})`);
-        const outDial = twiml.dial({ callerId: process.env.TWILIO_CALLER_ID || '+40373805828' });
+        const outDial = twiml.dial({ callerId: process.env.TWILIO_CALLER_ID });
         outDial.conference({ beep: false, startConferenceOnEnter: true, endConferenceOnExit: true }, cleanTo);
         res.type('text/xml');
         return res.send(twiml.toString());
@@ -622,7 +622,7 @@ app.post('/api/voice/incoming', requireTwilioSignature, async (req, res) => {
       if (From && From.startsWith('client:')) {
         // OUTBOUND CALL (App -> World)
         console.log(`[PBX Twilio] Outbound detected from ${From} to ${To}`);
-        const outDial = twiml.dial({ callerId: process.env.TWILIO_CALLER_ID || '+40373805828' });
+        const outDial = twiml.dial({ callerId: process.env.TWILIO_CALLER_ID });
         outDial.number(cleanTo);
         res.type('text/xml');
         return res.send(twiml.toString());
@@ -869,7 +869,7 @@ app.post('/api/voice/accept', requireSupabaseUser, express.json(), async (req, r
     try {
       const call = await twilioClient.calls.create({
         to: toNumber,
-        from: process.env.TWILIO_CALLER_ID || '+40373805828',
+        from: process.env.TWILIO_CALLER_ID,
         url: `${getExternalBaseUrl(req)}/api/voice/join-conference?conf=${encodeURIComponent(confName)}`
       });
       return res.json({ ok: true, callSid: call.sid });
