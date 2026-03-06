@@ -200,6 +200,27 @@ async function getActiveCalls() {
   } catch (e) { console.warn('[Redis] getActiveCalls failed:', e.message); return []; }
 }
 
+
+// ── ZSET Prune Cron (5 min) — removes orphaned ACTIVE_IDX members ─────────────
+// Gap closed: if a call ends abnormally (crash/network), ZREM may not run,
+// leaving orphaned members in ACTIVE_IDX after active_call:* key TTL expires.
+async function pruneStaleZsetMembers() {
+  try {
+    const sids = await redis.zrange(ACTIVE_IDX, 0, -1);
+    if (!sids.length) return;
+    const values = await redis.mget(...sids.map(sid => `active_call:${sid}`));
+    const orphans = sids.filter((_, i) => values[i] === null);
+    if (orphans.length > 0) {
+      await redis.zrem(ACTIVE_IDX, ...orphans);
+      console.log(`[Redis] Prune: removed ${orphans.length} orphaned ZSET members:`, orphans);
+    }
+    // Belt+suspenders: score-based TTL prune
+    await redis.zremrangebyscore(ACTIVE_IDX, '-inf', Date.now() - CALL_TTL_SEC * 1000);
+  } catch (e) { console.warn('[Redis] pruneStaleZsetMembers error:', e.message); }
+}
+setInterval(pruneStaleZsetMembers, 5 * 60 * 1000);
+// ─────────────────────────────────────────────────────────────────────────────
+
 // --- FCM UNREGISTERED token cleanup ---
 async function markFcmTokenUnregistered(identity, deviceToken) {
   try {

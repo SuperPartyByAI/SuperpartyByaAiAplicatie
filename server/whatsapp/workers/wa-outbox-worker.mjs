@@ -182,6 +182,40 @@ async function poll() {
 // Called externally via HTTP — not started here, integrate into wa main server.
 
 // ── Metrics log every 5 min ──────────────────────────────────────────────────
+// ── Metrics persist to Supabase (every 5 min) ────────────────────────────────
+// In-memory metrics survive restarts via Supabase — enables real observability
+async function persistMetrics() {
+  try {
+    const queueStats = await supabase
+      .from('outbox_messages')
+      .select('status')
+      .then(({ data }) => {
+        if (!data) return {};
+        return data.reduce((acc, r) => { acc[r.status] = (acc[r.status] || 0) + 1; return acc; }, {});
+      });
+    await supabase.from('outbox_worker_metrics').upsert({
+      worker_id: process.env.WORKER_ID || 'wa-outbox-worker-1',
+      reported_at: new Date().toISOString(),
+      sent: metrics.sent,
+      failed: metrics.failed,
+      dead: metrics.dead,
+      retried: metrics.retried,
+      skipped: metrics.skipped,
+      polls: metrics.polls,
+      queue_queued: queueStats.queued || 0,
+      queue_sending: queueStats.sending || 0,
+      queue_failed: queueStats.failed || 0,
+      queue_dead: queueStats.dead || 0,
+    }, { onConflict: 'worker_id' });
+    console.log('[OutboxWorker] Metrics persisted to Supabase:', JSON.stringify({ ...metrics, queue: queueStats }));
+  } catch (e) {
+    console.warn('[OutboxWorker] Metrics persist failed (non-fatal):', e.message);
+  }
+}
+setInterval(persistMetrics, 5 * 60 * 1000);
+// ─────────────────────────────────────────────────────────────────────────────
+
+
 setInterval(() => {
   console.log('[OutboxWorker] Metrics:', JSON.stringify(metrics));
 }, 5 * 60 * 1000);

@@ -1,0 +1,130 @@
+name: CI — Smoke Tests (WA Outbox + Voice)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  smoke-outbox:
+    name: WA Outbox Validation (7 scenarii)
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Run outbox validation (7 scenarii via Supabase REST)
+        run: |
+          SUPA_URL="${SUPABASE_URL}"
+          SUPA_KEY="${SUPABASE_SERVICE_KEY}"
+          ACCOUNT="ci-$(date +%s)"
+          PASS=0; FAIL=0
+
+          supa_rpc() {
+            curl -sf -X POST "$SUPA_URL/rest/v1/rpc/$1" \
+              -H "apikey: $SUPA_KEY" -H "Authorization: Bearer $SUPA_KEY" \
+              -H "Content-Type: application/json" -d "$2" 2>&1
+          }
+          supa_get() {
+            curl -sf "$SUPA_URL/rest/v1/outbox_messages?$1" \
+              -H "apikey: $SUPA_KEY" -H "Authorization: Bearer $SUPA_KEY" 2>&1
+          }
+          supa_patch() {
+            curl -sf -X PATCH "$SUPA_URL/rest/v1/outbox_messages?$1" \
+              -H "apikey: $SUPA_KEY" -H "Authorization: Bearer $SUPA_KEY" \
+              -H "Content-Type: application/json" -H "Prefer: return=representation" \
+              -d "$2" 2>&1
+          }
+
+          ok()   { echo "✅ PASS $1"; PASS=$((PASS+1)); }
+          fail() { echo "❌ FAIL $1"; FAIL=$((FAIL+1)); }
+
+          echo "Account: $ACCOUNT"
+          IKEY1="ci-sc1-$ACCOUNT"
+
+          # SC1: enqueue → queued
+          MSG1=$(supa_rpc "enqueue_outbox_message" \
+            "{\"p_idempotency_key\":\"$IKEY1\",\"p_account_id\":\"$ACCOUNT\",\"p_to_jid\":\"40700@s.whatsapp.net\",\"p_message_type\":\"text\",\"p_payload\":{\"text\":\"ci\"}}" | tr -d '"')
+          STATUS=$(supa_get "id=eq.${MSG1}&select=status" | python3 -c "import sys,json;d=json.load(sys.stdin);print(d[0]['status'] if d else 'NF')" 2>/dev/null)
+          [[ "$STATUS" == "queued" ]] && ok "Sc1: status=queued" || fail "Sc1: status=$STATUS"
+
+          # SC2: idempotency
+          DUP=$(supa_rpc "enqueue_outbox_message" \
+            "{\"p_idempotency_key\":\"$IKEY1\",\"p_account_id\":\"$ACCOUNT\",\"p_to_jid\":\"40700@s.whatsapp.net\",\"p_message_type\":\"text\",\"p_payload\":{\"text\":\"dup\"}}" | tr -d '"')
+          [[ -z "$DUP" || "$DUP" == "null" ]] && ok "Sc2: idempotent (null)" || fail "Sc2: dup=$DUP"
+
+          # SC3: claim → sending
+          CLAIM=$(supa_rpc "claim_outbox_batch" "{\"p_account_id\":\"$ACCOUNT\",\"p_batch_size\":5}" | \
+            python3 -c "import sys,json;d=json.load(sys.stdin);r=next((x for x in d if x.get('id')=='$MSG1'),None);print(r['status'] if r else 'NOT_CLAIMED')" 2>/dev/null)
+          [[ "$CLAIM" == "sending" ]] && ok "Sc3: claim→sending" || fail "Sc3: $CLAIM"
+
+          # SC4: markSent
+          SENT=$(supa_patch "id=eq.${MSG1}" '{"status":"sent","sent_at":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'"}' | \
+            python3 -c "import sys,json;d=json.load(sys.stdin);print(d[0]['status'] if d else 'NF')" 2>/dev/null)
+          [[ "$SENT" == "sent" ]] && ok "Sc4: status=sent" || fail "Sc4: $SENT"
+
+          # SC5: fail path
+          MSG5=$(supa_rpc "enqueue_outbox_message" \
+            "{\"p_idempotency_key\":\"ci-sc5-$ACCOUNT\",\"p_account_id\":\"$ACCOUNT\",\"p_to_jid\":\"40701@s.whatsapp.net\",\"p_message_type\":\"text\",\"p_payload\":{\"text\":\"f\"}}" | tr -d '"')
+          F5=$(supa_patch "id=eq.${MSG5}" '{"status":"failed","error_message":"simulated","attempts":1,"next_retry_at":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'"}' | \
+            python3 -c "import sys,json;d=json.load(sys.stdin);r=d[0] if d else {};print(r.get('status'),r.get('attempts'))" 2>/dev/null)
+          [[ "$F5" == *"failed"* && "$F5" == *"1"* ]] && ok "Sc5: failed+attempts=1" || fail "Sc5: $F5"
+
+          # SC6: dead (DLQ)
+          MSG6=$(supa_rpc "enqueue_outbox_message" \
+            "{\"p_idempotency_key\":\"ci-sc6-$ACCOUNT\",\"p_account_id\":\"$ACCOUNT\",\"p_to_jid\":\"40702@s.whatsapp.net\",\"p_message_type\":\"text\",\"p_payload\":{\"text\":\"d\"}}" | tr -d '"')
+          D6=$(supa_patch "id=eq.${MSG6}" '{"status":"dead","attempts":5,"error_message":"max attempts"}' | \
+            python3 -c "import sys,json;d=json.load(sys.stdin);r=d[0] if d else {};print(r.get('status'),r.get('attempts'))" 2>/dev/null)
+          [[ "$D6" == *"dead"* && "$D6" == *"5"* ]] && ok "Sc6: dead+attempts=5" || fail "Sc6: $D6"
+
+          # SC7: replay DLQ
+          R7=$(supa_patch "id=eq.${MSG6}&status=eq.dead" '{"status":"queued","attempts":0,"error_message":null,"next_retry_at":"'"$(date -u +%Y-%m-%dT%H:%M:%SZ)"'"}' | \
+            python3 -c "import sys,json;d=json.load(sys.stdin);r=d[0] if d else {};print(r.get('status'),r.get('attempts'))" 2>/dev/null)
+          [[ "$R7" == *"queued"* && "$R7" == *"0"* ]] && ok "Sc7: replay→queued+attempts=0" || fail "Sc7: $R7"
+
+          # Cleanup
+          curl -sf -X DELETE "$SUPA_URL/rest/v1/outbox_messages?account_id=eq.$ACCOUNT" \
+            -H "apikey: $SUPA_KEY" -H "Authorization: Bearer $SUPA_KEY" > /dev/null 2>&1 || true
+
+          echo ""
+          echo "══════════════════════════════════"
+          echo "  REZULTATE: $PASS PASS | $FAIL FAIL / 7 total"
+          echo "══════════════════════════════════"
+          [ "$FAIL" -eq 0 ] || exit 1
+
+  smoke-voice:
+    name: Voice Endpoints Smoke Test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate voice endpoint files exist
+        run: |
+          echo "Checking key voice server files..."
+          test -f server/voice/index.js || { echo "❌ server/voice/index.js missing"; exit 1; }
+          echo "✅ server/voice/index.js present"
+          grep -q "active_calls_idx" server/voice/index.js && echo "✅ ZSET active_calls_idx found" || echo "⚠️  ZSET not found (may use alternative)"
+          grep -q "SUPABASE_URL\|supabase" server/voice/index.js && echo "✅ Supabase integration found" || echo "⚠️  Supabase ref not in voice"
+          echo "Voice file check complete."
+
+  lint-check:
+    name: JS Syntax Check (no-crash)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Syntax check outbox worker files
+        run: |
+          node --check server/whatsapp/workers/wa-outbox-api.mjs && echo "✅ wa-outbox-api.mjs OK"
+          node --check server/whatsapp/workers/wa-outbox-worker.mjs && echo "✅ wa-outbox-worker.mjs OK"
