@@ -277,6 +277,7 @@ app.use('/api', (req, res, next) => {
     '/voice/recording-status',
     '/voice/callback-connect',
     '/voice/bridge-agent',
+    '/wa/send-direct',        // internal-only, protected by WA_INTERNAL_TOKEN
   ];
   if (exempt.some(p => req.path === p || req.path.startsWith(p))) return next();
   return requireFirebaseAuth(req, res, next);
@@ -2322,6 +2323,50 @@ app.get('/api/user/me', verifyFirebaseToken, async (req, res) => {
 /* ===== END COMPLIANCE APIS ===== */
 
 /* Start server & WhatsApp connect (minimal) */
+
+// ══ WhatsApp Durable Outbox Routes ══════════════════════════════════════════
+// POST /api/wa/outbox/send  — enqueue durabil (idempotent, auth Firebase)
+// POST /api/wa/send-direct  — send real Baileys, doar WA_INTERNAL_TOKEN
+// GET  /debug/outbox/{dlq,stats}  POST /debug/outbox/replay
+import { registerOutboxRoutes } from './server/whatsapp/workers/wa-outbox-api.mjs';
+import { supabase as sbOutbox } from './supabase-sync.mjs';
+
+const waSessionAdapter = {
+  sendText: async function(accountId, jid, text) {
+    const sessionData = sessionManager.sessions.get(accountId);
+    let sock = sessionData ? sessionData.sock : null;
+    if (!sock) {
+      const iter = sessionManager.sessions.values();
+      let s = iter.next();
+      while (!s.done) { if (s.value.sock) { sock = s.value.sock; break; } s = iter.next(); }
+    }
+    if (!sock) throw new Error('No active WA session for ' + accountId);
+    const result = await sock.sendMessage(jid, { text });
+    return { messageId: result && result.key ? result.key.id : null };
+  },
+  sendMedia: async function(accountId, jid, mediaUrl, caption, type) {
+    const sessionData = sessionManager.sessions.get(accountId);
+    let sock = sessionData ? sessionData.sock : null;
+    if (!sock) {
+      const iter = sessionManager.sessions.values();
+      let s = iter.next();
+      while (!s.done) { if (s.value.sock) { sock = s.value.sock; break; } s = iter.next(); }
+    }
+    if (!sock) throw new Error('No active WA session for ' + accountId);
+    const typeMap = { image: 'image', video: 'video', document: 'document', audio: 'audio' };
+    const key = typeMap[type] || 'document';
+    const payload = {};
+    payload[key] = { url: mediaUrl };
+    if (caption) payload.caption = caption;
+    const result = await sock.sendMessage(jid, payload);
+    return { messageId: result && result.key ? result.key.id : null };
+  },
+};
+
+function outboxAuth(req, res, next) { return requireFirebaseAuth(req, res, next); }
+registerOutboxRoutes(app, sbOutbox, outboxAuth, waSessionAdapter);
+console.log('[OutboxRoutes] Mounted: /api/wa/outbox/send  /api/wa/send-direct  /debug/outbox/*');
+// ════════════════════════════════════════════════════════════════════════════
 
 // Health endpoint (duplicate, registered before listen for nginx)
 app.get('/health', (req, res) => res.json({ status: 'ok', ts: new Date().toISOString() }));
