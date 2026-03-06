@@ -1,4 +1,6 @@
 import 'dotenv/config';
+import { WebSocketServer } from 'ws';
+import crypto from 'node:crypto';
 import { requireFirebaseAuth, requireAdminTokenMw } from './auth-middleware.mjs';
 
 // ─── Prometheus metrics setup ────────────────────────────────────────────
@@ -2343,10 +2345,10 @@ function issueWsToken(identity) {
   // Simple signed token (Node.js built-in)
   let sig;
   try {
-    sig = require('crypto').createHmac('sha256', WS_SECRET).update(b64).digest('base64url');
+    sig = crypto.createHmac('sha256', WS_SECRET).update(b64).digest('base64url');
   } catch(e) {
     // Fallback: use hash without HMAC
-    sig = require('crypto').createHash('sha256').update(b64 + WS_SECRET).digest('base64url');
+    sig = crypto.createHash('sha256').update(b64 + WS_SECRET).digest('base64url');
   }
   return `${b64}.${sig}`;
 }
@@ -2356,8 +2358,8 @@ function verifyWsToken(token) {
   try {
     const [b64, sig] = token.split('.');
     let expected;
-    try { expected = require('crypto').createHmac('sha256', WS_SECRET).update(b64).digest('base64url'); }
-    catch(e) { expected = require('crypto').createHash('sha256').update(b64 + WS_SECRET).digest('base64url'); }
+    try { expected = crypto.createHmac('sha256', WS_SECRET).update(b64).digest('base64url'); }
+    catch(e) { expected = crypto.createHash('sha256').update(b64 + WS_SECRET).digest('base64url'); }
     if (sig !== expected) return null;
     const payload = JSON.parse(Buffer.from(b64, 'base64url').toString());
     if (payload.exp < Math.floor(Date.now()/1000)) return null;
