@@ -90,7 +90,7 @@ class _CallsScreenState extends State<CallsScreen> {
         // Endpoint not yet deployed — graceful fallback, no crash
         setState(() { _calls = []; _loading = false; _error = 'Jurnalul nu este disponibil momentan (endpoint /recent lipsă). Contactează administratorul.'; });
       } else {
-        setState(() { _error = 'Server error: \${res.statusCode}'; _loading = false; });
+        setState(() { _error = 'Server error: ${res.statusCode}'; _loading = false; });
       }
     } catch (e) {
       setState(() { _error = e.toString(); _loading = false; });
@@ -236,7 +236,7 @@ class _CallsScreenState extends State<CallsScreen> {
         Uri.parse('$_BASE/voice/callback-by-sid'),
         headers: {
           'Content-Type': 'application/json',
-          if (token != null) 'Authorization': 'Bearer \$token',
+          if (token != null) 'Authorization': 'Bearer $token',
         },
         body: jsonEncode({'callSid': callSid, 'userId': userId}),
       ).timeout(const Duration(seconds: 15));
@@ -248,7 +248,7 @@ class _CallsScreenState extends State<CallsScreen> {
         ));
       } else if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Eroare apel (\${resp.statusCode})')));
+          SnackBar(content: Text('Eroare apel (${resp.statusCode})')));
       }
     } catch (e) {
       debugPrint('CALL_FLOW: ERROR _callBack => \$e');
