@@ -613,7 +613,7 @@ app.post('/api/voice/incoming', requireTwilioSignature, async (req, res) => {
 
       if (cleanTo.startsWith('conf_')) {
         console.log(`[PBX Twilio] OUTBOUND conference join (To=${To}, cleanTo=${cleanTo}, From=${From}, CallSid=${CallSid})`);
-        const outDial = twiml.dial({ callerId: process.env.TWILIO_CALLER_ID || '+40373805828' });
+        const outDial = twiml.dial({ callerId: process.env.TWILIO_CALLER_ID });
         outDial.conference({ beep: false, startConferenceOnEnter: true, endConferenceOnExit: true }, cleanTo);
         res.type('text/xml');
         return res.send(twiml.toString());
@@ -622,7 +622,7 @@ app.post('/api/voice/incoming', requireTwilioSignature, async (req, res) => {
       if (From && From.startsWith('client:')) {
         // OUTBOUND CALL (App -> World)
         console.log(`[PBX Twilio] Outbound detected from ${From} to ${To}`);
-        const outDial = twiml.dial({ callerId: process.env.TWILIO_CALLER_ID || '+40373805828' });
+        const outDial = twiml.dial({ callerId: process.env.TWILIO_CALLER_ID });
         outDial.number(cleanTo);
         res.type('text/xml');
         return res.send(twiml.toString());
@@ -869,7 +869,7 @@ app.post('/api/voice/accept', requireSupabaseUser, express.json(), async (req, r
     try {
       const call = await twilioClient.calls.create({
         to: toNumber,
-        from: process.env.TWILIO_CALLER_ID || '+40373805828',
+        from: process.env.TWILIO_CALLER_ID,
         url: `${getExternalBaseUrl(req)}/api/voice/join-conference?conf=${encodeURIComponent(confName)}`
       });
       return res.json({ ok: true, callSid: call.sid });
@@ -1142,6 +1142,76 @@ app.get('/api/voice/calls', requireSupabaseUser, async (req, res) => {
       console.error('[VoIP PBX] Eroare la citirea apelurilor din Twilio:', e);
       res.status(500).json({ error: e.message });
     }
+});
+
+
+// ── GET /api/voice/calls/recent ─────────────────────────────────────────────
+// Returneaza ultimele apeluri (max limit=50) din Twilio pentru toate numerele
+// Flutter CallsScreen loveste aceasta ruta ca /voice/calls/recent?limit=50
+app.get("/api/voice/calls/recent", requireSupabaseUser, async (req, res) => {
+  if (!twilioClient) return res.status(503).json({ ok: false, error: "twilio_not_configured" });
+  try {
+    const limit = Math.min(parseInt(req.query.limit) || 50, 200);
+    const calls = await twilioClient.calls.list({ limit });
+    const mapped = calls.map(c => ({
+      callSid:   c.sid,
+      sid:       c.sid,
+      from:      c.from,
+      to:        c.to,
+      status:    c.status,
+      direction: c.direction,
+      duration:  parseInt(c.duration) || 0,
+      timestamp: c.startTime ? c.startTime.toISOString() : null,
+      price:     c.price,
+      priceUnit: c.priceUnit,
+    }));
+
+    // Enrich VoIP calls with caller name from Supabase conversations_public
+    // Twilio VoIP format: from="client:user_UUID_dev_UUID"
+    // Supabase: conversations_public.identity_id = "user_UUID" (fara _dev_... sufix)
+    try {
+      const SUPA_URL = process.env.SUPABASE_URL;
+      const SUPA_KEY = process.env.SUPABASE_SERVICE_KEY;
+      if (SUPA_URL && SUPA_KEY) {
+        // Collect unique identities from VoIP calls
+        const identities = [...new Set(
+          mapped
+            .filter(c => (c.from || '').startsWith('client:'))
+            .map(c => c.from.replace('client:', '').split('_dev_')[0])
+        )];
+        if (identities.length > 0) {
+          const filter = identities.map(id => `identity_id.eq.${encodeURIComponent(id)}`).join(',');
+          const resp = await fetch(
+            `${SUPA_URL}/rest/v1/conversations_public?or=(${filter})&select=identity_id,client_display_name,name&limit=100`,
+            { headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` } }
+          );
+          if (resp.ok) {
+            const rows = await resp.json();
+            const nameMap = {};
+            for (const r of rows) {
+              if (r.identity_id) nameMap[r.identity_id] = r.client_display_name || r.name || null;
+            }
+            for (const c of mapped) {
+              if ((c.from || '').startsWith('client:')) {
+                const identity = c.from.replace('client:', '').split('_dev_')[0];
+                const displayName = nameMap[identity] || null;
+                c.caller_name = displayName;
+                c.contact_name = displayName;
+              }
+            }
+          }
+        }
+      }
+    } catch (lookupErr) {
+      // Non-fatal: proceed without enrichment
+      console.error('[voice/calls/recent] Supabase name lookup error:', lookupErr.message);
+    }
+
+    return res.json({ ok: true, calls: mapped, count: mapped.length });
+  } catch (err) {
+    console.error("[voice/calls/recent] error:", err.message);
+    return res.status(500).json({ ok: false, error: err.message });
+  }
 });
 
 app.get('/api/voice/calls/:sid', requireSupabaseUser, async (req, res) => {
