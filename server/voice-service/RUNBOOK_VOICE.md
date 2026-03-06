@@ -97,3 +97,48 @@ BASE_URL=https://voice.superparty.ro
 | Incoming fără semnătură              | `missing_twilio_signature` ✅    |
 | Incoming cu semnătură Twilio         | TwiML valid (Dial/Conference) ✅ |
 | `https://voice.superparty.ro/health` | `{status:"ok"}` ✅               |
+
+---
+
+## Incident 2026-03-07 #2: HTTP 403 invalid_twilio_signature
+
+### Simptom
+- Twilio Error 11200: HTTP 403 la `/api/voice/incoming`
+- Twilio Error 15003: HTTP 403 la `/api/voice/status`
+- Apelul nu intră în flow — Twilio redă mesajul audio de eroare
+
+### Root Cause
+`BASE_URL` și `PUBLIC_URL` în `.env` era setat la `http://91.98.16.90:3001` (IP intern) în loc de `https://voice.superparty.ro`.
+
+Codul validează semnătura Twilio cu URL-ul reconstruit:
+```js
+const url = getPublicBaseUrl(req) + req.originalUrl;
+const ok = twilio.validateRequest(TWILIO_TOKEN, signature, url, params);
+```
+Twilio semnează cu `https://voice.superparty.ro/api/voice/incoming` dar codul valida cu `http://91.98.16.90:3001/api/voice/incoming` → **mismatch → HTTP 403 → mesaj audio eroare**.
+
+### Fix
+```bash
+sed -i "s|BASE_URL=http://IP:PORT|BASE_URL=https://voice.superparty.ro|" /root/voice-build/.env
+sed -i "s|PUBLIC_URL=http://IP:PORT|PUBLIC_URL=https://voice.superparty.ro|" /root/voice-build/.env
+# Restart container (cu network + env-file complet)
+/root/start-voice.sh
+```
+
+### Variabile obligatorii corecte
+```
+BASE_URL=https://voice.superparty.ro     ← NU http://IP:PORT
+PUBLIC_URL=https://voice.superparty.ro   ← NU http://IP:PORT
+```
+
+### Verificare Post-Fix
+```bash
+# Test: trebuie să nu mai fie HTTP 403
+curl -v POST https://voice.superparty.ro/api/voice/incoming
+# Așteptat: missing_twilio_signature (nu 403 cu invalid_twilio_signature)
+
+# Apel Twilio real: verifică Notifications
+curl -u "$ACCT:$TOKEN" \
+  "https://api.twilio.com/2010-04-01/Accounts/$ACCT/Calls/$SID/Notifications.json"
+# Așteptat: notifications: [] (0 erori)
+```
