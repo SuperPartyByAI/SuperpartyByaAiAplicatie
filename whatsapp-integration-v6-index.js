@@ -2098,6 +2098,32 @@ app.get("/api/wa-accounts", (req, res) => {
   res.json(accounts);
 });
 
+// GET /api/accounts/:id/qr — Supabase JWT auth
+// Returns current QR string + session status for pairing screen
+app.get("/api/accounts/:id/qr", requireSupabaseAuth, async (req, res) => {
+  const docId = req.params.id;
+  try {
+    const session = sessionManager.sessions.get(docId);
+    if (!session) {
+      return res.status(404).json({ error: 'not_found', message: `Account ${docId} not found` });
+    }
+    const qr = session.qr || null;
+    const status = session.status || 'unknown';
+    console.log(`[HTTP] GET /accounts/${docId}/qr status=${status} hasQR=${!!qr} user=${req.supabaseUser?.email || '?'}`);
+    return res.json({
+      ok: true,
+      status,
+      qr,
+      hasQr: !!qr,
+      phoneNumber: session.sock?.user?.id?.split(':')[0] || null,
+      label: session.label || docId,
+    });
+  } catch (e) {
+    console.error('[GET /qr] Error:', e);
+    return res.status(500).json({ error: e.message });
+  }
+});
+
 // POST /api/accounts/:id/regenerate-qr — Supabase JWT auth
 app.post("/api/accounts/:id/regenerate-qr", requireSupabaseAuth, async (req, res) => {
   const docId = req.params.id;
