@@ -1,8 +1,33 @@
 # RELEASE CHECKLIST — Superparty Platform
 
-> Versiune: v2 — Post Enterprise Sprint (Mar 2026)
+> Versiune: v3 — PR-Only Enforcement activ (Mar 2026)
 > Scor: Voice 8.5/10 · WA 9/10 · Platforma 9/10
-> Regula de aur: **branch → PR → CI verde → pre-check → deploy script → smoke → rollback (dacă e nevoie) → monitorizare 24h**
+> **Regula de aur: `branch → PR → CI verde → merge`**
+> **Push direct pe `main` = INTERZIS și BLOCAT (enforce_admins=true)**
+
+---
+
+## 🔒 BRANCH PROTECTION — CONFIG FINALĂ ACTIVĂ
+
+| Regulă                            | Config                                  |
+| --------------------------------- | --------------------------------------- |
+| enforce_admins                    | ✅ **True** — niciun bypass, nici admin |
+| PR required before merge          | ✅ **True**                             |
+| WA Outbox Validation (7 scenarii) | ✅ Obligatoriu                          |
+| Voice Endpoints Smoke             | ✅ Obligatoriu                          |
+| JS Syntax Check                   | ✅ Obligatoriu                          |
+| Strict (up to date cu main)       | ✅ True                                 |
+| Force push                        | ❌ Blocat                               |
+| Delete branch main                | ❌ Blocat                               |
+| Linear history                    | ✅ True                                 |
+
+**Orice push direct pe `main` returnează:**
+
+```
+remote: error: GH006: Protected branch update failed for refs/heads/main.
+remote: - Changes must be made through a pull request.
+remote: - Required status checks have not run.
+```
 
 ---
 
