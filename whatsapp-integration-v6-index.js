@@ -251,13 +251,16 @@ app.use((req, res, next) => {
   next();
 });
 
-/* ========== Twilio Config (Placeholders) ========== */
-// These should ideally be in process.env, but for now we initialize here if needed or use params
-const TWILIO_SID = process.env.TWILIO_SID || "[REDACTED_TWILIO]"; 
-const TWILIO_TOKEN = process.env.TWILIO_TOKEN || "26c54dc1ded428f876ce68d8319ab9c8";
-const API_KEY_SID = process.env.TWILIO_API_KEY_SID || "[REDACTED_TWILIO]";
-const API_KEY_SECRET = process.env.TWILIO_API_KEY_SECRET || "nHgcNUxKrOkqDN7aicKvCuynGnPwJlgc";
-const TWIML_APP_SID = process.env.TWIML_APP_SID || "APfb3fc62f3ecd536f4ce49de55382cd65";
+/* ========== Twilio Config — FAIL-FAST, NO HARDCODED FALLBACKS ========== */
+const TWILIO_SID     = process.env.TWILIO_SID;
+const TWILIO_TOKEN   = process.env.TWILIO_TOKEN;
+const API_KEY_SID    = process.env.TWILIO_API_KEY_SID;
+const API_KEY_SECRET = process.env.TWILIO_API_KEY_SECRET;
+const TWIML_APP_SID  = process.env.TWIML_APP_SID;
+if (!TWILIO_SID || !TWILIO_TOKEN) {
+  console.error('[FATAL] TWILIO_SID and TWILIO_TOKEN are required — server cannot function without Twilio credentials');
+  process.exit(1);
+}
 const twilioClient = twilio(TWILIO_SID, TWILIO_TOKEN);
 
 /* ========== Twilio Webhook ========== */

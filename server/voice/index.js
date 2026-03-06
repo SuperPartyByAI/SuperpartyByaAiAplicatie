@@ -600,7 +600,8 @@ app.get('/api/voice/getVoipToken', requireSupabaseUser, async (req, res) => {
 
 app.post('/api/voice/incoming', requireTwilioSignature, async (req, res) => {
     const { From, To, CallSid } = req.body
-  if (CallSid) activeCallsMap.set(CallSid, { callSid: CallSid, from: From||'', to: To||Called||'', startedAt: Date.now() });;
+  // State durabil în Redis — single source of truth (activeCallsMap eliminat)
+  if (CallSid) await setActiveCall(CallSid, { callSid: CallSid, from: From||'', to: To||Called||'', startedAt: Date.now() });
     console.log(`[PBX Twilio] Incoming Call Webhook Fired. From: ${From}, To: ${To}, CallSid: ${CallSid}`);
     const twiml = new twilio.twiml.VoiceResponse();
   
