@@ -68,6 +68,15 @@ function canonicalJid(jid) {
   return jid.replace('@lid', '@s.whatsapp.net');
 }
 
+// ── Account label cache (per-process, refreshed on miss) ─────
+const _labelCache = {};
+async function getAccountLabel(accountId) {
+  if (_labelCache[accountId]) return _labelCache[accountId];
+  const { data } = await sb.from('wa_accounts').select('label').eq('id', accountId).single();
+  _labelCache[accountId] = data?.label || accountId;
+  return _labelCache[accountId];
+}
+
 // ── Upsert message to Supabase ────────────────────────────
 async function upsertMessage(accountId, msg) {
   const jid        = canonicalJid(msg.key?.remoteJid || '');
@@ -76,14 +85,20 @@ async function upsertMessage(accountId, msg) {
   const ts         = msg.messageTimestamp ? Number(msg.messageTimestamp) : Math.floor(Date.now() / 1000);
   const text       = extractText(msg);
   const direction  = fromMe ? 'out' : 'in';
+  const isMedia    = hasMedia(msg);
+  const accountLabel = await getAccountLabel(accountId);
 
-  // 1) Ensure conversation exists
+  // 1) Ensure conversation exists — write all fields Flutter ChatListScreen needs
   const convId = `${accountId}_${jid}`;
+  const lastPreview = text ? text.slice(0, 100) : (isMedia ? '[Media]' : '');
   await sb.from('conversations').upsert({
-    id: convId,
-    account_id: accountId,
+    id:                   convId,
+    account_id:           accountId,
+    account_label:        accountLabel,
     jid,
-    updated_at: new Date(ts * 1000).toISOString(),
+    last_message_at:      ts,
+    last_message_preview: lastPreview,
+    updated_at:           new Date(ts * 1000).toISOString(),
   }, { onConflict: 'id', ignoreDuplicates: false });
 
   // 2) Upsert message (id is PK without default — use deterministic UUID from messageId)
@@ -94,12 +109,12 @@ async function upsertMessage(accountId, msg) {
     conversation_id: convId,
     direction,
     text,
-    type:            'text',
+    type:            isMedia ? 'media' : 'text',
     from_me:         fromMe,
     push_name:       msg.pushName || null,
     timestamp:       ts,
     ts,
-    status:          'received',
+    status:          fromMe ? 'sent' : 'received',
     created_at:      new Date(ts * 1000).toISOString(),
   }, { onConflict: 'account_id,message_id', ignoreDuplicates: true });
 
