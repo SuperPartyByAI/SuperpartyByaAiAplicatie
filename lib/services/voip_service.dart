@@ -1,4 +1,5 @@
 // Push notifications handled by Twilio SDK via FCM
+import 'dart:async';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_callkit_incoming/flutter_callkit_incoming.dart';
 import 'package:flutter/material.dart';
@@ -288,8 +289,8 @@ class VoipService {
 
     // 1. Cancel Flutter local notification
     try {
-      await _notif.cancel(0);
-      debugPrint('[VoIP Cleanup] ✅ _notif.cancel(0)');
+      await _notif.cancel(id: 0);
+      debugPrint('[VoIP Cleanup] ✅ _notif.cancel(id: 0)');
     } catch (e) {
       debugPrint('[VoIP Cleanup] _notif.cancel error (non-fatal): $e');
     }
@@ -407,7 +408,7 @@ class VoipService {
         await clearStaleStartupRinging();
         await FlutterCallkitIncoming.endAllCalls();
         // Also cancel any lingering local notification
-        await _notif.cancel(0);
+        await _notif.cancel(id: 0);
         debugPrint('[VoIP] 🧹 Cleared stale CallKit calls + local notification + ring prefs');
       }
     } catch (e) {
@@ -540,10 +541,14 @@ class VoipService {
 
           case CallEvent.callEnded:
           case CallEvent.declined:
-            final endedSid = TwilioVoice.instance.call.activeCall?.callSid;
-            debugPrint('[VoIP] 📴 Call ended/declined sid=$endedSid — full cleanup');
-            // Full cleanup: notif + CallKit + prefs + flags + nav
-            await VoipService.clearStaleIncomingUi(callSid: endedSid);
+            // ActiveCall has no callSid field — read SID from SharedPreferences
+            // Use unawaited to avoid 'await in non-async method' error in switch
+            unawaited(Future.sync(() async {
+              final endedPrefs = await SharedPreferences.getInstance();
+              final endedSid = endedPrefs.getString('last_incoming_call_sid');
+              debugPrint('[VoIP] 📴 Call ended/declined sid=$endedSid — full cleanup');
+              await VoipService.clearStaleIncomingUi(callSid: endedSid);
+            }));
             break;
 
           case CallEvent.ringing:
