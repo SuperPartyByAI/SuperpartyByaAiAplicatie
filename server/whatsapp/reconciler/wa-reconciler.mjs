@@ -18,6 +18,7 @@ import { fileURLToPath } from 'url';
 })();
 
 import { Queue } from 'bullmq';
+import createRedis from 'ioredis';
 import { createClient } from '@supabase/supabase-js';
 
 const REDIS = { host: process.env.REDIS_HOST || '127.0.0.1', port: 6379, maxRetriesPerRequest: null };
@@ -68,7 +69,6 @@ async function run() {
 
   // 4) Redis AOF health
   try {
-    // fixed below('ioredis');
     const redis = new createRedis(REDIS);
     const info = await redis.info('persistence');
     const aofEnabled = /aof_enabled:1/.test(info);
