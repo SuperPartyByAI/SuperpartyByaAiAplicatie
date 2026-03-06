@@ -1,0 +1,56 @@
+{
+  "apps": [
+    {
+      "name": "whatsapp-integration-v6",
+      "script": "/root/whatsapp-integration-v6/whatsapp-integration-v6-index.js",
+      "cwd": "/root/whatsapp-integration-v6",
+      "interpreter": "node",
+      "instances": 1,
+      "max_memory_restart": "512M",
+      "env": {
+        "NODE_ENV": "production",
+        "PORT": "3001"
+      },
+      "env_file": "/root/whatsapp-integration-v6/.env",
+      "restart_delay": 3000,
+      "max_restarts": 10,
+      "log_date_format": "YYYY-MM-DD HH:mm:ss Z",
+      "error_file": "/root/.pm2/logs/whatsapp-integration-v6-error.log",
+      "out_file": "/root/.pm2/logs/whatsapp-integration-v6-out.log"
+    },
+    {
+      "name": "wa-outbox-worker",
+      "script": "/root/whatsapp-integration-v6/server/whatsapp/workers/wa-outbox-worker.mjs",
+      "cwd": "/root/whatsapp-integration-v6",
+      "interpreter": "node",
+      "instances": 1,
+      "max_memory_restart": "256M",
+      "env": {
+        "NODE_ENV": "production"
+      },
+      "env_file": "/root/whatsapp-integration-v6/.env",
+      "restart_delay": 5000,
+      "max_restarts": 10,
+      "log_date_format": "YYYY-MM-DD HH:mm:ss Z",
+      "error_file": "/root/.pm2/logs/wa-outbox-worker-error.log",
+      "out_file": "/root/.pm2/logs/wa-outbox-worker-out.log"
+    },
+    {
+      "name": "wa-reconciler",
+      "script": "/root/whatsapp-integration-v6/wa-reconciler.mjs",
+      "cwd": "/root/whatsapp-integration-v6",
+      "interpreter": "node",
+      "instances": 1,
+      "max_memory_restart": "128M",
+      "env": {
+        "NODE_ENV": "production"
+      },
+      "env_file": "/root/whatsapp-integration-v6/.env",
+      "restart_delay": 5000,
+      "max_restarts": 10,
+      "log_date_format": "YYYY-MM-DD HH:mm:ss Z",
+      "error_file": "/root/.pm2/logs/wa-reconciler-error.log",
+      "out_file": "/root/.pm2/logs/wa-reconciler-out.log"
+    }
+  ]
+}
