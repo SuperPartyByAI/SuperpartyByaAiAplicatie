@@ -11,6 +11,7 @@ import jwt from "jsonwebtoken";
 import { GoogleAuth } from "google-auth-library";
 import pino from "pino";
 import promClient from 'prom-client';
+import Redis from 'ioredis';
 
 // Supabase Adapter
 import { supabase, db } from './supabase-sync.mjs';
@@ -97,6 +98,54 @@ function requireTwilioSignature(req, res, next) {
     return res.status(403).send('twilio_signature_error');
   }
 }
+// ── PROMETHEUS METRICS ──────────────────────────────────────────────────────
+const promRegistry = new promClient.Registry();
+promClient.collectDefaultMetrics({ register: promRegistry });
+
+const mActiveCallsCount = new promClient.Gauge({
+  name: 'voice_active_calls_count',
+  help: 'Number of currently active calls (from Redis ZSET)',
+  registers: [promRegistry],
+});
+const mSnapshotSentTotal = new promClient.Counter({
+  name: 'voice_ws_snapshot_sent_total',
+  help: 'Total active-calls-snapshots sent to WS clients',
+  registers: [promRegistry],
+});
+const mReconcileReqTotal = new promClient.Counter({
+  name: 'voice_reconcile_requests_total',
+  help: 'Total GET /api/voice/active-calls reconcile requests',
+  registers: [promRegistry],
+});
+const mWsClients = new promClient.Gauge({
+  name: 'voice_ws_connected_clients',
+  help: 'Currently connected WebSocket clients',
+  registers: [promRegistry],
+});
+const mCallEndedTotal = new promClient.Counter({
+  name: 'voice_call_ended_events_total',
+  help: 'Total call_ended events processed',
+  registers: [promRegistry],
+});
+const mFcmUnregisteredTotal = new promClient.Counter({
+  name: 'voice_fcm_unregistered_total',
+  help: 'Total FCM UNREGISTERED token cleanups',
+  registers: [promRegistry],
+});
+
+// Update ws_connected_clients gauge every 15s
+setInterval(() => {
+  try { mWsClients.set(wss?.clients?.size || 0); } catch (_) {}
+}, 15000);
+
+// Update active_calls_count gauge every 30s
+setInterval(async () => {
+  try {
+    const calls = await getActiveCalls();
+    mActiveCallsCount.set(calls.length);
+  } catch (_) {}
+}, 30000);
+
 // Logger
 const logger = pino({
   level: process.env.LOG_LEVEL || 'info',
@@ -106,7 +155,71 @@ const logger = pino({
 // VoIP Client Registry
 const registeredVoipClients = new Map();
 const pushAckMap = new Map();
-const wave2Map = new Map(); // callSid -> wave2 client objects (for cancel on winner)
+const wave2Map = new Map();
+// ── REDIS-BACKED ACTIVE CALL STORE ──────────────────────────────────────────
+// Replaces in-memory activeCallsMap. Survives container restart.
+// Keys: active_call:<callSid>  TTL: 10 minutes
+const REDIS_URL = process.env.REDIS_URL || 'redis://127.0.0.1:6379';
+const CALL_TTL_SEC = 600; // 10 min
+const redis = new Redis(REDIS_URL, { lazyConnect: true, maxRetriesPerRequest: 3 });
+redis.on('error', (e) => console.warn('[Redis] Error:', e.message));
+redis.connect()
+  .then(() => console.log('[Redis] Connected to', REDIS_URL))
+  .catch(e => console.error('[Redis] Connect failed:', e.message));
+
+// ZSET index tracks active CallSids — O(log N), safe at scale
+const ACTIVE_IDX = 'active_calls_idx'; // sorted set: score=startedAt, member=callSid
+
+async function setActiveCall(callSid, data) {
+  try {
+    const payload = { ...data, startedAt: Date.now() };
+    await redis.setex(`active_call:${callSid}`, CALL_TTL_SEC, JSON.stringify(payload));
+    // Add to index with score = startedAt (for range queries + cleanup)
+    await redis.zadd(ACTIVE_IDX, Date.now(), callSid);
+    // Expire index member via sorted set — prune entries older than TTL
+  } catch (e) { console.warn('[Redis] setActiveCall failed:', e.message); }
+}
+
+async function deleteActiveCall(callSid) {
+  try {
+    await redis.del(`active_call:${callSid}`);
+    await redis.zrem(ACTIVE_IDX, callSid);      // Remove from index
+  } catch (e) { console.warn('[Redis] deleteActiveCall failed:', e.message); }
+}
+
+async function getActiveCalls() {
+  try {
+    // Prune stale index entries (calls older than TTL)
+    const staleBeforeMs = Date.now() - CALL_TTL_SEC * 1000;
+    await redis.zremrangebyscore(ACTIVE_IDX, '-inf', staleBeforeMs);
+    // Fetch all current callSids from index
+    const sids = await redis.zrange(ACTIVE_IDX, 0, -1);
+    if (!sids.length) return [];
+    const values = await redis.mget(...sids.map(sid => `active_call:${sid}`));
+    return values.filter(Boolean).map(v => { try { return JSON.parse(v); } catch { return null; } }).filter(Boolean);
+  } catch (e) { console.warn('[Redis] getActiveCalls failed:', e.message); return []; }
+}
+
+
+// ── ZSET Prune Cron (5 min) — removes orphaned ACTIVE_IDX members ─────────────
+// Gap closed: if a call ends abnormally (crash/network), ZREM may not run,
+// leaving orphaned members in ACTIVE_IDX after active_call:* key TTL expires.
+async function pruneStaleZsetMembers() {
+  try {
+    const sids = await redis.zrange(ACTIVE_IDX, 0, -1);
+    if (!sids.length) return;
+    const values = await redis.mget(...sids.map(sid => `active_call:${sid}`));
+    const orphans = sids.filter((_, i) => values[i] === null);
+    if (orphans.length > 0) {
+      await redis.zrem(ACTIVE_IDX, ...orphans);
+      console.log(`[Redis] Prune: removed ${orphans.length} orphaned ZSET members:`, orphans);
+    }
+    // Belt+suspenders: score-based TTL prune
+    await redis.zremrangebyscore(ACTIVE_IDX, '-inf', Date.now() - CALL_TTL_SEC * 1000);
+  } catch (e) { console.warn('[Redis] pruneStaleZsetMembers error:', e.message); }
+}
+setInterval(pruneStaleZsetMembers, 5 * 60 * 1000);
+// ─────────────────────────────────────────────────────────────────────────────
 
 // --- FCM UNREGISTERED token cleanup ---
 async function markFcmTokenUnregistered(identity, deviceToken) {
@@ -118,6 +231,7 @@ async function markFcmTokenUnregistered(identity, deviceToken) {
         .eq('device_identity', identity);
       const info = registeredVoipClients.get(identity);
       if (info) { info.fcmToken = 'WS_ONLY'; registeredVoipClients.set(identity, info); }
+      mFcmUnregisteredTotal.inc();
       console.log(`[FCM] Marked UNREGISTERED → WS_ONLY for identity=${identity}`);
       return;
     }
@@ -249,6 +363,13 @@ app.get('/api/auth/get-ws-token', requireSupabaseUser, (req, res) => {
 });
 
 // Health Check
+app.get('/metrics', async (req, res) => {
+  try {
+    res.set('Content-Type', promRegistry.contentType);
+    res.end(await promRegistry.metrics());
+  } catch (e) { res.status(500).end(e.message); }
+});
+
 app.get('/health', (req, res) => {
   res.status(200).json({ status: "ok", service: "voice-service" });
 });
@@ -315,6 +436,17 @@ server.on('upgrade', (request, socket, head) => {
         });
         console.log(`[WS UPGRADE] Emitting wss connection event for custom handlers.`);
         wss.emit('connection', ws, request);
+        // Snapshot: send active calls to this client immediately on connect
+        try {
+          // Load from Redis (durable source of truth)
+          getActiveCalls().then(snap => {
+            try {
+              ws.send(JSON.stringify({ type: 'active-calls-snapshot', activeCalls: snap }));
+              mSnapshotSentTotal.inc();
+              console.log(`[WS] Snapshot sent to ${identity}: ${snap.length} active calls (Redis)`);
+            } catch(e) {}
+          }).catch(() => {});
+        } catch(e) {}
       });
     } else {
       console.error(`[WS UPGRADE] URL '${request.url}' did NOT match '/voip-ws'! Destroying socket.`);
@@ -467,7 +599,9 @@ app.get('/api/voice/getVoipToken', requireSupabaseUser, async (req, res) => {
 });
 
 app.post('/api/voice/incoming', requireTwilioSignature, async (req, res) => {
-    const { From, To, CallSid } = req.body;
+    const { From, To, CallSid } = req.body
+  // State durabil în Redis — single source of truth (activeCallsMap eliminat)
+  if (CallSid) await setActiveCall(CallSid, { callSid: CallSid, from: From||'', to: To||Called||'', startedAt: Date.now() });
     console.log(`[PBX Twilio] Incoming Call Webhook Fired. From: ${From}, To: ${To}, CallSid: ${CallSid}`);
     const twiml = new twilio.twiml.VoiceResponse();
   
@@ -833,13 +967,24 @@ app.post('/api/voice/status', requireTwilioSignature, async (req, res) => {
     console.log('[PBX Twilio] Master Call Status Webhook:', req.body);
     const { CallSid, CallStatus } = req.body;
     if (['completed', 'failed', 'busy', 'no-answer', 'canceled'].includes(CallStatus)) {
-        console.log(`[PBX Twilio] Call ${CallSid} ended with status ${CallStatus}. Waking WebSocket clients to clear UI.`);
+        deleteActiveCall(CallSid).catch(()=>{}); // Remove from Redis + ZSET index
+        mCallEndedTotal.inc();
+        console.log(`[PBX Twilio] Call ${CallSid} ended with status ${CallStatus}. Clearing Redis + notifying WS.`);
         const payload = { type: 'call_ended', callSid: CallSid };
         wss.clients.forEach((client) => {
             if (client.readyState === 1) client.send(JSON.stringify(payload));
         });
     }
     res.sendStatus(200);
+});
+
+app.get('/api/voice/active-calls', requireSupabaseUser, async (req, res) => {
+  mReconcileReqTotal.inc();
+  try {
+    const calls = await getActiveCalls();
+    mActiveCallsCount.set(calls.length);
+    res.json({ activeCalls: calls });
+  } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
 app.post('/api/voice/cancel', requireSupabaseUser, async (req, res) => {
