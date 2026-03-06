@@ -1,0 +1,110 @@
+/**
+ * wa-outbox-api.mjs — Outbox HTTP endpoints for WhatsApp server
+ * Mount in whatsapp-integration-v6-index.js:
+ *   import { registerOutboxRoutes } from './server/whatsapp/workers/wa-outbox-api.mjs';
+ *   registerOutboxRoutes(app, supabase);
+ *
+ * Endpoints added:
+ *   POST /api/wa/send          — enqueue outbound message (idempotent)
+ *   GET  /debug/outbox/dlq     — list dead messages
+ *   POST /debug/outbox/replay  — re-queue dead message by id
+ *   GET  /debug/outbox/stats   — queue depth by status
+ */
+
+export function registerOutboxRoutes(app, supabase, requireAuth) {
+
+  // ── POST /api/wa/send ─────────────────────────────────────────────────────
+  // Enqueue a WhatsApp outbound message into outbox_messages (idempotent).
+  // Body: { accountId, to, type, text?, mediaUrl?, caption?, idempotencyKey? }
+  app.post('/api/wa/send', requireAuth, async (req, res) => {
+    try {
+      const { accountId, to, type = 'text', idempotencyKey, ...payload } = req.body;
+      if (!accountId || !to) {
+        return res.status(400).json({ ok: false, error: 'accountId and to are required' });
+      }
+
+      // Normalize JID
+      const toJid = to.includes('@') ? to : `${to.replace(/\D/g, '')}@s.whatsapp.net`;
+
+      // Generate idempotency key if not provided (account:to:timestamp bucket 5min)
+      const iKey = idempotencyKey || `${accountId}:${toJid}:${Math.floor(Date.now() / 300000)}`;
+
+      const { data: msgId, error } = await supabase.rpc('enqueue_outbox_message', {
+        p_idempotency_key: iKey,
+        p_account_id:      accountId,
+        p_to_jid:          toJid,
+        p_message_type:    type,
+        p_payload:         payload,
+      });
+
+      if (error) return res.status(500).json({ ok: false, error: error.message });
+      if (!msgId) return res.json({ ok: true, dedupe: true, message: 'Message already queued (idempotent)' });
+
+      res.json({ ok: true, messageId: msgId, status: 'queued' });
+    } catch (e) {
+      console.error('[OutboxAPI] /api/wa/send error:', e.message);
+      res.status(500).json({ ok: false, error: e.message });
+    }
+  });
+
+  // ── GET /debug/outbox/stats ───────────────────────────────────────────────
+  app.get('/debug/outbox/stats', requireAuth, async (req, res) => {
+    try {
+      const { data, error } = await supabase
+        .from('outbox_messages')
+        .select('status')
+        .then(({ data, error }) => {
+          if (error) return { data: null, error };
+          const counts = {};
+          for (const row of (data || [])) { counts[row.status] = (counts[row.status] || 0) + 1; }
+          return { data: counts, error: null };
+        });
+      if (error) return res.status(500).json({ ok: false, error: error.message });
+      res.json({ ok: true, stats: data });
+    } catch (e) {
+      res.status(500).json({ ok: false, error: e.message });
+    }
+  });
+
+  // ── GET /debug/outbox/dlq ────────────────────────────────────────────────
+  app.get('/debug/outbox/dlq', requireAuth, async (req, res) => {
+    try {
+      const limit = Math.min(parseInt(req.query.limit || '50'), 200);
+      const { data, error } = await supabase
+        .from('outbox_messages')
+        .select('id, account_id, to_jid, message_type, status, attempts, error_message, created_at, failed_at')
+        .eq('status', 'dead')
+        .order('failed_at', { ascending: false })
+        .limit(limit);
+      if (error) return res.status(500).json({ ok: false, error: error.message });
+      res.json({ ok: true, dead: data || [], count: (data || []).length });
+    } catch (e) {
+      res.status(500).json({ ok: false, error: e.message });
+    }
+  });
+
+  // ── POST /debug/outbox/replay ─────────────────────────────────────────────
+  // Re-queue a dead message (reset to queued + clear error + reset attempts)
+  app.post('/debug/outbox/replay', requireAuth, async (req, res) => {
+    try {
+      const { id } = req.body;
+      if (!id) return res.status(400).json({ ok: false, error: 'id required' });
+      const { data, error } = await supabase
+        .from('outbox_messages')
+        .update({
+          status: 'queued',
+          attempts: 0,
+          error_message: null,
+          next_retry_at: new Date().toISOString(),
+        })
+        .eq('id', id)
+        .eq('status', 'dead')   // safety: only replay dead
+        .select('id, status');
+      if (error) return res.status(500).json({ ok: false, error: error.message });
+      if (!data || data.length === 0) return res.status(404).json({ ok: false, error: 'Message not found or not in dead status' });
+      res.json({ ok: true, replayed: data[0] });
+    } catch (e) {
+      res.status(500).json({ ok: false, error: e.message });
+    }
+  });
+}
