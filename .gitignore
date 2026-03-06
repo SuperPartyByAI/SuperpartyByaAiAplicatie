@@ -194,3 +194,8 @@ gpt-firebase-key.json
 !server/**/*.md
 !.github/**/*.md
 !CONTRIBUTING.md
+
+# Recovery/backup dirs cu date sensibile
+server/_recovery*/
+server/recovery*/
+upload_certificate.pem
