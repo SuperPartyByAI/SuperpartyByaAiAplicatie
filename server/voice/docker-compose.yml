@@ -1,8 +1,8 @@
 version: '3.8'
 
-# Superparty Voice Stack
-# Deploy: docker compose up -d
-# Requires: .env.voice file with all secrets
+# Superparty Voice Stack — build direct din repo server/voice/
+# Deploy v3: GIT_SHA=$(git rev-parse --short HEAD) docker compose build && docker compose up -d
+# Rulează din /root/voice-repo cu .env la rădăcină
 
 services:
   redis:
@@ -13,19 +13,31 @@ services:
       - superparty-network
     volumes:
       - redis-data:/data
-    command: redis-server --appendonly yes --maxmemory 64mb --maxmemory-policy allkeys-lru
+    command: >
+      redis-server
+        --appendonly yes
+        --appendfsync everysec
+        --save 60 1
+        --save 300 10
+        --maxmemory 128mb
+        --maxmemory-policy allkeys-lru
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
       timeout: 5s
       retries: 3
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "20m"
+        max-file: "3"
 
   voice:
-    image: voice-service-redis:latest
-    container_name: superparty-voice
     build:
       context: .
       dockerfile: Dockerfile
+    image: superparty-voice:${GIT_SHA:-latest}
+    container_name: superparty-voice
     restart: unless-stopped
     networks:
       - superparty-network
@@ -34,16 +46,23 @@ services:
     environment:
       - REDIS_URL=redis://superparty-redis:6379
       - PORT=3001
+      - NODE_ENV=production
     env_file:
-      - .env.voice   # Contains TWILIO_*, SUPABASE_*, JWT_SECRET — NOT committed
+      - .env          # .env la rădăcina voice-repo (standardizat, nu .env.voice)
     depends_on:
       redis:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:3001/health"]
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3001/health',r=>{let d='';r.on('data',c=>d+=c);r.on('end',()=>{JSON.parse(d).status==='ok'?process.exit(0):process.exit(1)})}).on('error',()=>process.exit(1))"]
       interval: 30s
       timeout: 10s
       retries: 3
+      start_period: 15s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
 
 networks:
   superparty-network:

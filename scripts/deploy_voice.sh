@@ -1,57 +1,63 @@
 #!/usr/bin/env bash
-# deploy_voice.sh v2 — Deploy Voice din git (fără scp), pe VPS 91.98.16.90
-# v2: folosește git sparse-checkout pe VPS, nu scp manual
+# deploy_voice.sh v3 — Deploy Voice din git + Docker build (fără copiere intermediară)
+# v3: Docker build direct din /root/voice-repo/server/voice/ (contextul repo git)
+#     Elimina pasul: copiere index.js → /root/voice-build/
 # Rulare: bash scripts/deploy_voice.sh [SHA_optional]
 set -euo pipefail
 
 VOICE_VPS="root@91.98.16.90"
 VOICE_KEY="${SSH_KEY:-$HOME/.ssh/antigravity_new}"
 VOICE_REPO_DIR="/root/voice-repo"
-VOICE_BUILD_DIR="/root/voice-build"
 SHA="${1:-origin/main}"
 
-echo "▶ [Voice Deploy v2] SHA=$SHA → $VOICE_VPS (git, fără scp)"
+echo "▶ [Voice Deploy v3] SHA=$SHA → $VOICE_VPS (Docker build din git, fără copiere)"
 
 ssh -i "$VOICE_KEY" "$VOICE_VPS" bash << ENDSSH
 set -euo pipefail
 cd $VOICE_REPO_DIR
 
-# Fetch + checkout din git
+# 1. Fetch + checkout cod nou din git
+echo "▶ Git checkout server/voice/ @ $SHA"
 git fetch origin main --depth=1
 git checkout -f $SHA -- server/voice/
 
-echo "✅ Checked out din git: server/voice/"
+echo "✅ Git checkout done"
 
-# Verify critical patches
-grep -q "pruneStaleZsetMembers" server/voice/index.js && echo "✅ ZSET prune cron" || { echo "❌ ZSET prune MISSING"; exit 1; }
-grep -q "setActiveCall" server/voice/index.js && echo "✅ setActiveCall Redis" || { echo "❌ Redis call MISSING"; exit 1; }
-grep -q "activeCallsMap.set" server/voice/index.js && { echo "❌ activeCallsMap.set stale FOUND — abort"; exit 1; } || echo "✅ no activeCallsMap.set residue"
+# 2. Verify patches critice
+grep -q "pruneStaleZsetMembers" server/voice/index.js && echo "✅ ZSET prune cron" || { echo "❌ MISSING prune"; exit 1; }
+grep -q "setActiveCall" server/voice/index.js && echo "✅ setActiveCall Redis" || { echo "❌ MISSING Redis state"; exit 1; }
+grep -q "activeCallsMap.set" server/voice/index.js && { echo "❌ activeCallsMap.set stale — abort"; exit 1; } || echo "✅ no activeCallsMap.set residue"
+grep -q "process.env.TWILIO_TOKEN" server/voice/index.js && echo "✅ TWILIO_TOKEN fara fallback" || echo "⚠️ check TWILIO_TOKEN"
 
-# Copie în build dir (Docker le ia de aici)
-cp server/voice/index.js $VOICE_BUILD_DIR/index.js
-echo "✅ index.js copiat în $VOICE_BUILD_DIR"
+# 3. Copiaza .env in contextul de build (docker-compose il citeste)
+[ -f /root/voice-build/.env ] && cp /root/voice-build/.env server/voice/.env || \
+  [ -f server/voice/.env ] && echo "✅ .env existent" || { echo "❌ .env MISSING in voice-repo"; exit 1; }
 
-# Restart container Docker
-CONTAINER=\$(docker ps -q 2>/dev/null | head -1)
-if [ -n "\$CONTAINER" ]; then
-  docker restart \$CONTAINER
-  echo "✅ Docker container restarted: \$CONTAINER"
-else
-  echo "⚠️  No Docker container found — start manual"
-fi
+# 4. Docker build din repo (nu din voice-build)
+cd server/voice
+GIT_SHA=\$(git -C /root/voice-repo rev-parse --short HEAD)
+export GIT_SHA
+echo "▶ Docker build image superparty-voice:\$GIT_SHA..."
+docker compose build voice
+echo "✅ Docker image built: superparty-voice:\$GIT_SHA"
 
-sleep 5
+# 5. Restart cu noul image
+docker compose up -d voice --force-recreate
+echo "✅ Voice container up cu image nou"
 
-# Post-deploy smoke
+sleep 8
+
+# 6. Post-deploy smoke
 echo ""
 echo "🔍 Post-deploy smoke..."
 HEALTH=\$(curl -sf --max-time 5 http://localhost:3001/health 2>/dev/null || echo "FAIL")
 echo "Health: \$HEALTH"
-echo "[\$HEALTH]" | grep -q '"ok"' && echo "✅ Voice healthy" || { echo "❌ Health fail"; exit 1; }
+echo "\$HEALTH" | python3 -c "import sys,json;s=json.load(sys.stdin);exit(0 if s.get('status')=='ok' else 1)" \
+  && echo "✅ Voice healthy — commit \$GIT_SHA live" \
+  || { echo "❌ Health fail"; docker compose logs voice --tail=20; exit 1; }
 
 echo ""
-echo "✅ Voice deploy v2 complete — din git, fără scp"
-echo "Commit: \$(git rev-parse --short origin/main)"
+echo "✅ Voice deploy v3 done — docker built din git, fără copiere intermediară"
 ENDSSH
 
-echo "▶ [Voice Deploy v2] Done"
+echo "▶ [Voice Deploy v3] Done"
