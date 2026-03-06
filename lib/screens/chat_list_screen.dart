@@ -226,6 +226,32 @@ class _ChatListScreenState extends State<ChatListScreen> {
     );
   }
 
+  // ── Identity helpers ───────────────────────────────────────
+  String? _nonEmpty(dynamic v) {
+    final s = v?.toString().trim();
+    return (s != null && s.isNotEmpty) ? s : null;
+  }
+
+  String? _inferFromJid(String? jid) {
+    if (jid == null || jid.isEmpty) return null;
+    final local = jid.split('@').first;
+    // Only return if looks like a phone number (digits only)
+    if (RegExp(r'^\d{7,15}$').hasMatch(local)) return local;
+    return null;
+  }
+
+  String _resolveDisplayName(Map<String, dynamic> row) {
+    return _nonEmpty(row['client_display_name'])
+      ?? _nonEmpty(row['phone_e164'])
+      ?? _inferFromJid(row['jid']?.toString())
+      ?? '[Identitate nerezolvată]';
+  }
+
+  bool _isIdentityPartial(Map<String, dynamic> row) {
+    final s = row['identity_resolution_status']?.toString();
+    return s == 'partial' || s == 'unresolved';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -265,12 +291,8 @@ class _ChatListScreenState extends State<ChatListScreen> {
           }
 
           final row = _conversations[index];
-
-          // NEVER show phone in the list. Use client_display_name exclusively
-          final displayName = row['client_display_name'] ?? 'Client N/A';
-          if (displayName.toString().contains('@') && !displayName.toString().contains(' ')) {
-            // just to be safe if a JID leaked
-          }
+          final displayName = _resolveDisplayName(row);
+          final isPartial = _isIdentityPartial(row);
 
           // dynamic
           final ts = row['last_message_at'];
@@ -291,18 +313,26 @@ class _ChatListScreenState extends State<ChatListScreen> {
               onTap: () => _onAvatarTap(context, row),
               child: CircleAvatar(
                 backgroundColor: Colors.grey,
-                backgroundImage: photoUrl.isNotEmpty 
-                    ? ResizeImage(NetworkImage(photoUrl), width: 100, height: 100) 
+                backgroundImage: photoUrl.isNotEmpty
+                    ? ResizeImage(NetworkImage(photoUrl), width: 100, height: 100)
                     : null,
                 child: photoUrl.isEmpty ? const Icon(Icons.person, color: Colors.white) : null,
               ),
             ),
             title: Row(
               children: [
-                Expanded(child: Text(displayName.toString(), overflow: TextOverflow.ellipsis)),
+                Expanded(child: Text(displayName, overflow: TextOverflow.ellipsis)),
+                if (isPartial)
+                  const Padding(
+                    padding: EdgeInsets.only(left: 4),
+                    child: Tooltip(
+                      message: 'Identitate nerezolvată',
+                      child: Icon(Icons.warning_amber_rounded, size: 14, color: Colors.orange),
+                    ),
+                  ),
                 if (accountLabel.isNotEmpty)
                   Container(
-                    margin: const EdgeInsets.only(left: 8),
+                    margin: const EdgeInsets.only(left: 6),
                     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                     decoration: BoxDecoration(
                       color: Colors.blue.withOpacity(0.1),
@@ -332,7 +362,7 @@ class _ChatListScreenState extends State<ChatListScreen> {
                 MaterialPageRoute(
                   builder: (_) => ChatDetailScreen(
                     conversationId: row['id'] ?? '',
-                    name: displayName.toString(),
+                    name: displayName,
                   ),
                 ),
               );

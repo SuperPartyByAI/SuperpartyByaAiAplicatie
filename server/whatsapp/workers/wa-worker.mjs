@@ -26,6 +26,7 @@ import { fileURLToPath } from 'url';
 
 import { createClient } from '@supabase/supabase-js';
 import { randomUUID } from 'crypto';
+import { resolveOrCreateIdentity } from '../lib/identity-resolver.mjs';
 
 const SUPABASE_URL = process.env.SUPABASE_URL || '';
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY || '';
@@ -79,16 +80,23 @@ async function getAccountLabel(accountId) {
 
 // ── Upsert message to Supabase ────────────────────────────
 async function upsertMessage(accountId, msg) {
-  const jid        = canonicalJid(msg.key?.remoteJid || '');
-  const messageId  = msg.key?.id || '';
-  const fromMe     = msg.key?.fromMe || false;
-  const ts         = msg.messageTimestamp ? Number(msg.messageTimestamp) : Math.floor(Date.now() / 1000);
-  const text       = extractText(msg);
-  const direction  = fromMe ? 'out' : 'in';
-  const isMedia    = hasMedia(msg);
+  // 1) Resolve canonical identity (idempotent)
+  const jidRaw   = msg.key?.remoteJid || '';
+  const jid      = canonicalJid(jidRaw) || jidRaw;
+  const messageId    = msg.key?.id || '';
+  const fromMe       = msg.key?.fromMe || false;
+  const ts           = msg.messageTimestamp ? Number(msg.messageTimestamp) : Math.floor(Date.now() / 1000);
+  const text         = extractText(msg);
+  const direction    = fromMe ? 'out' : 'in';
+  const isMedia      = hasMedia(msg);
   const accountLabel = await getAccountLabel(accountId);
 
-  // 1) Ensure conversation exists — write all fields Flutter ChatListScreen needs
+  const identity = await resolveOrCreateIdentity(sb, accountId, jidRaw, msg.pushName || null).catch(e => {
+    console.error('[WA-Worker] identity resolve failed:', e.message);
+    return { identityId: null, phone_e164: null, displayName: msg.pushName || jidRaw.split('@')[0], resolution_status: 'unresolved' };
+  });
+
+  // 2) Ensure conversation exists — write all fields Flutter ChatListScreen needs
   const convId = `${accountId}_${jid}`;
   const lastPreview = text ? text.slice(0, 100) : (isMedia ? '[Media]' : '');
   await sb.from('conversations').upsert({
@@ -96,12 +104,15 @@ async function upsertMessage(accountId, msg) {
     account_id:           accountId,
     account_label:        accountLabel,
     jid,
+    identity_id:          identity.identityId,
+    client_display_name:  identity.displayName || null,
+    phone:                identity.phone_e164 || null,
     last_message_at:      ts,
     last_message_preview: lastPreview,
     updated_at:           new Date(ts * 1000).toISOString(),
   }, { onConflict: 'id', ignoreDuplicates: false });
 
-  // 2) Upsert message (id is PK without default — use deterministic UUID from messageId)
+  // 3) Upsert message
   const { error } = await sb.from('messages').upsert({
     id:              randomUUID(),  // required PK — will be ignored on conflict
     account_id:      accountId,
