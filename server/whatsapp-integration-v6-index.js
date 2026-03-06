@@ -585,3 +585,40 @@ app.use(express.urlencoded({ extended: true }));
 
 // ─── FCM FALLBACK: LEGACY ENDPOINTS RESTORED ──────────────────────────────
 // Enhanced /api/voice/accept with robust logging, validation, and distributed Redlock
+
+/* ========== Health + Metrics ========== */
+
+// GET /health — unauthenticated, for uptime monitors and smoke tests
+app.get('/health', (req, res) => {
+  const sessionCount = sessionManager?.sessions?.size ?? 0;
+  res.json({
+    status: 'ok',
+    service: 'superparty-backend',
+    uptime: Math.round(process.uptime()),
+    sessions: sessionCount,
+    ts: new Date().toISOString(),
+  });
+});
+
+// GET /metrics — Prometheus scrape, admin-token protected
+app.get('/metrics', requireAdminToken, async (req, res) => {
+  try {
+    const metrics = await metricsRegistry.metrics();
+    res.setHeader('Content-Type', metricsRegistry.contentType);
+    res.send(metrics);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+/* ========== Server Boot ========== */
+const httpServer = app.listen(PORT, () => {
+  logger.info({ port: PORT }, `[superparty-backend] Listening on port ${PORT}`);
+});
+
+// Upgrade HTTP → WebSocket
+httpServer.on('upgrade', (request, socket, head) => {
+  wss.handleUpgrade(request, socket, head, (ws) => {
+    wss.emit('connection', ws, request, {});
+  });
+});
