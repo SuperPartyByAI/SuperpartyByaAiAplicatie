@@ -8,7 +8,7 @@
  */
 import 'dotenv/config';
 import { createClient } from '@supabase/supabase-js';
-import { resolveOrCreateIdentity } from '../lib/identity-resolver.mjs';
+import { resolveOrCreateIdentity } from './lib/identity-resolver.mjs';
 
 const DRY_RUN = process.argv.includes('--dry-run');
 const sb = createClient(process.env.SUPABASE_URL, process.env.SUPABASE_SERVICE_KEY);
