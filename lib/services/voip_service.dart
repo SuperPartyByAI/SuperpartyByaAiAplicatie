@@ -120,9 +120,10 @@ class VoipService {
           } else if (data['type'] == 'registered') {
             debugPrint('[VoIP WS] Successfully registered on WebSocket Server');
           } else if (data['type'] == 'call_closed' || data['type'] == 'call_ended') {
-            debugPrint('[VoIP WS] Server issued ${data['type']}. Terminating Native Audio and Dismissing UI.');
+            final wsSid = data['callSid']?.toString();
+            debugPrint('[VoIP WS] Server issued ${data['type']} sid=$wsSid — full cleanup');
+            // 1. Hang up native audio if active
             try {
-              // 1. Terminate native audio only if plugin has an active call
               final activeForWs = TwilioVoice.instance.call.activeCall;
               if (activeForWs != null) {
                 await TwilioVoice.instance.call.hangUp();
@@ -130,18 +131,8 @@ class VoipService {
             } catch(e) {
               debugPrint('[VoIP WS] Warning hanging up Twilio locally: $e');
             }
-            
-            // 2. Clear Active UI — use canPop() loop (safe) instead of popUntil(isFirst)
-            // popUntil empties the stack leaving Flutter with no route → black screen
-            // if ActiveCallScreen pops again after this.
-            final nav = navigatorKey.currentState;
-            if (nav != null) {
-              while (nav.canPop()) {
-                nav.pop();
-              }
-            }
-            VoipService.isRingingOrActive = false;
-            WakelockPlus.disable();
+            // 2. Full stale UI cleanup (notification + CallKit + SharedPrefs + flags + nav)
+            await VoipService.clearStaleIncomingUi(callSid: wsSid);
           }
         } catch (e) {
           debugPrint('[VoIP WS] Message parse error: $e');
@@ -281,6 +272,100 @@ class VoipService {
     debugPrint('[VoIP] callAnsweredGuard cleared (call ended)');
   }
 
+  /// ── clearStaleIncomingUi ───────────────────────────────────────────────
+  /// Single entry-point for ALL post-call cleanup. Idempotent — safe to call
+  /// multiple times. Clears:
+  ///   • Flutter local notification (voip_channel id:0)
+  ///   • FlutterCallkitIncoming all calls
+  ///   • CallKitService UI
+  ///   • SharedPreferences ring state (native_ringing_*, last_incoming_call_sid)
+  ///   • isRingingOrActive flag
+  ///   • callAnsweredGuard
+  ///   • WakelockPlus
+  ///   • Navigator stack (pops to root safely)
+  static Future<void> clearStaleIncomingUi({String? callSid}) async {
+    debugPrint('[VoIP Cleanup] clearStaleIncomingUi() triggered${callSid != null ? " sid=$callSid" : ""}');
+
+    // 1. Cancel Flutter local notification
+    try {
+      await _notif.cancel(0);
+      debugPrint('[VoIP Cleanup] ✅ _notif.cancel(0)');
+    } catch (e) {
+      debugPrint('[VoIP Cleanup] _notif.cancel error (non-fatal): $e');
+    }
+
+    // 2. End all CallKit calls (clears system UI on Android/iOS)
+    try {
+      await FlutterCallkitIncoming.endAllCalls();
+      debugPrint('[VoIP Cleanup] ✅ FlutterCallkitIncoming.endAllCalls()');
+    } catch (e) {
+      debugPrint('[VoIP Cleanup] endAllCalls error (non-fatal): $e');
+    }
+
+    // 3. CallKit service endCall
+    try {
+      CallKitService().endCall();
+      debugPrint('[VoIP Cleanup] ✅ CallKitService().endCall()');
+    } catch (e) {
+      debugPrint('[VoIP Cleanup] CallKitService.endCall error (non-fatal): $e');
+    }
+
+    // 4. Clear SharedPreferences ring state
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('native_ringing_call_sid');
+      await prefs.remove('native_ringing_until');
+      if (callSid != null) {
+        // Only clear last_incoming_call_sid if it matches this call
+        final stored = prefs.getString('last_incoming_call_sid');
+        if (stored == callSid) await prefs.remove('last_incoming_call_sid');
+      } else {
+        await prefs.remove('last_incoming_call_sid');
+      }
+      debugPrint('[VoIP Cleanup] ✅ SharedPreferences ring state cleared');
+    } catch (e) {
+      debugPrint('[VoIP Cleanup] SharedPreferences error (non-fatal): $e');
+    }
+
+    // 5. Reset flags
+    isRingingOrActive = false;
+    clearCallAnswered();
+
+    // 6. Wakelock
+    try {
+      await WakelockPlus.disable();
+    } catch (_) {}
+
+    // 7. Navigator pop to root (safe — won't crash if already at root)
+    try {
+      final nav = navigatorKey.currentState;
+      if (nav != null) {
+        while (nav.canPop()) {
+          nav.pop();
+        }
+      }
+    } catch (e) {
+      debugPrint('[VoIP Cleanup] Navigator pop error (non-fatal): $e');
+    }
+
+    debugPrint('[VoIP Cleanup] ✅ Done — all stale UI cleared');
+  }
+
+  /// Startup cleanup: if native_ringing_until is in the past, wipe stale state.
+  static Future<void> clearStaleStartupRinging() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final until = prefs.getInt('native_ringing_until') ?? 0;
+      final now = DateTime.now().millisecondsSinceEpoch;
+      if (until > 0 && now > until) {
+        debugPrint('[VoIP Cleanup] Startup: stale native_ringing_until detected — clearing');
+        await clearStaleIncomingUi();
+      }
+    } catch (e) {
+      debugPrint('[VoIP Cleanup] clearStaleStartupRinging error: $e');
+    }
+  }
+
   Future<void> init(BackendService backendService, {bool forceReinit = false}) async {
     await ensureDeviceFlagsInitialized();
 
@@ -315,11 +400,15 @@ class VoipService {
     }
 
     // Clear ALL stale CallKit call UIs from previous sessions BEFORE re-registering.
-    // Without this, every app restart re-shows all pending/missed calls simultaneously.
+    // Also clears stale SharedPreferences ring state if native_ringing_until is expired.
     try {
       if (!skipUiCleanup) {
+        // Clear stale native ringing prefs first
+        await clearStaleStartupRinging();
         await FlutterCallkitIncoming.endAllCalls();
-        debugPrint('[VoIP] 🧹 Cleared stale CallKit calls');
+        // Also cancel any lingering local notification
+        await _notif.cancel(0);
+        debugPrint('[VoIP] 🧹 Cleared stale CallKit calls + local notification + ring prefs');
       }
     } catch (e) {
       debugPrint('[VoIP] endAllCalls error (non-fatal): $e');
@@ -451,8 +540,10 @@ class VoipService {
 
           case CallEvent.callEnded:
           case CallEvent.declined:
-            debugPrint('[VoIP] 📴 Call ended/declined');
-            CallKitService().endCall();
+            final endedSid = TwilioVoice.instance.call.activeCall?.callSid;
+            debugPrint('[VoIP] 📴 Call ended/declined sid=$endedSid — full cleanup');
+            // Full cleanup: notif + CallKit + prefs + flags + nav
+            await VoipService.clearStaleIncomingUi(callSid: endedSid);
             break;
 
           case CallEvent.ringing:
