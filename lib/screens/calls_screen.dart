@@ -69,10 +69,8 @@ class _CallsScreenState extends State<CallsScreen> {
         final decoded = jsonDecode(res.body);
         List<dynamic> rawList;
         if (decoded is List) {
-          // New server: returns array directly
           rawList = decoded;
         } else if (decoded is Map && decoded.containsKey('calls')) {
-          // Old server: returns {calls: [...]}
           rawList = (decoded['calls'] as List<dynamic>? ?? []);
         } else {
           rawList = [];
@@ -81,7 +79,12 @@ class _CallsScreenState extends State<CallsScreen> {
             .whereType<Map>()
             .map((e) => Map<String, dynamic>.from(e))
             .toList();
-        setState(() { _calls = list; _loading = false; });
+        // Filter out internal PBX legs (both sides are SDK identities/conf names)
+        final cleaned = list.where((c) {
+          final digits = _clientNumber(c);
+          return digits.length >= 9 && digits.length <= 15;
+        }).toList();
+        setState(() { _calls = cleaned; _loading = false; });
       } else {
         setState(() { _error = 'Server error: ${res.statusCode}'; _loading = false; });
       }
@@ -109,11 +112,15 @@ class _CallsScreenState extends State<CallsScreen> {
   }
 
   String _formatCaller(String? from, {String? direction, String? to}) {
-    // For outgoing calls, display the dialed number (to field), not the SDK identity
-    final raw = (direction == 'outgoing' && to != null && to.isNotEmpty) ? to : from;
+    final raw = (_isOutgoing(direction) && to != null && to.isNotEmpty) ? to : from;
     if (raw == null || raw.isEmpty) return 'Necunoscut';
     if (raw.startsWith('superparty') || raw.startsWith('client:')) return to?.isNotEmpty == true ? _formatPhone(to!) : 'Centrală';
     return _formatPhone(raw);
+  }
+
+  bool _isOutgoing(String? d) {
+    final x = (d ?? '').toLowerCase();
+    return x == 'outgoing' || x.startsWith('outbound');
   }
 
   String _formatPhone(String raw) {
@@ -123,8 +130,8 @@ class _CallsScreenState extends State<CallsScreen> {
 
   IconData _statusIcon(String? status, String? direction) {
     switch (status) {
-      case 'completed':   return direction == 'outgoing' ? Icons.call_made : Icons.call_received;
-      case 'no-answer':  return direction == 'outgoing' ? Icons.call_missed_outgoing : Icons.phone_missed;
+      case 'completed':   return _isOutgoing(direction) ? Icons.call_made : Icons.call_received;
+      case 'no-answer':  return _isOutgoing(direction) ? Icons.call_missed_outgoing : Icons.phone_missed;
       case 'busy':       return Icons.call_missed;
       case 'canceled':   return Icons.cancel_outlined;
       case 'ringing':    return Icons.ring_volume;
@@ -145,7 +152,7 @@ class _CallsScreenState extends State<CallsScreen> {
 
   String _statusLabel(String? status, String? direction) {
     switch (status) {
-      case 'completed':  return direction == 'outgoing' ? 'Inițiat' : 'Răspuns';
+      case 'completed':  return _isOutgoing(direction) ? 'Inițiat' : 'Răspuns';
       case 'no-answer':  return 'Ratat';
       case 'busy':       return 'Ocupat';
       case 'canceled':   return 'Anulat';
@@ -173,25 +180,38 @@ class _CallsScreenState extends State<CallsScreen> {
     );
   }
 
-  /// Returns only digits from the "other party" in a call.
-  /// For incoming calls: the client is in `from`.
-  /// For outbound calls or when `from` is our line: the client is in `to`.
+  /// Returns true if the string looks like a valid PSTN phone number.
+  bool _looksLikePstn(String s) {
+    final t = s.replaceAll(RegExp(r'[^0-9+]'), '');
+    if (t.startsWith('+')) return RegExp(r'^\+\d{9,15}$').hasMatch(t);
+    return RegExp(r'^\d{9,15}$').hasMatch(t);
+  }
+
+  /// Returns only the digit characters from a raw from/to field.
+  String _digitsOnly(String s) => s.replaceFirst('client:', '').replaceAll(RegExp(r'[^\d]'), '');
+
+  /// Returns only digits from the counterparty (real PSTN number).
   String _clientNumber(Map<String, dynamic> call) {
     final dir = (call['direction'] as String? ?? '').toLowerCase();
     final from = call['from'] as String? ?? '';
     final to   = call['to']   as String? ?? '';
-    // Our own line can appear as inbound (from=client PSTN) or as from in outbound
-    final ourLinePatterns = ['373805828', 'client:', 'superparty'];
-    final fromIsOurs = ourLinePatterns.any((p) => from.contains(p));
-    final toIsOurs   = ourLinePatterns.any((p) => to.contains(p));
-    final isInbound  = dir.startsWith('inbound') || dir == 'incoming';
-    // If from is ours, the other party is in `to`, and vice versa
-    String otherParty;
-    if (fromIsOurs)       otherParty = to;
-    else if (toIsOurs)    otherParty = from;
-    else if (isInbound)   otherParty = from;
-    else                  otherParty = to;
-    return otherParty.replaceFirst('client:', '').replaceAll(RegExp(r'[^\d]'), '');
+
+    // Our Twilio caller ID (never include 'client:' — that's SDK identity, not a phone)
+    const ourLinePatterns = ['40373805828', '373805828'];
+    final fromIsLine = ourLinePatterns.any((p) => from.contains(p));
+    final toIsLine   = ourLinePatterns.any((p) => to.contains(p));
+
+    // If one end is SDK identity and the other looks like PSTN → PSTN is counterparty
+    if (from.startsWith('client:') && _looksLikePstn(to)) return _digitsOnly(to);
+    if (to.startsWith('client:') && _looksLikePstn(from)) return _digitsOnly(from);
+
+    // If one end is our Twilio number → the other is the client
+    if (fromIsLine) return _digitsOnly(to);
+    if (toIsLine)   return _digitsOnly(from);
+
+    // Fallback: use direction
+    final isInbound = dir.startsWith('inbound') || dir == 'incoming';
+    return _digitsOnly(isInbound ? from : to);
   }
 
   Future<void> _callBack(Map<String, dynamic> call) async {
