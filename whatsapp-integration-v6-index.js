@@ -650,6 +650,32 @@ app.post('/api/voice/status', async (req, res) => {
   } catch (e) {
     console.error('[CallLog] Failed to save call log:', e.message);
   }
+
+  // ── CRITICAL FIX: notify Flutter via WS on caller hangup / call end ──────
+  // Twilio sends this callback for ALL terminal statuses including canceled (caller hangup before answer)
+  const TERMINAL = ['completed', 'no-answer', 'busy', 'failed', 'canceled'];
+  if (TERMINAL.includes(CallStatus)) {
+    console.log(`[VoIP Status] Terminal status '${CallStatus}' for ${CallSid} — notifying WS + cleaning Firestore`);
+
+    // 1. Notify all connected Flutter WS clients → triggers clearStaleIncomingUi()
+    notifyVoipClients({
+      type: 'call_ended',
+      callSid: CallSid,
+      status: CallStatus,
+      from: From || '',
+      to: To || '',
+    });
+
+    // 2. Delete active_incoming_calls document so Firestore stays clean
+    try {
+      await db.collection('active_incoming_calls').doc(CallSid).delete();
+      console.log(`[VoIP Status] Deleted active_incoming_calls/${CallSid}`);
+    } catch (e) {
+      // May not exist (e.g. outbound call) — safe to ignore
+      console.log(`[VoIP Status] active_incoming_calls/${CallSid} not found (non-fatal)`);
+    }
+  }
+
   res.sendStatus(200);
 });
 
