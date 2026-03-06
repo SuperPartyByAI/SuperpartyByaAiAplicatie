@@ -11,6 +11,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'dart:convert';
+import 'package:wakelock_plus/wakelock_plus.dart';
 import 'screens/incoming_call_screen.dart';
 import 'services/auth_service.dart';
 import 'widgets/global_inbox_badge.dart'; // GlobalInboxBadgeOverlay
@@ -185,6 +186,26 @@ void _registerCallActionsHandler() {
         } catch (e) {
           debugPrint('[main] rejectCall error: $e');
         }
+        break;
+
+      case 'callEnded':
+        // Huawei directPlace/directAnswer: native ends the call, Flutter must close UI
+        debugPrint('[main] ✅ callEnded received from native — closing call UI');
+        VoipService.clearCallAnswered();
+        VoipService.isRingingOrActive = false;
+        try { await WakelockPlus.disable(); } catch (_) {}
+        try { await TwilioVoice.instance.call.hangUp(); } catch (_) {}
+        final nav = navigatorKey.currentState;
+        if (nav != null && nav.canPop()) nav.pop();
+        break;
+
+      case 'callConnectFailure':
+        debugPrint('[main] ❌ callConnectFailure from native: ${args['message']}');
+        VoipService.clearCallAnswered();
+        VoipService.isRingingOrActive = false;
+        try { await WakelockPlus.disable(); } catch (_) {}
+        final nav2 = navigatorKey.currentState;
+        if (nav2 != null && nav2.canPop()) nav2.pop();
         break;
     }
   });
