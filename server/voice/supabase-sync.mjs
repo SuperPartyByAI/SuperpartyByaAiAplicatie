@@ -3,18 +3,23 @@ import fs from 'fs';
 import { URL } from 'url';
 import { parsePhoneNumberFromString } from 'libphonenumber-js';
 
-const SUPABASE_URL = process.env.SUPABASE_URL;
-const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY;
-
-if (!process.env.SUPABASE_URL) {
-    console.error("🚨 CRITICAL: SUPABASE_URL is missing from environment variables!");
+// LAZY INIT: createClient e apelat la primul use, după ce dotenv a încărcat .env
+let _supabaseClient = null;
+export function getSupabaseClient() {
+  if (!_supabaseClient) {
+    const url = process.env.SUPABASE_URL;
+    const key = process.env.SUPABASE_SERVICE_KEY;
+    if (!url) console.error('🚨 CRITICAL: SUPABASE_URL is missing from environment variables!');
+    if (!key) console.error('🚨 CRITICAL: SUPABASE_SERVICE_KEY is missing from environment variables!');
+    _supabaseClient = createClient(url || 'http://localhost:54321', key || 'anon');
+  }
+  return _supabaseClient;
 }
 
-if (!SUPABASE_KEY) {
-    console.error("🚨 CRITICAL: SUPABASE_SERVICE_KEY is missing from environment variables!");
-}
-
-export const supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
+// compatibilitate backward cu import { supabase }
+export const supabase = new Proxy({}, {
+  get(_t, prop) { return getSupabaseClient()[prop]; }
+});
 
 export let db = null;
 export let storageBucket = null;
