@@ -83,7 +83,26 @@ async function run() {
   }
 
   console.log('[Reconciler] Done.\n');
-  // process completes — pm2 cron_restart handles scheduling
 }
 
-await run().catch(e => { console.error('[Reconciler] Fatal:', e); process.exit(1); });
+// DAEMON MODE: rulează la interval, nu face exit (elimină restart spam pm2)
+const RUN_INTERVAL_MS = Number.parseInt(process.env.RECONCILER_INTERVAL_MS || '300000', 10); // 5 min default
+
+async function runWithAlert() {
+  try {
+    await run();
+  } catch (e) {
+    console.error('[Reconciler] Fatal run error:', e);
+    // ntfy alert dacă reconcilerul crașează
+    const topic = process.env.NTFY_TOPIC || 'superparty-prod-alerts-sp2026';
+    fetch(`https://ntfy.sh/${topic}`, {
+      method: 'POST',
+      headers: { 'Title': 'WA Reconciler CRASH', 'Priority': 'urgent', 'Tags': 'rotating_light' },
+      body: `Reconciler error: ${e.message}`,
+    }).catch(() => {});
+  }
+}
+
+console.log(`[Reconciler] Starting daemon mode — interval=${RUN_INTERVAL_MS}ms`);
+await runWithAlert(); // run imediat la start
+setInterval(runWithAlert, RUN_INTERVAL_MS);
