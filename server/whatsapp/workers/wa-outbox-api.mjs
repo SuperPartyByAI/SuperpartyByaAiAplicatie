@@ -2,21 +2,24 @@
  * wa-outbox-api.mjs — Outbox HTTP endpoints for WhatsApp server
  * Mount in whatsapp-integration-v6-index.js:
  *   import { registerOutboxRoutes } from './server/whatsapp/workers/wa-outbox-api.mjs';
- *   registerOutboxRoutes(app, supabase);
+ *   registerOutboxRoutes(app, supabase, requireAuth, sessionManager);
  *
- * Endpoints added:
- *   POST /api/wa/send          — enqueue outbound message (idempotent)
+ * CONTRACT (no ambiguity):
+ *   POST /api/wa/outbox/send   — ENQUEUE into outbox_messages (idempotent, durable)
+ *   POST /api/wa/send-direct   — SEND NOW via Baileys/session, NO re-enqueue
+ *                                 called ONLY by wa-outbox-worker.mjs
  *   GET  /debug/outbox/dlq     — list dead messages
  *   POST /debug/outbox/replay  — re-queue dead message by id
  *   GET  /debug/outbox/stats   — queue depth by status
  */
 
-export function registerOutboxRoutes(app, supabase, requireAuth) {
+export function registerOutboxRoutes(app, supabase, requireAuth, sessionManager = null) {
 
-  // ── POST /api/wa/send ─────────────────────────────────────────────────────
-  // Enqueue a WhatsApp outbound message into outbox_messages (idempotent).
+  // ── POST /api/wa/outbox/send ─────────────────────────────────────────────
+  // ENQUEUE a WhatsApp outbound message into outbox_messages (idempotent).
+  // This does NOT send immediately — wa-outbox-worker picks it up.
   // Body: { accountId, to, type, text?, mediaUrl?, caption?, idempotencyKey? }
-  app.post('/api/wa/send', requireAuth, async (req, res) => {
+  app.post('/api/wa/outbox/send', requireAuth, async (req, res) => {
     try {
       const { accountId, to, type = 'text', idempotencyKey, ...payload } = req.body;
       if (!accountId || !to) {
@@ -24,7 +27,7 @@ export function registerOutboxRoutes(app, supabase, requireAuth) {
       }
 
       // Normalize JID
-      const toJid = to.includes('@') ? to : `${to.replace(/\D/g, '')}@s.whatsapp.net`;
+      const toJid = to.includes('@') ? to : `${to.replaceAll(/\D/g, '')}@s.whatsapp.net`;
 
       // Generate idempotency key if not provided (account:to:timestamp bucket 5min)
       const iKey = idempotencyKey || `${accountId}:${toJid}:${Math.floor(Date.now() / 300000)}`;
@@ -40,9 +43,58 @@ export function registerOutboxRoutes(app, supabase, requireAuth) {
       if (error) return res.status(500).json({ ok: false, error: error.message });
       if (!msgId) return res.json({ ok: true, dedupe: true, message: 'Message already queued (idempotent)' });
 
-      res.json({ ok: true, messageId: msgId, status: 'queued' });
+      res.json({ ok: true, messageId: msgId, status: 'queued', note: 'Message enqueued — worker will deliver' });
     } catch (e) {
-      console.error('[OutboxAPI] /api/wa/send error:', e.message);
+      console.error('[OutboxAPI] /api/wa/outbox/send error:', e.message);
+      res.status(500).json({ ok: false, error: e.message });
+    }
+  });
+
+  // ── POST /api/wa/send-direct ──────────────────────────────────────────────
+  // ACTUAL SEND via Baileys session — called ONLY by wa-outbox-worker.
+  // NOT an enqueue endpoint. Sends NOW and returns result.
+  // Guarded by WA_INTERNAL_TOKEN to prevent unauthorized direct sends.
+  //
+  // sessionManager must implement:
+  //   sendText(accountId, jid, text): Promise
+  //   sendMedia(accountId, jid, url, caption, type): Promise
+  //
+  app.post('/api/wa/send-direct', async (req, res) => {
+    // Internal-only token guard
+    const authHeader = req.get('authorization') || '';
+    const token = authHeader.replaceAll(/^Bearer\s+/i, '');
+    const internalToken = process.env.WA_INTERNAL_TOKEN;
+    if (!internalToken || token !== internalToken) {
+      return res.status(403).json({ ok: false, error: 'forbidden: internal endpoint' });
+    }
+
+    try {
+      const { accountId, to, type = 'text', text, mediaUrl, caption } = req.body;
+      if (!accountId || !to) {
+        return res.status(400).json({ ok: false, error: 'accountId and to required' });
+      }
+
+      // Normalize JID
+      const jid = to.includes('@') ? to : `${to.replaceAll(/\D/g, '')}@s.whatsapp.net`;
+
+      if (!sessionManager) {
+        // Fallback: sessionManager not injected — return error, do not re-enqueue
+        return res.status(503).json({ ok: false, error: 'session_manager_not_available — check server mount' });
+      }
+
+      let result;
+      if (type === 'text') {
+        result = await sessionManager.sendText(accountId, jid, text || '');
+      } else if (['image', 'video', 'document', 'audio'].includes(type)) {
+        result = await sessionManager.sendMedia(accountId, jid, mediaUrl, caption || '', type);
+      } else {
+        return res.status(400).json({ ok: false, error: `unsupported message type: ${type}` });
+      }
+
+      res.json({ ok: true, result });
+    } catch (e) {
+      console.error('[OutboxAPI] /api/wa/send-direct error:', e.message);
+      // Return 5xx so worker applies backoff — do NOT silently drop
       res.status(500).json({ ok: false, error: e.message });
     }
   });
@@ -69,7 +121,7 @@ export function registerOutboxRoutes(app, supabase, requireAuth) {
   // ── GET /debug/outbox/dlq ────────────────────────────────────────────────
   app.get('/debug/outbox/dlq', requireAuth, async (req, res) => {
     try {
-      const limit = Math.min(parseInt(req.query.limit || '50'), 200);
+      const limit = Math.min(Number.parseInt(req.query.limit || '50', 10), 200);
       const { data, error } = await supabase
         .from('outbox_messages')
         .select('id, account_id, to_jid, message_type, status, attempts, error_message, created_at, failed_at')

@@ -23,11 +23,11 @@ const WA_API_URL   = process.env.WHATSAPP_API_URL || 'http://localhost:3000';
 const WA_API_TOKEN = process.env.WA_INTERNAL_TOKEN || '';
 
 // Rate limits
-const RATE_PER_ACCOUNT_MS  = parseInt(process.env.OUTBOX_RATE_ACCOUNT_MS  || '350');  // 350ms between msgs per account (~3/s)
-const RATE_GLOBAL_MS       = parseInt(process.env.OUTBOX_RATE_GLOBAL_MS   || '20');   // 20ms between any msg (~50/s global)
-const POLL_INTERVAL_MS     = parseInt(process.env.OUTBOX_POLL_MS          || '1000'); // Poll every 1s
-const BATCH_SIZE           = parseInt(process.env.OUTBOX_BATCH_SIZE       || '10');   // Claims per poll
-const MAX_ATTEMPTS         = parseInt(process.env.OUTBOX_MAX_ATTEMPTS     || '5');
+const RATE_PER_ACCOUNT_MS  = Number.parseInt(process.env.OUTBOX_RATE_ACCOUNT_MS  || '350', 10);
+const RATE_GLOBAL_MS       = Number.parseInt(process.env.OUTBOX_RATE_GLOBAL_MS   || '20', 10);
+const POLL_INTERVAL_MS     = Number.parseInt(process.env.OUTBOX_POLL_MS          || '1000', 10);
+const BATCH_SIZE           = Number.parseInt(process.env.OUTBOX_BATCH_SIZE       || '10', 10);
+const MAX_ATTEMPTS         = Number.parseInt(process.env.OUTBOX_MAX_ATTEMPTS     || '5', 10);
 
 // Backoff: attempts → delay seconds (1, 2, 8, 32, 120)
 const backoffSec = (attempt) => Math.min(120, Math.pow(4, attempt - 1));
@@ -64,7 +64,8 @@ const metrics = {
   sent: 0, failed: 0, dead: 0, retried: 0, skipped: 0, polls: 0,
 };
 
-// ── Send via WA API ──────────────────────────────────────────────────────────
+// ── Send via WA API (send-direct — actual Baileys send, NOT re-enqueue) ────────
+// WA_INTERNAL_TOKEN must match server-side env for this endpoint to accept.
 async function sendMessage(msg) {
   const { account_id, to_jid, message_type, payload } = msg;
   
@@ -75,7 +76,9 @@ async function sendMessage(msg) {
     ...payload,
   };
 
-  const resp = await fetch(`${WA_API_URL}/api/wa/send`, {
+  // ⚠️  IMPORTANT: calls /api/wa/send-DIRECT, NOT /api/wa/send (enqueue)
+  // /api/wa/send would re-enqueue the message causing infinite recursion.
+  const resp = await fetch(`${WA_API_URL}/api/wa/send-direct`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
@@ -185,7 +188,7 @@ setInterval(() => {
 
 // ── Startup ───────────────────────────────────────────────────────────────────
 console.log(`[OutboxWorker] Starting. Poll every ${POLL_INTERVAL_MS}ms | Per-account rate: ${RATE_PER_ACCOUNT_MS}ms | Global: ${RATE_GLOBAL_MS}ms | MaxAttempts: ${MAX_ATTEMPTS}`);
-poll(); // immediate first poll
+await poll(); // immediate first poll (top-level await)
 const interval = setInterval(poll, POLL_INTERVAL_MS);
 
 // Graceful shutdown
