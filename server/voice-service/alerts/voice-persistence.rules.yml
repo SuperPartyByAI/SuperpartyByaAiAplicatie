@@ -1,0 +1,50 @@
+groups:
+  - name: voice_persistence
+    interval: 30s
+    rules:
+      # ── Upsert failure rate ────────────────────────────────────────────────
+      - alert: VoiceUpsertFailureRate
+        expr: rate(voice_calls_upsert_failed_total[5m]) > 0.1
+        for: 2m
+        labels:
+          severity: warning
+          service: voice
+        annotations:
+          summary: "Voice DB upsert failures > 0.1/s"
+          description: "voice_calls_upsert_failed_total is increasing. Check Supabase connectivity and voice_calls table."
+          runbook: "https://github.com/SuperPartyByAI/SuperpartyByaAiAplicatie/blob/main/docs/RUNBOOK_VOICE.md#voice-persistence-troubleshooting"
+
+      # ── Twilio fallback rate (DB not serving) ──────────────────────────────
+      - alert: VoiceTwilioFallbackHigh
+        expr: rate(voice_calls_twilio_fallback_total[10m]) > 0.5
+        for: 5m
+        labels:
+          severity: warning
+          service: voice
+        annotations:
+          summary: "Voice /calls/recent falling back to Twilio too often"
+          description: "The voice_calls DB is not returning data. Supabase may be down or voice_calls table is empty."
+          runbook: "https://github.com/SuperPartyByAI/SuperpartyByaAiAplicatie/blob/main/docs/RUNBOOK_VOICE.md#voice-persistence-troubleshooting"
+
+      # ── Identity resolve rate too low ───────────────────────────────────────
+      - alert: VoiceIdentityResolveLow
+        expr: voice_calls_identity_resolve_rate < 0.5
+        for: 10m
+        labels:
+          severity: info
+          service: voice
+        annotations:
+          summary: "Less than 50% of voice calls have resolved client identity"
+          description: "resolveCallIdentities is failing for too many calls. Check conversations_public.phone data."
+          runbook: "https://github.com/SuperPartyByAI/SuperpartyByaAiAplicatie/blob/main/docs/RUNBOOK_VOICE.md#identity-resolution-troubleshooting"
+
+      # ── Missed calls accumulating unremarked ───────────────────────────────
+      - alert: VoiceMissedCallsAccumulating
+        expr: increase(voice_missed_calls_total[1h]) > 5
+        for: 0m
+        labels:
+          severity: info
+          service: voice
+        annotations:
+          summary: "More than 5 missed calls in the last hour"
+          description: "Missed calls without callbacks are accumulating. Check /api/voice/missed-calls."
