@@ -109,11 +109,11 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
       // leaving the caller indefinitely on hold music!
       try {
           debugPrint('[IncomingCallScreen] Invoking SDK TwilioVoice.instance.call.answer() to bind the inbound SIP line...');
-          final bool answered = await TwilioVoice.instance.call.answer();
-          if (answered) {
+          final bool? answered = await TwilioVoice.instance.call.answer();
+          if (answered == true) {
                debugPrint('[IncomingCallScreen] ✅ call.answer() SUCCESS.');
           } else {
-               debugPrint('[IncomingCallScreen] ❌ call.answer() returned false (No active pending call context available for Twilio).');
+               debugPrint('[IncomingCallScreen] ❌ call.answer() returned false/null (No active pending call context available for Twilio).');
           }
       } catch (e) {
           debugPrint('[IncomingCallScreen] ❌ Exception during call.answer(): $e');

@@ -15,7 +15,7 @@ import 'logistics/inventory_checklist_screen.dart';
 import 'logistics/evidence_upload_screen.dart';
 import 'logistics/staff_hours_screen.dart';
 import 'admin_trip_review_screen.dart';
-import 'package:superpartybyai/services/trips_api_service.dart';
+import 'package:superparty_app/services/trips_api_service.dart';
 import 'dart:async';
 
 class MainScreen extends StatefulWidget {
@@ -346,14 +346,6 @@ class _DashboardTabState extends State<_DashboardTab> {
             const SizedBox(height: 12),
             Text(label, textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87)),
           ],
-        ),
-      ),
-    );
-  }
-                      ),
-                    ),
-            ],
-          ),
         ),
       ),
     );

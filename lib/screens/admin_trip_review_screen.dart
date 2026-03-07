@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:superpartybyai/services/trips_api_service.dart';
+import 'package:superparty_app/services/trips_api_service.dart';
 
 class AdminTripReviewScreen extends StatefulWidget {
   const AdminTripReviewScreen({super.key});

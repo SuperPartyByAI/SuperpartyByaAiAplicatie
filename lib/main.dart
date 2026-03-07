@@ -308,11 +308,11 @@ Future<void> answerIncomingCall(String from, String callSid) async {
     // leaving the caller indefinitely on hold music!
     try {
         debugPrint('[main] Invoking SDK TwilioVoice.instance.call.answer() to bind the inbound SIP line...');
-        final bool answered = await TwilioVoice.instance.call.answer();
-        if (answered) {
+        final bool? answered = await TwilioVoice.instance.call.answer();
+        if (answered == true) {
              debugPrint('[main] ✅ call.answer() SUCCESS.');
         } else {
-             debugPrint('[main] ❌ call.answer() returned false (No active pending call context available for Twilio).');
+             debugPrint('[main] ❌ call.answer() returned false/null (No active pending call context available for Twilio).');
              VoipService.clearCallAnswered();
         }
     } catch (e) {
