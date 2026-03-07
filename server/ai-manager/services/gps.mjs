@@ -130,6 +130,74 @@ export async function recordLocation({
 }
 
 /**
+ * Record a batch of location points for an active trip.
+ * Optimized for background GPS tracking (offline buffering).
+ */
+export async function recordLocationsBatch(locations) {
+  if (!Array.isArray(locations) || locations.length === 0) return { recorded: 0, geofences_triggered: [] };
+
+  const insertPromises = [];
+  const allGeofenceResults = [];
+
+  // Group by tripId for potential bulk insert logic later, but for now iterate
+  for (const loc of locations) {
+    const { employeeId, tripId, lat, lng, accuracyMeters, speedKmh, recordedAt } = loc;
+    const ts = recordedAt ?? new Date().toISOString();
+
+    // Fire and forget or collect promises
+    insertPromises.push(
+      insertRow('employee_movements', {
+        employee_id: employeeId,
+        trip_id: tripId,
+        lat: Number(lat),
+        lng: Number(lng),
+        accuracy_meters: accuracyMeters != null ? Number(accuracyMeters) : null,
+        speed_kmh: speedKmh != null ? Number(speedKmh) : null,
+        recorded_at: ts,
+      })
+    );
+
+    // We mainly care about geofence triggers for the MOST RECENT points, 
+    // but for completeness we can evaluate all. 
+    if (isAtSediu(lat, lng)) {
+      allGeofenceResults.push({ employeeId, tripId, geofence_id: 'sediu', geofence_type: 'dwell', lat, lng, ts });
+    }
+  }
+
+  // Wait for all point inserts
+  await Promise.allSettled(insertPromises);
+
+  // If geofences triggered, save them 
+  // (In real prod, we would debounce this to avoid 50 "enter" events in 2 minutes)
+  const uniqueGeofences = deduplicateGeofences(allGeofenceResults);
+  
+  for (const gf of uniqueGeofences) {
+    await insertRow('geofence_events', {
+      employee_id: gf.employeeId,
+      trip_id: gf.tripId,
+      geofence_id: gf.geofence_id,
+      geofence_type: gf.geofence_type,
+      lat: gf.lat,
+      lng: gf.lng,
+      recorded_at: gf.ts,
+      ai_decision: `Batch-detected ${gf.geofence_type} geofence: ${gf.geofence_id}`,
+    });
+  }
+
+  return { recorded: locations.length, geofences_triggered: uniqueGeofences };
+}
+
+function deduplicateGeofences(results) {
+  // Simple dedup: if we hit the same geofence in the same batch for the same trip, only keep the last one
+  const map = new Map();
+  for (const r of results) {
+    const key = `${r.tripId}_${r.geofence_id}`;
+    map.set(key, r);
+  }
+  return Array.from(map.values());
+}
+
+/**
  * End a trip — compute actual km and fuel estimate.
  */
 export async function endTrip(tripId) {
