@@ -12,6 +12,7 @@ import { Router } from 'express';
 import {
   startTrip,
   recordLocation,
+  recordLocationsBatch,
   endTrip,
 } from '../services/gps.mjs';
 import { getRow } from '../services/supabase.mjs';
@@ -88,6 +89,28 @@ router.get('/:id', async (req, res) => {
     return res.json(trip);
   } catch (err) {
     return res.status(404).json({ error: 'Trip not found' });
+  }
+});
+
+
+/**
+ * POST /trips/locations (Plural)
+ * Batch ingestion for background tracking
+ * Body: { locations: [{ employeeId, tripId, lat, lng, ... }, ...] }
+ */
+router.post("/locations", async (req, res) => {
+  const { locations } = req.body;
+  
+  if (!Array.isArray(locations) || locations.length === 0) {
+    return res.status(400).json({ error: "locations array is required and must not be empty" });
+  }
+
+  try {
+    const result = await recordLocationsBatch(locations);
+    return res.json({ ok: true, ...result });
+  } catch (err) {
+    req.log?.error({ err }, "[trips/locations] batch error");
+    return res.status(500).json({ error: err.message });
   }
 });
 
