@@ -369,6 +369,8 @@ class AuthWrapper extends StatelessWidget {
       return const Scaffold(body: Center(child: CircularProgressIndicator()));
     }
 
+    debugPrint('[TIMING] authwrapper_loading_done=${DateTime.now().toIso8601String()}');
+
     if (!auth.isAuthenticated) {
       return const LoginScreen();
     }
@@ -405,23 +407,29 @@ class _ApprovalGateState extends State<ApprovalGate> {
 
   void _checkStatus() async {
     debugPrint('[_checkStatus] STARTED');
+    debugPrint('[TIMING] approval_gate_checkStatus_start=${DateTime.now().toIso8601String()}');
+    final sw = Stopwatch()..start();
     final backend = Provider.of<BackendService>(context, listen: false);
     final auth = Provider.of<AuthService>(context, listen: false);
     
     try {
       // Fetch Employee Status and User Profile CONCURRENTLY to speed up app startup
       debugPrint('[_checkStatus] calling Future.wait...');
+      debugPrint('[TIMING] getMyStatus_start (concurrent) At: ${sw.elapsedMilliseconds}ms');
+      debugPrint('[TIMING] getUserProfile_start (concurrent) At: ${sw.elapsedMilliseconds}ms');
+
       final results = await Future.wait([
-        backend.getMyStatus().catchError((e) {
+        backend.getMyStatus().then((v) { debugPrint('[TIMING] getMyStatus_done=${sw.elapsedMilliseconds}ms'); return v; }).catchError((e) {
           debugPrint('[_checkStatus] getMyStatus error: $e');
           return <String, dynamic>{};
         }),
-        backend.getUserProfile().catchError((profileErr) {
+        backend.getUserProfile().then((v) { debugPrint('[TIMING] getUserProfile_done=${sw.elapsedMilliseconds}ms'); return v; }).catchError((profileErr) {
           debugPrint('[_checkStatus] getUserProfile error: $profileErr');
           return <String, dynamic>{};
         }),
       ]);
       debugPrint('[_checkStatus] Future.wait COMPLETE');
+      debugPrint('[TIMING] approval_gate_futures_done=${sw.elapsedMilliseconds}ms');
 
       final employeeStatus = results[0] as Map<String, dynamic>;
       Map<String, dynamic> userProfile = results[1] as Map<String, dynamic>;
@@ -451,14 +459,22 @@ class _ApprovalGateState extends State<ApprovalGate> {
              debugPrint("[App] User approved & consented. Initializing VoIP & GPS...");
              final user = auth.currentUser;
              final backend = Provider.of<BackendService>(context, listen: false);
+             
+             debugPrint('[TIMING] voip_init_start=${sw.elapsedMilliseconds}ms');
              VoipService().init(backend);
+             debugPrint('[TIMING] voip_init_done=${sw.elapsedMilliseconds}ms');
              
              // Pornește Background GPS Tracking automat când userul este aprobat
              if (user != null) {
                auth.getIdToken().then((token) {
                  if (token != null) {
+                   debugPrint('[TIMING] bggps_init_start=${sw.elapsedMilliseconds}ms');
                    BgGpsService.initialize(token, user.id).then((_) {
-                     BgGpsService.startTracking();
+                     debugPrint('[TIMING] bggps_init_done=${sw.elapsedMilliseconds}ms');
+                     debugPrint('[TIMING] bggps_startTracking_start=${sw.elapsedMilliseconds}ms');
+                     BgGpsService.startTracking().then((_) {
+                        debugPrint('[TIMING] bggps_startTracking_done=${sw.elapsedMilliseconds}ms');
+                     });
                    });
                  }
                });
@@ -538,6 +554,9 @@ class _ApprovalGateState extends State<ApprovalGate> {
     }
 
     // 3. Main App
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      debugPrint('[TIMING] main_screen_rendered=${DateTime.now().toIso8601String()}');
+    });
     return const MainScreen();
   }
 }

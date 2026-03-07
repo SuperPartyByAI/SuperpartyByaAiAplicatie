@@ -18,6 +18,8 @@ class _LoginScreenState extends State<LoginScreen> {
   bool _isLoading = false;
 
   void _login() async {
+    debugPrint('[TIMING] login_start=${DateTime.now().toIso8601String()}');
+    final sw = Stopwatch()..start();
     setState(() => _isLoading = true);
     final auth = Provider.of<AuthService>(context, listen: false);
     
@@ -26,6 +28,7 @@ class _LoginScreenState extends State<LoginScreen> {
           _emailController.text.trim(), 
           _passwordController.text.trim()
         );
+        debugPrint('[TIMING] signInWithEmailPassword_done=${sw.elapsedMilliseconds}ms');
         // Autofill cleanup
         TextInput.finishAutofillContext();
     } catch (e) {
@@ -96,18 +99,24 @@ class _LoginScreenState extends State<LoginScreen> {
                           minimumSize: const Size(double.infinity, 50),
                         ),
                         onPressed: () async {
+                          debugPrint('[TIMING] google_login_start=${DateTime.now().toIso8601String()}');
+                          final sw = Stopwatch()..start();
                           try {
                             await Provider.of<AuthService>(context, listen: false).signInWithGoogle();
+                            debugPrint('[TIMING] signInWithGoogle_done=${sw.elapsedMilliseconds}ms');
                             
                             // Immediately request backend access so they appear in Admin requests
                             final backend = Provider.of<BackendService>(context, listen: false);
                             final auth = Provider.of<AuthService>(context, listen: false);
                             
                             if (auth.user != null) {
+                              debugPrint('[TIMING] requestEmployeeAccess_start=${sw.elapsedMilliseconds}ms');
+                              final swReq = Stopwatch()..start();
                               await backend.requestEmployeeAccess(
                                 auth.user?.userMetadata?['name'] ?? 'Google User',
                                 auth.user?.userMetadata?['phoneNumber'] ?? '0000000000'
                               );
+                              debugPrint('[TIMING] requestEmployeeAccess_done=${swReq.elapsedMilliseconds}ms');
                             }
                           } catch (e) {
                             if (mounted) {
