@@ -294,72 +294,31 @@ Future<void> answerIncomingCall(String from, String callSid) async {
       debugPrint('[main] Attempting directAnswer via Native Platform Channel...');
       final bool directAccepted = await MethodChannel('com.superpartybyai.app/call_actions').invokeMethod('directAnswer') ?? false;
       if (directAccepted) {
-         debugPrint('[main] ✅ directAnswer SUCCESS! Bypassing call.place fallback.');
+         debugPrint('[main] ✅ directAnswer SUCCESS! Bypassing call.answer() fallback.');
          return; // We are successfully bridged via the original Twilio SIP payload!
       } else {
-         debugPrint('[main] ⚠️ directAnswer returned false (no pending invite). Falling back to call.place.');
+         debugPrint('[main] ⚠️ directAnswer returned false (no pending invite captured natively). Falling back to SDK call.answer().');
       }
     } catch (e) {
-      debugPrint('[main] ❌ directAnswer exception: $e. Falling back to call.place.');
+      debugPrint('[main] ❌ directAnswer exception: $e. Falling back to SDK call.answer().');
     }
-    // 2️⃣ FALLBACK: Try to connect to the conference via outbound TCP dial (Huawei safe)
-    bool placed = false;
-    for (int i = 0; i < 8; i++) {
-        debugPrint('[main] dialing into conference room: $to with identity $identity (Attempt ${i + 1})');
-        try {
-            // 1) try native directPlace (bypass Telecom)
-            final prefs = await SharedPreferences.getInstance();
-            String? accessToken = prefs.getString('twilio_access_token');
-            if (accessToken == null || accessToken.isEmpty) {
-              await VoipService().init(backend, forceReinit: true);
-              accessToken = prefs.getString('twilio_access_token');
-            }
 
-            if (accessToken != null && accessToken.isNotEmpty) {
-              await VoipService.ensureDeviceFlagsInitialized();
-              if (VoipService.isHuaweiOrHonor) {
-                final placedNative = await const MethodChannel('com.superpartybyai.app/call_actions').invokeMethod<bool>(
-                  'directPlace',
-                  {'accessToken': accessToken, 'to': to},
-                );
-
-                if (placedNative == true) {
-                  placed = true;
-                  debugPrint('[main] ✅ directPlace SUCCESS (native Voice.connect) on attempt ${i + 1}. Skip call.place.');
-                  break;
-                } else {
-                  debugPrint('[main] ⚠️ directPlace returned false. Fallback to call.place.');
-                }
-              } else {
-                 debugPrint('[main] ℹ️ Skipping directPlace on non-Huawei device.');
-              }
-            } else {
-              debugPrint('[main] ⚠️ No twilio_access_token available for directPlace.');
-              await VoipService().init(backend, forceReinit: i > 0);
-            }
-            
-            bool isReg = VoipService().isRegistered;
-            debugPrint('[main] Did VoipService.init actually run setTokens? _isRegistered=$isReg');
-            
-            final r = await TwilioVoice.instance.call.place(to: to, from: identity);
-            debugPrint('[main] call.place returned: $r');
-            
-            if (r == true) {
-                placed = true;
-                debugPrint('[main] call.place success on attempt ${i + 1}');
-                break;
-            }
-        } catch (e) {
-            debugPrint('[main] call.place exception: $e');
+    // 2️⃣ FALLBACK: Signal Twilio SDK locally to ACCEPT the Pending Incoming Call.
+    // NOTE: We DO NOT use call.place(to: confRoomRaw) because that launches a NEW OUTBOUND Dial,
+    // leaving the caller indefinitely on hold music!
+    try {
+        debugPrint('[main] Invoking SDK TwilioVoice.instance.call.answer() to bind the inbound SIP line...');
+        final bool answered = await TwilioVoice.instance.call.answer();
+        if (answered) {
+             debugPrint('[main] ✅ call.answer() SUCCESS.');
+        } else {
+             debugPrint('[main] ❌ call.answer() returned false (No active pending call context available for Twilio).');
+             VoipService.clearCallAnswered();
         }
-        await Future.delayed(const Duration(milliseconds: 300));
-    }
-
-    if (!placed) {
-        debugPrint('[main] call.place completely failed after 8 retries.');
+    } catch (e) {
+        debugPrint('[main] ❌ Exception during call.answer(): $e');
         VoipService.clearCallAnswered();
     }
-
 
   } catch (e) {
     VoipService.clearCallAnswered(); // Clear guard on failure
