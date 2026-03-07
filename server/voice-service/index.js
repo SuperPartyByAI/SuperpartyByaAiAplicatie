@@ -154,8 +154,29 @@ const mVoiceCallsDedupe = new promClient.Counter({
   help: 'Total duplicate Twilio webhooks deduplicated (ON CONFLICT)',
   registers: [promRegistry],
 });
+const mVoiceUpsertFailed = new promClient.Counter({
+  name: 'voice_calls_upsert_failed_total',
+  help: 'Total voice_calls upsert errors (non-duplicate failures)',
+  registers: [promRegistry],
+});
+const mVoiceTwilioFallback = new promClient.Counter({
+  name: 'voice_calls_twilio_fallback_total',
+  help: 'Total times /calls/recent fell back to Twilio API (DB empty or error)',
+  registers: [promRegistry],
+});
+const mVoiceMissedCallTotal = new promClient.Counter({
+  name: 'voice_missed_calls_total',
+  help: 'Total missed/busy/no-answer calls with resolvable client identity',
+  registers: [promRegistry],
+});
+const mVoiceIdentityResolveRate = new promClient.Gauge({
+  name: 'voice_calls_identity_resolve_rate',
+  help: 'Fraction of voice_calls with resolved client identity (0.0–1.0)',
+  registers: [promRegistry],
+});
 
 // ── VOICE PERSISTENCE HELPERS ────────────────────────────────────────────────
+
 
 /**
  * upsertVoiceCall — idempotent UPSERT in voice_calls.
@@ -175,6 +196,7 @@ async function upsertVoiceCall(fields) {
         mVoiceCallsDedupe.inc();
         console.warn('[voice_calls] dedupe (23505):', fields.call_sid);
       } else {
+        mVoiceUpsertFailed.inc();
         console.error('[voice_calls] upsert error:', error.message, 'sid:', fields.call_sid);
       }
     } else {
@@ -1131,27 +1153,56 @@ app.post('/api/voice/status', requireTwilioSignature, async (req, res) => {
         (async () => {
           try {
             const now = new Date().toISOString();
-            const dur = CallDuration ? parseInt(CallDuration, 10) : null;
-            // Try to enrich with identities if not yet resolved (from status webhook)
+            const dur = CallDuration ? Number.parseInt(CallDuration, 10) : null;
             let ids = { agentUserId: null, agentIdentity: null, agentDisplayName: null,
                          clientIdentityId: null, clientDisplayName: null, conversationId: null };
             if (From) ids = await resolveCallIdentities(From, To).catch(() => ids);
+
+            // Is this a missed call? (no-answer or busy with a resolvable client)
+            const MISSED_STATUSES = ['no-answer', 'busy', 'failed'];
+            const isMissed = MISSED_STATUSES.includes(CallStatus) && ids.clientIdentityId;
+
             await upsertVoiceCall({
-              call_sid:           CallSid,
-              status:             CallStatus,
-              duration_seconds:   dur,
-              ended_at:           now,
-              from_raw:           From || null,
-              to_raw:             To || null,
-              twilio_account_sid: AccountSid || null,
-              twilio_from:        From || null,
-              twilio_to:          To || null,
-              agent_identity:     ids.agentIdentity,
-              agent_user_id:      ids.agentUserId,
-              client_identity_id: ids.clientIdentityId,
-              client_display_name: ids.clientDisplayName,
-              conversation_id:    ids.conversationId,
+              call_sid:                   CallSid,
+              status:                     CallStatus,
+              duration_seconds:           dur,
+              ended_at:                   now,
+              from_raw:                   From || null,
+              to_raw:                     To || null,
+              twilio_account_sid:         AccountSid || null,
+              twilio_from:                From || null,
+              twilio_to:                  To || null,
+              agent_identity:             ids.agentIdentity,
+              agent_user_id:              ids.agentUserId,
+              client_identity_id:         ids.clientIdentityId,
+              client_display_name:        ids.clientDisplayName,
+              conversation_id:            ids.conversationId,
+              missed_callback_needed:     isMissed ? true : undefined,
             });
+
+            // ── Missed-call: push WS event + metric ──────────────────────────
+            if (isMissed) {
+              mVoiceMissedCallTotal.inc();
+              const missedPayload = JSON.stringify({
+                type:               'missed_call',
+                callSid:            CallSid,
+                from:               From,
+                clientDisplayName:  ids.clientDisplayName,
+                clientIdentityId:   ids.clientIdentityId,
+                conversationId:     ids.conversationId,
+                started_at:         now,
+              });
+              wss.clients.forEach(ws => {
+                if (ws.readyState === 1) ws.send(missedPayload);
+              });
+              console.log(`[voice_calls/missed] Pushed missed_call WS event for ${CallSid} (${ids.clientDisplayName})`);
+            }
+
+            // ── Update identity resolve rate gauge ────────────────────────────
+            supabase.rpc('voice_identity_resolve_rate').then(({ data }) => {
+              if (data != null) mVoiceIdentityResolveRate.set(Number(data));
+            }).catch(() => {});
+
           } catch (e) { console.error('[voice_calls/status]', e.message); }
         })();
     } else {
@@ -1161,6 +1212,7 @@ app.post('/api/voice/status', requireTwilioSignature, async (req, res) => {
     res.sendStatus(200);
 });
 
+
 app.get('/api/voice/active-calls', requireSupabaseUser, async (req, res) => {
   mReconcileReqTotal.inc();
   try {
@@ -1168,6 +1220,103 @@ app.get('/api/voice/active-calls', requireSupabaseUser, async (req, res) => {
     mActiveCallsCount.set(calls.length);
     res.json({ activeCalls: calls });
   } catch (e) { res.status(500).json({ error: e.message }); }
+});
+
+// ── GET /api/voice/persistence-health ───────────────────────────────────────
+// Live health check: DB call count, upsert failures, fallback rate, identity resolve rate
+app.get('/api/voice/persistence-health', requireSupabaseUser, async (req, res) => {
+  try {
+    // Total calls in DB
+    const { count: totalCalls, error: countErr } = await supabase
+      .from('voice_calls')
+      .select('*', { count: 'exact', head: true });
+
+    // Calls with resolved client identity
+    const { count: resolvedCalls, error: resolvedErr } = await supabase
+      .from('voice_calls')
+      .select('*', { count: 'exact', head: true })
+      .not('client_identity_id', 'is', null);
+
+    // Missed calls pending callback
+    const { count: missedPending, error: missedErr } = await supabase
+      .from('voice_calls')
+      .select('*', { count: 'exact', head: true })
+      .eq('missed_callback_needed', true)
+      .is('missed_callback_resolved_at', null);
+
+    // Prometheus counters (read from registry)
+    const upsertFailed   = (await mVoiceUpsertFailed.get()).values[0]?.value   ?? 0;
+    const twilioFallback = (await mVoiceTwilioFallback.get()).values[0]?.value ?? 0;
+    const identityRate   = totalCalls > 0 ? (resolvedCalls / totalCalls) : null;
+
+    // Update gauge
+    if (identityRate != null) mVoiceIdentityResolveRate.set(identityRate);
+
+    res.json({
+      ok: true,
+      db: {
+        total_calls:        countErr   ? null : totalCalls,
+        resolved_identity:  resolvedErr ? null : resolvedCalls,
+        missed_pending:     missedErr  ? null : missedPending,
+        identity_rate:      identityRate != null ? Math.round(identityRate * 100) / 100 : null,
+      },
+      counters: {
+        upsert_failed_total:      upsertFailed,
+        twilio_fallback_total:    twilioFallback,
+        missed_calls_total:       (await mVoiceMissedCallTotal.get()).values[0]?.value ?? 0,
+        upserted_total:           (await mVoiceCallsUpserted.get()).values[0]?.value   ?? 0,
+      },
+      alerts: {
+        upsert_failure_rate_high: upsertFailed > 5,
+        fallback_rate_high:       twilioFallback > 10,
+        identity_rate_low:        identityRate != null && identityRate < 0.5,
+      },
+    });
+  } catch (e) {
+    console.error('[persistence-health]', e.message);
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// ── GET /api/voice/missed-calls ──────────────────────────────────────────────
+// Returneaza apeluri pierdute nearahivate (no-answer/busy cu client cunoscut)
+app.get('/api/voice/missed-calls', requireSupabaseUser, async (req, res) => {
+  try {
+    const limit = Math.min(Number.parseInt(req.query.limit) || 50, 200);
+    const { data, error } = await supabase
+      .from('voice_calls')
+      .select('call_sid, from_raw, to_raw, client_display_name, client_identity_id, status, started_at, direction, conversation_id')
+      .eq('missed_callback_needed', true)
+      .is('missed_callback_resolved_at', null)
+      .order('started_at', { ascending: false })
+      .limit(limit);
+
+    if (error) {
+      console.error('[missed-calls]', error.message);
+      return res.status(500).json({ ok: false, error: error.message });
+    }
+    res.json({ ok: true, missed_calls: data || [], count: (data || []).length });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
+});
+
+// ── POST /api/voice/missed-calls/:sid/resolved ───────────────────────────────
+// Marcheaza un apel pierdut ca rezolvat (callback efectuat de agent)
+app.post('/api/voice/missed-calls/:sid/resolved', requireSupabaseUser, async (req, res) => {
+  const sid = req.params.sid;
+  const userId = req.supabaseUser?.id;
+  try {
+    await upsertVoiceCall({
+      call_sid:                       sid,
+      missed_callback_needed:         false,
+      missed_callback_resolved_at:    new Date().toISOString(),
+      missed_callback_resolved_by:    userId || null,
+    });
+    res.json({ ok: true, call_sid: sid, resolved_by: userId });
+  } catch (e) {
+    res.status(500).json({ ok: false, error: e.message });
+  }
 });
 
 app.post('/api/voice/cancel', requireSupabaseUser, async (req, res) => {
@@ -1328,161 +1477,6 @@ app.get('/api/voice/calls', requireSupabaseUser, async (req, res) => {
 });
 
 
-// ── GET /api/voice/calls/recent ─────────────────────────────────────────────
-// Returneaza ultimele apeluri (max limit=50) din Twilio pentru toate numerele
-// Flutter CallsScreen loveste aceasta ruta ca /voice/calls/recent?limit=50
-app.get("/api/voice/calls/recent", requireSupabaseUser, async (req, res) => {
-  if (!twilioClient) return res.status(503).json({ ok: false, error: "twilio_not_configured" });
-  try {
-    const limit = Math.min(parseInt(req.query.limit) || 50, 200);
-    const calls = await twilioClient.calls.list({ limit });
-    const mapped = calls.map(c => ({
-      callSid:   c.sid,
-      sid:       c.sid,
-      from:      c.from,
-      to:        c.to,
-      status:    c.status,
-      direction: c.direction,
-      duration:  parseInt(c.duration) || 0,
-      timestamp: c.startTime ? c.startTime.toISOString() : null,
-      price:     c.price,
-      priceUnit: c.priceUnit,
-    }));
-
-    // ── Enrich calls with display names from Supabase ────────────────────────
-    // VoIP calls (from=client:user_UUID_dev_UUID): lookup agent name via device_tokens + employees
-    // PSTN inbound (from=+40...): lookup client name via conversations_public.phone
-    try {
-      const SUPA_URL = process.env.SUPABASE_URL;
-      const SUPA_KEY = process.env.SUPABASE_SERVICE_KEY;
-      if (SUPA_URL && SUPA_KEY) {
-        const headers = { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` };
-
-        // ── VoIP: extract Supabase user UUID from "client:user_UUID_dev_UUID"
-        const voipCalls = mapped.filter(c => (c.from || '').startsWith('client:'));
-        const uuidToIdentity = {};
-        voipCalls.forEach(c => {
-          const match = c.from.replace('client:', '').match(/^user_([0-9a-f-]{36})_dev_/i);
-          if (match) uuidToIdentity[match[1]] = c.from;
-        });
-        const voipUuids = Object.keys(uuidToIdentity);
-
-        // ── PSTN: extract phone numbers from inbound calls (from=+..., not client:)
-        const pstnCalls = mapped.filter(c => (c.from || '').startsWith('+'));
-        const phones = [...new Set(pstnCalls.map(c => c.from))];
-
-        // Parallel lookups
-        const [empResp, pstnResp] = await Promise.all([
-          // Agent name (VoIP): device_tokens -> employees by email match
-          voipUuids.length > 0
-            ? fetch(
-                `${SUPA_URL}/rest/v1/employees?select=email,name&limit=50`,
-                { headers }
-              ).then(r => r.ok ? r.json() : []).catch(() => [])
-            : Promise.resolve([]),
-          // Client name (PSTN): conversations_public by phone
-          phones.length > 0
-            ? fetch(
-                `${SUPA_URL}/rest/v1/conversations_public?or=(${phones.map(p => `phone.eq.${encodeURIComponent(p)}`).join(',')})&select=phone,client_display_name,name&limit=100`,
-                { headers }
-              ).then(r => r.ok ? r.json() : []).catch(() => [])
-            : Promise.resolve([]),
-        ]);
-
-        // Build agent name lookup: device_tokens.user_id -> auth user email -> employees.name
-        let agentNameMap = {};
-        if (voipUuids.length > 0) {
-          // Get email for each Supabase UUID via auth admin API
-          const uuidEmail = {};
-          await Promise.all(voipUuids.map(async uuid => {
-            try {
-              const r = await fetch(`${SUPA_URL}/auth/v1/admin/users/${uuid}`, { headers });
-              if (r.ok) { const u = await r.json(); if (u.email) uuidEmail[uuid] = u.email; }
-            } catch (_) {}
-          }));
-          // Map: email -> employee name
-          const emailName = {};
-          for (const e of empResp) if (e.email && e.name) emailName[e.email] = e.name;
-          for (const [uuid, email] of Object.entries(uuidEmail)) {
-            agentNameMap[uuid] = emailName[email] || null;
-          }
-        }
-
-
-        // Build client name lookup: phone -> client_display_name
-        const pstnNameMap = {};
-        for (const r of pstnResp) {
-          if (r.phone) pstnNameMap[r.phone] = r.client_display_name || r.name || null;
-        }
-
-        // Apply names to calls
-        for (const c of mapped) {
-          if ((c.from || '').startsWith('client:')) {
-            const match = c.from.replace('client:', '').match(/^user_([0-9a-f-]{36})_dev_/i);
-            const name = match ? (agentNameMap[match[1]] || null) : null;
-            c.caller_name = name;
-            c.contact_name = name;
-          } else if ((c.from || '').startsWith('+')) {
-            const name = pstnNameMap[c.from] || null;
-            c.caller_name = name;
-            c.contact_name = name;
-          }
-        }
-      }
-    } catch (lookupErr) {
-      console.error('[voice/calls/recent] name lookup error:', lookupErr.message);
-    }
-
-    return res.json({ ok: true, calls: mapped, count: mapped.length });
-  } catch (err) {
-    console.error("[voice/calls/recent] error:", err.message);
-    return res.status(500).json({ ok: false, error: err.message });
-  }
-});
-
-app.get('/api/voice/calls/:sid', requireSupabaseUser, async (req, res) => {
-    try {
-      if (!twilioClient) {
-         return res.status(500).json({ error: 'Twilio Client Nu Este Configurat.' });
-      }
-    }
-
-    // ── Fallback: Twilio API (bootstrap or ?source=twilio) ──────────────────
-    if (!twilioClient) return res.status(503).json({ ok: false, error: 'twilio_not_configured' });
-    const twilCalls = await twilioClient.calls.list({ limit });
-    const mapped = twilCalls.map(c => ({
-      callSid:   c.sid,
-      sid:       c.sid,
-      from:      c.from,
-      to:        c.to,
-      status:    c.status,
-      direction: c.direction,
-      duration:  Number.parseInt(c.duration, 10) || 0,
-      duration_seconds: Number.parseInt(c.duration, 10) || 0,
-      timestamp: c.startTime ? c.startTime.toISOString() : null,
-      started_at: c.startTime ? c.startTime.toISOString() : null,
-    }));
-
-    // Quick name enrichment for Twilio fallback (reuse resolveCallIdentities)
-    try {
-      await Promise.all(mapped.map(async c => {
-        const ids = await resolveCallIdentities(c.from, c.to).catch(() => ({}));
-        c.caller_name        = ids.clientDisplayName || ids.agentDisplayName || null;
-        c.contact_name       = ids.clientDisplayName || null;
-        c.client_display_name = ids.clientDisplayName || null;
-        c.client_identity_id = ids.clientIdentityId || null;
-        c.agent_identity     = ids.agentIdentity || null;
-        c.agent_user_id      = ids.agentUserId || null;
-        c.conversation_id    = ids.conversationId || null;
-      }));
-    } catch (_) {}
-
-    return res.json({ ok: true, calls: mapped, count: mapped.length, source: 'twilio' });
-  } catch (err) {
-    console.error('[voice/calls/recent] error:', err.message);
-    return res.status(500).json({ ok: false, error: err.message });
-  }
-});
 
 app.get('/api/voice/calls/:sid', requireSupabaseUser, async (req, res) => {
   const sid = req.params.sid;
