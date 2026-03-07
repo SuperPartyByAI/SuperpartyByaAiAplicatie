@@ -1,0 +1,41 @@
+version: "3.9"
+
+services:
+  ai-manager:
+    build: .
+    container_name: superparty-ai-manager
+    restart: unless-stopped
+    ports:
+      - "3002:3002"
+    env_file:
+      - /opt/superparty-ai/config/.env
+    volumes:
+      - /opt/superparty-ai/logs:/app/logs
+    depends_on:
+      - redis
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://localhost:3002/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50m"
+        max-file: "5"
+
+  redis:
+    image: redis:7-alpine
+    container_name: superparty-ai-redis
+    restart: unless-stopped
+    command: redis-server --appendonly yes --maxmemory 512mb --maxmemory-policy allkeys-lru
+    ports:
+      - "6380:6379"
+    volumes:
+      - /opt/superparty-ai/data/redis:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
