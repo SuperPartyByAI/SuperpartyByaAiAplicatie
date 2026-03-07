@@ -30,6 +30,7 @@ import analyzeRouter from './routes/analyze.mjs';
 import tripsRouter from './routes/trips.mjs';
 import contestationsRouter from './routes/contestations.mjs';
 import mediaRouter from './routes/media.mjs';
+import logisticsRouter from './routes/logistics.mjs';
 
 // ── Worker ────────────────────────────────────────────────────────────────────
 import { initAnalysisWorker } from './workers/analysis-worker.mjs';
@@ -59,6 +60,7 @@ app.use('/ai', analyzeRouter);
 app.use('/trips', tripsRouter);
 app.use('/contestations', contestationsRouter);
 app.use('/media', mediaRouter);
+app.use('/logistics', logisticsRouter);
 
 // 404 fallback
 app.use((_req, res) => res.status(404).json({ error: 'Not found' }));

@@ -11,6 +11,9 @@ import 'team_management_screen.dart';
 import 'evenimente_screen.dart';
 import 'whatsapp_monitor_screen.dart';
 import 'app_inbox_screen.dart';
+import 'logistics/inventory_checklist_screen.dart';
+import 'logistics/evidence_upload_screen.dart';
+import 'logistics/staff_hours_screen.dart';
 import 'package:superpartybyai/services/trips_api_service.dart';
 import 'dart:async';
 
@@ -266,6 +269,78 @@ class _DashboardTabState extends State<_DashboardTab> {
                       label: Text(
                         isActive ? 'ÎNCHEIE CURSA' : 'START CURSĂ',
                         style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 1.2),
+                      ),
+                    ),
+              const SizedBox(height: 40),
+              // Acțiuni Rapide de Logistică
+              if (isActive) ...[
+                const Divider(),
+                const SizedBox(height: 16),
+                const Text('Acțiuni Cursă', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.black87)),
+                const SizedBox(height: 16),
+                Wrap(
+                  spacing: 16,
+                  runSpacing: 16,
+                  alignment: WrapAlignment.center,
+                  children: [
+                    _buildActionButton(
+                      context,
+                      icon: Icons.inventory_2,
+                      label: 'Verificare\nRecuzită',
+                      color: Colors.orange,
+                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const InventoryChecklistScreen(eventId: 'test_event'))),
+                    ),
+                    _buildActionButton(
+                      context,
+                      icon: Icons.add_a_photo,
+                      label: 'Încărcare\nDovezi',
+                      color: Colors.blue,
+                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const EvidenceUploadScreen(eventId: 'test_event'))),
+                    ),
+                  ],
+                ),
+              ],
+              const SizedBox(height: 32),
+              const Divider(),
+              const SizedBox(height: 16),
+              ListTile(
+                leading: const CircleAvatar(backgroundColor: Colors.indigo, child: Icon(Icons.access_time, color: Colors.white)),
+                title: const Text('Orele Mele (Payroll)', style: TextStyle(fontWeight: FontWeight.bold)),
+                subtitle: const Text('Istoric prezențe și validări pentru calculatoare salariale.'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const StaffHoursScreen())),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildActionButton(BuildContext context, {required IconData icon, required String label, required Color color, required VoidCallback onTap}) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        width: 140,
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 10, offset: const Offset(0, 4))
+          ],
+        ),
+        child: Column(
+          children: [
+            Icon(icon, size: 40, color: color),
+            const SizedBox(height: 12),
+            Text(label, textAlign: TextAlign.center, style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87)),
+          ],
+        ),
+      ),
+    );
+  }
                       ),
                     ),
             ],
