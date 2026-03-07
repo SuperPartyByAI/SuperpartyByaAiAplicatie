@@ -247,15 +247,16 @@ export async function recordGeofenceEvent({ employeeId, identifier, action, lat,
     else aiDecision = `Staționare/Acțiune în Geofence [${identifier}]: ${action}`;
   }
 
-  // To truly link to an active trip, we can lookup the most recent active trip for employeeId.
-  // For the B3 scaffold, we attach it to pending.
-  const tripId = null;
+  // To truly link to an active trip, we lookup the most recent active trip for employeeId.
+  const activeTrips = await queryRows('driver_trips', { employee_id: employeeId, status: 'active' }, { limit: 1, orderBy: 'started_at', ascending: false });
+  const tripId = activeTrips.length > 0 ? activeTrips[0].id : null;
 
   const result = await insertRow('geofence_events', {
     employee_id: employeeId,
     trip_id: tripId,
     geofence_id: identifier,
     geofence_type: action,
+    event_type: action,
     lat: lat != null ? Number(lat) : null,
     lng: lng != null ? Number(lng) : null,
     recorded_at: ts,

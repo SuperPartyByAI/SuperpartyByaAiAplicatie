@@ -3,10 +3,11 @@ import 'package:flutter_background_geolocation/flutter_background_geolocation.da
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'backend_service.dart';
 
 class BgGpsService {
-  static const String _syncUrl = 'http://89.167.123.174:3002/trips/locations';
-  static const String _eventsUrl = 'http://89.167.123.174:3002/trips/events';
+  static final String _syncUrl = '${BackendService.AI_MANAGER_URL}/trips/locations';
+  static final String _eventsUrl = '${BackendService.AI_MANAGER_URL}/trips/events';
 
   /// Initializes the background location tracking with the TransistorSoft plugin.
   /// Needs to be called once when the user opens the app or logs in.
@@ -73,7 +74,7 @@ class BgGpsService {
         'Content-Type': 'application/json'
       },
       // Transform TransistorSoft's massive JSON into the lean JSON required by POST /trips/locations
-      locationTemplate: '{ "lat":<%= latitude %>, "lng":<%= longitude %>, "accuracyMeters":<%= accuracy %>, "speedKmh":<%= speed %>, "recordedAt":"<%= timestamp %>", "employeeId":"$employeeId", "tripId": "pending_local_trip" }',
+      locationTemplate: '{ "lat":<%= latitude %>, "lng":<%= longitude %>, "accuracyMeters":<%= accuracy %>, "speedKmh":<%= speed %>, "recordedAt":"<%= timestamp %>", "employeeId":"$employeeId", "tripId": null }',
       httpRootProperty: 'locations'
     ));
 
@@ -105,5 +106,14 @@ class BgGpsService {
   static Future<void> stopTracking() async {
     await bg.BackgroundGeolocation.stop();
     debugPrint('[BgGpsService] - Tracking stopped.');
+  }
+
+  /// Updates the template config dynamically when a trip starts or ends.
+  static Future<void> updateTripContext(String employeeId, String? tripId) async {
+    final tIdstr = tripId != null ? '"$tripId"' : 'null';
+    await bg.BackgroundGeolocation.setConfig(bg.Config(
+      locationTemplate: '{ "lat":<%= latitude %>, "lng":<%= longitude %>, "accuracyMeters":<%= accuracy %>, "speedKmh":<%= speed %>, "recordedAt":"<%= timestamp %>", "employeeId":"$employeeId", "tripId": $tIdstr }',
+    ));
+    debugPrint('[BgGpsService] - Trip Context Updated: $tripId');
   }
 }
