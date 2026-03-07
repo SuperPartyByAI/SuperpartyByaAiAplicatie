@@ -14,6 +14,7 @@ import 'app_inbox_screen.dart';
 import 'logistics/inventory_checklist_screen.dart';
 import 'logistics/evidence_upload_screen.dart';
 import 'logistics/staff_hours_screen.dart';
+import 'admin_trip_review_screen.dart';
 import 'package:superpartybyai/services/trips_api_service.dart';
 import 'dart:async';
 
@@ -309,6 +310,14 @@ class _DashboardTabState extends State<_DashboardTab> {
                 subtitle: const Text('Istoric prezențe și validări pentru calculatoare salariale.'),
                 trailing: const Icon(Icons.chevron_right),
                 onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const StaffHoursScreen())),
+              ),
+              const Divider(),
+              ListTile(
+                leading: const CircleAvatar(backgroundColor: Colors.purple, child: Icon(Icons.admin_panel_settings, color: Colors.white)),
+                title: const Text('Admin Panel (Review AI)', style: TextStyle(fontWeight: FontWeight.bold, color: Colors.purple)),
+                subtitle: const Text('Aprobare / respingere penalizări propuse de AI.'),
+                trailing: const Icon(Icons.chevron_right),
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AdminTripReviewScreen())),
               ),
             ],
           ),
