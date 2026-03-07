@@ -1,8 +1,46 @@
 name: CI — Smoke Tests (WA Outbox + Voice + Syntax)
+
+# CI Supabase: IZOLAT de prod — foloseste CI_SUPABASE_URL (project separat)
+# URL: https://vpacynuyljmiatcqemho.supabase.co (Frankfurt, free tier)
+# Schema: outbox_messages + voice_calls + claim_outbox_batch identice cu prod (fara date reale)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  smoke-outbox:
+    name: WA Outbox Validation (7 scenarii)
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_URL: ${{ secrets.CI_SUPABASE_URL }}
+      SUPABASE_SERVICE_KEY: ${{ secrets.CI_SUPABASE_SERVICE_KEY }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Verify CI Supabase isolation
+        run: |
+          # Confirma ca nu se foloseste URL-ul de prod
+          PROD_URL="ilkphpidhuytucxlglqi.supabase.co"
+          CI_URL="${{ secrets.CI_SUPABASE_URL }}"
+          if echo "$CI_URL" | grep -q "$PROD_URL"; then
+            echo "❌ CRITICAL: CI foloseste Supabase PROD! Oprire imediata."
+            exit 1
+          fi
+          echo "✅ CI izolat de prod: $CI_URL"
+
       - name: Run outbox validation
         id: outbox-run
         run: node .github/scripts/validate-outbox.mjs
-
 
       - name: Cleanup CI rows (always runs)
         if: always()
@@ -16,7 +54,6 @@ name: CI — Smoke Tests (WA Outbox + Voice + Syntax)
             .then(r=>console.log('Cleanup status:',r.status))
             .catch(e=>console.error('Cleanup error:',e));
           " 2>/dev/null || echo 'cleanup best-effort'
-
 
   smoke-voice:
     name: Voice Endpoints Smoke
@@ -42,7 +79,6 @@ name: CI — Smoke Tests (WA Outbox + Voice + Syntax)
           test -f server/voice-service/backfill-voice-calls.mjs && echo "✅ backfill script present" || { echo "❌ backfill-voice-calls.mjs MISSING"; exit 1; }
           echo "✅ Voice integrity: ALL PASSED"
 
-
   smoke-voice-persistence:
     name: Voice Persistence Smoke (6 scenarii)
     runs-on: ubuntu-latest
@@ -66,7 +102,6 @@ name: CI — Smoke Tests (WA Outbox + Voice + Syntax)
       - name: Run voice persistence validation
         run: node .github/scripts/validate-voice-persistence.mjs
 
-
   lint-check:
     name: JS Syntax Check
     runs-on: ubuntu-latest
@@ -77,4 +112,9 @@ name: CI — Smoke Tests (WA Outbox + Voice + Syntax)
           node-version: "20"
       - name: Syntax check all critical server files
         run: |
-
+          echo "=== JS Syntax Check ==="
+          node --check server/whatsapp/workers/wa-outbox-api.mjs && echo "✅ wa-outbox-api.mjs"
+          node --check server/whatsapp/workers/wa-outbox-worker.mjs && echo "✅ wa-outbox-worker.mjs"
+          node --check server/whatsapp/reconciler/wa-reconciler.mjs && echo "✅ wa-reconciler.mjs"
+          node --check server/voice-service/supabase-sync.mjs && echo "✅ supabase-sync.mjs"
+          echo "✅ Syntax: ALL PASSED"
