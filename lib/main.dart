@@ -25,6 +25,12 @@ import 'services/supabase_service.dart';
 import 'services/bg_gps_service.dart'; // NOU: Pilonul B1 Background GPS
 import 'screens/login_screen.dart';
 import 'screens/main_screen.dart';
+import 'screens/logistics/staff_hours_screen.dart';
+import 'screens/admin_trip_review_screen.dart';
+import 'screens/location_required_screen.dart';
+import 'services/location_compliance_service.dart';
+import '../services/trips_api_service.dart';
+import 'dart:async';
 import 'screens/active_call_screen.dart';
 import 'screens/pending_approval_screen.dart';
 import 'screens/consent_screen.dart';
@@ -172,7 +178,6 @@ void _registerCallActionsHandler() {
 
     switch (call.method) {
       case 'answerCall':
-        // Outbound conference dial bypasses the native Twilio Telecom loop
         await answerIncomingCall(from, callSid);
         break;
       case 'rejectCall':
@@ -227,6 +232,7 @@ void _registerCallActionsHandler() {
 }
 
 Future<void> answerIncomingCall(String from, String callSid) async {
+  debugPrint('[main] 📞 answerCall received. from: $from, callSid: $callSid');
   VoipLogger.instance.logEvent('ACCEPT_TAPPED', extra: {'from': from, 'callSid': callSid});
   try {
     if (Platform.isAndroid) {
@@ -262,102 +268,49 @@ Future<void> answerIncomingCall(String from, String callSid) async {
       await const MethodChannel(_kAudioChannel).invokeMethod('requestAudioFocusAndMode');
     } catch (_) {}
 
-    // Conference-first: agent must DIAL into conf_<CallSid>
-    final prefs = await SharedPreferences.getInstance();
-    final identity = prefs.getString('twilio_client_identity') ?? 'superparty';
-    
-    // Use real Twilio CallSid (CA...) from args; if missing, fallback to last_incoming_call_sid
-    String confStr = callSid;
-    if (confStr.isEmpty || !confStr.startsWith('CA')) {
-      final fallbackSid = prefs.getString('last_incoming_call_sid') ?? '';
-      if (fallbackSid.startsWith('CA')) confStr = fallbackSid;
-    }
-    if (confStr.isEmpty || !confStr.startsWith('CA')) {
-      debugPrint('[main] ❌ No valid Twilio CallSid available for conference join. Aborting place(). callSid=$callSid');
-      return;
-    }
-    final confRoomRaw = confStr.startsWith('conf_') ? confStr : 'conf_$confStr';
-    final to = confRoomRaw.startsWith('client:') ? confRoomRaw : 'client:$confRoomRaw';
-    
-    final ctx2 = navigatorKey.currentContext;
-    BackendService? backend;
-    if (ctx2 != null) {
-      try { backend = Provider.of<BackendService>(ctx2, listen: false); } catch (_) {}
-    }
-    if (backend == null) {
-      debugPrint('[main] Context null, falling back to dynamic BackendService via transient AuthService');
-      backend = BackendService(AuthService());
-    }
-    
-    // 1️⃣ ATTEMPT NATIVE DIRECT ANSWER (Huawei/Honor Bypass using stored CallInvite)
+    // 1️⃣ ATTEMPT NATIVE DIRECT ANSWER (Huawei Bypass)
+    debugPrint('[main] 📞 directAnswer started...');
+    bool directAccepted = false;
     try {
-      debugPrint('[main] Attempting directAnswer via Native Platform Channel...');
-      final bool directAccepted = await MethodChannel('com.superpartybyai.app/call_actions').invokeMethod('directAnswer') ?? false;
-      if (directAccepted) {
-         debugPrint('[main] ✅ directAnswer SUCCESS! Bypassing call.place fallback.');
-         return; // We are successfully bridged via the original Twilio SIP payload!
-      } else {
-         debugPrint('[main] ⚠️ directAnswer returned false (no pending invite). Falling back to call.place.');
-      }
+      directAccepted = await const MethodChannel('com.superpartybyai.app/call_actions').invokeMethod('directAnswer') ?? false;
+      debugPrint('[main] 📞 directAnswer result: $directAccepted');
     } catch (e) {
-      debugPrint('[main] ❌ directAnswer exception: $e. Falling back to call.place.');
+      debugPrint('[main] ❌ directAnswer exception: $e');
     }
-    // 2️⃣ FALLBACK: Try to connect to the conference via outbound TCP dial (Huawei safe)
-    bool placed = false;
-    for (int i = 0; i < 8; i++) {
-        debugPrint('[main] dialing into conference room: $to with identity $identity (Attempt ${i + 1})');
-        try {
-            // 1) try native directPlace (bypass Telecom)
-            final prefs = await SharedPreferences.getInstance();
-            String? accessToken = prefs.getString('twilio_access_token');
-            if (accessToken == null || accessToken.isEmpty) {
-              await VoipService().init(backend, forceReinit: true);
-              accessToken = prefs.getString('twilio_access_token');
-            }
-
-            if (accessToken != null && accessToken.isNotEmpty) {
-              await VoipService.ensureDeviceFlagsInitialized();
-              if (VoipService.isHuaweiOrHonor) {
-                final placedNative = await const MethodChannel('com.superpartybyai.app/call_actions').invokeMethod<bool>(
-                  'directPlace',
-                  {'accessToken': accessToken, 'to': to},
-                );
-
-                if (placedNative == true) {
-                  placed = true;
-                  debugPrint('[main] ✅ directPlace SUCCESS (native Voice.connect) on attempt ${i + 1}. Skip call.place.');
-                  break;
-                } else {
-                  debugPrint('[main] ⚠️ directPlace returned false. Fallback to call.place.');
-                }
-              } else {
-                 debugPrint('[main] ℹ️ Skipping directPlace on non-Huawei device.');
-              }
-            } else {
-              debugPrint('[main] ⚠️ No twilio_access_token available for directPlace.');
-              await VoipService().init(backend, forceReinit: i > 0);
-            }
-            
-            bool isReg = VoipService().isRegistered;
-            debugPrint('[main] Did VoipService.init actually run setTokens? _isRegistered=$isReg');
-            
-            final r = await TwilioVoice.instance.call.place(to: to, from: identity);
-            debugPrint('[main] call.place returned: $r');
-            
-            if (r == true) {
-                placed = true;
-                debugPrint('[main] call.place success on attempt ${i + 1}');
-                break;
-            }
-        } catch (e) {
-            debugPrint('[main] call.place exception: $e');
-        }
-        await Future.delayed(const Duration(milliseconds: 300));
+    
+    if (directAccepted) {
+       debugPrint('[main] ✅ directAnswer SUCCESS! Returning early.');
+       debugPrint('[main] 🧹 cleanup invoked: no');
+       return; 
     }
 
-    if (!placed) {
-        debugPrint('[main] call.place completely failed after 8 retries.');
-        VoipService.clearCallAnswered();
+    // 2️⃣ NATIVE ANSWER ON EXISTING INVITE (Twilio SDK default answer)
+    final activeCallBefore = TwilioVoice.instance.call.activeCall;
+    bool activeCallPresent = activeCallBefore != null;
+    debugPrint('[main] 📞 activeCall present before answer: ${activeCallPresent ? "yes" : "no"}');
+    if (activeCallPresent) {
+      debugPrint('[main] 📞 current activeCall: from=${activeCallBefore.from}, to=${activeCallBefore.to}, dir=${activeCallBefore.callDirection}');
+    }
+
+    debugPrint('[main] 📞 TwilioVoice.instance.call.answer() started...');
+    bool answered = false;
+    try {
+      answered = await TwilioVoice.instance.call.answer() ?? false;
+      debugPrint('[main] 📞 TwilioVoice.instance.call.answer() result: $answered');
+    } catch(e) {
+      debugPrint('[main] ❌ TwilioVoice.instance.call.answer() exception: $e');
+    }
+
+    if (!answered) {
+      debugPrint('[main] ❌ Answer completely failed. No active invite found natively.');
+      // Keep cleanup logs updated as requested
+      debugPrint('[main] 🧹 cleanup invoked: yes');
+      VoipService.clearCallAnswered();
+      VoipService.isRingingOrActive = false;
+      final nav = navigatorKey.currentState;
+      if (nav != null && nav.canPop()) nav.pop();
+    } else {
+      debugPrint('[main] 🧹 cleanup invoked: no');
     }
 
 
@@ -428,20 +381,54 @@ class ApprovalGate extends StatefulWidget {
 
 
 
-class _ApprovalGateState extends State<ApprovalGate> {
+class _ApprovalGateState extends State<ApprovalGate> with WidgetsBindingObserver {
   bool _loading = true;
   bool _approved = false;
   bool _isAdmin = false;
   bool _consentGiven = false;
 
+  bool _isCompliant = true; // Assume true until fully checked to prevent red flash
+  List<String> _complianceReasons = [];
+
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _checkStatus();
     // Show the global inbox badge overlay above everything
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) GlobalInboxBadgeOverlay.show(context);
     });
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      if ((_approved || _isAdmin) && _consentGiven && !_loading) {
+        _enforceCompliance();
+      }
+    }
+  }
+
+  Future<void> _enforceCompliance() async {
+    final result = await LocationComplianceService.checkCompliance();
+    if (mounted) {
+      setState(() {
+         _isCompliant = result.isCompliant;
+         _complianceReasons = result.reasons;
+      });
+      if (!result.isCompliant) {
+         debugPrint('[ApprovalGate] GPS gate failed: ${result.reasons}');
+      } else {
+         debugPrint('[ApprovalGate] GPS gate verified compliant.');
+      }
+    }
   }
 
   void _checkStatus() async {
@@ -499,11 +486,19 @@ class _ApprovalGateState extends State<ApprovalGate> {
                auth.getIdToken().then((token) {
                  if (token != null) {
                    BgGpsService.initialize(token, user.id).then((_) {
-                     BgGpsService.startTracking();
+                     BgGpsService.startTracking().then((_) {
+                       _enforceCompliance();
+                     });
                    });
+                 } else {
+                   _enforceCompliance();
                  }
                });
+             } else {
+               _enforceCompliance();
              }
+          } else {
+             // Will hit enforcement when consented.
           }
         });
       }
@@ -532,10 +527,16 @@ class _ApprovalGateState extends State<ApprovalGate> {
                auth.getIdToken().then((token) {
                  if (token != null) {
                    BgGpsService.initialize(token, user.id).then((_) {
-                     BgGpsService.startTracking();
+                     BgGpsService.startTracking().then((_) {
+                       _enforceCompliance();
+                     });
                    });
+                 } else {
+                   _enforceCompliance();
                  }
                });
+            } else {
+               _enforceCompliance();
             }
           }
         }
@@ -554,6 +555,24 @@ class _ApprovalGateState extends State<ApprovalGate> {
     // Init VoIP now
     final backend = Provider.of<BackendService>(context, listen: false);
     VoipService().init(backend);
+
+    final auth = Provider.of<AuthService>(context, listen: false);
+    final user = auth.currentUser;
+    if (user != null) {
+       auth.getIdToken().then((token) {
+         if (token != null) {
+           BgGpsService.initialize(token, user.id).then((_) {
+             BgGpsService.startTracking().then((_) {
+               _enforceCompliance();
+             });
+           });
+         } else {
+           _enforceCompliance();
+         }
+       });
+    } else {
+       _enforceCompliance();
+    }
   }
 
   @override
@@ -578,7 +597,15 @@ class _ApprovalGateState extends State<ApprovalGate> {
       return ConsentScreen(onConsentGiven: _onConsentSuccess);
     }
 
-    // 3. Main App
+    // 3. Location Compliance Gate
+    if (!_isCompliant) {
+      return LocationRequiredScreen(
+        reasons: _complianceReasons,
+        onRetry: _enforceCompliance, // The user taps "Retry" to fire enforcement again
+      );
+    }
+
+    // 4. Main App
     return const MainScreen();
   }
 }
