@@ -70,12 +70,15 @@ export function estimateKmFromPoints(points) {
  */
 export async function startTrip({ employeeId, eventId = null, plannedRoute = null }) {
   const trip = await insertRow('driver_trips', {
+    driver_user_id: employeeId,  // Ext. via migration 007 (employee_id remains natively mapped by user identity)
     employee_id: employeeId,
     event_id: eventId,
     status: 'active',
     planned_route: plannedRoute,
     actual_route: { points: [] },
     started_at: new Date().toISOString(),
+    route_status: 'started',
+    actual_departure_at: new Date().toISOString()
   });
   return trip;
 }
@@ -151,8 +154,8 @@ export async function recordLocationsBatch(locations) {
         trip_id: tripId,
         lat: Number(lat),
         lng: Number(lng),
-        accuracy_meters: accuracyMeters != null ? Number(accuracyMeters) : null,
-        speed_kmh: speedKmh != null ? Number(speedKmh) : null,
+        accuracy_meters: accuracyMeters === null ? null : Number(accuracyMeters),
+        speed_kmh: speedKmh === null ? null : Number(speedKmh),
         recorded_at: ts,
       })
     );
@@ -214,10 +217,12 @@ export async function endTrip(tripId) {
 
   const trip = await updateRow('driver_trips', tripId, {
     status: 'completed',
+    route_status: 'completed',
     actual_route: { points },
     km_actual: kmActual,
     fuel_estimate_liters: fuelEstimate,
     ended_at: new Date().toISOString(),
+    actual_arrival_at: new Date().toISOString(),
   });
 
   return trip;
@@ -241,24 +246,26 @@ export async function recordGeofenceEvent({ employeeId, identifier, action, lat,
        aiDecision = 'Angajatul staționează la sediu (Dwell Confirmat). Urmează preluarea materialelor.';
     }
   } else {
-    // Other Geofences (Events)
-    if (action === 'ENTER') aiDecision = `A ajuns la perimetrul Geofence: ${identifier}`;
-    else if (action === 'EXIT') aiDecision = `A părăsit perimetrul Geofence: ${identifier}`;
-    else aiDecision = `Staționare/Acțiune în Geofence [${identifier}]: ${action}`;
+    if (action === 'ENTER') {
+      aiDecision = `A ajuns la perimetrul Geofence: ${identifier}`;
+    } else if (action === 'EXIT') {
+      aiDecision = `A părăsit perimetrul Geofence: ${identifier}`;
+    } else {
+      aiDecision = `Staționare/Acțiune în Geofence [${identifier}]: ${action}`;
+    }
   }
 
   // To truly link to an active trip, we lookup the most recent active trip for employeeId.
   const activeTrips = await queryRows('driver_trips', { employee_id: employeeId, status: 'active' }, { limit: 1, orderBy: 'started_at', ascending: false });
   const tripId = activeTrips.length > 0 ? activeTrips[0].id : null;
 
-  const result = await insertRow('geofence_events', {
+  await insertRow('geofence_events', {
     employee_id: employeeId,
     trip_id: tripId,
     geofence_id: identifier,
     geofence_type: action,
-    event_type: action,
-    lat: lat != null ? Number(lat) : null,
-    lng: lng != null ? Number(lng) : null,
+    lat: lat === null ? null : Number(lat),
+    lng: lng === null ? null : Number(lng),
     recorded_at: ts,
     ai_decision: aiDecision
   });

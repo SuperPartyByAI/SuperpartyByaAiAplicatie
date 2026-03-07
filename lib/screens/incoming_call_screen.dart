@@ -82,7 +82,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
         debugPrint('[IncomingCallScreen] Attempting directAnswer via Native Platform Channel...');
         final bool directAccepted = await MethodChannel('com.superpartybyai.app/call_actions').invokeMethod('directAnswer') ?? false;
         if (directAccepted) {
-           debugPrint('[IncomingCallScreen] ✅ directAnswer SUCCESS! Bypassing call.place fallback.');
+           debugPrint('[IncomingCallScreen] ✅ directAnswer SUCCESS! Bypassing call.answer() fallback.');
            if (mounted) {
              Navigator.pop(context); // Close incoming custom screen
              Navigator.push(
@@ -97,52 +97,26 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
              );
            }
            return; 
+        } else {
+             debugPrint('[IncomingCallScreen] ⚠️ directAnswer returned false (no pending invite captured natively). Falling back to SDK call.answer().');
         }
       } catch (e) {
-        debugPrint('[IncomingCallScreen] ❌ directAnswer exception: $e');
+        debugPrint('[IncomingCallScreen] ❌ directAnswer exception: $e. Falling back to SDK call.answer().');
       }
 
-      // 2️⃣ FALLBACK: Outbound dial to conference
-      bool placed = false;
+      // 2️⃣ FALLBACK: Signal Twilio SDK locally to ACCEPT the Pending Incoming Call.
+      // NOTE: We DO NOT use call.place(to: confRoomRaw) because that launches a NEW OUTBOUND Dial,
+      // leaving the caller indefinitely on hold music!
       try {
-        final prefs = await SharedPreferences.getInstance();
-        String? accessToken = prefs.getString('twilio_access_token');
-        if (accessToken == null || accessToken.isEmpty) {
-          if (backend != null) await VoipService().init(backend, forceReinit: true);
-          accessToken = prefs.getString('twilio_access_token');
-        }
-
-        if (accessToken != null && accessToken.isNotEmpty) {
-          await VoipService.ensureDeviceFlagsInitialized();
-          if (VoipService.isHuaweiOrHonor) {
-            final placedNative = await const MethodChannel('com.superpartybyai.app/call_actions').invokeMethod<bool>(
-              'directPlace',
-              {'accessToken': accessToken, 'to': to},
-            );
-            if (placedNative == true) {
-               placed = true;
-               debugPrint('[IncomingCallScreen] ✅ directPlace SUCCESS (native Voice.connect). Skip call.place.');
-            } else {
-               debugPrint('[IncomingCallScreen] ⚠️ directPlace returned false. Fallback to call.place.');
-            }
+          debugPrint('[IncomingCallScreen] Invoking SDK TwilioVoice.instance.call.answer() to bind the inbound SIP line...');
+          final bool? answered = await TwilioVoice.instance.call.answer();
+          if (answered == true) {
+               debugPrint('[IncomingCallScreen] ✅ call.answer() SUCCESS.');
           } else {
-             debugPrint('[IncomingCallScreen] ℹ️ Skipping directPlace on non-Huawei device.');
+               debugPrint('[IncomingCallScreen] ❌ call.answer() returned false/null (No active pending call context available for Twilio).');
           }
-        }
       } catch (e) {
-        debugPrint('[IncomingCallScreen] ❌ directPlace exception: $e. Fallback to call.place.');
-      }
-
-      if (!placed) {
-        placed = await TwilioVoice.instance.call.place(to: to, from: identity) ?? false;
-        debugPrint('[IncomingCallScreen] call.place result=$placed to=$to from=$identity');
-      }
-      if (placed != true && backend != null) {
-        debugPrint('[IncomingCallScreen] call.place failed -> forceReinit + retry');
-        await VoipService().init(backend, forceReinit: true);
-        await Future.delayed(const Duration(seconds: 2));
-        final placed2 = await TwilioVoice.instance.call.place(to: to, from: identity);
-        debugPrint('[IncomingCallScreen] call.place retry result=$placed2');
+          debugPrint('[IncomingCallScreen] ❌ Exception during call.answer(): $e');
       }
       
       // Navigate immediately
