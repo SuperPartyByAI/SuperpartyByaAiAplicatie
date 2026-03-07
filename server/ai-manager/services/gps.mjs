@@ -249,7 +249,7 @@ export async function recordGeofenceEvent({ employeeId, identifier, action, lat,
 
   // To truly link to an active trip, we can lookup the most recent active trip for employeeId.
   // For the B3 scaffold, we attach it to pending.
-  const tripId = "pending_local_trip";
+  const tripId = null;
 
   const result = await insertRow('geofence_events', {
     employee_id: employeeId,
