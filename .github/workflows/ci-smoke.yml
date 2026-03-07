@@ -72,7 +72,35 @@ jobs:
           grep -q "activeCallsMap.set" server/voice/index.js && { echo "❌ STALE activeCallsMap.set found!"; exit 1; } || echo "✅ no stale map"
           grep -q "ioredis" server/voice/package.json && echo "✅ ioredis în deps" || { echo "❌ ioredis MISSING"; exit 1; }
           grep -q "ilkphpidhuytucxlglqi" server/voice/supabase-sync.mjs && { echo "❌ hardcoded Supabase URL!"; exit 1; } || echo "✅ no hardcoded Supabase URL"
+          # Voice persistence checks
+          grep -q "upsertVoiceCall" server/voice/index.js && echo "✅ upsertVoiceCall present" || { echo "❌ upsertVoiceCall MISSING"; exit 1; }
+          grep -q "resolveCallIdentities" server/voice/index.js && echo "✅ resolveCallIdentities present" || { echo "❌ resolveCallIdentities MISSING"; exit 1; }
+          grep -q "voice_calls" server/voice/index.js && echo "✅ voice_calls table reference" || { echo "❌ voice_calls table reference MISSING"; exit 1; }
+          test -f server/voice/backfill-voice-calls.mjs && echo "✅ backfill script present" || { echo "❌ backfill-voice-calls.mjs MISSING"; exit 1; }
           echo "✅ Voice integrity: ALL PASSED"
+
+  smoke-voice-persistence:
+    name: Voice Persistence Smoke (6 scenarii)
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_URL: ${{ secrets.CI_SUPABASE_URL }}
+      SUPABASE_SERVICE_KEY: ${{ secrets.CI_SUPABASE_SERVICE_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Verify CI Supabase isolation
+        run: |
+          PROD_URL="ilkphpidhuytucxlglqi.supabase.co"
+          CI_URL="${{ secrets.CI_SUPABASE_URL }}"
+          if echo "$CI_URL" | grep -q "$PROD_URL"; then
+            echo "❌ CRITICAL: CI foloseste Supabase PROD! Oprire imediata."
+            exit 1
+          fi
+          echo "✅ CI izolat de prod: $CI_URL"
+      - name: Run voice persistence validation
+        run: node .github/scripts/validate-voice-persistence.mjs
 
   lint-check:
     name: JS Syntax Check
