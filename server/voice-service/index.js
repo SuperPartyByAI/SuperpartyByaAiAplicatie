@@ -1329,52 +1329,121 @@ app.get('/api/voice/calls', requireSupabaseUser, async (req, res) => {
 
 
 // ── GET /api/voice/calls/recent ─────────────────────────────────────────────
-// Citeste din Supabase voice_calls (sursa proprie, durabile).
-// Fallback pe Twilio API daca DB e goala (bootstrap) sau daca ?source=twilio.
+// Returneaza ultimele apeluri (max limit=50) din Twilio pentru toate numerele
 // Flutter CallsScreen loveste aceasta ruta ca /voice/calls/recent?limit=50
 app.get("/api/voice/calls/recent", requireSupabaseUser, async (req, res) => {
+  if (!twilioClient) return res.status(503).json({ ok: false, error: "twilio_not_configured" });
   try {
-    const limit = Math.min(Number.parseInt(req.query.limit, 10) || 50, 200);
-    const forceTwilio = req.query.source === 'twilio';
+    const limit = Math.min(parseInt(req.query.limit) || 50, 200);
+    const calls = await twilioClient.calls.list({ limit });
+    const mapped = calls.map(c => ({
+      callSid:   c.sid,
+      sid:       c.sid,
+      from:      c.from,
+      to:        c.to,
+      status:    c.status,
+      direction: c.direction,
+      duration:  parseInt(c.duration) || 0,
+      timestamp: c.startTime ? c.startTime.toISOString() : null,
+      price:     c.price,
+      priceUnit: c.priceUnit,
+    }));
 
-    // ── Primary: read from voice_calls Supabase ─────────────────────────────
-    if (!forceTwilio) {
-      try {
-        const { data: dbCalls, error: dbErr } = await supabase
-          .from('voice_calls')
-          .select('call_sid, direction, from_raw, to_raw, status, duration_seconds, started_at, answered_at, ended_at, agent_identity, agent_user_id, client_identity_id, client_display_name, conversation_id, metadata')
-          .order('started_at', { ascending: false })
-          .limit(limit);
+    // ── Enrich calls with display names from Supabase ────────────────────────
+    // VoIP calls (from=client:user_UUID_dev_UUID): lookup agent name via device_tokens + employees
+    // PSTN inbound (from=+40...): lookup client name via conversations_public.phone
+    try {
+      const SUPA_URL = process.env.SUPABASE_URL;
+      const SUPA_KEY = process.env.SUPABASE_SERVICE_KEY;
+      if (SUPA_URL && SUPA_KEY) {
+        const headers = { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` };
 
-        if (!dbErr && dbCalls && dbCalls.length > 0) {
-          const calls = dbCalls.map(c => ({
-            callSid:            c.call_sid,
-            sid:                c.call_sid,
-            from:               c.from_raw,
-            to:                 c.to_raw,
-            status:             c.status,
-            direction:          c.direction,
-            duration:           c.duration_seconds || 0,
-            duration_seconds:   c.duration_seconds || 0,
-            timestamp:          c.started_at,
-            started_at:         c.started_at,
-            answered_at:        c.answered_at,
-            ended_at:           c.ended_at,
-            // Identity fields (enriched at webhook time)
-            caller_name:        c.client_display_name || null,
-            contact_name:       c.client_display_name || null,
-            agent_identity:     c.agent_identity,
-            agent_user_id:      c.agent_user_id,
-            agent_display_name: null, // resolved below if needed
-            client_identity_id: c.client_identity_id,
-            client_display_name: c.client_display_name,
-            conversation_id:    c.conversation_id,
+        // ── VoIP: extract Supabase user UUID from "client:user_UUID_dev_UUID"
+        const voipCalls = mapped.filter(c => (c.from || '').startsWith('client:'));
+        const uuidToIdentity = {};
+        voipCalls.forEach(c => {
+          const match = c.from.replace('client:', '').match(/^user_([0-9a-f-]{36})_dev_/i);
+          if (match) uuidToIdentity[match[1]] = c.from;
+        });
+        const voipUuids = Object.keys(uuidToIdentity);
+
+        // ── PSTN: extract phone numbers from inbound calls (from=+..., not client:)
+        const pstnCalls = mapped.filter(c => (c.from || '').startsWith('+'));
+        const phones = [...new Set(pstnCalls.map(c => c.from))];
+
+        // Parallel lookups
+        const [empResp, pstnResp] = await Promise.all([
+          // Agent name (VoIP): device_tokens -> employees by email match
+          voipUuids.length > 0
+            ? fetch(
+                `${SUPA_URL}/rest/v1/employees?select=email,name&limit=50`,
+                { headers }
+              ).then(r => r.ok ? r.json() : []).catch(() => [])
+            : Promise.resolve([]),
+          // Client name (PSTN): conversations_public by phone
+          phones.length > 0
+            ? fetch(
+                `${SUPA_URL}/rest/v1/conversations_public?or=(${phones.map(p => `phone.eq.${encodeURIComponent(p)}`).join(',')})&select=phone,client_display_name,name&limit=100`,
+                { headers }
+              ).then(r => r.ok ? r.json() : []).catch(() => [])
+            : Promise.resolve([]),
+        ]);
+
+        // Build agent name lookup: device_tokens.user_id -> auth user email -> employees.name
+        let agentNameMap = {};
+        if (voipUuids.length > 0) {
+          // Get email for each Supabase UUID via auth admin API
+          const uuidEmail = {};
+          await Promise.all(voipUuids.map(async uuid => {
+            try {
+              const r = await fetch(`${SUPA_URL}/auth/v1/admin/users/${uuid}`, { headers });
+              if (r.ok) { const u = await r.json(); if (u.email) uuidEmail[uuid] = u.email; }
+            } catch (_) {}
           }));
-          return res.json({ ok: true, calls, count: calls.length, source: 'db' });
+          // Map: email -> employee name
+          const emailName = {};
+          for (const e of empResp) if (e.email && e.name) emailName[e.email] = e.name;
+          for (const [uuid, email] of Object.entries(uuidEmail)) {
+            agentNameMap[uuid] = emailName[email] || null;
+          }
         }
-        if (dbErr) console.warn('[voice/calls/recent] DB error, falling back to Twilio:', dbErr.message);
-      } catch (dbEx) {
-        console.warn('[voice/calls/recent] DB exception, falling back to Twilio:', dbEx.message);
+
+
+        // Build client name lookup: phone -> client_display_name
+        const pstnNameMap = {};
+        for (const r of pstnResp) {
+          if (r.phone) pstnNameMap[r.phone] = r.client_display_name || r.name || null;
+        }
+
+        // Apply names to calls
+        for (const c of mapped) {
+          if ((c.from || '').startsWith('client:')) {
+            const match = c.from.replace('client:', '').match(/^user_([0-9a-f-]{36})_dev_/i);
+            const name = match ? (agentNameMap[match[1]] || null) : null;
+            c.caller_name = name;
+            c.contact_name = name;
+          } else if ((c.from || '').startsWith('+')) {
+            const name = pstnNameMap[c.from] || null;
+            c.caller_name = name;
+            c.contact_name = name;
+          }
+        }
+      }
+    } catch (lookupErr) {
+      console.error('[voice/calls/recent] name lookup error:', lookupErr.message);
+    }
+
+    return res.json({ ok: true, calls: mapped, count: mapped.length });
+  } catch (err) {
+    console.error("[voice/calls/recent] error:", err.message);
+    return res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+app.get('/api/voice/calls/:sid', requireSupabaseUser, async (req, res) => {
+    try {
+      if (!twilioClient) {
+         return res.status(500).json({ error: 'Twilio Client Nu Este Configurat.' });
       }
     }
 
