@@ -1166,45 +1166,88 @@ app.get("/api/voice/calls/recent", requireSupabaseUser, async (req, res) => {
       priceUnit: c.priceUnit,
     }));
 
-    // Enrich VoIP calls with caller name from Supabase conversations_public
-    // Twilio VoIP format: from="client:user_UUID_dev_UUID"
-    // Supabase: conversations_public.identity_id = "user_UUID" (fara _dev_... sufix)
+    // ── Enrich calls with display names from Supabase ────────────────────────
+    // VoIP calls (from=client:user_UUID_dev_UUID): lookup agent name via device_tokens + employees
+    // PSTN inbound (from=+40...): lookup client name via conversations_public.phone
     try {
       const SUPA_URL = process.env.SUPABASE_URL;
       const SUPA_KEY = process.env.SUPABASE_SERVICE_KEY;
       if (SUPA_URL && SUPA_KEY) {
-        // Collect unique identities from VoIP calls
-        const identities = [...new Set(
-          mapped
-            .filter(c => (c.from || '').startsWith('client:'))
-            .map(c => c.from.replace('client:', '').split('_dev_')[0])
-        )];
-        if (identities.length > 0) {
-          const filter = identities.map(id => `identity_id.eq.${encodeURIComponent(id)}`).join(',');
-          const resp = await fetch(
-            `${SUPA_URL}/rest/v1/conversations_public?or=(${filter})&select=identity_id,client_display_name,name&limit=100`,
-            { headers: { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` } }
-          );
-          if (resp.ok) {
-            const rows = await resp.json();
-            const nameMap = {};
-            for (const r of rows) {
-              if (r.identity_id) nameMap[r.identity_id] = r.client_display_name || r.name || null;
-            }
-            for (const c of mapped) {
-              if ((c.from || '').startsWith('client:')) {
-                const identity = c.from.replace('client:', '').split('_dev_')[0];
-                const displayName = nameMap[identity] || null;
-                c.caller_name = displayName;
-                c.contact_name = displayName;
-              }
-            }
+        const headers = { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` };
+
+        // ── VoIP: extract Supabase user UUID from "client:user_UUID_dev_UUID"
+        const voipCalls = mapped.filter(c => (c.from || '').startsWith('client:'));
+        const uuidToIdentity = {};
+        voipCalls.forEach(c => {
+          const match = c.from.replace('client:', '').match(/^user_([0-9a-f-]{36})_dev_/i);
+          if (match) uuidToIdentity[match[1]] = c.from;
+        });
+        const voipUuids = Object.keys(uuidToIdentity);
+
+        // ── PSTN: extract phone numbers from inbound calls (from=+..., not client:)
+        const pstnCalls = mapped.filter(c => (c.from || '').startsWith('+'));
+        const phones = [...new Set(pstnCalls.map(c => c.from))];
+
+        // Parallel lookups
+        const [empResp, pstnResp] = await Promise.all([
+          // Agent name (VoIP): device_tokens -> employees by email match
+          voipUuids.length > 0
+            ? fetch(
+                `${SUPA_URL}/rest/v1/employees?select=email,name&limit=50`,
+                { headers }
+              ).then(r => r.ok ? r.json() : []).catch(() => [])
+            : Promise.resolve([]),
+          // Client name (PSTN): conversations_public by phone
+          phones.length > 0
+            ? fetch(
+                `${SUPA_URL}/rest/v1/conversations_public?or=(${phones.map(p => `phone.eq.${encodeURIComponent(p)}`).join(',')})&select=phone,client_display_name,name&limit=100`,
+                { headers }
+              ).then(r => r.ok ? r.json() : []).catch(() => [])
+            : Promise.resolve([]),
+        ]);
+
+        // Build agent name lookup: device_tokens.user_id -> auth user email -> employees.name
+        let agentNameMap = {};
+        if (voipUuids.length > 0) {
+          // Get email for each Supabase UUID via auth admin API
+          const uuidEmail = {};
+          await Promise.all(voipUuids.map(async uuid => {
+            try {
+              const r = await fetch(`${SUPA_URL}/auth/v1/admin/users/${uuid}`, { headers });
+              if (r.ok) { const u = await r.json(); if (u.email) uuidEmail[uuid] = u.email; }
+            } catch (_) {}
+          }));
+          // Map: email -> employee name
+          const emailName = {};
+          for (const e of empResp) if (e.email && e.name) emailName[e.email] = e.name;
+          for (const [uuid, email] of Object.entries(uuidEmail)) {
+            agentNameMap[uuid] = emailName[email] || null;
+          }
+        }
+
+
+        // Build client name lookup: phone -> client_display_name
+        const pstnNameMap = {};
+        for (const r of pstnResp) {
+          if (r.phone) pstnNameMap[r.phone] = r.client_display_name || r.name || null;
+        }
+
+        // Apply names to calls
+        for (const c of mapped) {
+          if ((c.from || '').startsWith('client:')) {
+            const match = c.from.replace('client:', '').match(/^user_([0-9a-f-]{36})_dev_/i);
+            const name = match ? (agentNameMap[match[1]] || null) : null;
+            c.caller_name = name;
+            c.contact_name = name;
+          } else if ((c.from || '').startsWith('+')) {
+            const name = pstnNameMap[c.from] || null;
+            c.caller_name = name;
+            c.contact_name = name;
           }
         }
       }
     } catch (lookupErr) {
-      // Non-fatal: proceed without enrichment
-      console.error('[voice/calls/recent] Supabase name lookup error:', lookupErr.message);
+      console.error('[voice/calls/recent] name lookup error:', lookupErr.message);
     }
 
     return res.json({ ok: true, calls: mapped, count: mapped.length });
