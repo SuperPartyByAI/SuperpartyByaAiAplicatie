@@ -528,15 +528,36 @@ class VoipService {
       // Get real FCM token for Twilio incoming call push notifications
       String deviceToken = '';
       try {
-        final fcmToken = await FirebaseMessaging.instance.getToken().timeout(const Duration(seconds: 5));
+        debugPrint('[VoIP] ⏳ FirebaseMessaging.instance.getToken() started... (timeout 15s)');
+        final fcmToken = await FirebaseMessaging.instance.getToken().timeout(const Duration(seconds: 15));
         if (fcmToken != null && fcmToken.isNotEmpty) {
           deviceToken = fcmToken;
-          debugPrint('[VoIP] FCM Token: ${fcmToken.substring(0, 20)}...');
+          debugPrint('[VoIP] ✅ FCM Token Fetched Successfully: \${fcmToken.substring(0, 20)}...');
+          // Save valid token statically to prefs
+          await prefs.setString('fcm_device_token', fcmToken);
         } else {
-          debugPrint('[VoIP] ⚠️ FCM token null — WebSocket-only mode (foreground calls only)');
+          debugPrint('[VoIP] ⚠️ FCM getToken() returned null string — Background Ringing will NOT work. WebSocket-only mode.');
         }
+      // Listen for FCM token refreshes in the background/foreground
+      FirebaseMessaging.instance.onTokenRefresh.listen((newToken) async {
+         debugPrint('[VoIP] 🔄 FCM Token Refresh Detected: \${newToken.substring(0, 20)}...');
+         await prefs.setString('fcm_device_token', newToken);
+         // Dynamically update Twilio Registration if accessToken exists
+         final storedTwilioToken = prefs.getString('twilio_access_token');
+         if (storedTwilioToken != null && storedTwilioToken.isNotEmpty) {
+             debugPrint('[VoIP] 🔄 Updating TwilioVoice SDK with new deviceToken...');
+             await TwilioVoice.instance.setTokens(accessToken: storedTwilioToken, deviceToken: newToken);
+             await backendService.registerDevice(deviceId!, newToken);
+         }
+      });
       } catch (e) {
-        debugPrint('[VoIP] ⚠️ FCM error ($e) — WebSocket-only mode (foreground calls only)');
+        debugPrint('[VoIP] ❌ FCM Request Failed ($e). Background Ringing will NOT work. WebSocket-only mode.');
+        // Try fallback cache if available
+        final cached = prefs.getString('fcm_device_token');
+        if (cached != null) {
+            debugPrint('[VoIP] 🔄 Using CACHED FCM Token: \${cached.substring(0, 20)}...');
+            deviceToken = cached;
+        }
       }
 
       // 4b. Register device and FCM token with backend

@@ -110,4 +110,65 @@ class TripsApiService {
     }
     return null;
   }
+
+  // --- LOGISTICS & STAFF HOURS REVIEW INCORPORATED HERE ---
+
+  /// Get pending AI penalites / candidates for admin review
+  static Future<List<dynamic>> getPendingCandidates() async {
+    try {
+      final session = Supabase.instance.client.auth.currentSession;
+      if (session == null) throw Exception('No active session.');
+      final jwt = session.accessToken;
+
+      final url = '${BackendService.AI_MANAGER_URL}/logistics/staff-hours/candidates/pending';
+      final response = await http.get(
+        Uri.parse(url),
+        headers: {
+          'Authorization': 'Bearer $jwt',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body);
+        if (body['ok'] == true && body['data'] != null) {
+          return body['data'] as List<dynamic>;
+        }
+      }
+      return [];
+    } catch (e) {
+      debugPrint('[TripsApiService] Exception at getPendingCandidates: $e');
+      return [];
+    }
+  }
+
+  /// Submit Human Review for an AI penalty
+  static Future<bool> reviewCandidate(String candidateId, String reviewStatus, String? reviewerComment) async {
+    try {
+      final session = Supabase.instance.client.auth.currentSession;
+      if (session == null) throw Exception('No active session.');
+      final jwt = session.accessToken;
+      final userId = session.user.id;
+
+      final url = '${BackendService.AI_MANAGER_URL}/logistics/staff-hours/review';
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {
+          'Authorization': 'Bearer $jwt',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'candidateId': candidateId,
+          'reviewStatus': reviewStatus, // 'approved' or 'rejected'
+          'reviewerComment': reviewerComment ?? '',
+          'approvedBy': userId,
+        }),
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint('[TripsApiService] Exception at reviewCandidate: $e');
+      return false;
+    }
+  }
 }
