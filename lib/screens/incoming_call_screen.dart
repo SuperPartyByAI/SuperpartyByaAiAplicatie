@@ -92,11 +92,25 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
       }
 
       // 2️⃣ NATIVE ANSWER ON EXISTING INVITE (Twilio SDK default answer)
-      final activeCallBefore = TwilioVoice.instance.call.activeCall;
+      Call? activeCallBefore = TwilioVoice.instance.call.activeCall;
+      if (activeCallBefore == null) {
+        debugPrint('[IncomingCallScreen] 📞 activeCall not present — trying a short wait for SDK...');
+        for (int i = 0; i < 15; i++) {
+          activeCallBefore = TwilioVoice.instance.call.activeCall;
+          if (activeCallBefore != null) break;
+          await Future.delayed(const Duration(milliseconds: 200));
+        }
+        if (activeCallBefore == null) {
+          debugPrint('[IncomingCallScreen] ❌ activeCall still null after 3s wait.');
+        } else {
+          debugPrint('[IncomingCallScreen] ✅ activeCall found after wait!');
+        }
+      }
+
       bool activeCallPresent = activeCallBefore != null;
       debugPrint('[IncomingCallScreen] 📞 activeCall present before answer: ${activeCallPresent ? "yes" : "no"}');
       if (activeCallPresent) {
-        debugPrint('[IncomingCallScreen] 📞 current activeCall: from=${activeCallBefore.from}, to=${activeCallBefore.to}, dir=${activeCallBefore.callDirection}');
+        debugPrint('[IncomingCallScreen] 📞 current activeCall: from=${activeCallBefore?.from}, to=${activeCallBefore?.to}, dir=${activeCallBefore?.callDirection}');
       }
 
       debugPrint('[IncomingCallScreen] 📞 TwilioVoice.instance.call.answer() started...');

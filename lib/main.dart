@@ -285,11 +285,25 @@ Future<void> answerIncomingCall(String from, String callSid) async {
     }
 
     // 2️⃣ NATIVE ANSWER ON EXISTING INVITE (Twilio SDK default answer)
-    final activeCallBefore = TwilioVoice.instance.call.activeCall;
+    Call? activeCallBefore = TwilioVoice.instance.call.activeCall;
+    if (activeCallBefore == null) {
+      debugPrint('[main] 📞 activeCall not present — trying a short wait for SDK...');
+      for (int i = 0; i < 15; i++) {
+        activeCallBefore = TwilioVoice.instance.call.activeCall;
+        if (activeCallBefore != null) break;
+        await Future.delayed(const Duration(milliseconds: 200));
+      }
+      if (activeCallBefore == null) {
+        debugPrint('[main] ❌ activeCall still null after 3s wait.');
+      } else {
+        debugPrint('[main] ✅ activeCall found after wait!');
+      }
+    }
+
     bool activeCallPresent = activeCallBefore != null;
     debugPrint('[main] 📞 activeCall present before answer: ${activeCallPresent ? "yes" : "no"}');
     if (activeCallPresent) {
-      debugPrint('[main] 📞 current activeCall: from=${activeCallBefore.from}, to=${activeCallBefore.to}, dir=${activeCallBefore.callDirection}');
+      debugPrint('[main] 📞 current activeCall: from=${activeCallBefore?.from}, to=${activeCallBefore?.to}, dir=${activeCallBefore?.callDirection}');
     }
 
     debugPrint('[main] 📞 TwilioVoice.instance.call.answer() started...');
