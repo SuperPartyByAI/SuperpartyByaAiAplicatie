@@ -210,11 +210,12 @@ class _DashboardTabState extends State<_DashboardTab> {
         elevation: 0,
       ),
       backgroundColor: Colors.grey[100],
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(24.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          child: Padding(
+            padding: const EdgeInsets.all(24.0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               AnimatedContainer(
                 duration: const Duration(milliseconds: 500),
@@ -322,6 +323,7 @@ class _DashboardTabState extends State<_DashboardTab> {
             ],
           ),
         ),
+      ),
       ),
     );
   }
