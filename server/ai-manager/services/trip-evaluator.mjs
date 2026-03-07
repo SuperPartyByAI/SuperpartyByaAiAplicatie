@@ -1,4 +1,5 @@
 import { queryRows, insertRow, updateRow } from './supabase.mjs';
+import { notifyCentralaOnTripAnomaly } from './notifications.mjs';
 
 /**
  * services/trip-evaluator.mjs
@@ -143,6 +144,9 @@ export async function evaluateTrip(tripId) {
       deviation_score: overallDeviationScore,
       human_review_status: aiVerdict === 'APPROVED' ? 'approved' : 'pending'
   });
+
+  // PASUL 3: Execute Operational Push Policy to Centrala (FCM / WebSockets dispatch)
+  await notifyCentralaOnTripAnomaly(trip.id, trip.employee_id, aiVerdict, flags, overallDeviationScore);
 
   return {
       trip_id: trip.id,
