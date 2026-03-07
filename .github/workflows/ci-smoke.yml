@@ -102,6 +102,51 @@ jobs:
       - name: Run voice persistence validation
         run: node .github/scripts/validate-voice-persistence.mjs
 
+  smoke-ai-manager:
+    name: AI Manager Integrity Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Verify AI Manager file structure
+        run: |
+          echo "=== AI Manager File Integrity ==="
+          test -f server/ai-manager/index.mjs            && echo "✅ index.mjs"            || { echo "❌ MISSING index.mjs"; exit 1; }
+          test -f server/ai-manager/package.json         && echo "✅ package.json"         || { echo "❌ MISSING package.json"; exit 1; }
+          test -f server/ai-manager/Dockerfile           && echo "✅ Dockerfile"           || { echo "❌ MISSING Dockerfile"; exit 1; }
+          test -f server/ai-manager/.env.example         && echo "✅ .env.example"         || { echo "❌ MISSING .env.example"; exit 1; }
+          test -f server/ai-manager/docker-compose.yml   && echo "✅ docker-compose.yml"   || { echo "❌ MISSING docker-compose.yml"; exit 1; }
+          test -f server/ai-manager/RUNBOOK_AI.md        && echo "✅ RUNBOOK_AI.md"        || { echo "❌ MISSING RUNBOOK_AI.md"; exit 1; }
+          test -f server/ai-manager/config/config.mjs    && echo "✅ config/config.mjs"    || { echo "❌ MISSING config/config.mjs"; exit 1; }
+          test -f server/ai-manager/routes/health.mjs    && echo "✅ routes/health.mjs"    || { echo "❌ MISSING routes/health.mjs"; exit 1; }
+          test -f server/ai-manager/routes/analyze.mjs   && echo "✅ routes/analyze.mjs"   || { echo "❌ MISSING routes/analyze.mjs"; exit 1; }
+          test -f server/ai-manager/routes/trips.mjs     && echo "✅ routes/trips.mjs"     || { echo "❌ MISSING routes/trips.mjs"; exit 1; }
+          test -f server/ai-manager/routes/contestations.mjs && echo "✅ routes/contestations.mjs" || { echo "❌ MISSING routes/contestations.mjs"; exit 1; }
+          test -f server/ai-manager/routes/media.mjs     && echo "✅ routes/media.mjs"     || { echo "❌ MISSING routes/media.mjs"; exit 1; }
+          test -f server/ai-manager/services/openai.mjs  && echo "✅ services/openai.mjs"  || { echo "❌ MISSING services/openai.mjs"; exit 1; }
+          test -f server/ai-manager/services/supabase.mjs && echo "✅ services/supabase.mjs" || { echo "❌ MISSING services/supabase.mjs"; exit 1; }
+          test -f server/ai-manager/services/audit.mjs   && echo "✅ services/audit.mjs"   || { echo "❌ MISSING services/audit.mjs"; exit 1; }
+          test -f server/ai-manager/services/policy.mjs  && echo "✅ services/policy.mjs"  || { echo "❌ MISSING services/policy.mjs"; exit 1; }
+          test -f server/ai-manager/services/gps.mjs     && echo "✅ services/gps.mjs"     || { echo "❌ MISSING services/gps.mjs"; exit 1; }
+          test -f server/ai-manager/workers/analysis-worker.mjs && echo "✅ workers/analysis-worker.mjs" || { echo "❌ MISSING workers/analysis-worker.mjs"; exit 1; }
+          test -f server/ai-manager/migrations/001_ai_events.sql    && echo "✅ migration 001" || { echo "❌ MISSING migration 001"; exit 1; }
+          test -f server/ai-manager/migrations/002_ai_audit_log.sql && echo "✅ migration 002" || { echo "❌ MISSING migration 002"; exit 1; }
+          test -f server/ai-manager/migrations/003_ai_contestations.sql && echo "✅ migration 003" || { echo "❌ MISSING migration 003"; exit 1; }
+          test -f server/ai-manager/migrations/004_gps_trips.sql    && echo "✅ migration 004" || { echo "❌ MISSING migration 004"; exit 1; }
+          test -f server/ai-manager/migrations/005_media_jobs.sql   && echo "✅ migration 005" || { echo "❌ MISSING migration 005"; exit 1; }
+          echo "✅ AI Manager: ALL FILES PRESENT"
+
+      - name: Verify no hardcoded secrets in AI Manager
+        run: |
+          echo "=== Secret scan AI Manager ==="
+          if grep -r "sk-" server/ai-manager/ --include="*.mjs" --include="*.js" 2>/dev/null | grep -v ".env.example" | grep -q "sk-"; then
+            echo "❌ CRITICAL: Hardcoded OpenAI key found!"; exit 1
+          fi
+          if grep -r "ilkphpidhuytucxlglqi" server/ai-manager/ 2>/dev/null | grep -v ".env.example" | grep -q "ilkphpidhuytucxlglqi"; then
+            echo "❌ CRITICAL: Hardcoded Supabase prod URL found!"; exit 1
+          fi
+          echo "✅ No hardcoded secrets found"
+
   lint-check:
     name: JS Syntax Check
     runs-on: ubuntu-latest
@@ -117,4 +162,17 @@ jobs:
           node --check server/whatsapp/workers/wa-outbox-worker.mjs && echo "✅ wa-outbox-worker.mjs"
           node --check server/whatsapp/reconciler/wa-reconciler.mjs && echo "✅ wa-reconciler.mjs"
           node --check server/voice-service/supabase-sync.mjs && echo "✅ supabase-sync.mjs"
+          node --check server/ai-manager/index.mjs && echo "✅ ai-manager/index.mjs"
+          node --check server/ai-manager/config/config.mjs && echo "✅ ai-manager/config.mjs"
+          node --check server/ai-manager/routes/health.mjs && echo "✅ ai-manager/routes/health.mjs"
+          node --check server/ai-manager/routes/analyze.mjs && echo "✅ ai-manager/routes/analyze.mjs"
+          node --check server/ai-manager/routes/trips.mjs && echo "✅ ai-manager/routes/trips.mjs"
+          node --check server/ai-manager/routes/contestations.mjs && echo "✅ ai-manager/routes/contestations.mjs"
+          node --check server/ai-manager/routes/media.mjs && echo "✅ ai-manager/routes/media.mjs"
+          node --check server/ai-manager/services/openai.mjs && echo "✅ ai-manager/services/openai.mjs"
+          node --check server/ai-manager/services/supabase.mjs && echo "✅ ai-manager/services/supabase.mjs"
+          node --check server/ai-manager/services/audit.mjs && echo "✅ ai-manager/services/audit.mjs"
+          node --check server/ai-manager/services/policy.mjs && echo "✅ ai-manager/services/policy.mjs"
+          node --check server/ai-manager/services/gps.mjs && echo "✅ ai-manager/services/gps.mjs"
+          node --check server/ai-manager/workers/analysis-worker.mjs && echo "✅ ai-manager/workers/analysis-worker.mjs"
           echo "✅ Syntax: ALL PASSED"
