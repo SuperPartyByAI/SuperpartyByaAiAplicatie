@@ -20,3 +20,9 @@ services:
       options:
         max-size: "50m"
         max-file: "5"
+    networks:
+      - ai-manager_default
+
+networks:
+  ai-manager_default:
+    external: true
