@@ -1,4 +1,4 @@
-import { insertRow, updateRow, queryRows } from './supabase.mjs';
+import { supabase, insertRow, updateRow, queryRows } from './supabase.mjs';
 
 /**
  * Fetch inventory requirements for an event
@@ -122,4 +122,34 @@ export async function reviewStaffHoursCandidate({
 
   const result = await updateRow('staff_hours_candidates', candidateId, payload);
   return result;
+}
+
+/**
+ * Get all pending Staff Hours Candidates for Admin UI
+ */
+export async function getPendingStaffHoursCandidates() {
+  // We use the raw client to join the bundles
+  const { data, error } = await supabase
+    .from('staff_hours_candidates')
+    .select(`
+      *,
+      evidence_bundles (*),
+      users!inner (nume_prenume)
+    `)
+    .eq('review_status', 'pending')
+    .order('created_at', { ascending: false });
+
+  if (error) {
+    // If the join fails due to users relation not being explicit, fallback:
+    console.error('Join error, attempting fallback without users:', error);
+    const fallback = await supabase
+      .from('staff_hours_candidates')
+      .select('*, evidence_bundles(*)')
+      .eq('review_status', 'pending')
+      .order('created_at', { ascending: false });
+    
+    if (fallback.error) throw fallback.error;
+    return fallback.data;
+  }
+  return data;
 }
