@@ -10,7 +10,8 @@ import {
   recordEvidenceBundle,
   createStaffHoursCandidate,
   reviewStaffHoursCandidate,
-  getPendingStaffHoursCandidates
+  getPendingStaffHoursCandidates,
+  recordMediaAsset
 } from '../services/logistics.mjs';
 
 const router = Router();
@@ -51,6 +52,21 @@ router.post('/evidence', async (req, res) => {
     return res.status(201).json({ ok: true, data: result });
   } catch (err) {
     req.log?.error({ err }, '[logistics/evidence] error');
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// POST /logistics/evidence/assets
+router.post('/evidence/assets', async (req, res) => {
+  const { eventId, tripId, employeeId, sourceUrl, sourceType, capturedAt, cameraId, assetKind } = req.body;
+  if (!employeeId || !sourceUrl || !assetKind) {
+    return res.status(400).json({ error: 'employeeId, sourceUrl and assetKind are mandatory' });
+  }
+  try {
+    const result = await recordMediaAsset({ eventId, tripId, employeeId, sourceUrl, sourceType, capturedAt, cameraId, assetKind });
+    return res.status(201).json({ ok: true, data: result });
+  } catch (err) {
+    req.log?.error({ err }, '[logistics/evidence/assets] error');
     return res.status(500).json({ error: err.message });
   }
 });

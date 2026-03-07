@@ -149,9 +149,9 @@ class _DashboardTabState extends State<_DashboardTab> {
     }
   }
 
-  Future<void> _startTrip() async {
+  Future<void> _startTrip({String? eventId}) async {
     setState(() => _isLoading = true);
-    final tripId = await TripsApiService.startTrip();
+    final tripId = await TripsApiService.startTrip(eventId: eventId);
     if (mounted) {
       if (tripId != null) {
         setState(() {
