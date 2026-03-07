@@ -26,8 +26,18 @@ export const config = {
     serviceKey: require_('SUPABASE_SERVICE_KEY'),
   },
 
+  // AI Provider — local-first by default
+  ai: {
+    provider: optional('AI_PROVIDER', 'local'),      // 'local' | 'openai'
+    localLlmUrl: optional('LOCAL_LLM_URL', 'http://localhost:11434'), // Ollama default
+    localLlmModel: optional('LOCAL_LLM_MODEL', 'llama3.2:1b'),
+    localVisionUrl: optional('LOCAL_VISION_URL', null),
+    fallbackProvider: optional('FALLBACK_PROVIDER', 'none'), // 'none' | 'openai'
+  },
+
+  // OpenAI — fully optional, used only if AI_PROVIDER=openai or FALLBACK_PROVIDER=openai
   openai: {
-    apiKey: require_('OPENAI_API_KEY'),
+    apiKey: optional('OPENAI_API_KEY', null),
     model: optional('OPENAI_MODEL', 'gpt-4o-mini'),
   },
 

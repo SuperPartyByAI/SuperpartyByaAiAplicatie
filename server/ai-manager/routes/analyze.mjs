@@ -1,13 +1,13 @@
 /**
  * routes/analyze.mjs
- * POST /ai/analyze-event — First AI capability.
+ * POST /ai/analyze-event — AI event analysis, local-first.
  *
- * Input: WhatsApp conversationId / Voice callSid / free text
- * Output: structured AI analysis, saved to ai_events + ai_audit_log
+ * Uses provider-router which defaults to local Ollama LLM.
+ * OpenAI is optional fallback only (FALLBACK_PROVIDER=openai).
  */
 
 import { Router } from 'express';
-import { analyzeEvent } from '../services/openai.mjs';
+import { routeAnalyzeEvent } from '../services/providers/provider-router.mjs';
 import { applyPolicy } from '../services/policy.mjs';
 import { insertRow } from '../services/supabase.mjs';
 import { writeAuditLog } from '../services/audit.mjs';
@@ -27,7 +27,7 @@ const router = Router();
  *   callerNumber?: string,
  *   clientIdentityId?: string,
  *   clientDisplayName?: string,
- *   context?: string,       // extra context fetched from DB
+ *   context?: string,
  * }
  */
 router.post('/analyze-event', async (req, res) => {
@@ -48,8 +48,8 @@ router.post('/analyze-event', async (req, res) => {
   }
 
   try {
-    // 1. Call OpenAI
-    const { result: rawResult, model, tokensUsed, latencyMs } = await analyzeEvent({
+    // 1. Route to AI provider (local-first by default)
+    const { result: rawResult, model, tokensUsed, latencyMs } = await routeAnalyzeEvent({
       source,
       conversationId,
       messageText,
@@ -58,30 +58,36 @@ router.post('/analyze-event', async (req, res) => {
       context,
     });
 
-    // 2. Apply policy rules
+    // 2. Apply business policy rules
     const result = applyPolicy(rawResult);
 
-    // 3. Persist ai_event
-    const eventRow = await insertRow('ai_events', {
-      source_type: source,
-      source_id: conversationId ?? callSid ?? null,
-      conversation_id: conversationId ?? null,
-      call_sid: callSid ?? null,
-      client_identity_id: clientIdentityId ?? null,
-      client_display_name: clientDisplayName ?? null,
-      event_type: result.event_type,
-      event_status: result.should_escalate_to_human ? 'needs_review' : 'proposed',
-      summary: result.summary,
-      details_json: result,
-      ai_confidence: result.confidence,
-      ai_suggested_next_action: result.next_action,
-      human_review_status: 'pending',
-      created_by_ai: true,
-    });
+    // 3. Persist ai_event (best-effort — table may not exist yet)
+    let eventId = null;
+    try {
+      const eventRow = await insertRow('ai_events', {
+        source_type: source,
+        source_id: conversationId ?? callSid ?? null,
+        conversation_id: conversationId ?? null,
+        call_sid: callSid ?? null,
+        client_identity_id: clientIdentityId ?? null,
+        client_display_name: clientDisplayName ?? null,
+        event_type: result.event_type,
+        event_status: result.should_escalate_to_human ? 'needs_review' : 'proposed',
+        summary: result.summary,
+        details_json: result,
+        ai_confidence: result.confidence,
+        ai_suggested_next_action: result.next_action,
+        human_review_status: 'pending',
+        created_by_ai: true,
+      });
+      eventId = eventRow.id;
+    } catch (dbErr) {
+      req.log?.warn({ err: dbErr }, '[analyze-event] DB persist failed — migrations may be missing');
+    }
 
-    // 4. Write audit log (non-blocking)
+    // 4. Write audit log (best-effort)
     await writeAuditLog({
-      eventId: eventRow.id,
+      eventId,
       action: 'analyze_event',
       inputPayload: { source, conversationId, callSid, clientIdentityId },
       outputPayload: result,
@@ -95,14 +101,14 @@ router.post('/analyze-event', async (req, res) => {
 
     return res.json({
       ok: true,
-      event_id: eventRow.id,
+      event_id: eventId,
       analysis: result,
+      provider: model,
       latency_ms: Date.now() - start,
     });
   } catch (err) {
     analyzeEventCounter.labels('error').inc();
 
-    // Best-effort audit log for error
     await writeAuditLog({
       action: 'analyze_event',
       inputPayload: { source, conversationId, callSid },
