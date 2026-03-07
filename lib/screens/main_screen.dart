@@ -11,6 +11,8 @@ import 'team_management_screen.dart';
 import 'evenimente_screen.dart';
 import 'whatsapp_monitor_screen.dart';
 import 'app_inbox_screen.dart';
+import 'package:superpartybyai/services/trips_api_service.dart';
+import 'dart:async';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -105,27 +107,169 @@ class _MainScreenState extends State<MainScreen> {
   }
 }
 
-class _DashboardTab extends StatelessWidget {
+class _DashboardTab extends StatefulWidget {
   const _DashboardTab();
 
   @override
+  State<_DashboardTab> createState() => _DashboardTabState();
+}
+
+class _DashboardTabState extends State<_DashboardTab> {
+  bool _isLoading = false;
+  String? _activeTripId;
+  DateTime? _startTime;
+  Timer? _timer;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkActiveTrip();
+    _timer = Timer.periodic(const Duration(seconds: 1), (_) {
+      if (_startTime != null && mounted) setState(() {});
+    });
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _checkActiveTrip() async {
+    final trip = await TripsApiService.getActiveTrip();
+    if (mounted) {
+      setState(() {
+        _activeTripId = trip?['id'];
+        _startTime = trip != null ? DateTime.parse(trip['started_at']) : null;
+      });
+    }
+  }
+
+  Future<void> _startTrip() async {
+    setState(() => _isLoading = true);
+    final tripId = await TripsApiService.startTrip();
+    if (mounted) {
+      if (tripId != null) {
+        setState(() {
+          _activeTripId = tripId;
+          _startTime = DateTime.now();
+        });
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Cursă începută!', style: TextStyle(color: Colors.white)), backgroundColor: Colors.green));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Eroare la pornire cursă.', style: TextStyle(color: Colors.white)), backgroundColor: Colors.red));
+      }
+      setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _endTrip() async {
+    setState(() => _isLoading = true);
+    final success = await TripsApiService.endTrip();
+    if (mounted) {
+      if (success) {
+        setState(() {
+          _activeTripId = null;
+          _startTime = null;
+        });
+        showDialog(
+          context: context,
+          builder: (ctx) => AlertDialog(
+            title: const Text('Cursă Finalizată ✔️'),
+            content: const Text('Logurile de rută și estimările de kilometri au fost trimise la AI Manager.'),
+            actions: [
+              TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('OK')),
+            ],
+          ),
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Eroare la finalizare cursă.', style: TextStyle(color: Colors.white)), backgroundColor: Colors.red));
+      }
+      setState(() => _isLoading = false);
+    }
+  }
+
+  String _formatDuration(Duration d) {
+    String twoDigits(int n) => n.toString().padLeft(2, "0");
+    String twoDigitMinutes = twoDigits(d.inMinutes.remainder(60));
+    String twoDigitSeconds = twoDigits(d.inSeconds.remainder(60));
+    return "${twoDigits(d.inHours)}:$twoDigitMinutes:$twoDigitSeconds";
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final isActive = _activeTripId != null;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Dashboard', style: TextStyle(color: Colors.white)),
-        backgroundColor: const Color(0xFF008069),
+        title: const Text('Logistică & Transport', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+        backgroundColor: isActive ? Colors.indigo : const Color(0xFF008069),
+        elevation: 0,
       ),
+      backgroundColor: Colors.grey[100],
       body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: const [
-            Icon(Icons.dashboard_customize, size: 80, color: Colors.grey),
-            SizedBox(height: 20),
-            Text(
-              'Dashboard Angajați',
-              style: TextStyle(fontSize: 20, color: Colors.black54),
-            ),
-          ],
+        child: Padding(
+          padding: const EdgeInsets.all(24.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 500),
+                padding: const EdgeInsets.all(32),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: isActive ? Colors.indigo.withOpacity(0.1) : Colors.grey.withOpacity(0.1),
+                  boxShadow: isActive ? [BoxShadow(color: Colors.indigo.withOpacity(0.2), blurRadius: 30, spreadRadius: 10)] : [],
+                ),
+                child: Icon(
+                  isActive ? Icons.local_shipping : Icons.hail,
+                  size: 100,
+                  color: isActive ? Colors.indigo : Colors.grey[400],
+                ),
+              ),
+              const SizedBox(height: 32),
+              Text(
+                isActive ? 'Cursă în Desfășurare' : 'Gata de Plecare?',
+                style: TextStyle(
+                  fontSize: 28,
+                  fontWeight: FontWeight.bold,
+                  color: isActive ? Colors.indigo : Colors.black87,
+                ),
+              ),
+              const SizedBox(height: 8),
+              if (isActive && _startTime != null) ...[
+                Text(
+                  _formatDuration(DateTime.now().difference(_startTime!)),
+                  style: const TextStyle(fontSize: 48, fontWeight: FontWeight.w300, color: Colors.indigo),
+                ),
+                const SizedBox(height: 4),
+                const Text('Se înregistrează ruta GPS în fundal...', style: TextStyle(color: Colors.black54)),
+              ] else ...[
+                const Text(
+                  'Pornește cursa pentru a activa logarea rutelor și estimarea automată de combustibil / distanțe.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 16, color: Colors.black54),
+                ),
+              ],
+              const SizedBox(height: 48),
+              _isLoading
+                  ? const CircularProgressIndicator()
+                  : ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: isActive ? Colors.redAccent : Colors.indigo,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(30)),
+                        elevation: 4,
+                      ),
+                      onPressed: isActive ? _endTrip : _startTrip,
+                      icon: Icon(isActive ? Icons.stop : Icons.play_arrow, size: 28),
+                      label: Text(
+                        isActive ? 'ÎNCHEIE CURSA' : 'START CURSĂ',
+                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, letterSpacing: 1.2),
+                      ),
+                    ),
+            ],
+          ),
         ),
       ),
     );
