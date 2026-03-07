@@ -1,0 +1,16 @@
+#!/usr/bin/expect -f
+set timeout 120
+
+spawn ssh -o StrictHostKeyChecking=no root@89.167.123.174
+expect "password:"
+send "SPai2026SecureX44!\r"
+
+expect {
+  "root@superparty-ai" {
+    send "cd /opt/superparty-ai/repo/server/ai-manager && git checkout -- . && git clean -fd && git pull origin main && docker compose down && docker compose up -build -d && sleep 10 && curl -s http://localhost:3002/health && echo DEPLOY_SUCCESS\r"
+  }
+}
+
+expect "DEPLOY_SUCCESS"
+send "exit\r"
+expect eof

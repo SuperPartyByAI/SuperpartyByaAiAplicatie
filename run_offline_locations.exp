@@ -1,0 +1,24 @@
+set timeout 180
+spawn ssh -o StrictHostKeyChecking=no root@89.167.123.174
+expect {
+    "password:" { send "SPai2026SecureX44!\r" }
+    "root@" {}
+}
+expect -re {#\s}
+
+send "cd /opt/superparty-ai/repo/server/ai-manager && git stash && git pull origin main && docker compose down && docker compose up --build -d && sleep 10 && echo REBUILT_OK\r"
+expect -timeout 120 "REBUILT_OK"
+
+send "curl -s -X POST http://localhost:3002/trips/start -H 'Content-Type: application/json' -H 'Authorization: Bearer superparty-ai-admin-2026' -d '{\"employeeId\":\"emp-batch-test\"}' > /tmp/trip.json\r"
+expect -re {#\s}
+
+send "export TRIP_ID=\$(grep -o '\"id\":\"[^\"]*\"' /tmp/trip.json | cut -d'\"' -f4 | head -1) && echo GOT_ID: \$TRIP_ID\r"
+expect -re {#\s}
+
+send "curl -s -X POST http://localhost:3002/trips/locations -H 'Content-Type: application/json' -H 'Authorization: Bearer superparty-ai-admin-2026' -d '{\"locations\": [{\"employeeId\":\"emp-batch-test\",\"tripId\":\"'\$TRIP_ID'\",\"lat\":44.4396,\"lng\":26.0963,\"speedKmh\":45.5},{\"employeeId\":\"emp-batch-test\",\"tripId\":\"'\$TRIP_ID'\",\"lat\":44.0,\"lng\":26.0,\"speedKmh\":14.5}]}'\r"
+expect -re {#\s}
+
+send "echo FINISHED_BATCH\r"
+expect "FINISHED_BATCH"
+send "exit\r"
+expect eof

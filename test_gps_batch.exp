@@ -1,0 +1,24 @@
+#!/usr/bin/expect -f
+set timeout 180
+spawn ssh -o StrictHostKeyChecking=no root@89.167.123.174
+expect "password:" { send "SPai2026SecureX44!\r" }
+expect -re {#\s}
+
+# Clean repository state (removing untracked provider modifications from previous local tests)
+send "cd /opt/superparty-ai/repo/server/ai-manager && git checkout -- . && git clean -fd && git pull origin main && docker compose down && docker compose up -d --build && sleep 10 && echo REBUILD_DONE\r"
+expect -timeout 120 "REBUILD_DONE"
+
+# Start trip
+send "curl -s -X POST http://localhost:3002/trips/start -H 'Content-Type: application/json' -H 'Authorization: Bearer superparty-ai-admin-2026' -d '{\"employeeId\":\"emp-bulk-001\"}' > /tmp/trip.json && echo START_OK\r"
+expect "START_OK"
+
+# Extract Trip ID
+send "export TRIP_ID=\$(grep -o '\"id\":\"\[^\"]*\"' /tmp/trip.json | cut -d'\"' -f4 | head -1) && echo TRIP_ID_GOT: \$TRIP_ID\r"
+expect "TRIP_ID_GOT:"
+
+# Send batch locations payload
+send "curl -s -X POST http://localhost:3002/trips/locations -H 'Content-Type: application/json' -H 'Authorization: Bearer superparty-ai-admin-2026' -d '{\"locations\": \[{\"employeeId\":\"emp-bulk-001\",\"tripId\":\"'\$TRIP_ID'\",\"lat\":44.43,\"lng\":26.09},{\"employeeId\":\"emp-bulk-001\",\"tripId\":\"'\$TRIP_ID'\",\"lat\":44.0,\"lng\":26.0}\]}' && echo BULK_DONE\r"
+expect "BULK_DONE"
+
+send "exit\r"
+expect eof
