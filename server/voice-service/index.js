@@ -133,6 +133,128 @@ const mFcmUnregisteredTotal = new promClient.Counter({
   registers: [promRegistry],
 });
 
+// ── VOICE PERSISTENCE METRICS ────────────────────────────────────────────────
+const mVoiceCallsUpserted = new promClient.Counter({
+  name: 'voice_calls_upserted_total',
+  help: 'Total voice_calls rows inserted or updated in Supabase',
+  registers: [promRegistry],
+});
+const mVoiceIdentityResolved = new promClient.Counter({
+  name: 'voice_calls_identity_resolved_total',
+  help: 'Total successful caller identity resolutions (VoIP or PSTN)',
+  registers: [promRegistry],
+});
+const mVoiceIdentityFailed = new promClient.Counter({
+  name: 'voice_calls_identity_failed_total',
+  help: 'Total failed caller identity resolutions',
+  registers: [promRegistry],
+});
+const mVoiceCallsDedupe = new promClient.Counter({
+  name: 'voice_calls_dedupe_total',
+  help: 'Total duplicate Twilio webhooks deduplicated (ON CONFLICT)',
+  registers: [promRegistry],
+});
+
+// ── VOICE PERSISTENCE HELPERS ────────────────────────────────────────────────
+
+/**
+ * upsertVoiceCall — idempotent UPSERT in voice_calls.
+ * Non-fatal: errors are logged but never block Twilio webhook response.
+ * @param {object} fields — any subset of voice_calls columns
+ */
+async function upsertVoiceCall(fields) {
+  if (!fields.call_sid) return;
+  try {
+    const now = new Date().toISOString();
+    const row = { updated_at: now, ...fields };
+    const { error } = await supabase
+      .from('voice_calls')
+      .upsert(row, { onConflict: 'call_sid', ignoreDuplicates: false });
+    if (error) {
+      if (error.code === '23505') {
+        mVoiceCallsDedupe.inc();
+        console.warn('[voice_calls] dedupe (23505):', fields.call_sid);
+      } else {
+        console.error('[voice_calls] upsert error:', error.message, 'sid:', fields.call_sid);
+      }
+    } else {
+      mVoiceCallsUpserted.inc();
+    }
+  } catch (e) {
+    console.error('[voice_calls] upsert exception:', e.message);
+  }
+}
+
+/**
+ * resolveCallIdentities — resolves agent + client from Twilio From/To.
+ * VoIP: from="client:user_UUID_dev_UUID" → Supabase auth email → employees.name
+ * PSTN inbound: from="+40..." → conversations_public.phone → client_display_name
+ * Returns: { agentUserId, agentIdentity, agentDisplayName, clientIdentityId, clientDisplayName, conversationId }
+ */
+async function resolveCallIdentities(from, to) {
+  const result = {
+    agentUserId: null,
+    agentIdentity: null,
+    agentDisplayName: null,
+    clientIdentityId: null,
+    clientDisplayName: null,
+    conversationId: null,
+  };
+  if (!from) return result;
+
+  const SUPA_URL = process.env.SUPABASE_URL;
+  const SUPA_KEY = process.env.SUPABASE_SERVICE_KEY;
+  if (!SUPA_URL || !SUPA_KEY) return result;
+  const headers = { 'apikey': SUPA_KEY, 'Authorization': `Bearer ${SUPA_KEY}` };
+
+  try {
+    if (from.startsWith('client:')) {
+      // ── VoIP agent call ───────────────────────────────────────────────────
+      const raw = from.replace('client:', '');
+      const m = raw.match(/^user_([0-9a-f-]{36})_dev_/i);
+      if (m) {
+        const userId = m[1];
+        result.agentUserId = userId;
+        result.agentIdentity = raw;
+        // Lookup email via Supabase auth admin, then match employees.name
+        const [authResp, empResp] = await Promise.all([
+          fetch(`${SUPA_URL}/auth/v1/admin/users/${userId}`, { headers })
+            .then(r => r.ok ? r.json() : null).catch(() => null),
+          fetch(`${SUPA_URL}/rest/v1/employees?select=email,name&limit=50`, { headers })
+            .then(r => r.ok ? r.json() : []).catch(() => []),
+        ]);
+        const email = authResp?.email;
+        if (email) {
+          const emp = empResp.find(e => e.email === email);
+          result.agentDisplayName = emp?.name || null;
+        }
+      }
+      mVoiceIdentityResolved.inc();
+    } else if (from.startsWith('+')) {
+      // ── PSTN inbound — client is the caller ──────────────────────────────
+      const convResp = await fetch(
+        `${SUPA_URL}/rest/v1/conversations_public?phone=eq.${encodeURIComponent(from)}&select=id,identity_id,client_display_name,name&limit=1`,
+        { headers }
+      ).then(r => r.ok ? r.json() : []).catch(() => []);
+      if (convResp.length > 0) {
+        const c = convResp[0];
+        result.clientIdentityId = c.identity_id || null;
+        result.clientDisplayName = c.client_display_name || c.name || null;
+        result.conversationId    = c.id || null;
+      }
+      mVoiceIdentityResolved.inc();
+    } else {
+      mVoiceIdentityFailed.inc();
+    }
+  } catch (e) {
+    mVoiceIdentityFailed.inc();
+    console.error('[resolveCallIdentities] error:', e.message);
+  }
+
+  return result;
+}
+
+
 // Update ws_connected_clients gauge every 15s
 setInterval(() => {
   try { mWsClients.set(wss?.clients?.size || 0); } catch (_) {}
@@ -599,10 +721,37 @@ app.get('/api/voice/getVoipToken', requireSupabaseUser, async (req, res) => {
 });
 
 app.post('/api/voice/incoming', requireTwilioSignature, async (req, res) => {
-    const { From, To, CallSid } = req.body
-  // State durabil în Redis — single source of truth (activeCallsMap eliminat)
-  if (CallSid) await setActiveCall(CallSid, { callSid: CallSid, from: From||'', to: To||Called||'', startedAt: Date.now() });
+    const { From, To, CallSid, AccountSid, Direction, CallStatus } = req.body;
+  // State durabil în Redis — single source of truth
+  if (CallSid) await setActiveCall(CallSid, { callSid: CallSid, from: From||'', to: To||req.body.Called||'', startedAt: Date.now() });
     console.log(`[PBX Twilio] Incoming Call Webhook Fired. From: ${From}, To: ${To}, CallSid: ${CallSid}`);
+  // ── Persist to voice_calls (async, non-fatal) ─────────────────────────────
+  if (CallSid) {
+    const dir = (From || '').startsWith('client:') ? 'outbound' : 'inbound';
+    // Fire-and-forget: resolve identities + insert
+    (async () => {
+      try {
+        const ids = await resolveCallIdentities(From, To);
+        await upsertVoiceCall({
+          call_sid:           CallSid,
+          direction:          dir,
+          from_raw:           From || null,
+          to_raw:             To || null,
+          status:             CallStatus || 'initiated',
+          started_at:         new Date().toISOString(),
+          twilio_account_sid: AccountSid || null,
+          twilio_from:        From || null,
+          twilio_to:          To || null,
+          agent_identity:     ids.agentIdentity,
+          agent_user_id:      ids.agentUserId,
+          client_identity_id: ids.clientIdentityId,
+          client_display_name: ids.clientDisplayName,
+          conversation_id:    ids.conversationId,
+          metadata:           { twilio_direction: Direction || null },
+        });
+      } catch (e) { console.error('[voice_calls/incoming]', e.message); }
+    })();
+  }
     const twiml = new twilio.twiml.VoiceResponse();
   
     try {
@@ -949,14 +1098,17 @@ app.post('/api/voice/join-conference', requireTwilioSignature, express.urlencode
 app.post('/api/voice/dial-status', requireTwilioSignature, (req, res) => {
     console.log('[PBX Twilio] Dial Status Webhook:', req.body);
     const twiml = new twilio.twiml.VoiceResponse();
-    const dialCallStatus = req.body.DialCallStatus;
+    const { DialCallStatus, CallSid } = req.body;
     
-    if (dialCallStatus === 'completed' || dialCallStatus === 'answered') {
+    if (DialCallStatus === 'completed' || DialCallStatus === 'answered') {
+        // Persist answered_at when agent picks up (async, non-fatal)
+        if (CallSid) upsertVoiceCall({ call_sid: CallSid, answered_at: new Date().toISOString(), status: DialCallStatus }).catch(() => {});
         res.type('text/xml');
         return res.send(twiml.toString());
     }
     
-    console.log(`[PBX Twilio] Call ${req.body.CallSid} not answered (${dialCallStatus}). Fallback...`);
+    console.log(`[PBX Twilio] Call ${CallSid} not answered (${DialCallStatus}). Fallback...`);
+    if (CallSid) upsertVoiceCall({ call_sid: CallSid, status: DialCallStatus }).catch(() => {});
     twiml.say({ language: 'ro-RO' }, 'Ne pare rău, agentul nu a putut răspunde la apel.');
     
     res.type('text/xml');
@@ -965,15 +1117,46 @@ app.post('/api/voice/dial-status', requireTwilioSignature, (req, res) => {
 
 app.post('/api/voice/status', requireTwilioSignature, async (req, res) => {
     console.log('[PBX Twilio] Master Call Status Webhook:', req.body);
-    const { CallSid, CallStatus } = req.body;
-    if (['completed', 'failed', 'busy', 'no-answer', 'canceled'].includes(CallStatus)) {
-        deleteActiveCall(CallSid).catch(()=>{}); // Remove from Redis + ZSET index
+    const { CallSid, CallStatus, CallDuration, From, To, AccountSid } = req.body;
+    const TERMINAL = ['completed', 'failed', 'busy', 'no-answer', 'canceled'];
+    if (TERMINAL.includes(CallStatus)) {
+        deleteActiveCall(CallSid).catch(()=>{});
         mCallEndedTotal.inc();
         console.log(`[PBX Twilio] Call ${CallSid} ended with status ${CallStatus}. Clearing Redis + notifying WS.`);
         const payload = { type: 'call_ended', callSid: CallSid };
         wss.clients.forEach((client) => {
             if (client.readyState === 1) client.send(JSON.stringify(payload));
         });
+        // ── Persist terminal status to voice_calls (async, non-fatal) ─────────
+        (async () => {
+          try {
+            const now = new Date().toISOString();
+            const dur = CallDuration ? parseInt(CallDuration, 10) : null;
+            // Try to enrich with identities if not yet resolved (from status webhook)
+            let ids = { agentUserId: null, agentIdentity: null, agentDisplayName: null,
+                         clientIdentityId: null, clientDisplayName: null, conversationId: null };
+            if (From) ids = await resolveCallIdentities(From, To).catch(() => ids);
+            await upsertVoiceCall({
+              call_sid:           CallSid,
+              status:             CallStatus,
+              duration_seconds:   dur,
+              ended_at:           now,
+              from_raw:           From || null,
+              to_raw:             To || null,
+              twilio_account_sid: AccountSid || null,
+              twilio_from:        From || null,
+              twilio_to:          To || null,
+              agent_identity:     ids.agentIdentity,
+              agent_user_id:      ids.agentUserId,
+              client_identity_id: ids.clientIdentityId,
+              client_display_name: ids.clientDisplayName,
+              conversation_id:    ids.conversationId,
+            });
+          } catch (e) { console.error('[voice_calls/status]', e.message); }
+        })();
+    } else {
+        // Non-terminal status (ringing, in-progress): upsert status only
+        upsertVoiceCall({ call_sid: CallSid, status: CallStatus }).catch(() => {});
     }
     res.sendStatus(200);
 });
@@ -1262,10 +1445,62 @@ app.get('/api/voice/calls/:sid', requireSupabaseUser, async (req, res) => {
       if (!twilioClient) {
          return res.status(500).json({ error: 'Twilio Client Nu Este Configurat.' });
       }
-      const sid = req.params.sid;
-      const call = await twilioClient.calls(sid).fetch();
-      res.json(call);
-    } catch (e) {
-      res.status(500).json({ error: e.message });
     }
+
+    // ── Fallback: Twilio API (bootstrap or ?source=twilio) ──────────────────
+    if (!twilioClient) return res.status(503).json({ ok: false, error: 'twilio_not_configured' });
+    const twilCalls = await twilioClient.calls.list({ limit });
+    const mapped = twilCalls.map(c => ({
+      callSid:   c.sid,
+      sid:       c.sid,
+      from:      c.from,
+      to:        c.to,
+      status:    c.status,
+      direction: c.direction,
+      duration:  Number.parseInt(c.duration, 10) || 0,
+      duration_seconds: Number.parseInt(c.duration, 10) || 0,
+      timestamp: c.startTime ? c.startTime.toISOString() : null,
+      started_at: c.startTime ? c.startTime.toISOString() : null,
+    }));
+
+    // Quick name enrichment for Twilio fallback (reuse resolveCallIdentities)
+    try {
+      await Promise.all(mapped.map(async c => {
+        const ids = await resolveCallIdentities(c.from, c.to).catch(() => ({}));
+        c.caller_name        = ids.clientDisplayName || ids.agentDisplayName || null;
+        c.contact_name       = ids.clientDisplayName || null;
+        c.client_display_name = ids.clientDisplayName || null;
+        c.client_identity_id = ids.clientIdentityId || null;
+        c.agent_identity     = ids.agentIdentity || null;
+        c.agent_user_id      = ids.agentUserId || null;
+        c.conversation_id    = ids.conversationId || null;
+      }));
+    } catch (_) {}
+
+    return res.json({ ok: true, calls: mapped, count: mapped.length, source: 'twilio' });
+  } catch (err) {
+    console.error('[voice/calls/recent] error:', err.message);
+    return res.status(500).json({ ok: false, error: err.message });
+  }
 });
+
+app.get('/api/voice/calls/:sid', requireSupabaseUser, async (req, res) => {
+  const sid = req.params.sid;
+  try {
+    // Primary: read from voice_calls DB
+    const { data: dbRow, error: dbErr } = await supabase
+      .from('voice_calls')
+      .select('*')
+      .eq('call_sid', sid)
+      .single();
+    if (!dbErr && dbRow) return res.json({ ...dbRow, source: 'db' });
+
+    // Fallback: Twilio API
+    if (!twilioClient) return res.status(503).json({ error: 'twilio_not_configured' });
+    const call = await twilioClient.calls(sid).fetch();
+    return res.json({ ...call, source: 'twilio' });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
+});
+

@@ -3,7 +3,8 @@ import fs from 'fs';
 import { URL } from 'url';
 import { parsePhoneNumberFromString } from 'libphonenumber-js';
 
-const SUPABASE_URL = process.env.SUPABASE_URL || 'https://ilkphpidhuytucxlglqi.supabase.co';
+const SUPABASE_URL = process.env.SUPABASE_URL;
+
 const SUPABASE_KEY = process.env.SUPABASE_SERVICE_KEY;
 
 if (!SUPABASE_KEY) {
@@ -58,7 +59,8 @@ export async function uploadMediaToStorage(mimetype, buffer, filename) {
       mime: mimetype || null,
       size: buffer.length,
       name: filename || null,
-      url: `https://ilkphpidhuytucxlglqi.supabase.co/storage/v1/object/public/${bucket}/${filePath}`
+      url: `${process.env.SUPABASE_URL}/storage/v1/object/public/${bucket}/${filePath}`
+
     };
   } catch (error) {
     console.error("[Supabase Storage] Upload error", error);
