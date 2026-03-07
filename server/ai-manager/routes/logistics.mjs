@@ -9,7 +9,8 @@ import {
   recordInventoryHandoff,
   recordEvidenceBundle,
   createStaffHoursCandidate,
-  reviewStaffHoursCandidate
+  reviewStaffHoursCandidate,
+  getPendingStaffHoursCandidates
 } from '../services/logistics.mjs';
 
 const router = Router();
@@ -77,6 +78,17 @@ router.post('/staff-hours/review', async (req, res) => {
     return res.json({ ok: true, data: result });
   } catch (err) {
     req.log?.error({ err }, '[logistics/staff-hours/review] error');
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /logistics/staff-hours/candidates/pending
+router.get('/staff-hours/candidates/pending', async (req, res) => {
+  try {
+    const candidates = await getPendingStaffHoursCandidates();
+    return res.json({ ok: true, data: candidates });
+  } catch (err) {
+    req.log?.error({ err }, '[logistics/staff-hours/pending] error');
     return res.status(500).json({ error: err.message });
   }
 });
