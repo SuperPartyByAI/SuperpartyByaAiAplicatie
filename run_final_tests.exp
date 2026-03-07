@@ -1,0 +1,27 @@
+set timeout 180
+spawn ssh -o StrictHostKeyChecking=no root@89.167.123.174
+expect {
+    "password:" { send "SPai2026SecureX44!\r" }
+    "root@" {}
+}
+expect -re {#\s}
+
+send "echo '--- TRIP ---' && curl -s -X POST http://localhost:3002/trips/start -H 'Content-Type: application/json' -H 'Authorization: Bearer superparty-ai-admin-2026' -d '{\"employeeId\":\"emp-final\",\"startLat\":44.4396,\"startLng\":26.0963}'\r"
+expect -timeout 10 -re {#\s}
+
+send "echo '--- CONTESTATION ---' && curl -s -X POST http://localhost:3002/contestations -H 'Content-Type: application/json' -H 'Authorization: Bearer superparty-ai-admin-2026' -d '{\"eventId\":\"evt-final-001\",\"aiVerdict\":\"intarziere\",\"aiConfidence\":0.85}'\r"
+expect -timeout 10 -re {#\s}
+
+send "echo '--- MEDIA ---' && curl -s -X POST http://localhost:3002/media/assets -H 'Content-Type: application/json' -H 'Authorization: Bearer superparty-ai-admin-2026' -d '{\"sourceUrl\":\"https://drive.google.com/final-test\",\"sourceType\":\"google_drive\"}'\r"
+expect -timeout 10 -re {#\s}
+
+send "echo '--- ANALYZE (LOCAL AI CPU) ---' && curl -s -X POST http://localhost:3002/ai/analyze-event -H 'Content-Type: application/json' -H 'Authorization: Bearer superparty-ai-admin-2026' -d '{\"source\":\"whatsapp\",\"conversationId\":\"test-final\",\"messageText\":\"Buna ziua, vreau sa rezerv 2 animatori pentru petrecerea de 30 copii\"}'\r"
+expect -timeout 120 -re {#\s}
+
+send "echo '--- HEALTH ---' && curl -sf http://localhost:3002/health\r"
+expect -timeout 10 -re {#\s}
+
+send "echo === TESTS_FINISHED ===\r"
+expect "TESTS_FINISHED"
+send "exit\r"
+expect eof

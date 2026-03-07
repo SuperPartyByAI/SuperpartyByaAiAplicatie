@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'bg_gps_service.dart'; // Import GPS de fundal
 
 class AuthService extends ChangeNotifier {
   final GoTrueClient _auth = Supabase.instance.client.auth;
@@ -78,6 +79,9 @@ class AuthService extends ChangeNotifier {
   }
 
   Future<void> signOut() async {
+    try {
+      await BgGpsService.stopTracking(); // Oprește bateria offline la logout
+    } catch (_) {}
     await _auth.signOut();
   }
 

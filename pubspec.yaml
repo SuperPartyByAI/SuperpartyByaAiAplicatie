@@ -66,6 +66,7 @@ dependencies:
   flutter_local_notifications: ^20.1.0
   wakelock_plus: ^1.4.0
   web_socket_channel: ^3.0.3
+  flutter_background_geolocation: ^5.0.5
 
 dev_dependencies:
   flutter_test:

@@ -75,6 +75,12 @@
 	<string>Avem nevoie de acces la galeria foto pentru a trimite poze si fisiere in chat.</string>
 	<key>NSCameraUsageDescription</key>
 	<string>Avem nevoie de acces la camera pentru a trimite poze in chat.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+    <string>Superparty procesează locația în fundal pentru a valida prezența la locațiile de evenimente (Geofencing) și a calcula distanțele parcurse.</string>
+    <key>NSLocationWhenInUseUsageDescription</key>
+    <string>Superparty utilizează locația pentru a determina distanța până la evenimente.</string>
+    <key>NSMotionUsageDescription</key>
+    <string>Utilizăm recunoașterea mișcărilor pentru a detecta opririle și a conserva bateria (oprirea senzorului de GPS atunci când sunteți staționar).</string>
 	<key>UIFileSharingEnabled</key>
 	<true/>
 	<key>LSSupportsOpeningDocumentsInPlace</key>
@@ -84,6 +90,7 @@
 		<string>audio</string>
 		<string>voip</string>
 		<string>fetch</string>
+		<string>location</string>
 		<string>remote-notification</string>
 	</array>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
