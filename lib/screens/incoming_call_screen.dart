@@ -49,22 +49,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
           await Permission.bluetoothScan.request();
         } catch (_) {}
       }
-      debugPrint('[IncomingCallScreen] Accepting native WebRTC call via Twilio SDK...');
-      
-      final prefs = await SharedPreferences.getInstance();
-      final identity = prefs.getString('twilio_client_identity') ?? 'superparty';
-      
-      String confStr = widget.callSid;
-      if (confStr.isEmpty || !confStr.startsWith('CA')) {
-        final fallbackSid = prefs.getString('last_incoming_call_sid') ?? '';
-        if (fallbackSid.startsWith('CA')) confStr = fallbackSid;
-      }
-      if (confStr.isEmpty || !confStr.startsWith('CA')) {
-        debugPrint('[IncomingCallScreen] ❌ No valid Twilio CallSid available for conference join. Aborting.');
-        return;
-      }
-      final confRoomRaw = confStr.startsWith('conf_') ? confStr : 'conf_$confStr';
-      final to = confRoomRaw.startsWith('client:') ? confRoomRaw : 'client:$confRoomRaw';
+      debugPrint('[IncomingCallScreen] 📞 answerCall received. Accepting native WebRTC call via Twilio SDK...');
       
       BackendService? backend;
       try { backend = Provider.of<BackendService>(context, listen: false); } catch (_) {}
@@ -73,91 +58,78 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
       }
 
       // 1️⃣ ATTEMPT NATIVE DIRECT ANSWER (Huawei Bypass)
+      debugPrint('[IncomingCallScreen] 📞 directAnswer started...');
+      bool directAccepted = false;
       try {
         // Request audio focus immediately for native TCP WebRTC bridge
         try {
-          await MethodChannel('com.superpartybyai.app/audio').invokeMethod('requestAudioFocusAndMode');
+          await const MethodChannel('com.superpartybyai.app/audio').invokeMethod('requestAudioFocusAndMode');
         } catch (_) {}
 
-        debugPrint('[IncomingCallScreen] Attempting directAnswer via Native Platform Channel...');
-        final bool directAccepted = await MethodChannel('com.superpartybyai.app/call_actions').invokeMethod('directAnswer') ?? false;
-        if (directAccepted) {
-           debugPrint('[IncomingCallScreen] ✅ directAnswer SUCCESS! Bypassing call.place fallback.');
-           if (mounted) {
-             Navigator.pop(context); // Close incoming custom screen
-             Navigator.push(
-               context,
-               MaterialPageRoute(
-                 builder: (_) => ActiveCallScreen(
-                   remoteId: widget.caller,
-                   isOutgoing: false,
-                   callSid: widget.callSid,
-                 ),
-               ),
-             );
-           }
-           return; 
-        }
+        directAccepted = await const MethodChannel('com.superpartybyai.app/call_actions').invokeMethod('directAnswer') ?? false;
+        debugPrint('[IncomingCallScreen] 📞 directAnswer result: $directAccepted');
       } catch (e) {
         debugPrint('[IncomingCallScreen] ❌ directAnswer exception: $e');
       }
-
-      // 2️⃣ FALLBACK: Outbound dial to conference
-      bool placed = false;
-      try {
-        final prefs = await SharedPreferences.getInstance();
-        String? accessToken = prefs.getString('twilio_access_token');
-        if (accessToken == null || accessToken.isEmpty) {
-          if (backend != null) await VoipService().init(backend, forceReinit: true);
-          accessToken = prefs.getString('twilio_access_token');
-        }
-
-        if (accessToken != null && accessToken.isNotEmpty) {
-          await VoipService.ensureDeviceFlagsInitialized();
-          if (VoipService.isHuaweiOrHonor) {
-            final placedNative = await const MethodChannel('com.superpartybyai.app/call_actions').invokeMethod<bool>(
-              'directPlace',
-              {'accessToken': accessToken, 'to': to},
-            );
-            if (placedNative == true) {
-               placed = true;
-               debugPrint('[IncomingCallScreen] ✅ directPlace SUCCESS (native Voice.connect). Skip call.place.');
-            } else {
-               debugPrint('[IncomingCallScreen] ⚠️ directPlace returned false. Fallback to call.place.');
-            }
-          } else {
-             debugPrint('[IncomingCallScreen] ℹ️ Skipping directPlace on non-Huawei device.');
-          }
-        }
-      } catch (e) {
-        debugPrint('[IncomingCallScreen] ❌ directPlace exception: $e. Fallback to call.place.');
-      }
-
-      if (!placed) {
-        placed = await TwilioVoice.instance.call.place(to: to, from: identity) ?? false;
-        debugPrint('[IncomingCallScreen] call.place result=$placed to=$to from=$identity');
-      }
-      if (placed != true && backend != null) {
-        debugPrint('[IncomingCallScreen] call.place failed -> forceReinit + retry');
-        await VoipService().init(backend, forceReinit: true);
-        await Future.delayed(const Duration(seconds: 2));
-        final placed2 = await TwilioVoice.instance.call.place(to: to, from: identity);
-        debugPrint('[IncomingCallScreen] call.place retry result=$placed2');
-      }
       
-      // Navigate immediately
+      if (directAccepted) {
+         debugPrint('[IncomingCallScreen] ✅ directAnswer SUCCESS!');
+         debugPrint('[IncomingCallScreen] 🧹 cleanup invoked: no');
+         if (mounted) {
+           Navigator.pop(context); // Close incoming custom screen
+           Navigator.push(
+             context,
+             MaterialPageRoute(
+               builder: (_) => ActiveCallScreen(
+                 remoteId: widget.caller,
+                 isOutgoing: false,
+                 callSid: widget.callSid,
+               ),
+             ),
+           );
+         }
+         return; 
+      }
+
+      // 2️⃣ NATIVE ANSWER ON EXISTING INVITE (Twilio SDK default answer)
+      final activeCallBefore = TwilioVoice.instance.call.activeCall;
+      bool activeCallPresent = activeCallBefore != null;
+      debugPrint('[IncomingCallScreen] 📞 activeCall present before answer: ${activeCallPresent ? "yes" : "no"}');
+      if (activeCallPresent) {
+        debugPrint('[IncomingCallScreen] 📞 current activeCall: from=${activeCallBefore.from}, to=${activeCallBefore.to}, dir=${activeCallBefore.callDirection}');
+      }
+
+      debugPrint('[IncomingCallScreen] 📞 TwilioVoice.instance.call.answer() started...');
+      bool answered = false;
+      try {
+        answered = await TwilioVoice.instance.call.answer() ?? false;
+        debugPrint('[IncomingCallScreen] 📞 TwilioVoice.instance.call.answer() result: $answered');
+      } catch(e) {
+        debugPrint('[IncomingCallScreen] ❌ TwilioVoice.instance.call.answer() exception: $e');
+      }
+
+      if (answered) {
+        debugPrint('[IncomingCallScreen] 🧹 cleanup invoked: no');
+      } else {
+        debugPrint('[IncomingCallScreen] ❌ Answer completely failed. No native call found.');
+        debugPrint('[IncomingCallScreen] 🧹 cleanup invoked: yes');
+      }
+
+      // Navigate immediately only if answered
       if (mounted) {
         Navigator.pop(context); // Close incoming custom screen
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => ActiveCallScreen(
-              remoteId: widget.caller,
-              isOutgoing: false,
-              callSid: widget.callSid,
+        if (answered) {
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ActiveCallScreen(
+                remoteId: widget.caller,
+                isOutgoing: false,
+                callSid: widget.callSid,
+              ),
             ),
-          ),
-        );
+          );
+        }
       }
     } catch (e) {
       debugPrint('[IncomingCallScreen] Error in accept: $e');
