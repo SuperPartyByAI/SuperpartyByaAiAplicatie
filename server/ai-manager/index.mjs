@@ -34,6 +34,7 @@ import logisticsRouter from './routes/logistics.mjs';
 
 // ── Worker ────────────────────────────────────────────────────────────────────
 import { initAnalysisWorker } from './workers/analysis-worker.mjs';
+import { initMediaWorker } from './workers/media-worker.mjs';
 
 // ── App ───────────────────────────────────────────────────────────────────────
 const app = express();
@@ -74,8 +75,13 @@ app.use((err, req, res, _next) => {
 // ── Start ─────────────────────────────────────────────────────────────────────
 async function main() {
   try {
-    // Initialize BullMQ worker
+    // Initialize BullMQ workers
     initAnalysisWorker(logger);
+    
+    if (config.redis?.host) {
+      initMediaWorker(logger, config.redis);
+      logger.info('Media worker initialized over Redis BullMQ.');
+    }
 
     app.listen(config.port, () => {
       logger.info(
