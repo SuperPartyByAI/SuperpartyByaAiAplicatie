@@ -14,6 +14,7 @@ import {
   recordLocation,
   recordLocationsBatch,
   endTrip,
+  recordGeofenceEvent,
 } from '../services/gps.mjs';
 import { getRow } from '../services/supabase.mjs';
 
@@ -110,6 +111,27 @@ router.post("/locations", async (req, res) => {
     return res.json({ ok: true, ...result });
   } catch (err) {
     req.log?.error({ err }, "[trips/locations] batch error");
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+/**
+ * POST /trips/events
+ * NOU: Endpoint dedicat pentru Event Logic (Faza B2 & B3) aruncat de flutter
+ * Body: { employeeId, identifier, action, lat, lng }
+ */
+router.post("/events", async (req, res) => {
+  const { employeeId, identifier, action, lat, lng } = req.body;
+  
+  if (!employeeId || !identifier || !action) {
+    return res.status(400).json({ error: "employeeId, identifier, and action are required" });
+  }
+
+  try {
+    const result = await recordGeofenceEvent({ employeeId, identifier, action, lat, lng });
+    return res.json({ ok: true, ...result });
+  } catch (err) {
+    req.log?.error({ err }, "[trips/events] Event Logic Error");
     return res.status(500).json({ error: err.message });
   }
 });

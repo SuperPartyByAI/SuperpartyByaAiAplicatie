@@ -222,3 +222,45 @@ export async function endTrip(tripId) {
 
   return trip;
 }
+
+/**
+ * Record a Geofence Event triggered externally by the mobile App (Phase B2).
+ * Formulates the fundamental AI decision framework (Phase B3).
+ */
+export async function recordGeofenceEvent({ employeeId, identifier, action, lat, lng }) {
+  const ts = new Date().toISOString();
+  
+  // Phase B3 AI Actions Logic
+  let aiDecision = '';
+  if (identifier === 'SEDIU_SUPERPARTY') {
+    if (action === 'ENTER') {
+       aiDecision = 'Angajatul a ajuns la Sediu. Aștept instructajul misiunii de la centrală.';
+    } else if (action === 'EXIT') {
+       aiDecision = 'Angajatul a părăsit Sediul. Misiunea este în desfășurare.';
+    } else if (action === 'DWELL') {
+       aiDecision = 'Angajatul staționează la sediu (Dwell Confirmat). Urmează preluarea materialelor.';
+    }
+  } else {
+    // Other Geofences (Events)
+    if (action === 'ENTER') aiDecision = `A ajuns la perimetrul Geofence: ${identifier}`;
+    else if (action === 'EXIT') aiDecision = `A părăsit perimetrul Geofence: ${identifier}`;
+    else aiDecision = `Staționare/Acțiune în Geofence [${identifier}]: ${action}`;
+  }
+
+  // To truly link to an active trip, we can lookup the most recent active trip for employeeId.
+  // For the B3 scaffold, we attach it to pending.
+  const tripId = "pending_local_trip";
+
+  const result = await insertRow('geofence_events', {
+    employee_id: employeeId,
+    trip_id: tripId,
+    geofence_id: identifier,
+    geofence_type: action,
+    lat: lat != null ? Number(lat) : null,
+    lng: lng != null ? Number(lng) : null,
+    recorded_at: ts,
+    ai_decision: aiDecision
+  });
+
+  return { recorded: true, ai_decision: aiDecision };
+}

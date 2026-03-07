@@ -22,6 +22,7 @@ import 'services/call_kit_service.dart';
 import 'services/voip_logger.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'services/supabase_service.dart';
+import 'services/bg_gps_service.dart'; // NOU: Pilonul B1 Background GPS
 import 'screens/login_screen.dart';
 import 'screens/main_screen.dart';
 import 'screens/active_call_screen.dart';
@@ -488,10 +489,21 @@ class _ApprovalGateState extends State<ApprovalGate> {
           }
 
           if ((_approved || _isAdmin) && _consentGiven) {
-             debugPrint("[App] User approved & consented. Initializing VoIP...");
+             debugPrint("[App] User approved & consented. Initializing VoIP & GPS...");
              final user = auth.currentUser;
              final backend = Provider.of<BackendService>(context, listen: false);
              VoipService().init(backend);
+             
+             // Pornește Background GPS Tracking automat când userul este aprobat
+             if (user != null) {
+               auth.getIdToken().then((token) {
+                 if (token != null) {
+                   BgGpsService.initialize(token, user.id).then((_) {
+                     BgGpsService.startTracking();
+                   });
+                 }
+               });
+             }
           }
         });
       }
@@ -513,6 +525,18 @@ class _ApprovalGateState extends State<ApprovalGate> {
           if ((isAdmin) && hasConsent) {
             final backend = Provider.of<BackendService>(context, listen: false);
             VoipService().init(backend);
+
+            // Fallback GPS Initialize
+            final user = auth.currentUser;
+            if (user != null) {
+               auth.getIdToken().then((token) {
+                 if (token != null) {
+                   BgGpsService.initialize(token, user.id).then((_) {
+                     BgGpsService.startTracking();
+                   });
+                 }
+               });
+            }
           }
         }
       } catch (_) {
