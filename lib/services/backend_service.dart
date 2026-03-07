@@ -11,7 +11,7 @@ class BackendService {
   
   static const String VOICE_BASE_URL = 'https://voice.superparty.ro/api';
 
-  static const String AI_MANAGER_URL = 'http://89.167.123.174:3002'; // Geofence & Logistics
+  static const String AI_MANAGER_URL = 'https://ai.superparty.ro/api'; // Geofence & Logistics
 
   String get baseUrl => BASE_URL;
   String get voiceBaseUrl => VOICE_BASE_URL;

@@ -102,7 +102,10 @@
              CustomVoiceFirebaseMessagingService now handles BOTH notification
              display AND Voice.handleMessage() → CallInvite forwarding. -->
 
-
+        <!-- REQUIRED: TransistorSoft flutter_background_geolocation License Key -->
+        <meta-data
+            android:name="com.transistorsoft.locationmanager.license"
+            android:value="${TSBG_LICENSE}" />
     </application>
     <!-- Required to query activities that can process text, see:
          https://developer.android.com/training/package-visibility and

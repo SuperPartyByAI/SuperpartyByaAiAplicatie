@@ -10,7 +10,7 @@ class TripsApiService {
   static final String _baseUrl = '${BackendService.AI_MANAGER_URL}/trips';
 
   /// Starts a new trip for the current user.
-  static Future<String?> startTrip() async {
+  static Future<String?> startTrip({String? eventId}) async {
     try {
       final session = Supabase.instance.client.auth.currentSession;
       if (session == null) throw Exception('No active session.');
@@ -25,6 +25,7 @@ class TripsApiService {
         },
         body: jsonEncode({
           'employeeId': user.id,
+          if (eventId != null) 'eventId': eventId,
         }),
       );
 
@@ -109,5 +110,120 @@ class TripsApiService {
       };
     }
     return null;
+  }
+
+  // --- LOGISTICS & STAFF HOURS REVIEW INCORPORATED HERE ---
+
+  /// Get pending AI penalites / candidates for admin review
+  static Future<List<dynamic>> getPendingCandidates() async {
+    try {
+      final session = Supabase.instance.client.auth.currentSession;
+      if (session == null) throw Exception('No active session.');
+      final jwt = session.accessToken;
+
+      final url = '${BackendService.AI_MANAGER_URL}/logistics/staff-hours/candidates/pending';
+      final response = await http.get(
+        Uri.parse(url),
+        headers: {
+          'Authorization': 'Bearer $jwt',
+          'Content-Type': 'application/json',
+        },
+      );
+
+      if (response.statusCode == 200) {
+        final body = jsonDecode(response.body);
+        if (body['ok'] == true && body['data'] != null) {
+          return body['data'] as List<dynamic>;
+        }
+      }
+      return [];
+    } catch (e) {
+      debugPrint('[TripsApiService] Exception at getPendingCandidates: $e');
+      return [];
+    }
+  }
+
+  /// Submit Human Review for an AI penalty
+  static Future<bool> reviewCandidate(String candidateId, String reviewStatus, String? reviewerComment) async {
+    try {
+      final session = Supabase.instance.client.auth.currentSession;
+      if (session == null) throw Exception('No active session.');
+      final jwt = session.accessToken;
+      final userId = session.user.id;
+
+      final url = '${BackendService.AI_MANAGER_URL}/logistics/staff-hours/review';
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {
+          'Authorization': 'Bearer $jwt',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'candidateId': candidateId,
+          'reviewStatus': reviewStatus, // 'approved' or 'rejected'
+          'reviewerComment': reviewerComment ?? '',
+          'approvedBy': userId,
+        }),
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint('[TripsApiService] Exception at reviewCandidate: $e');
+      return false;
+    }
+  }
+
+  // ==== STAFF HOURS CANDIDATES API ==== //
+
+  static Future<List<dynamic>> getPendingCandidates() async {
+    try {
+      final session = Supabase.instance.client.auth.currentSession;
+      if (session == null) throw Exception('No session found');
+      
+      final url = '${BackendService.AI_MANAGER_URL}/logistics/staff-hours/pending';
+      final response = await http.get(
+        Uri.parse(url),
+        headers: {
+          'Authorization': 'Bearer ${session.accessToken}',
+        }
+      );
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+        return data['data'] ?? [];
+      } else {
+        debugPrint('[TripsApiService] Fail load pending candidates: ${response.statusCode}');
+        return [];
+      }
+    } catch (e) {
+      debugPrint('[TripsApiService] Exp on load pending candidates: $e');
+      return [];
+    }
+  }
+
+  static Future<bool> reviewCandidate(String candidateId, String status, String comment) async {
+    try {
+      final session = Supabase.instance.client.auth.currentSession;
+      if (session == null) return false;
+
+      final url = '${BackendService.AI_MANAGER_URL}/logistics/staff-hours/review';
+      final response = await http.post(
+        Uri.parse(url),
+        headers: {
+          'Authorization': 'Bearer ${session.accessToken}',
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode({
+          'candidateId': candidateId,
+          'reviewStatus': status,
+          'reviewerComment': comment,
+        })
+      );
+
+      return response.statusCode == 200;
+    } catch (e) {
+      debugPrint('[TripsApiService] Exp on review candidate: $e');
+      return false;
+    }
   }
 }

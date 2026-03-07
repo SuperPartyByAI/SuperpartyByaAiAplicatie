@@ -34,6 +34,18 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+
+        // Retrieve the BackgroundGeolocation License key safely
+        val localProps = Properties()
+        val localPropsFile = rootProject.file("local.properties")
+        if (localPropsFile.exists()) {
+            localPropsFile.inputStream().use { localProps.load(it) }
+        }
+        val tsbgLicense = localProps.getProperty("TSBG_LICENSE") 
+            ?: project.findProperty("TSBG_LICENSE")?.toString() 
+            ?: ""
+        
+        manifestPlaceholders["TSBG_LICENSE"] = tsbgLicense
     }
 
     val keystoreProperties = Properties()

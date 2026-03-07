@@ -9,7 +9,9 @@ import {
   recordInventoryHandoff,
   recordEvidenceBundle,
   createStaffHoursCandidate,
-  reviewStaffHoursCandidate
+  reviewStaffHoursCandidate,
+  getPendingStaffHoursCandidates,
+  recordMediaAsset
 } from '../services/logistics.mjs';
 
 const router = Router();
@@ -54,6 +56,21 @@ router.post('/evidence', async (req, res) => {
   }
 });
 
+// POST /logistics/evidence/assets
+router.post('/evidence/assets', async (req, res) => {
+  const { eventId, tripId, employeeId, sourceUrl, sourceType, capturedAt, cameraId, assetKind } = req.body;
+  if (!employeeId || !sourceUrl || !assetKind) {
+    return res.status(400).json({ error: 'employeeId, sourceUrl and assetKind are mandatory' });
+  }
+  try {
+    const result = await recordMediaAsset({ eventId, tripId, employeeId, sourceUrl, sourceType, capturedAt, cameraId, assetKind });
+    return res.status(201).json({ ok: true, data: result });
+  } catch (err) {
+    req.log?.error({ err }, '[logistics/evidence/assets] error');
+    return res.status(500).json({ error: err.message });
+  }
+});
+
 // POST /logistics/staff-hours/candidate
 router.post('/staff-hours/candidate', async (req, res) => {
   const { employeeId, eventId, tripId, candidateType, minutes, sourceBundleId, confidence } = req.body;
@@ -77,6 +94,17 @@ router.post('/staff-hours/review', async (req, res) => {
     return res.json({ ok: true, data: result });
   } catch (err) {
     req.log?.error({ err }, '[logistics/staff-hours/review] error');
+    return res.status(500).json({ error: err.message });
+  }
+});
+
+// GET /logistics/staff-hours/candidates/pending
+router.get('/staff-hours/candidates/pending', async (req, res) => {
+  try {
+    const candidates = await getPendingStaffHoursCandidates();
+    return res.json({ ok: true, data: candidates });
+  } catch (err) {
+    req.log?.error({ err }, '[logistics/staff-hours/pending] error');
     return res.status(500).json({ error: err.message });
   }
 });
