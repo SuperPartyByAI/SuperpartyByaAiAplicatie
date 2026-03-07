@@ -14,9 +14,9 @@ import {
   recordLocation,
   recordLocationsBatch,
   endTrip,
-  recordGeofenceEvent,
 } from '../services/gps.mjs';
 import { getRow } from '../services/supabase.mjs';
+import { evaluateTrip } from '../services/trip-evaluator.mjs';
 
 const router = Router();
 
@@ -90,6 +90,20 @@ router.get('/:id', async (req, res) => {
     return res.json(trip);
   } catch (err) {
     return res.status(404).json({ error: 'Trip not found' });
+  }
+});
+
+/**
+ * POST /trips/:id/evaluate
+ * Trigger AI rules evaluation on a completed trip
+ */
+router.post('/:id/evaluate', async (req, res) => {
+  try {
+    const evaluation = await evaluateTrip(req.params.id);
+    return res.json({ ok: true, data: evaluation });
+  } catch (err) {
+    req.log?.error({ err }, '[trips/evaluate] error');
+    return res.status(500).json({ error: err.message });
   }
 });
 
