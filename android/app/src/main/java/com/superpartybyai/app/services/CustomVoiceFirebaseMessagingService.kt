@@ -262,7 +262,9 @@ class CustomVoiceFirebaseMessagingService : FirebaseMessagingService(), MessageL
                     if (identity.isNotEmpty()) {
                         Thread {
                             try {
-                                val url = java.net.URL("https://voice.superparty.ro/api/voice/push-ack-native")
+                                val targetURL = "https://voice.superparty.ro/api/voice/push-ack-native"
+                                val url = java.net.URL(targetURL)
+                                Log.d(TAG, "🟢 ACK target URL=$targetURL")
                                 val conn = url.openConnection() as java.net.HttpURLConnection
                                 conn.requestMethod = "POST"
                                 conn.setRequestProperty("Content-Type", "application/json")
@@ -270,6 +272,7 @@ class CustomVoiceFirebaseMessagingService : FirebaseMessagingService(), MessageL
                                 val payload = """{"callSid":"$callSid","identity":"$identity"}"""
                                 conn.outputStream.write(payload.toByteArray(Charsets.UTF_8))
                                 val sc = conn.responseCode
+                                Log.d(TAG, "🟢 ACK HTTP status=$sc")
                                 val body = conn.inputStream.bufferedReader().use { it.readText() }
                                 Log.d(TAG, "✅ [NATIVE ACK RESULT] Sent Push-ACK cleanly to PBX! Status: $sc, Body: $body")
                             } catch (e: Exception) {
@@ -302,7 +305,9 @@ class CustomVoiceFirebaseMessagingService : FirebaseMessagingService(), MessageL
                     if (identity.isNotEmpty()) {
                         Thread {
                             try {
-                                val url = java.net.URL("https://voice.superparty.ro/api/voice/push-ack-native")
+                                val targetURL = "https://voice.superparty.ro/api/voice/push-ack-native"
+                                val url = java.net.URL(targetURL)
+                                Log.d(TAG, "🟢 ACK target URL=$targetURL")
                                 val conn = url.openConnection() as java.net.HttpURLConnection
                                 conn.requestMethod = "POST"
                                 conn.setRequestProperty("Content-Type", "application/json")
@@ -310,6 +315,7 @@ class CustomVoiceFirebaseMessagingService : FirebaseMessagingService(), MessageL
                                 val payload = """{"callSid":"$callSid","identity":"$identity"}"""
                                 conn.outputStream.write(payload.toByteArray(Charsets.UTF_8))
                                 val sc = conn.responseCode
+                                Log.d(TAG, "🟢 ACK HTTP status=$sc")
                                 val body = conn.inputStream.bufferedReader().use { it.readText() }
                                 Log.d(TAG, "✅ [NATIVE ACK RESULT] Sent Push-ACK cleanly to PBX! Status: $sc, Body: $body")
                             } catch (e: Exception) {

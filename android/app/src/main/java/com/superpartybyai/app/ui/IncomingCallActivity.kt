@@ -123,7 +123,9 @@ class IncomingCallActivity : Activity() {
                 if (callSid.isNotEmpty() && identity.isNotEmpty()) {
                     Thread {
                         try {
-                            val url = java.net.URL("https://voice.superparty.ro/api/voice/accept-native")
+                            val targetURL = "https://voice.superparty.ro/api/voice/accept-native"
+                            val url = java.net.URL(targetURL)
+                            Log.d(TAG, "🟢 ACCEPT target URL=$targetURL")
                             val conn = url.openConnection() as java.net.HttpURLConnection
                             conn.requestMethod = "POST"
                             conn.setRequestProperty("Content-Type", "application/json")
@@ -133,6 +135,7 @@ class IncomingCallActivity : Activity() {
                             conn.outputStream.write(payload.toByteArray(Charsets.UTF_8))
                             
                             val sc = conn.responseCode
+                            Log.d(TAG, "🟢 ACCEPT HTTP status=$sc")
                             val body = conn.inputStream.bufferedReader().use { it.readText() }
                             Log.d(TAG, "✅ [NATIVE ACCEPT SUCCESS] PBX confirmed accept HTTP status: $sc. Body: $body")
                         } catch (e: Exception) {
