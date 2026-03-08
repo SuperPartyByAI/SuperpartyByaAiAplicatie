@@ -106,7 +106,7 @@ class VoipService {
         try {
           final data = jsonDecode(message);
           if (data['type'] == 'incoming_call') {
-            debugPrint('[VoIP WS] Foreground message received via WS: $data');
+            debugPrint('[ROUTE_G_FLUTTER_SOCKET_INCOMING] [VoIP WS] Foreground message received via WS: $data');
             // Show the exact same incoming UI as FCM Push 
             // (Note: we cast values to String to match expected map format from native FCM)
             final Map<String, dynamic> pushPayload = {
