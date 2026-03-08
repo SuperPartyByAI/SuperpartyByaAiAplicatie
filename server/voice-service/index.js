@@ -602,7 +602,7 @@ server.on('upgrade', (request, socket, head) => {
   }
 });
 
-const wave2Map = new Map();
+
 // Stores all devices that received ring payload to cancel them on accept
 const ringingDevicesMap = new Map();
 
