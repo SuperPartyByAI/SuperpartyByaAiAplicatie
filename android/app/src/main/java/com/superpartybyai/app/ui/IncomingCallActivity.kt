@@ -24,13 +24,14 @@ import android.widget.LinearLayout
 import android.widget.TextView
 import com.superpartybyai.app.MainActivity
 import com.superpartybyai.app.services.CustomVoiceFirebaseMessagingService
+import com.superpartybyai.app.voicev2.VoiceV2AcceptHandler
+import com.superpartybyai.app.voicev2.VoiceV2HangupHandler
+import androidx.localbroadcastmanager.content.LocalBroadcastManager
 
 class IncomingCallActivity : Activity() {
 
     companion object {
-        private const val TAG = "[IncomingCallUI]"
-        const val ACTION_ANSWER = "com.superpartybyai.app.ACTION_ANSWER_CALL"
-        const val ACTION_REJECT = "com.superpartybyai.app.ACTION_REJECT_CALL"
+        private const val TAG = "[IncomingCallUIV2]"
     }
 
     private var ringtone: Ringtone? = null
@@ -39,8 +40,8 @@ class IncomingCallActivity : Activity() {
     private val callActionReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             when (intent?.action) {
-                ACTION_ANSWER, ACTION_REJECT, "com.superpartybyai.app/CALL_CANCELLED" -> {
-                    Log.d(TAG, "Received broadcast ${intent.action} — closing")
+                "com.superpartybyai.app/CALL_CANCELLED" -> {
+                    Log.d(TAG, "Received broadcast CALL_CANCELLED — closing Activity")
                     stopRinging()
                     finish()
                 }
@@ -52,7 +53,6 @@ class IncomingCallActivity : Activity() {
         super.onCreate(savedInstanceState)
         Log.d(TAG, "IncomingCallActivity onCreate")
 
-        // Show over lock screen
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
             setShowWhenLocked(true)
             setTurnScreenOn(true)
@@ -65,14 +65,12 @@ class IncomingCallActivity : Activity() {
             )
         }
 
-        val callerFrom = intent?.getStringExtra("from") ?: "Superparty"
-        val callSid = intent?.getStringExtra("twilio_call_sid") ?: ""
-        Log.d(TAG, "Incoming call from=$callerFrom sid=$callSid")
+        val callerFrom = intent?.getStringExtra("callerNumber") ?: "Superparty"
+        val callSid = intent?.getStringExtra("callSid") ?: ""
+        Log.d(TAG, "Incoming call SID=$callSid FROM=$callerFrom")
 
-        // ── START RINGING ────────────────────────────────────────────────────
         startRinging()
 
-        // Build UI programmatically
         val layout = LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             gravity = Gravity.CENTER
@@ -88,7 +86,7 @@ class IncomingCallActivity : Activity() {
         }
 
         val appLabel = TextView(this).apply {
-            text = "SuperParty VoIP"
+            text = "SuperParty VoIP V2"
             textSize = 13f
             setTextColor(Color.parseColor("#99FFFFFF"))
             gravity = Gravity.CENTER
@@ -102,88 +100,21 @@ class IncomingCallActivity : Activity() {
             setTextColor(Color.WHITE)
             textSize = 16f
             setOnClickListener {
-                Log.d(TAG, "Accept tapped! answering callSid=$callSid from=$callerFrom")
+                Log.d(TAG, "Accept tapped! answering SID=$callSid")
                 stopRinging()
                 CustomVoiceFirebaseMessagingService.dismissCallNotification(applicationContext, callSid)
 
                 val m = Build.MANUFACTURER.lowercase()
                 val isHuawei = m.contains("huawei") || m.contains("honor")
                 if (isHuawei) {
-                    Log.d(TAG, "HUAWEI_NATIVE_ONLY_MODE = ON")
-                    Log.d(TAG, "ROUTE_NATIVE_ACCEPT_OWNER")
-                    val listener = object : com.twilio.voice.Call.Listener {
-                        override fun onConnectFailure(c: com.twilio.voice.Call, e: com.twilio.voice.CallException) {
-                            Log.e(TAG, "Native onConnectFailure: ${e.message}")
-                            androidx.localbroadcastmanager.content.LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(Intent("com.superpartybyai.app/CALL_CANCELLED"))
-                        }
-                        override fun onRinging(c: com.twilio.voice.Call) {}
-                        override fun onConnected(c: com.twilio.voice.Call) {
-                            Log.d(TAG, "ROUTE_NATIVE_CONNECTED")
-                        }
-                        override fun onReconnecting(c: com.twilio.voice.Call, e: com.twilio.voice.CallException) {}
-                        override fun onReconnected(c: com.twilio.voice.Call) {}
-                        override fun onDisconnected(c: com.twilio.voice.Call, e: com.twilio.voice.CallException?) {
-                            Log.d(TAG, "ROUTE_NATIVE_CLOSED")
-                            androidx.localbroadcastmanager.content.LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(Intent("com.superpartybyai.app/CALL_CANCELLED"))
-                        }
-                    }
-                    val acceptedCall = CustomVoiceFirebaseMessagingService.acceptPendingCallInvite(applicationContext, listener)
-                    if (acceptedCall != null) {
-                        Log.d(TAG, "✅ Native accept success for sid=${acceptedCall.sid}.")
-                    } else {
-                        Log.e(TAG, "❌ Native accept failed (no pending invite).")
-                    }
+                    VoiceV2AcceptHandler.acceptCall(applicationContext, callSid)
+                } else {
+                    Log.d(TAG, "Non-Huawei Accept clicked. Not fully V2 handled yet.")
                 }
 
-                Log.d(TAG, "Accept tapped — forwarding to Flutter via MainActivity for UI sync only")
-
-                // Navigate to active call screen via MainActivity
+                // Push UI back to main app so Flutter gets focus, 
+                // but Flutter MUST NOT execute Twilio SDK commands on Huawei
                 val mainIntent = Intent(applicationContext, MainActivity::class.java).apply {
-                    action = ACTION_ANSWER
-                    putExtra("from", callerFrom)
-                    putExtra("twilio_call_sid", callSid)
-                    addFlags(
-                        Intent.FLAG_ACTIVITY_NEW_TASK or
-                        Intent.FLAG_ACTIVITY_SINGLE_TOP or
-                        Intent.FLAG_ACTIVITY_REORDER_TO_FRONT
-                    )
-                }
-                startActivity(mainIntent)
-                
-                android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
-                    finish()
-                }, 1500)
-            }
-        }
-
-        val spacer2 = View(this).apply { minimumHeight = 24 }
-
-        val btnReject = Button(this).apply {
-            text = "❌ Respinge"
-            setBackgroundColor(Color.parseColor("#FFF44336"))
-            setTextColor(Color.WHITE)
-            textSize = 16f
-            setOnClickListener {
-                Log.d(TAG, "Reject tapped")
-                stopRinging()
-                CustomVoiceFirebaseMessagingService.dismissCallNotification(applicationContext)
-
-                val m = Build.MANUFACTURER.lowercase()
-                val isHuawei = m.contains("huawei") || m.contains("honor")
-                if (isHuawei) {
-                    Log.d(TAG, "HUAWEI_NATIVE_ONLY_MODE = ON")
-                    Log.d(TAG, "ROUTE_NATIVE_HANGUP_OWNER")
-                    val invite = CustomVoiceFirebaseMessagingService.pendingCallInvite
-                    if (invite != null) {
-                        invite.reject(applicationContext)
-                        CustomVoiceFirebaseMessagingService.pendingCallInvite = null
-                    }
-                }
-
-                val mainIntent = Intent(applicationContext, MainActivity::class.java).apply {
-                    action = ACTION_REJECT
-                    putExtra("from", callerFrom)
-                    putExtra("twilio_call_sid", callSid)
                     addFlags(
                         Intent.FLAG_ACTIVITY_NEW_TASK or
                         Intent.FLAG_ACTIVITY_SINGLE_TOP or
@@ -195,90 +126,103 @@ class IncomingCallActivity : Activity() {
             }
         }
 
-        layout.addView(callerView)
+        val spacer2 = View(this).apply { minimumHeight = 24 }
+
+        val btnReject = Button(this).apply {
+            text = "❌ Respinge"
+            setBackgroundColor(Color.parseColor("#FFF44336"))
+            setTextColor(Color.WHITE)
+            textSize = 16f
+            setOnClickListener {
+                Log.d(TAG, "Reject tapped for SID=$callSid")
+                stopRinging()
+                CustomVoiceFirebaseMessagingService.dismissCallNotification(applicationContext, callSid)
+
+                val m = Build.MANUFACTURER.lowercase()
+                val isHuawei = m.contains("huawei") || m.contains("honor")
+                if (isHuawei) {
+                    VoiceV2HangupHandler.rejectCall(applicationContext, callSid)
+                }
+
+                finish()
+            }
+        }
+
         layout.addView(appLabel)
+        layout.addView(callerView)
         layout.addView(spacer1)
-        layout.addView(btnAccept, LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT, 150
-        ))
+        layout.addView(btnAccept)
         layout.addView(spacer2)
-        layout.addView(btnReject, LinearLayout.LayoutParams(
-            LinearLayout.LayoutParams.MATCH_PARENT, 150
-        ))
+        layout.addView(btnReject)
+
         setContentView(layout)
 
-        // Listen for resolution from other sources
-        val filter = IntentFilter().apply {
-            addAction(ACTION_ANSWER)
-            addAction(ACTION_REJECT)
-            addAction("com.superpartybyai.app/CALL_CANCELLED")
-        }
-        androidx.localbroadcastmanager.content.LocalBroadcastManager.getInstance(this).registerReceiver(callActionReceiver, filter)
+        LocalBroadcastManager.getInstance(this)
+            .registerReceiver(callActionReceiver, IntentFilter("com.superpartybyai.app/CALL_CANCELLED"))
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        stopRinging()
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(callActionReceiver)
+        Log.d(TAG, "IncomingCallActivity destroyed")
     }
 
     private fun startRinging() {
         try {
-            // Set audio mode to ringtone
             val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
             audioManager.mode = AudioManager.MODE_RINGTONE
 
-            // Play default ringtone
             val ringtoneUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_RINGTONE)
-            ringtone = RingtoneManager.getRingtone(applicationContext, ringtoneUri)?.also { r ->
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                    r.isLooping = true
-                }
-                r.audioAttributes = AudioAttributes.Builder()
-                    .setUsage(AudioAttributes.USAGE_NOTIFICATION_RINGTONE)
-                    .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                    .build()
-                r.play()
-                Log.d(TAG, "✅ Ringtone started")
-            }
+            ringtone = RingtoneManager.getRingtone(applicationContext, ringtoneUri)
 
-            // Also vibrate
-            startVibrating()
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                ringtone?.audioAttributes = AudioAttributes.Builder()
+                    .setUsage(AudioAttributes.USAGE_NOTIFICATION_RINGTONE)
+                    .setContentType(AudioAttributes.CONTENT_TYPE_MUSIC)
+                    .build()
+            }
+            ringtone?.play()
+            Log.d(TAG, "Ringtone started natively")
+
+            startVibration()
         } catch (e: Exception) {
-            Log.e(TAG, "startRinging error: $e")
+            Log.e(TAG, "Error starting ringtone: ${e.message}")
         }
     }
 
-    private fun startVibrating() {
+    private fun startVibration() {
         try {
-            val pattern = longArrayOf(0, 600, 400, 600, 400, 600)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                val vm = getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
-                vibrator = vm.defaultVibrator
+                val vibratorManager = getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
+                vibrator = vibratorManager.defaultVibrator
             } else {
                 @Suppress("DEPRECATION")
                 vibrator = getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
             }
+
+            val pattern = longArrayOf(0, 1000, 1000)
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
                 vibrator?.vibrate(VibrationEffect.createWaveform(pattern, 0))
             } else {
                 @Suppress("DEPRECATION")
                 vibrator?.vibrate(pattern, 0)
             }
+            Log.d(TAG, "Vibration started")
         } catch (e: Exception) {
-            Log.e(TAG, "Vibration error: $e")
+            Log.e(TAG, "Error starting vibration: ${e.message}")
         }
     }
 
     private fun stopRinging() {
         try {
-            ringtone?.stop()
-            ringtone = null
+            ringtone?.let {
+                if (it.isPlaying) it.stop()
+            }
             vibrator?.cancel()
-            vibrator = null
-            Log.d(TAG, "Ringtone stopped")
+            Log.d(TAG, "Ringtone and vibration stopped")
         } catch (e: Exception) {
-            Log.e(TAG, "stopRinging error: $e")
+            Log.e(TAG, "Error stopping ringtone/vibration: ${e.message}")
         }
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        stopRinging()
-        runCatching { androidx.localbroadcastmanager.content.LocalBroadcastManager.getInstance(this).unregisterReceiver(callActionReceiver) }
     }
 }

@@ -57,7 +57,28 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
         await VoipService().init(backend, forceReinit: false); 
       }
 
-      // 1️⃣ ATTEMPT NATIVE DIRECT ANSWER (Huawei Bypass)
+      if (Platform.isAndroid) {
+        debugPrint('[IncomingCallScreen] 📞 HUAWEI_NATIVE_ONLY_MODE = ON');
+        debugPrint('[IncomingCallScreen] 📞 ROUTE_FLUTTER_ANSWER_BLOCKED');
+        debugPrint('[IncomingCallScreen] 📞 Flutter is only a UI mirror. Ignoring Answer Twilio SDK calls.');
+        
+        if (mounted) {
+          Navigator.pop(context); // Close incoming custom screen
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => ActiveCallScreen(
+                remoteId: widget.caller,
+                isOutgoing: false,
+                callSid: widget.callSid,
+              ),
+            ),
+          );
+        }
+        return;
+      }
+
+      // 1️⃣ ATTEMPT NATIVE DIRECT ANSWER (Non-Android / Fallback)
       debugPrint('[IncomingCallScreen] 📞 directAnswer started...');
       bool directAccepted = false;
       try {
@@ -200,8 +221,16 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
                         backgroundColor: Colors.redAccent,
                         onPressed: () {
                           VoipService.isRingingOrActive = false;
-                          VoipService.rejectCallFromServer('', widget.callSid);
-                          MethodChannel('com.superpartybyai.app/call_actions').invokeMethod('directHangup');
+                          
+                          if (Platform.isAndroid) {
+                            debugPrint('[IncomingCallScreen] 📞 HUAWEI_NATIVE_ONLY_MODE = ON');
+                            debugPrint('[IncomingCallScreen] 📞 ROUTE_FLUTTER_HANGUP_BLOCKED');
+                            debugPrint('[IncomingCallScreen] Flutter UI rejecting visually.');
+                          } else {
+                            VoipService.rejectCallFromServer('', widget.callSid);
+                            MethodChannel('com.superpartybyai.app/call_actions').invokeMethod('directHangup');
+                          }
+
                           Navigator.pop(context);
                         },
                         child: const Icon(Icons.call_end, color: Colors.white, size: 30),
