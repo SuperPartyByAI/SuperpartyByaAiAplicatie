@@ -303,7 +303,7 @@ const wave2Map = new Map();
 // ── REDIS-BACKED ACTIVE CALL STORE ──────────────────────────────────────────
 // Replaces in-memory activeCallsMap. Survives container restart.
 // Keys: active_call:<callSid>  TTL: 10 minutes
-const REDIS_URL = process.env.REDIS_URL || 'redis://127.0.0.1:6379';
+const REDIS_URL = process.env.REDIS_URL || 'redis://superparty-redis:6379';
 const CALL_TTL_SEC = 600; // 10 min
 const redis = new Redis(REDIS_URL, { lazyConnect: true, maxRetriesPerRequest: 3 });
 redis.on('error', (e) => console.warn('[Redis] Error:', e.message));
@@ -602,6 +602,10 @@ server.on('upgrade', (request, socket, head) => {
   }
 });
 
+
+// Stores all devices that received ring payload to cancel them on accept
+const ringingDevicesMap = new Map();
+
 /* =========================================================
    TWILIO VOIP ENDPOINTS 
 ========================================================= */
@@ -644,6 +648,25 @@ app.post('/api/voice/push-ack', express.json(), (req, res) => {
   }
 });
 
+app.post('/api/voice/push-ack-native', express.json(), (req, res) => {
+  try {
+    const { callSid, identity } = req.body;
+    if (!callSid || !identity) return res.status(400).json({ error: 'missing_params' });
+
+    if (!pushAckMap.has(callSid)) {
+      console.log(`[PBX ACK NATIVE] Late/ignored ack for ${callSid} from ${identity}`);
+      return res.status(200).json({ ok: false, late: true });
+    }
+
+    pushAckMap.get(callSid).add(identity);
+    console.log(`[PBX ACK NATIVE] Received native push-ack for ${callSid} from ${identity}`);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('[PBX ACK NATIVE] unexpected error:', err?.message || err);
+    res.status(500).json({ error: 'internal' });
+  }
+});
+
 // Extracting Identity from Register
 app.post('/api/voice/registerDevice', requireSupabaseUser, async (req, res) => {
   const { userId, deviceId } = req.body;
@@ -665,6 +688,7 @@ app.post('/api/voice/registerDevice', requireSupabaseUser, async (req, res) => {
         device_id: deviceId,
         device_identity: identity,
         fcm_token: fcmToken || 'WS_ONLY',
+        push_credential_sid: process.env.TWILIO_PUSH_CREDENTIAL_SID || null,
         last_seen_at: new Date().toISOString()
       }, { onConflict: 'user_id, device_id' });
 
@@ -887,13 +911,16 @@ app.post('/api/voice/incoming', requireTwilioSignature, async (req, res) => {
           }
         });
 
+        // Register all contacted clients for future cancellation
+        ringingDevicesMap.set(CallSid, [...targetClients]);
+
         // Asynchronous ACK wait queue (Wave 1 & Wave 2)
         let ACK_WAIT_MS = parseInt(process.env.ACK_WAIT_MS || '7000', 10);
         let POLL_INTERVAL_MS = 100;
         let maxIterations = Math.floor(ACK_WAIT_MS / POLL_INTERVAL_MS);
 
         setTimeout(async () => {
-          let winnerIdentity = null;
+          let hasAck = false;
           let currentTargets = [...targetClients]; // Tracks who we pushed to
 
           // WAIT FOR WAVE 1
@@ -901,20 +928,20 @@ app.post('/api/voice/incoming', requireTwilioSignature, async (req, res) => {
             await new Promise(r => setTimeout(r, POLL_INTERVAL_MS));
             const acks = pushAckMap.get(CallSid);
             if (acks && acks.size > 0) {
-               winnerIdentity = Array.from(acks)[0];
+               hasAck = true;
                break;
             }
           }
 
-          // IF NO WAVE 1 WINNER -> FIRE WAVE 2
-          if (!winnerIdentity) {
+          // IF NO WAVE 1 ACK -> FIRE WAVE 2
+          if (!hasAck) {
             console.log(`[PBX] Call ${CallSid} had NO ACKs within ${ACK_WAIT_MS}ms! Initiating Wave-2 Fallback...`);
             let wave2Clients = candidates.slice(3, 6);
             if (wave2Clients.length > 0) {
               console.log(`[PBX] Wave-2 target clients: ${wave2Clients.map(c => c.id).join(', ')}`);
-              currentTargets = [...currentTargets, ...wave2Clients]; // Add Wave 2 to allowed winners
-              wave2Map.set(CallSid, wave2Clients); // save for cancel on winner
-              setTimeout(() => wave2Map.delete(CallSid), 60_000); // safety cleanup
+              currentTargets = [...currentTargets, ...wave2Clients];
+              const ringingNow = ringingDevicesMap.get(CallSid) || [];
+              ringingDevicesMap.set(CallSid, [...ringingNow, ...wave2Clients]);
 
               wave2Clients.forEach(client => {
                 const deliveredViaWs = sendIncomingToIdentity(client.id, payload);
@@ -926,12 +953,12 @@ app.post('/api/voice/incoming', requireTwilioSignature, async (req, res) => {
                 }
               });
 
-              // WAIT FOR WAVE 2
+              // WAIT FOR WAVE 2 (Optional logging)
               for (let i = 0; i < maxIterations; i++) {
                 await new Promise(r => setTimeout(r, POLL_INTERVAL_MS));
                 const acks = pushAckMap.get(CallSid);
                 if (acks && acks.size > 0) {
-                   winnerIdentity = Array.from(acks)[0];
+                   hasAck = true;
                    break;
                 }
               }
@@ -940,41 +967,16 @@ app.post('/api/voice/incoming', requireTwilioSignature, async (req, res) => {
             }
           }
 
-          // Strict Winner Validation (must be in any of the waves we fired)
-          if (winnerIdentity && !currentTargets.some(tc => tc.id === winnerIdentity)) {
-             console.warn(`[PBX] Warning: ACK winner ${winnerIdentity} is NOT in currentTargets! Ignoring.`);
-             winnerIdentity = null;
-          }
-
-          if (winnerIdentity) {
-            console.log(`[PBX] Call ${CallSid} WON by ${winnerIdentity}. Canceling others.`);
-            currentTargets.forEach(client => {
-              if (client.id !== winnerIdentity) {
-                const cancelPayload = { type: 'CANCEL_RINGING_UI', target_action: 'CANCEL_RINGING_UI', callSid: CallSid };
-                if (!sendIncomingToIdentity(client.id, cancelPayload)) {
-                   if (client.fcmToken && client.fcmToken !== 'WS_ONLY') sendFcmPush(client.fcmToken, cancelPayload, client.id);
-                }
-              }
-            });
-            // Also cancel any Wave-2 devices that were notified but not in currentTargets
-            const w2Cancel = wave2Map.get(CallSid) || [];
-            w2Cancel.forEach(client => {
-              if (client.id !== winnerIdentity) {
-                const cancelPayload = { type: 'CANCEL_RINGING_UI', target_action: 'CANCEL_RINGING_UI', callSid: CallSid };
-                if (!sendIncomingToIdentity(client.id, cancelPayload)) {
-                  if (client.fcmToken && client.fcmToken !== 'WS_ONLY') sendFcmPush(client.fcmToken, cancelPayload, client.id);
-                }
-              }
-            });
-            wave2Map.delete(CallSid);
+          if (hasAck) {
+            console.log(`[PBX] Call ${CallSid} is RINGING on devices. Waiting for explicit ACCEPT.`);
           } else {
-            console.log(`[PBX] Call ${CallSid} had NO ACKs even after Wave-2! Ringing timeout.`);
+            console.log(`[PBX] Call ${CallSid} had NO ACKs even after Wave-2! Devices seem unreachable.`);
           }
           
           setTimeout(() => {
             pushAckMap.delete(CallSid);
-            wave2Map.delete(CallSid);
-          }, 10000); // Cleanup maps later
+            ringingDevicesMap.delete(CallSid);
+          }, 35000); // Cleanup maps later - extended payload for late answer native OS
         }, 0);
       }
     } catch (e) {
@@ -989,6 +991,72 @@ app.post('/api/voice/incoming', requireTwilioSignature, async (req, res) => {
 // ─────────────────────────────────────────────────────────────
 // Idempotency for /api/voice/accept is now strictly enforced by the Supabase `call_accepts` table.
 // ─────────────────────────────────────────────────────────────
+
+app.post('/api/voice/accept-native', express.json(), async (req, res) => {
+  try {
+    console.log('[/api/voice/accept-native] incoming body:', req.body);
+    const { callSid, clientIdentity } = req.body;
+
+    if (!callSid || !clientIdentity) {
+      return res.status(400).json({ ok: false, error: 'missing params' });
+    }
+
+    // Rely on Supabase native constraint idempotency 
+    const { data, error } = await supabase
+      .from('call_accepts')
+      .insert({ call_sid: callSid })
+      .select()
+      .single();
+
+    if (error) {
+      if (error.code === '23505') { // unique violation
+        console.log(`[PBX NATIVE ACCEPT] Race lost for callSid ${callSid} by ${clientIdentity}`);
+        const cancelPayload = { type: 'CANCEL_RINGING_UI', callSid: callSid, reason: 'answered_elsewhere' };
+        sendIncomingToIdentity(clientIdentity, cancelPayload); // send cancel to the loser
+        return res.status(200).json({ ok: false, winner: false });
+      }
+      console.error('[/api/voice/accept-native] Supabase raw error:', error);
+      return res.status(500).json({ ok: false, error: 'DB insert failed', details: error.message || error });
+    }
+
+    console.log(`[PBX NATIVE ACCEPT] 🔒 Race WON for callSid ${callSid} by ${clientIdentity}. Canceling others.`);
+    
+    // Broadcast CANCEL_RINGING_UI to all OTHER devices that were originally rung
+    const ringingClients = ringingDevicesMap.get(callSid) || [];
+    ringingClients.forEach(client => {
+      if (client.id !== clientIdentity) {
+        const cancelPayload = { type: 'CANCEL_RINGING_UI', target_action: 'CANCEL_RINGING_UI', callSid: callSid, reason: 'answered_elsewhere' };
+        if (!sendIncomingToIdentity(client.id, cancelPayload)) {
+           if (client.fcmToken && client.fcmToken !== 'WS_ONLY') sendFcmPush(client.fcmToken, cancelPayload, client.id);
+        }
+      }
+    });
+    // Remove from map to prevent redundant cancels
+    ringingDevicesMap.delete(callSid);
+    
+    // Auto-join conference immediately
+    const confName = `conf_${callSid}`;
+    const twimlUrl = `${getExternalBaseUrl(req)}/api/voice/twiml-dial-participant?conf=${confName}`;
+
+    if (!twilioClient) {
+      return res.status(503).json({ ok: false, error: 'twilio_not_configured' });
+    }
+
+    // Call device
+    const participantCall = await twilioClient.calls.create({
+      to: `client:${clientIdentity}`,
+      from: process.env.TWILIO_CALLER_ID || '+40373805828',
+      twiml: `<Response><Dial action="${getExternalBaseUrl(req)}/api/voice/twiml-dial-action"><Conference beep="false" startConferenceOnEnter="true" endConferenceOnExit="true">${confName}</Conference></Dial></Response>`
+    });
+
+    console.log(`[PBX NATIVE ACCEPT] Bridging to ${clientIdentity} successful via Twilio leg ${participantCall.sid}`);
+    return res.json({ ok: true, winner: true, participantCallSid: participantCall.sid, conference: confName });
+
+  } catch (e) {
+    console.error('[/api/voice/accept-native] Exception Stack:', e.stack || e);
+    return res.status(500).json({ ok: false, error: 'internal', details: e.message });
+  }
+});
 
 app.post('/api/voice/accept', requireSupabaseUser, express.json(), async (req, res) => {
   try {
@@ -1005,12 +1073,29 @@ app.post('/api/voice/accept', requireSupabaseUser, express.json(), async (req, r
       
     if (insertError) {
       if (insertError.code === '23505') { // Postgres Unique Violation
-        console.log(`[PBX DB-Locks] Deduplicated callSid at scale: ${callSid}`);
-        return res.json({ ok: true, dedupe: true });
+        console.log(`[PBX ACCEPT] Race lost for callSid ${callSid} by ${clientIdentity}`);
+        const cancelPayload = { type: 'CANCEL_RINGING_UI', callSid: callSid, reason: 'answered_elsewhere' };
+        sendIncomingToIdentity(clientIdentity, cancelPayload); // Notify client it lost
+        return res.json({ ok: true, dedupe: true, winner: false });
       }
       console.error('[PBX] Error recording call accept in DB:', insertError.message);
       return res.status(500).json({ ok: false, error: 'Database idempotency constraint failed' });
     }
+    
+    console.log(`[PBX ACCEPT] 🔒 Race WON for callSid ${callSid} by ${clientIdentity}. Canceling others.`);
+    
+    // Broadcast CANCEL_RINGING_UI to all OTHER devices that were originally rung
+    const ringingClients = ringingDevicesMap.get(callSid) || [];
+    ringingClients.forEach(client => {
+      if (client.id !== clientIdentity) {
+        const cancelPayload = { type: 'CANCEL_RINGING_UI', target_action: 'CANCEL_RINGING_UI', callSid: callSid, reason: 'answered_elsewhere' };
+        if (!sendIncomingToIdentity(client.id, cancelPayload)) {
+           if (client.fcmToken && client.fcmToken !== 'WS_ONLY') sendFcmPush(client.fcmToken, cancelPayload, client.id);
+        }
+      }
+    });
+    ringingDevicesMap.delete(callSid);
+
     if (!clientIdentity) {
       return res.status(400).json({ ok: false, error: 'missing clientIdentity' });
     }
@@ -1474,6 +1559,53 @@ app.get('/api/voice/calls', requireSupabaseUser, async (req, res) => {
       console.error('[VoIP PBX] Eroare la citirea apelurilor din Twilio:', e);
       res.status(500).json({ error: e.message });
     }
+});
+
+app.get('/api/voice/calls/recent', requireSupabaseUser, async (req, res) => {
+  const limit = Math.min(Number.parseInt(req.query.limit) || 50, 200);
+  const userId = req.supabaseUser.id;
+
+  try {
+    // 1. Încercăm din baza de date Supabase ca sursă primară de adevăr
+    const { data: dbCalls, error: dbErr } = await supabase
+      .from('voice_calls')
+      .select('call_sid, status, direction, started_at, duration_seconds, from_raw, to_raw, client_display_name, agent_user_id')
+      .or(`agent_user_id.eq.${userId}`)
+      .order('started_at', { ascending: false })
+      .limit(limit);
+
+    if (!dbErr && dbCalls && dbCalls.length > 0) {
+      return res.json({ ok: true, source: 'db', calls: dbCalls });
+    }
+
+    if (dbErr) {
+      console.error('[PBX calls/recent] Supabase read failed, falling back to Twilio:', dbErr.message);
+    }
+    
+    // 2. Fallback -> Twilio API
+    mVoiceTwilioFallback.inc();
+    if (!twilioClient) return res.status(503).json({ ok: false, error: 'twilio_not_configured' });
+    
+    const cutoffStr = new Date(Date.now() - 14 * 24 * 3600 * 1000).toISOString(); // ultimele 14 zile
+    const calls = await twilioClient.calls.list({ startTimeAfter: new Date(cutoffStr), limit });
+    
+    // Mapăm formatul de Twilio ptr siguranță client-side
+    const mappedCalls = calls.map(c => ({
+      call_sid: c.sid,
+      status: c.status,
+      direction: c.direction,
+      started_at: c.startTime,
+      duration_seconds: c.duration,
+      from_raw: c.from,
+      to_raw: c.to,
+      client_display_name: null // Doar din DB știm asta
+    }));
+
+    return res.json({ ok: true, source: 'twilio-fallback', calls: mappedCalls });
+  } catch (e) {
+    console.error('[PBX calls/recent] Fatal Error:', e.message);
+    res.status(500).json({ ok: false, error: e.message });
+  }
 });
 
 

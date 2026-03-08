@@ -232,6 +232,10 @@ void _registerCallActionsHandler() {
 }
 
 Future<void> answerIncomingCall(String from, String callSid) async {
+  if (Platform.isAndroid && VoipService.isHuaweiOrHonor) {
+    debugPrint('[main] 🔕 ANSWER BLOCKED: Huawei Native UI handles answer directly.');
+    return;
+  }
   debugPrint('[main] 📞 answerCall received. from: $from, callSid: $callSid');
   VoipLogger.instance.logEvent('ACCEPT_TAPPED', extra: {'from': from, 'callSid': callSid});
   try {
@@ -285,7 +289,7 @@ Future<void> answerIncomingCall(String from, String callSid) async {
     }
 
     // 2️⃣ NATIVE ANSWER ON EXISTING INVITE (Twilio SDK default answer)
-    Call? activeCallBefore = TwilioVoice.instance.call.activeCall;
+    var activeCallBefore = TwilioVoice.instance.call.activeCall;
     if (activeCallBefore == null) {
       debugPrint('[main] 📞 activeCall not present — trying a short wait for SDK...');
       for (int i = 0; i < 15; i++) {
@@ -303,14 +307,21 @@ Future<void> answerIncomingCall(String from, String callSid) async {
     bool activeCallPresent = activeCallBefore != null;
     debugPrint('[main] 📞 activeCall present before answer: ${activeCallPresent ? "yes" : "no"}');
     if (activeCallPresent) {
-      debugPrint('[main] 📞 current activeCall: from=${activeCallBefore?.from}, to=${activeCallBefore?.to}, dir=${activeCallBefore?.callDirection}');
+      debugPrint('[main] 📞 activeCall is present and ready.');
     }
 
     debugPrint('[main] 📞 TwilioVoice.instance.call.answer() started...');
     bool answered = false;
     try {
-      answered = await TwilioVoice.instance.call.answer() ?? false;
-      debugPrint('[main] 📞 TwilioVoice.instance.call.answer() result: $answered');
+      if (VoipService.isHuaweiOrHonor) {
+        // [HUAWEI MODE] - Flutter is no longer The Owner of Answer function.
+        // Bypassing Twilio SDK answer entirely, relying EXCLUSIVELY on `/accept-native` triggered deeply in Kotlin logic.
+        debugPrint('🟢 [HUAWEI MODE enabled] Skipped Twilio SDK answer to prevent lock loop. Native HTTP /accept-native handles it!');
+        answered = true; // Pretindem ca sdk-ul a raspuns ca UI-ul sa nu dea pop().
+      } else {
+        answered = await TwilioVoice.instance.call.answer() ?? false;
+        debugPrint('[main] 📞 TwilioVoice.instance.call.answer() result: $answered');
+      }
     } catch(e) {
       debugPrint('[main] ❌ TwilioVoice.instance.call.answer() exception: $e');
     }

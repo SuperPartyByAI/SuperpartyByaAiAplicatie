@@ -1,3 +1,5 @@
+#!/bin/bash
+cat << 'EOF' > /opt/superparty-ai/repo/server/voice-service/docker-compose.yml
 version: '3.8'
 
 services:
@@ -11,7 +13,6 @@ services:
       - "3001:3001"
     volumes:
       - ./logs:/usr/src/app/logs
-      - ./gpt-firebase-key.json:/usr/src/app/gpt-firebase-key.json:ro
     deploy:
       resources:
         limits:
@@ -27,3 +28,12 @@ services:
 networks:
   ai-manager_default:
     external: true
+EOF
+
+sed -i 's/^REDIS_HOST=.*$/REDIS_HOST=superparty-ai-redis/' /opt/superparty-ai/repo/server/voice-service/.env
+sed -i 's/^REDIS_PORT=.*$/REDIS_PORT=6379/' /opt/superparty-ai/repo/server/voice-service/.env
+
+cd /opt/superparty-ai/repo/server/voice-service
+docker compose up -d --force-recreate
+sleep 3
+docker logs superparty-voice
