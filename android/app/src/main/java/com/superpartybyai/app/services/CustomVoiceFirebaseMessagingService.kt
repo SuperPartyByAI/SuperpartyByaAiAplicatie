@@ -232,7 +232,7 @@ class CustomVoiceFirebaseMessagingService : FirebaseMessagingService(), MessageL
     }
 
     override fun onMessageReceived(remoteMessage: RemoteMessage) {
-        Log.d(TAG, "onMessageReceived data=${remoteMessage.data}")
+        Log.d(TAG, "[ROUTE_C_NATIVE_FCM_RECEIVE] onMessageReceived data=${remoteMessage.data}")
 
         val data = remoteMessage.data
 
@@ -241,7 +241,7 @@ class CustomVoiceFirebaseMessagingService : FirebaseMessagingService(), MessageL
             
             // ── CRITICAL FIX P0-1: ALWAYS pass native Twilio payloads to SDK to generate CallInvites! ──
             if (msgType.startsWith("twilio.voice.")) {
-                Log.d(TAG, "Passing payload to Twilio Voice.handleMessage...")
+                Log.d(TAG, "[ROUTE_C2_NATIVE_TWILIO_HANDLE_MESSAGE] Passing payload to Twilio Voice.handleMessage...")
                 val validTwilio = Voice.handleMessage(applicationContext, data, this)
                 if (!validTwilio) {
                     Log.w(TAG, "⚠️ Twilio Voice.handleMessage rejected payload.")
