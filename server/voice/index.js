@@ -938,8 +938,10 @@ app.post('/api/voice/join-conference', requireTwilioSignature, express.urlencode
   console.log('[/api/voice/join-conference] joining conf:', req.query.conf);
   const VoiceResponse = twilio.twiml.VoiceResponse;
   const twiml = new VoiceResponse();
-  const dial = twiml.dial();
+  // Ensure the agent is connected immediately
+  const dial = twiml.dial({ answerOnBridge: true });
   dial.conference({
+    beep: false,
     startConferenceOnEnter: true,
     endConferenceOnExit: true
   }, req.query.conf);
