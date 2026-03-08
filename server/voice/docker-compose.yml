@@ -49,6 +49,8 @@ services:
       - NODE_ENV=production
     env_file:
       - .env          # .env la rădăcina voice-repo (standardizat, nu .env.voice)
+    volumes:
+      - /root/gpt-firebase-key.json:/usr/src/app/gpt-firebase-key.json:ro
     depends_on:
       redis:
         condition: service_healthy

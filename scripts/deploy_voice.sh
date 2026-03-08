@@ -23,7 +23,10 @@ git checkout -f $SHA -- server/voice/
 
 echo "✅ Git checkout done"
 
-# 2. Verify patches critice
+# 2. Verify patches critice & Firebase Push Key
+echo "🔍 Checking Firebase Push credentials..."
+[ -f /root/gpt-firebase-key.json ] && echo "✅ Firebase Push Key found" || { echo "❌ MISSING /root/gpt-firebase-key.json — abort"; exit 1; }
+
 grep -q "pruneStaleZsetMembers" server/voice/index.js && echo "✅ ZSET prune cron" || { echo "❌ MISSING prune"; exit 1; }
 grep -q "setActiveCall" server/voice/index.js && echo "✅ setActiveCall Redis" || { echo "❌ MISSING Redis state"; exit 1; }
 grep -q "activeCallsMap.set" server/voice/index.js && { echo "❌ activeCallsMap.set stale — abort"; exit 1; } || echo "✅ no activeCallsMap.set residue"
