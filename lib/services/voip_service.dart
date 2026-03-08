@@ -211,6 +211,11 @@ class VoipService {
   }
 
   static Future<void> _showIncomingUI(Map<String, dynamic> data) async {
+    if (Platform.isAndroid && isHuaweiOrHonor) {
+      debugPrint('[VoIP] 🔕 Suppressing Flutter IncomingCallScreen (Huawei Native UI active) sid=${data['callSid']}');
+      isRingingOrActive = true;
+      return;
+    }
     isRingingOrActive = true;
     WakelockPlus.enable();
     await _showIncomingNotification(data);

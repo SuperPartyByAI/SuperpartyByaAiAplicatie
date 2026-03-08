@@ -17,8 +17,9 @@ set -euo pipefail
 cd $VOICE_REPO_DIR
 
 # 1. Fetch + checkout cod nou din git
+echo "▶ Git fetch origin for $SHA"
+git fetch origin
 echo "▶ Git checkout server/voice/ @ $SHA"
-git fetch origin main --depth=1
 git checkout -f $SHA -- server/voice/
 
 echo "✅ Git checkout done"
@@ -35,7 +36,7 @@ grep -q "process.env.TWILIO_TOKEN" server/voice/index.js && echo "✅ TWILIO_TOK
 
 # 4. Docker build din repo (nu din voice-build)
 cd server/voice
-GIT_SHA=\$(git -C /root/voice-repo rev-parse --short HEAD)
+GIT_SHA=\$(echo $SHA | awk -F'/' '{print \$NF}' | cut -c1-7)
 export GIT_SHA
 echo "▶ Docker build image superparty-voice:\$GIT_SHA..."
 docker compose build voice

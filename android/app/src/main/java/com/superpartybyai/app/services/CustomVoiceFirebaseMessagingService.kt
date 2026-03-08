@@ -238,24 +238,83 @@ class CustomVoiceFirebaseMessagingService : FirebaseMessagingService(), MessageL
 
         if (data.isNotEmpty()) {
             val msgType = data["twi_message_type"] ?: ""
-            
-            // ── CRITICAL FIX P0-1: ALWAYS pass native Twilio payloads to SDK to generate CallInvites! ──
+            val isHuawei = Build.MANUFACTURER.contains("huawei", true) || Build.MANUFACTURER.contains("honor", true)
+
+            if (isHuawei) {
+                Log.d(TAG, "🟢 [HUAWEI MODE enabled] Suspect restrictive OS. Prioritizing native wake-up over Twilio FCM.")
+            }
+
+            // Daca e mesaj Twilio, il trimitem catre SDK DOAR daca incercam fallback non-Huawei.
+            // Huawei blocheaza TelecomManager in fundal; payload-ul asta direct crapa / face loop.
             if (msgType.startsWith("twilio.voice.")) {
-                Log.d(TAG, "Passing payload to Twilio Voice.handleMessage...")
-                val validTwilio = Voice.handleMessage(applicationContext, data, this)
-                if (!validTwilio) {
-                    Log.w(TAG, "⚠️ Twilio Voice.handleMessage rejected payload.")
+                if (isHuawei) {
+                     Log.w(TAG, "⚠️ [HUAWEI MODE] Ignoring raw Twilio FCM payload to prevent Telecom loop in background.")
+                     // Huawei ignora payload Twilio. Asteptam strict 'incoming_call' direct din Server-Backend.
+                } else {
+                     Log.d(TAG, "Passing payload to Twilio Voice.handleMessage...")
+                     val validTwilio = Voice.handleMessage(applicationContext, data, this)
+                     if (!validTwilio) {
+                         Log.w(TAG, "⚠️ Twilio Voice.handleMessage rejected payload.")
+                     }
                 }
             }
 
-            if (msgType == "twilio.voice.call") {
+            // Ramura Firebase Backend -> `type=incoming_call` - THIS IS THE ALPHA pe Huawei.
+            if (data["type"] == "incoming_call") {
+                val rawFrom = data["callerNumber"] ?: data["from"] ?: "Superparty"
+                val from = rawFrom.removePrefix("client:").removePrefix("+")
+                val callSid = data["callSid"] ?: ""
+                val ackToken = data["ackToken"]
+
+                Log.d(TAG, "🔔 [HUAWEI MODE] backend incoming_call received: callSid=$callSid from=$from")
+
+                if (callSid.isNotEmpty()) {
+                    val prefs = applicationContext.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
+                    val identity = prefs.getString("flutter.twilio_client_identity", "") ?: ""
+                    
+                    if (identity.isNotEmpty()) {
+                        Log.d(TAG, "🟢 ACK start: Triggering immediate ACK to server for incoming_call $callSid using identity=$identity...")
+                        Thread {
+                            try {
+                                val targetURL = "https://voice.superparty.ro/api/voice/push-ack-native"
+                                val url = java.net.URL(targetURL)
+                                Log.d(TAG, "🟢 ACK target URL=$targetURL")
+                                
+                                val conn = url.openConnection() as HttpURLConnection
+                                conn.requestMethod = "POST"
+                                conn.setRequestProperty("Content-Type", "application/json")
+                                conn.doOutput = true
+                                val payload = """{"callSid":"$callSid","identity":"$identity"}"""
+                                conn.outputStream.write(payload.toByteArray(Charsets.UTF_8))
+                                
+                                val sc = conn.responseCode
+                                Log.d(TAG, "🟢 ACK HTTP status=$sc")
+                                val body = conn.inputStream.bufferedReader().use { it.readText() }
+                                Log.d(TAG, "✅ [NATIVE ACK RESULT] Sent Push-ACK cleanly to PBX! Body: $body")
+                            } catch (e: Exception) {
+                                Log.e(TAG, "❌ [NATIVE ACK FAIL] Failed sending Push-ACK natively: ${e.message}")
+                            }
+                        }.start()
+                    }
+                }
+                
+                Log.d(TAG, "🟢 native incoming UI shown — Firing Native IncomingCallActivity Over Lock Screen!")
+                showFullScreenCallNotification(applicationContext, from, callSid)
+
+                // Sincronizare optionala cu Flutter (nu ne mai bazam pe el pt Accept)
+                val intent = Intent("com.google.android.c2dm.intent.RECEIVE")
+                intent.setPackage(applicationContext.packageName)
+                intent.putExtras(remoteMessage.toIntent().extras ?: android.os.Bundle())
+                sendBroadcast(intent)
+                return
+            }
+
+            // Ramura legacy 'twilio.voice.call' pentru device-urile normele / Fallback
+            if (msgType == "twilio.voice.call" && !isHuawei) {
                 val rawFrom = data["twi_from"] ?: data["From"] ?: data["from"] ?: "Superparty"
                 val from = rawFrom.removePrefix("client:").removePrefix("+")
                 val callSid = data["twi_call_sid"] ?: ""
                 Log.d(TAG, "🔔 VOICE CALL from=$from callSid=$callSid — Firing Custom Android Notification (Bypassing telecom blocker)")
-                
-                // CRITICAL FIX: We MUST fire this custom Full-Screen Intent notification.
-                // On Huawei/Honor, Telecom Manager is completely disabled ("PhoneAccount missing").
                 showFullScreenCallNotification(applicationContext, from, callSid)
             } else if (data["target_action"] == "CANCEL_RINGING_UI" || data["type"] == "CANCEL_RINGING_UI") {
                 val callSid = data["twi_call_sid"] ?: data["callSid"] ?: ""
@@ -266,45 +325,7 @@ class CustomVoiceFirebaseMessagingService : FirebaseMessagingService(), MessageL
                     putExtra("callSid", callSid)
                 }.also { LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(it) }
                 return
-            } else if (data["type"] == "incoming_call") {
-                val rawFrom = data["callerNumber"] ?: data["from"] ?: "Superparty"
-                val from = rawFrom.removePrefix("client:").removePrefix("+")
-                val callSid = data["callSid"] ?: ""
-                val ackToken = data["ackToken"]
-
-                if (!ackToken.isNullOrEmpty() && callSid.isNotEmpty()) {
-                    val prefs = applicationContext.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
-                    val identity = prefs.getString("flutter.twilio_client_identity", "")
-                    if (!identity.isNullOrEmpty()) {
-                        Thread {
-                            try {
-                                val url = java.net.URL("https://voice.superparty.ro/api/voice/push-ack")
-                                val conn = url.openConnection() as java.net.HttpURLConnection
-                                conn.requestMethod = "POST"
-                                conn.setRequestProperty("Content-Type", "application/json")
-                                conn.doOutput = true
-                                val payload = """{"callSid":"$callSid","identity":"$identity","ackToken":"$ackToken"}"""
-                                conn.outputStream.write(payload.toByteArray(Charsets.UTF_8))
-                                conn.responseCode
-                                Log.d(TAG, "🚀 Native Push-ACK sent to PBX for $callSid!")
-                            } catch (e: Exception) {
-                                Log.e(TAG, "❌ Failed to send Push-ACK natively: ${e.message}")
-                            }
-                        }.start()
-                    }
-                }
-                
-                Log.d(TAG, "🔔 HETZNER WAKE-UP EVENT: from=$from callSid=$callSid — Firing Native IncomingCallActivity Over Lock Screen!")
-                showFullScreenCallNotification(applicationContext, from, callSid)
-
-                Log.d(TAG, "Also forwarding custom incoming_call FCM payload to Flutter plugin...")
-                val intent = Intent("com.google.android.c2dm.intent.RECEIVE")
-                intent.setPackage(applicationContext.packageName)
-                intent.putExtras(remoteMessage.toIntent().extras ?: android.os.Bundle())
-                sendBroadcast(intent)
-                return
             }
-
         }
     }
 

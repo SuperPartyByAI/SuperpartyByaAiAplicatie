@@ -352,6 +352,7 @@ class _DashboardTabState extends State<_DashboardTab> {
       ),
     );
   }
+}
 
 class _AdminDashboardScreen extends StatelessWidget {
   const _AdminDashboardScreen();
