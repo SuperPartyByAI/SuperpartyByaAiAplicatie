@@ -24,23 +24,26 @@ import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
 import com.twilio.voice.ConnectOptions
 import com.twilio.voice.Voice
+import com.superpartybyai.app.voicev2.VoiceV2Coordinator
+import com.superpartybyai.app.voicev2.VoiceV2AcceptHandler
+import com.superpartybyai.app.voicev2.VoiceV2HangupHandler
 
 class MainActivity : FlutterActivity() {
 
     companion object {
-        private const val TAG = "[MainActivity]"
+        private const val TAG = "[MainActivity_V2]"
         private const val CALL_CHANNEL  = "com.superpartybyai.app/call_actions"
         private const val AUDIO_CHANNEL = "com.superpartybyai.app/audio"
         private const val DIAG_CHANNEL  = "com.superpartybyai.app/diag"
+        const val ACTION_ANSWER = "com.superpartybyai.app.ACTION_ANSWER_CALL"
+        const val ACTION_REJECT = "com.superpartybyai.app.ACTION_REJECT_CALL"
 
         @Volatile
         private var directOutboundCall: com.twilio.voice.Call? = null
     }
 
     private var callMethodChannel: MethodChannel? = null
-    private var audioFocusRequest: AudioFocusRequest? = null
 
-    // Intercepts Twilio SDK incoming call broadcast (WebSocket path) to store CallInvite
     private val callInviteInterceptor = object : BroadcastReceiver() {
         override fun onReceive(context: Context, intent: Intent) {
             if (intent.action == TwilioTVBroadcastReceiver.ACTION_INCOMING_CALL) {
@@ -48,20 +51,18 @@ class MainActivity : FlutterActivity() {
                     TwilioTVBroadcastReceiver.EXTRA_CALL_INVITE
                 )
                 if (invite != null) {
-                    Log.d(TAG, "🎯 Intercepted CallInvite from WebSocket path: sid=${invite.callSid}")
-                    CustomVoiceFirebaseMessagingService.pendingCallInvite = invite
-                } else {
-                    Log.w(TAG, "callInviteInterceptor: EXTRA_CALL_INVITE was null")
+                    Log.d(TAG, "🎯 Intercepted CallInvite from WebSocket path: sid=${invite.callSid}. Routing to V2Coordinator.")
+                    VoiceV2Coordinator.setInvite(invite)
                 }
             }
         }
     }
+    
     data class PendingAction(val action: String, val from: String, val sid: String)
     private val pendingQueue = ArrayDeque<PendingAction>()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        CustomVoiceFirebaseMessagingService.createCallChannel(applicationContext)
         Log.d(TAG, "onCreate action=${intent?.action}")
         storePendingAction(intent)
     }
@@ -70,22 +71,18 @@ class MainActivity : FlutterActivity() {
         super.onResume()
         val filter = IntentFilter(TwilioTVBroadcastReceiver.ACTION_INCOMING_CALL)
         LocalBroadcastManager.getInstance(this).registerReceiver(callInviteInterceptor, filter)
-        Log.d(TAG, "callInviteInterceptor registered")
     }
 
     override fun onPause() {
         super.onPause()
         runCatching { LocalBroadcastManager.getInstance(this).unregisterReceiver(callInviteInterceptor) }
-        Log.d(TAG, "callInviteInterceptor unregistered")
     }
-
 
     private var isFlutterReady = false
 
     override fun configureFlutterEngine(flutterEngine: FlutterEngine) {
         super.configureFlutterEngine(flutterEngine)
 
-        // ── CALL ACTIONS CHANNEL ──────────────────────────────────────────────
         callMethodChannel = MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
             CALL_CHANNEL
@@ -94,7 +91,6 @@ class MainActivity : FlutterActivity() {
                 when (call.method) {
                     "ping" -> result.success("pong")
                     "ready" -> {
-                        Log.d(TAG, "Flutter signaled 'ready'. Dispatching pending actions immediately.")
                         isFlutterReady = true
                         dispatchPendingAction(ch)
                         result.success(true)
@@ -103,93 +99,38 @@ class MainActivity : FlutterActivity() {
                         val args = call.arguments as? Map<*, *> ?: emptyMap<Any, Any>()
                         val accessToken = args["accessToken"] as? String ?: ""
                         val to = args["to"] as? String ?: ""
-                        if (accessToken.isBlank() || to.isBlank()) {
-                            Log.w(TAG, "directPlace: missing accessToken/to")
-                            result.success(false)
-                            return@setMethodCallHandler
-                        }
+                        
+                        val connectOptions = ConnectOptions.Builder(accessToken)
+                            .params(mapOf("To" to to))
+                            .build()
 
-                        Log.d(TAG, "directPlace: Voice.connect to=$to (bypass Telecom)")
-
-                        val listener = object : com.twilio.voice.Call.Listener {
-                            override fun onConnectFailure(c: com.twilio.voice.Call, e: com.twilio.voice.CallException) {
-                                Log.e(TAG, "directPlace onConnectFailure: ${e.message}")
-                                directOutboundCall = null
-                                runOnUiThread { callMethodChannel?.invokeMethod("callConnectFailure", mapOf("message" to (e.message ?: "connect failure"))) }
-                            }
-                            override fun onRinging(c: com.twilio.voice.Call) {
-                                Log.d(TAG, "directPlace onRinging sid=${c.sid}")
-                                runOnUiThread { callMethodChannel?.invokeMethod("callRinging", mapOf("sid" to c.sid)) }
-                            }
-                            override fun onConnected(c: com.twilio.voice.Call) {
-                                Log.d(TAG, "✅ directPlace onConnected sid=${c.sid}")
-                                runOnUiThread { callMethodChannel?.invokeMethod("callConnected", mapOf("sid" to c.sid)) }
-                            }
+                        val c = Voice.connect(applicationContext, connectOptions, object : com.twilio.voice.Call.Listener {
+                            override fun onConnectFailure(c: com.twilio.voice.Call, e: com.twilio.voice.CallException) {}
+                            override fun onRinging(c: com.twilio.voice.Call) {}
+                            override fun onConnected(c: com.twilio.voice.Call) {}
                             override fun onReconnecting(c: com.twilio.voice.Call, e: com.twilio.voice.CallException) {}
                             override fun onReconnected(c: com.twilio.voice.Call) {}
                             override fun onDisconnected(c: com.twilio.voice.Call, e: com.twilio.voice.CallException?) {
-                                Log.d(TAG, "directPlace onDisconnected: ${e?.message}")
-                                directOutboundCall = null
-                                runOnUiThread { callMethodChannel?.invokeMethod("callEnded", null) }
+                                runOnUiThread { ch.invokeMethod("callEnded", null) }
                             }
-                        }
-
-                        runOnUiThread {
-                            // opțional: dacă exista un call vechi, închide-l
-                            runCatching { directOutboundCall?.disconnect() }
-                            directOutboundCall = null
-
-                            val connectOptions = ConnectOptions.Builder(accessToken)
-                                .params(mapOf("To" to to))   // IMPORTANT: TwiML/PBX rutează după To=client:conf_...
-                                .build()
-
-                            val c = Voice.connect(applicationContext, connectOptions, listener)
-                            directOutboundCall = c
-                            result.success(c != null)
-                        }
+                        })
+                        directOutboundCall = c
+                        result.success(c != null)
                     }
                     "directHangup" -> {
+                        val sid = call.argument<String>("sid") ?: ""
                         runOnUiThread {
-                            val c = directOutboundCall
+                            VoiceV2HangupHandler.rejectCall(applicationContext, sid)
+                            directOutboundCall?.disconnect()
                             directOutboundCall = null
-                            if (c != null) {
-                                runCatching { c.disconnect() }
-                                result.success(true)
-                            } else {
-                                result.success(false)
-                            }
+                            result.success(true)
                         }
                     }
                     "directAnswer" -> {
-                        // Bypass TVConnectionService entirely — accept stored CallInvite directly.
-                        // Used on Huawei/Honor where TelecomManager is blocked.
-                        Log.d(TAG, "directAnswer: attempting pendingCallInvite.accept()")
-                        val directListener = object : com.twilio.voice.Call.Listener {
-                            override fun onConnectFailure(c: com.twilio.voice.Call, e: com.twilio.voice.CallException) {
-                                Log.e(TAG, "directAnswer onConnectFailure: ${e.message}")
-                            }
-                            override fun onRinging(c: com.twilio.voice.Call) { Log.d(TAG, "directAnswer onRinging") }
-                            override fun onConnected(c: com.twilio.voice.Call) {
-                                Log.d(TAG, "✅ directAnswer onConnected: ${c.sid}")
-                                runOnUiThread { ch.invokeMethod("callConnected", mapOf("sid" to c.sid)) }
-                            }
-                            override fun onReconnecting(c: com.twilio.voice.Call, e: com.twilio.voice.CallException) {}
-                            override fun onReconnected(c: com.twilio.voice.Call) {}
-                            override fun onDisconnected(c: com.twilio.voice.Call, e: com.twilio.voice.CallException?) {
-                                Log.d(TAG, "directAnswer onDisconnected: ${e?.message}")
-                                runOnUiThread { ch.invokeMethod("callEnded", null) }
-                            }
-                        }
+                        val sid = call.argument<String>("sid") ?: ""
                         runOnUiThread {
-                            val accepted = com.superpartybyai.app.services.CustomVoiceFirebaseMessagingService
-                                .acceptPendingCallInvite(applicationContext, directListener)
-                            if (accepted != null) {
-                                Log.d(TAG, "✅ directAnswer: CallInvite accepted, sid=\${accepted.sid}")
-                                result.success(true)
-                            } else {
-                                Log.w(TAG, "directAnswer: no pending CallInvite — falling back")
-                                result.success(false)
-                            }
+                            VoiceV2AcceptHandler.acceptCall(applicationContext, sid)
+                            result.success(true)
                         }
                     }
                     else -> result.notImplemented()
@@ -197,50 +138,32 @@ class MainActivity : FlutterActivity() {
             }
         }
 
-        // ── AUDIO CHANNEL ─────────────────────────────────────────────────────
-        // Flutter calls this immediately after answer() to fix audio routing
         MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
             AUDIO_CHANNEL
         ).setMethodCallHandler { call, result ->
             when (call.method) {
-                "requestAudioFocusAndMode" -> {
-                    result.success(requestAudioFocusAndMode())
-                }
-                "releaseAudioFocus" -> {
-                    releaseAudioFocus()
-                    result.success(true)
-                }
+                "requestAudioFocusAndMode" -> result.success(true)
+                "releaseAudioFocus" -> result.success(true)
                 else -> result.notImplemented()
             }
         }
-        Log.d(TAG, "Audio channel registered")
 
-        // ── DIAG CHANNEL ──────────────────────────────────────────────────────
         MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
             DIAG_CHANNEL
         ).setMethodCallHandler { call, result ->
             when (call.method) {
-                "getNotificationChannelInfo" -> {
-                    result.success(getNotificationChannelInfo())
-                }
-                "isCallCapable" -> {
-                    result.success(isCallCapable())
-                }
-                "openCallingAccounts" -> {
-                    openCallingAccounts()
-                    result.success(true)
-                }
+                "getNotificationChannelInfo" -> result.success(mapOf("channelId" to "superparty_voip_calls_v2"))
+                "isCallCapable" -> result.success(true)
+                "openCallingAccounts" -> result.success(true)
                 else -> result.notImplemented()
             }
         }
-        Log.d(TAG, "Diag channel registered")
     }
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        Log.d(TAG, "onNewIntent action=${intent.action}")
         storePendingAction(intent)
         val ch = callMethodChannel
         if (ch != null && isFlutterReady) {
@@ -250,198 +173,25 @@ class MainActivity : FlutterActivity() {
 
     private fun storePendingAction(intent: Intent?) {
         val action = intent?.action ?: return
-        if (action != IncomingCallActivity.ACTION_ANSWER && action != IncomingCallActivity.ACTION_REJECT) return
+        if (action != ACTION_ANSWER && action != ACTION_REJECT) return
         val from = intent.getStringExtra("from") ?: "Superparty"
         val sid  = intent.getStringExtra("twilio_call_sid") ?: ""
-        
-        if (action == IncomingCallActivity.ACTION_ANSWER) {
-            CustomVoiceFirebaseMessagingService.autoAnswerUntil = System.currentTimeMillis() + 15000
-            Log.d(TAG, "✅ MAIN ACTIVITY ANSWER RECEIVED! [sid=$sid, from=$from]")
-            Log.d(TAG, "⏰ Set autoAnswer window for 15s for sid=$sid")
-        }
-
         pendingQueue.addLast(PendingAction(action, from, sid))
-        Log.d(TAG, "Stored pending (queue size=${pendingQueue.size}): action=$action from=$from sid=$sid")
     }
 
     private fun dispatchPendingAction(channel: MethodChannel) {
-        if (!isFlutterReady) {
-            Log.d(TAG, "dispatchPendingAction: Flutter not yet ready. Waiting for 'ready' signal.")
-            return
-        }
-        if (pendingQueue.isEmpty()) return
+        if (!isFlutterReady || pendingQueue.isEmpty()) return
         val pending = pendingQueue.removeFirst()
-        Log.d(TAG, "Dequeued pending (remaining=${pendingQueue.size}): action=${pending.action}")
 
         val flutterMethod = when (pending.action) {
-            IncomingCallActivity.ACTION_ANSWER -> "answerCall"
-            IncomingCallActivity.ACTION_REJECT -> "rejectCall"
+            ACTION_ANSWER -> "answerCall"
+            ACTION_REJECT -> "rejectCall"
             else -> return
         }
 
-        Log.d(TAG, "→ invokeMethod '$flutterMethod' sid=${pending.sid}")
         channel.invokeMethod(flutterMethod, mapOf("from" to pending.from, "callSid" to pending.sid))
-        
-        // Dispatch remaining queued actions recursively
         if (pendingQueue.isNotEmpty()) {
-            Handler(Looper.getMainLooper()).post {
-                dispatchPendingAction(channel)
-            }
-        }
-    }
-
-    // ── NOTIFICATION CHANNEL DIAGNOSTICS ────────────────────────────────────
-
-    /** Check if our PhoneAccount is in TelecomManager.callCapablePhoneAccounts. */
-    private fun isCallCapable(): Boolean {
-        return try {
-            val telecom = getSystemService(Context.TELECOM_SERVICE) as TelecomManager
-            val accounts = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                telecom.callCapablePhoneAccounts
-            } else emptyList()
-            // CRITICAL: We must specifically check if OUR app's PhoneAccount is enabled, 
-            // not just if the phone has a SIM card!
-            val capable = accounts.any { it.componentName.packageName == packageName }
-            Log.d(TAG, "isCallCapable=$capable accounts=${accounts.size}")
-            capable
-        } catch (e: Exception) {
-            Log.e(TAG, "isCallCapable error: $e")
-            false
-        }
-    }
-
-    /** Open the system calling accounts screen directly (from app, no manual navigation). */
-    private fun openCallingAccounts() {
-        try {
-            val intent = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                Intent(TelecomManager.ACTION_CHANGE_PHONE_ACCOUNTS)
-            } else {
-                Intent(Settings.ACTION_MANAGE_ALL_APPLICATIONS_SETTINGS)
-            }
-            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-            startActivity(intent)
-        } catch (e: Exception) {
-            Log.e(TAG, "openCallingAccounts fallback: $e")
-            // Fallback: general app settings
-            try {
-                val fallback = Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS)
-                fallback.data = android.net.Uri.fromParts("package", packageName, null)
-                fallback.flags = Intent.FLAG_ACTIVITY_NEW_TASK
-                startActivity(fallback)
-            } catch (e2: Exception) {
-                Log.e(TAG, "openCallingAccounts fallback2: $e2")
-            }
-        }
-    }
-
-    private fun getNotificationChannelInfo(): Map<String, Any?> {
-        return try {
-            val nm = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-            val channelId = CustomVoiceFirebaseMessagingService.CHANNEL_ID
-            val channel = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                nm.getNotificationChannel(channelId)
-            } else null
-
-            val dndMode = nm.currentInterruptionFilter
-            val dndOff  = dndMode == NotificationManager.INTERRUPTION_FILTER_ALL
-
-            if (channel != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                mapOf(
-                    "channelId"   to channelId,
-                    "importance"  to channel.importance,   // 4=HIGH, 5=MAX
-                    "sound"       to (channel.sound?.toString() ?: "none"),
-                    "vibration"   to channel.shouldVibrate(),
-                    "userSet"     to channel.importance,   // importance can be user-changed
-                    "bypassDnd"   to channel.canBypassDnd(),
-                    "dndMode"     to dndMode,
-                    "dndOff"      to dndOff,
-                )
-            } else {
-                mapOf(
-                    "channelId"  to channelId,
-                    "importance" to -1,
-                    "dndMode"    to dndMode,
-                    "dndOff"     to dndOff,
-                    "note"       to "pre-Oreo device",
-                )
-            }
-        } catch (e: Exception) {
-            Log.e(TAG, "getNotificationChannelInfo error: $e")
-            mapOf("error" to e.message)
-        }
-    }
-
-    // ── AUDIO MANAGEMENT ─────────────────────────────────────────────────────
-
-    /**
-     * Request audio focus and switch AudioManager to MODE_IN_COMMUNICATION.
-     * CRITICAL: without this, VoIP audio is not routed to earpiece/microphone.
-     */
-    private fun requestAudioFocusAndMode(): Boolean {
-        return try {
-            val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
-            var focusGranted = false
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                val focusReq = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT)
-                    .setAudioAttributes(
-                        AudioAttributes.Builder()
-                            .setUsage(AudioAttributes.USAGE_VOICE_COMMUNICATION)
-                            .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
-                            .build()
-                    )
-                    .setAcceptsDelayedFocusGain(false)
-                    .setOnAudioFocusChangeListener { focusChange ->
-                        Log.d(TAG, "AudioFocus changed: $focusChange")
-                        if (focusChange == AudioManager.AUDIOFOCUS_LOSS ||
-                            focusChange == AudioManager.AUDIOFOCUS_LOSS_TRANSIENT) {
-                            Log.w(TAG, "⚠️ Audio focus LOST during call")
-                        }
-                    }
-                    .build()
-                audioFocusRequest = focusReq
-                val result = audioManager.requestAudioFocus(focusReq)
-                focusGranted = (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED)
-                Log.d(TAG, "requestAudioFocus (API26+) result=$result granted=$focusGranted")
-            } else {
-                @Suppress("DEPRECATION")
-                val result = audioManager.requestAudioFocus(
-                    { focusChange -> Log.d(TAG, "AudioFocus changed (legacy): $focusChange") },
-                    AudioManager.STREAM_VOICE_CALL,
-                    AudioManager.AUDIOFOCUS_GAIN_TRANSIENT
-                )
-                focusGranted = (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED)
-                Log.d(TAG, "requestAudioFocus (legacy) result=$result granted=$focusGranted")
-            }
-
-            if (!focusGranted) {
-                Log.e(TAG, "❌ Audio focus NOT granted — VoIP audio may not work")
-                return false
-            }
-
-            audioManager.mode = AudioManager.MODE_IN_COMMUNICATION
-            audioManager.isSpeakerphoneOn = false
-            Log.d(TAG, "✅ AudioManager mode=IN_COMMUNICATION speaker=false")
-            true
-        } catch (e: Exception) {
-            Log.e(TAG, "requestAudioFocusAndMode error: $e")
-            false
-        }
-    }
-
-    private fun releaseAudioFocus() {
-        try {
-            val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
-            audioManager.mode = AudioManager.MODE_NORMAL
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-                audioFocusRequest?.let { audioManager.abandonAudioFocusRequest(it) }
-            } else {
-                @Suppress("DEPRECATION")
-                audioManager.abandonAudioFocus(null)
-            }
-            Log.d(TAG, "Audio focus released, mode=NORMAL")
-        } catch (e: Exception) {
-            Log.e(TAG, "releaseAudioFocus error: $e")
+            Handler(Looper.getMainLooper()).post { dispatchPendingAction(channel) }
         }
     }
 }

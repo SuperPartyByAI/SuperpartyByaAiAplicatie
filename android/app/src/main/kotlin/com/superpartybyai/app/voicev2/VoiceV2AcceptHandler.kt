@@ -22,9 +22,10 @@ object VoiceV2AcceptHandler {
                 override fun onRinging(call: com.twilio.voice.Call) {}
 
                 override fun onConnected(call: com.twilio.voice.Call) {
-                    Log.d(TAG, "${VoiceV2RouteFingerprint.V2_CONNECTED} Call Connected: ${call.sid}")
-                    VoiceV2StateStore.setActive(context, call.sid)
-                    VoiceV2FlutterBridge.syncConnected(context, call.sid)
+                    val sid = call.sid ?: ""
+                    Log.d(TAG, "${VoiceV2RouteFingerprint.V2_CONNECTED} Call Connected: $sid")
+                    VoiceV2StateStore.setActive(context, sid)
+                    VoiceV2FlutterBridge.syncConnected(context, sid)
                 }
 
                 override fun onReconnecting(call: com.twilio.voice.Call, error: com.twilio.voice.CallException) {}
@@ -32,7 +33,7 @@ object VoiceV2AcceptHandler {
 
                 override fun onDisconnected(call: com.twilio.voice.Call, error: com.twilio.voice.CallException?) {
                     Log.d(TAG, "${VoiceV2RouteFingerprint.V2_CLOSED} Call Disconnected")
-                    VoiceV2HangupHandler.handleRemoteHangup(context, call.sid)
+                    VoiceV2HangupHandler.handleRemoteHangup(context, call.sid ?: "")
                 }
             }
             
