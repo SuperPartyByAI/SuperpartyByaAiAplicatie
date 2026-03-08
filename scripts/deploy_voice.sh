@@ -36,7 +36,7 @@ grep -q "process.env.TWILIO_TOKEN" server/voice/index.js && echo "✅ TWILIO_TOK
 
 # 4. Docker build din repo (nu din voice-build)
 cd server/voice
-GIT_SHA=\$(echo \$SHA | awk -F'/' '{print \$NF}' | cut -c1-7)
+GIT_SHA=\$(echo $SHA | awk -F'/' '{print \$NF}' | cut -c1-7)
 export GIT_SHA
 echo "▶ Docker build image superparty-voice:\$GIT_SHA..."
 docker compose build voice
