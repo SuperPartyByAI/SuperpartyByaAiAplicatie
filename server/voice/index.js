@@ -716,95 +716,15 @@ app.post('/api/voice/incoming', requireTwilioSignature, async (req, res) => {
           }
         });
 
-        // Asynchronous ACK wait queue (Wave 1 & Wave 2)
-        let ACK_WAIT_MS = parseInt(process.env.ACK_WAIT_MS || '7000', 10);
-        let POLL_INTERVAL_MS = 100;
-        let maxIterations = Math.floor(ACK_WAIT_MS / POLL_INTERVAL_MS);
-
-        setTimeout(async () => {
-          let winnerIdentity = null;
-          let currentTargets = [...targetClients]; // Tracks who we pushed to
-
-          // WAIT FOR WAVE 1
-          for (let i = 0; i < maxIterations; i++) {
-            await new Promise(r => setTimeout(r, POLL_INTERVAL_MS));
-            const acks = pushAckMap.get(CallSid);
-            if (acks && acks.size > 0) {
-               winnerIdentity = Array.from(acks)[0];
-               break;
-            }
-          }
-
-          // IF NO WAVE 1 WINNER -> FIRE WAVE 2
-          if (!winnerIdentity) {
-            console.log(`[PBX] Call ${CallSid} had NO ACKs within ${ACK_WAIT_MS}ms! Initiating Wave-2 Fallback...`);
-            let wave2Clients = candidates.slice(3, 6);
-            if (wave2Clients.length > 0) {
-              console.log(`[PBX] Wave-2 target clients: ${wave2Clients.map(c => c.id).join(', ')}`);
-              currentTargets = [...currentTargets, ...wave2Clients]; // Add Wave 2 to allowed winners
-              wave2Map.set(CallSid, wave2Clients); // save for cancel on winner
-              setTimeout(() => wave2Map.delete(CallSid), 60_000); // safety cleanup
-
-              wave2Clients.forEach(client => {
-                const deliveredViaWs = sendIncomingToIdentity(client.id, payload);
-                if (deliveredViaWs) {
-                  console.log(`[PBX Twilio] Wave-2 Woke client ${client.id} instantly via WebSocket`);
-                } else if (client.fcmToken && client.fcmToken !== 'WS_ONLY') {
-                  console.log(`[PBX Twilio] Wave-2 FCM Push to: ${client.id}`);
-                  sendFcmPush(client.fcmToken, payload, client.id);
-                }
-              });
-
-              // WAIT FOR WAVE 2
-              for (let i = 0; i < maxIterations; i++) {
-                await new Promise(r => setTimeout(r, POLL_INTERVAL_MS));
-                const acks = pushAckMap.get(CallSid);
-                if (acks && acks.size > 0) {
-                   winnerIdentity = Array.from(acks)[0];
-                   break;
-                }
-              }
-            } else {
-              console.log('[PBX] Wave-2: No additional agents available for fallback.');
-            }
-          }
-
-          // Strict Winner Validation (must be in any of the waves we fired)
-          if (winnerIdentity && !currentTargets.some(tc => tc.id === winnerIdentity)) {
-             console.warn(`[PBX] Warning: ACK winner ${winnerIdentity} is NOT in currentTargets! Ignoring.`);
-             winnerIdentity = null;
-          }
-
-          if (winnerIdentity) {
-            console.log(`[PBX] Call ${CallSid} WON by ${winnerIdentity}. Canceling others.`);
-            currentTargets.forEach(client => {
-              if (client.id !== winnerIdentity) {
-                const cancelPayload = { type: 'CANCEL_RINGING_UI', target_action: 'CANCEL_RINGING_UI', callSid: CallSid };
-                if (!sendIncomingToIdentity(client.id, cancelPayload)) {
-                   if (client.fcmToken && client.fcmToken !== 'WS_ONLY') sendFcmPush(client.fcmToken, cancelPayload, client.id);
-                }
-              }
-            });
-            // Also cancel any Wave-2 devices that were notified but not in currentTargets
-            const w2Cancel = wave2Map.get(CallSid) || [];
-            w2Cancel.forEach(client => {
-              if (client.id !== winnerIdentity) {
-                const cancelPayload = { type: 'CANCEL_RINGING_UI', target_action: 'CANCEL_RINGING_UI', callSid: CallSid };
-                if (!sendIncomingToIdentity(client.id, cancelPayload)) {
-                  if (client.fcmToken && client.fcmToken !== 'WS_ONLY') sendFcmPush(client.fcmToken, cancelPayload, client.id);
-                }
-              }
-            });
-            wave2Map.delete(CallSid);
-          } else {
-            console.log(`[PBX] Call ${CallSid} had NO ACKs even after Wave-2! Ringing timeout.`);
-          }
-          
-          setTimeout(() => {
-            pushAckMap.delete(CallSid);
-            wave2Map.delete(CallSid);
-          }, 10000); // Cleanup maps later
-        }, 0);
+        // ── Winner-on-ACK removed ──
+        // The call will continue to ring all notified clients.
+        // Whoever calls /api/voice/accept first will be the winner.
+        
+        // Cleanup pushAckMap later just in case it's used elsewhere
+        setTimeout(() => {
+          pushAckMap.delete(CallSid);
+          wave2Map.delete(CallSid);
+        }, 60000);
       }
     } catch (e) {
       console.error('[PBX Twilio] Incoming webhook error:', e);
@@ -949,7 +869,7 @@ app.post('/api/voice/join-conference', requireTwilioSignature, express.urlencode
 });
 
 app.post('/api/voice/dial-status', requireTwilioSignature, (req, res) => {
-    console.log('[PBX Twilio] Dial Status Webhook:', req.body);
+    console.log('[ROUTE_O_BACKEND_CALL_STATUS_COMPLETED] [PBX Twilio] Dial Status Webhook:', req.body);
     const twiml = new twilio.twiml.VoiceResponse();
     const dialCallStatus = req.body.DialCallStatus;
     

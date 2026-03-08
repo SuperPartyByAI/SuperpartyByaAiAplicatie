@@ -35,6 +35,11 @@ class IncomingCallScreen extends StatefulWidget {
 }
 
 class _IncomingCallScreenState extends State<IncomingCallScreen> {
+  @override
+  void initState() {
+    super.initState();
+    debugPrint('[ROUTE_H_FLUTTER_INCOMING_UI_START] IncomingCallScreen init');
+  }
   bool _isAccepting = false;
 
   Future<void> _handleAccept() async {
@@ -49,7 +54,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
           await Permission.bluetoothScan.request();
         } catch (_) {}
       }
-      debugPrint('[IncomingCallScreen] 📞 answerCall received. Accepting native WebRTC call via Twilio SDK...');
+      debugPrint('[ROUTE_I_FLUTTER_ACCEPT_BUTTON] 📞 answerCall received. Accepting native WebRTC call via Twilio SDK...');
       
       BackendService? backend;
       try { backend = Provider.of<BackendService>(context, listen: false); } catch (_) {}
@@ -92,7 +97,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
       }
 
       // 2️⃣ NATIVE ANSWER ON EXISTING INVITE (Twilio SDK default answer)
-      Call? activeCallBefore = TwilioVoice.instance.call.activeCall;
+      ActiveCall? activeCallBefore = TwilioVoice.instance.call.activeCall;
       if (activeCallBefore == null) {
         debugPrint('[IncomingCallScreen] 📞 activeCall not present — trying a short wait for SDK...');
         for (int i = 0; i < 15; i++) {
@@ -113,7 +118,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
         debugPrint('[IncomingCallScreen] 📞 current activeCall: from=${activeCallBefore?.from}, to=${activeCallBefore?.to}, dir=${activeCallBefore?.callDirection}');
       }
 
-      debugPrint('[IncomingCallScreen] 📞 TwilioVoice.instance.call.answer() started...');
+      debugPrint('[ROUTE_K_TWILIO_SDK_ANSWER_CALLED] 📞 TwilioVoice.instance.call.answer() started...');
       bool answered = false;
       try {
         answered = await TwilioVoice.instance.call.answer() ?? false;
@@ -199,6 +204,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
                         heroTag: 'decline_btn',
                         backgroundColor: Colors.redAccent,
                         onPressed: () {
+                          debugPrint('[ROUTE_J_FLUTTER_REJECT_BUTTON] Reject tapped');
                           VoipService.isRingingOrActive = false;
                           VoipService.rejectCallFromServer('', widget.callSid);
                           MethodChannel('com.superpartybyai.app/call_actions').invokeMethod('directHangup');

@@ -268,24 +268,31 @@ Future<void> answerIncomingCall(String from, String callSid) async {
       await const MethodChannel(_kAudioChannel).invokeMethod('requestAudioFocusAndMode');
     } catch (_) {}
 
-    // 1️⃣ ATTEMPT NATIVE DIRECT ANSWER (Huawei Bypass)
-    debugPrint('[main] 📞 directAnswer started...');
-    bool directAccepted = false;
-    try {
-      directAccepted = await const MethodChannel('com.superpartybyai.app/call_actions').invokeMethod('directAnswer') ?? false;
-      debugPrint('[main] 📞 directAnswer result: $directAccepted');
-    } catch (e) {
-      debugPrint('[main] ❌ directAnswer exception: $e');
-    }
-    
-    if (directAccepted) {
-       debugPrint('[main] ✅ directAnswer SUCCESS! Returning early.');
-       debugPrint('[main] 🧹 cleanup invoked: no');
-       return; 
+    // 1️⃣ ALWAYS USE NATIVE DIRECT ANSWER ON ANDROID
+    if (Platform.isAndroid) {
+      debugPrint('[main] 📞 directAnswer started (Android exclusive route)...');
+      bool directAccepted = false;
+      try {
+        directAccepted = await const MethodChannel('com.superpartybyai.app/call_actions').invokeMethod('directAnswer') ?? false;
+        debugPrint('[main] 📞 directAnswer result: $directAccepted');
+      } catch (e) {
+        debugPrint('[main] ❌ directAnswer exception: $e');
+      }
+      
+      if (!directAccepted) {
+         debugPrint('[main] ❌ Answer completely failed on Android Native layer.');
+         final nav2 = navigatorKey.currentState;
+         if (nav2 != null && nav2.canPop()) nav2.pop();
+         VoipService.clearCallAnswered();
+         VoipService.isRingingOrActive = false;
+      } else {
+         debugPrint('[main] ✅ directAnswer SUCCESS! Android Native is the single owner.');
+      }
+      return; 
     }
 
-    // 2️⃣ NATIVE ANSWER ON EXISTING INVITE (Twilio SDK default answer)
-    Call? activeCallBefore = TwilioVoice.instance.call.activeCall;
+    // 2️⃣ SDK DEFAULT ANSWER FOR iOS
+    ActiveCall? activeCallBefore = TwilioVoice.instance.call.activeCall;
     if (activeCallBefore == null) {
       debugPrint('[main] 📞 activeCall not present — trying a short wait for SDK...');
       for (int i = 0; i < 15; i++) {
@@ -293,20 +300,9 @@ Future<void> answerIncomingCall(String from, String callSid) async {
         if (activeCallBefore != null) break;
         await Future.delayed(const Duration(milliseconds: 200));
       }
-      if (activeCallBefore == null) {
-        debugPrint('[main] ❌ activeCall still null after 3s wait.');
-      } else {
-        debugPrint('[main] ✅ activeCall found after wait!');
-      }
     }
 
-    bool activeCallPresent = activeCallBefore != null;
-    debugPrint('[main] 📞 activeCall present before answer: ${activeCallPresent ? "yes" : "no"}');
-    if (activeCallPresent) {
-      debugPrint('[main] 📞 current activeCall: from=${activeCallBefore?.from}, to=${activeCallBefore?.to}, dir=${activeCallBefore?.callDirection}');
-    }
-
-    debugPrint('[main] 📞 TwilioVoice.instance.call.answer() started...');
+    debugPrint('[main] 📞 TwilioVoice.instance.call.answer() started (iOS route)...');
     bool answered = false;
     try {
       answered = await TwilioVoice.instance.call.answer() ?? false;
@@ -316,7 +312,7 @@ Future<void> answerIncomingCall(String from, String callSid) async {
     }
 
     if (!answered) {
-      debugPrint('[main] ❌ Answer completely failed. No active invite found natively.');
+      debugPrint('[main] ❌ Answer completely failed on iOS.');
       // Keep cleanup logs updated as requested
       debugPrint('[main] 🧹 cleanup invoked: yes');
       VoipService.clearCallAnswered();
