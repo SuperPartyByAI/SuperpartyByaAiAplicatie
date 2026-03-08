@@ -309,8 +309,15 @@ Future<void> answerIncomingCall(String from, String callSid) async {
     debugPrint('[main] 📞 TwilioVoice.instance.call.answer() started...');
     bool answered = false;
     try {
-      answered = await TwilioVoice.instance.call.answer() ?? false;
-      debugPrint('[main] 📞 TwilioVoice.instance.call.answer() result: $answered');
+      if (VoipService.isHuaweiOrHonor) {
+        // [HUAWEI MODE] - Flutter is no longer The Owner of Answer function.
+        // Bypassing Twilio SDK answer entirely, relying EXCLUSIVELY on `/accept-native` triggered deeply in Kotlin logic.
+        debugPrint('🟢 [HUAWEI MODE enabled] Skipped Twilio SDK answer to prevent lock loop. Native HTTP /accept-native handles it!');
+        answered = true; // Pretindem ca sdk-ul a raspuns ca UI-ul sa nu dea pop().
+      } else {
+        answered = await TwilioVoice.instance.call.answer() ?? false;
+        debugPrint('[main] 📞 TwilioVoice.instance.call.answer() result: $answered');
+      }
     } catch(e) {
       debugPrint('[main] ❌ TwilioVoice.instance.call.answer() exception: $e');
     }

@@ -155,9 +155,9 @@ class IncomingCallActivity : Activity() {
                         }
                         override fun onRinging(c: com.twilio.voice.Call) {}
                         override fun onConnected(c: com.twilio.voice.Call) {
-                            Log.d(TAG, "✅ Native Accept onConnected: ${c.sid}")
+                            Log.d(TAG, "🟢 EXPECTED NATIVE ACCEPT -> SUCCESS [${c.sid}]")
                             MainActivity.lastCallState = "connected"
-                            // If Flutter is ready and channel exists
+                            // Sincronizare vizuala cu Flutter
                             MainActivity.notifyFlutterCallState("callConnected", c.sid)
                         }
                         override fun onReconnecting(c: com.twilio.voice.Call, e: com.twilio.voice.CallException) {}
@@ -181,7 +181,9 @@ class IncomingCallActivity : Activity() {
                         }
                     }
                 } else {
-                    Log.w(TAG, "⚠️ Twilio native invite NOT found in memory! Will rely on pending answer via SharedPreferences when Flutter is ready.")
+                    Log.w(TAG, "⚠️ [HUAWEI MODE] Twilio native invite NOT found in memory right now! Setting async autoAnswerUntil to trap the late CallInvite...")
+                    // Activeaza Anti-Loop Auto-Answer Interceptor in FCM Service cu un TTL generos pt timeout-uri de retea/VPN
+                    CustomVoiceFirebaseMessagingService.autoAnswerUntil = System.currentTimeMillis() + 45000L
                 }
 
                 // Navigate to active call screen via MainActivity
