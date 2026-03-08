@@ -17,8 +17,9 @@ set -euo pipefail
 cd $VOICE_REPO_DIR
 
 # 1. Fetch + checkout cod nou din git
+echo "▶ Git fetch origin for $SHA"
+git fetch origin
 echo "▶ Git checkout server/voice/ @ $SHA"
-git fetch origin main --depth=1
 git checkout -f $SHA -- server/voice/
 
 echo "✅ Git checkout done"

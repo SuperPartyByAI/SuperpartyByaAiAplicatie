@@ -102,18 +102,44 @@ class IncomingCallActivity : Activity() {
             setTextColor(Color.WHITE)
             textSize = 16f
             setOnClickListener {
-                Log.d(TAG, "Accept tapped! answering callSid=$callSid from=$callerFrom")
+                Log.d(TAG, "🟢 [ANSWER FLOW] Answer button clicked!")
+                Log.d(TAG, "🟢 [ANSWER FLOW] callSid resolved: $callSid")
+                Log.d(TAG, "🟢 [ANSWER FLOW] ACTION_ANSWER_CALL received: Persisting pending answer robustly...")
+                
                 stopRinging()
                 CustomVoiceFirebaseMessagingService.dismissCallNotification(applicationContext, callSid)
 
-                // ── ROBUST COLD-START ANSWER (NATIVE FIRST) ──
-                Log.d(TAG, "ACTION_ANSWER_CALL received: Persisting pending answer robustly...")
                 val prefs = applicationContext.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
+                val identity = prefs.getString("flutter.twilio_client_identity", "") ?: ""
+                
                 prefs.edit()
                     .putString("robust_pending_answer_sid", callSid)
                     .putString("robust_pending_answer_from", callerFrom)
                     .putLong("robust_pending_answer_ts", System.currentTimeMillis())
                     .apply()
+
+                // ── ETAPA 2: NATIVE HTTP ACCEPT DIRECT CĂTRE PBX ──
+                Log.d(TAG, "🚀 [NATIVE ACCEPT START] Triggering backend /accept-native for $callSid (Identity: $identity)...")
+                if (callSid.isNotEmpty() && identity.isNotEmpty()) {
+                    Thread {
+                        try {
+                            val url = java.net.URL("https://voice.superparty.ro/api/voice/accept-native")
+                            val conn = url.openConnection() as java.net.HttpURLConnection
+                            conn.requestMethod = "POST"
+                            conn.setRequestProperty("Content-Type", "application/json")
+                            conn.doOutput = true
+                            
+                            val payload = """{"callSid":"$callSid","clientIdentity":"$identity"}"""
+                            conn.outputStream.write(payload.toByteArray(Charsets.UTF_8))
+                            
+                            val sc = conn.responseCode
+                            val body = conn.inputStream.bufferedReader().use { it.readText() }
+                            Log.d(TAG, "✅ [NATIVE ACCEPT SUCCESS] PBX confirmed accept HTTP status: $sc. Body: $body")
+                        } catch (e: Exception) {
+                            Log.e(TAG, "❌ [NATIVE ACCEPT FAIL] Failed hitting PBX native accept: ${e.message}")
+                        }
+                    }.start()
+                }
 
                 val invite = CustomVoiceFirebaseMessagingService.pendingCallInvite
                 if (invite != null && invite.callSid == callSid) {

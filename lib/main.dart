@@ -285,7 +285,7 @@ Future<void> answerIncomingCall(String from, String callSid) async {
     }
 
     // 2️⃣ NATIVE ANSWER ON EXISTING INVITE (Twilio SDK default answer)
-    Call? activeCallBefore = TwilioVoice.instance.call.activeCall;
+    var activeCallBefore = TwilioVoice.instance.call.activeCall;
     if (activeCallBefore == null) {
       debugPrint('[main] 📞 activeCall not present — trying a short wait for SDK...');
       for (int i = 0; i < 15; i++) {
@@ -303,7 +303,7 @@ Future<void> answerIncomingCall(String from, String callSid) async {
     bool activeCallPresent = activeCallBefore != null;
     debugPrint('[main] 📞 activeCall present before answer: ${activeCallPresent ? "yes" : "no"}');
     if (activeCallPresent) {
-      debugPrint('[main] 📞 current activeCall: from=${activeCallBefore?.from}, to=${activeCallBefore?.to}, dir=${activeCallBefore?.callDirection}');
+      debugPrint('[main] 📞 activeCall is present and ready.');
     }
 
     debugPrint('[main] 📞 TwilioVoice.instance.call.answer() started...');

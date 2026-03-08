@@ -9,9 +9,18 @@ class BgGpsService {
   static final String _syncUrl = '${BackendService.AI_MANAGER_URL}/trips/locations';
   static final String _eventsUrl = '${BackendService.AI_MANAGER_URL}/trips/events';
 
+  static bool _isInitializing = false;
+  static bool _isStarting = false;
+
   /// Initializes the background location tracking with the TransistorSoft plugin.
   /// Needs to be called once when the user opens the app or logs in.
   static Future<void> initialize(String jwtToken, String employeeId) async {
+    if (_isInitializing) {
+      debugPrint('[BgGpsService] - initialize already in progress. Ignoring.');
+      return;
+    }
+    _isInitializing = true;
+    try {
     // Fired whenever a location is recorded
     bg.BackgroundGeolocation.onLocation((bg.Location location) {
       debugPrint('[BgGpsService] - onLocation: ${location.coords.latitude}, ${location.coords.longitude}');
@@ -91,14 +100,31 @@ class BgGpsService {
     ));
     
     debugPrint('[BgGpsService] - Initialization complete. Geofences loaded.');
+    } finally {
+      _isInitializing = false;
+    }
   }
 
   /// Start tracking (e.g. at shift start or login)
   static Future<void> startTracking() async {
-    final state = await bg.BackgroundGeolocation.state;
-    if (!state.enabled) {
-      await bg.BackgroundGeolocation.start();
-      debugPrint('[BgGpsService] - Tracking started.');
+    if (_isStarting) {
+      debugPrint('[BgGpsService] - startTracking already in progress. Ignoring.');
+      return;
+    }
+    _isStarting = true;
+    try {
+      final state = await bg.BackgroundGeolocation.state;
+      if (!state.enabled) {
+        await bg.BackgroundGeolocation.start();
+        debugPrint('[BgGpsService] - Tracking started.');
+      } else {
+        debugPrint('[BgGpsService] - Tracking already enabled.');
+      }
+    } catch (e) {
+      debugPrint('[BgGpsService] - startTracking error: $e');
+      rethrow;
+    } finally {
+      _isStarting = false;
     }
   }
 

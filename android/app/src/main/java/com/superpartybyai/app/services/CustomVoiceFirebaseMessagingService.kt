@@ -254,8 +254,31 @@ class CustomVoiceFirebaseMessagingService : FirebaseMessagingService(), MessageL
                 val callSid = data["twi_call_sid"] ?: ""
                 Log.d(TAG, "🔔 VOICE CALL from=$from callSid=$callSid — Firing Custom Android Notification (Bypassing telecom blocker)")
                 
-                // CRITICAL FIX: We MUST fire this custom Full-Screen Intent notification.
-                // On Huawei/Honor, Telecom Manager is completely disabled ("PhoneAccount missing").
+                // ── ETAPA 1: START NATIVE ACK IMEDIAT LA PRIMIREA PAYLOAD-ULUI TWILIO ──
+                if (callSid.isNotEmpty()) {
+                    val prefs = applicationContext.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
+                    val identity = prefs.getString("flutter.twilio_client_identity", "") ?: ""
+                    Log.d(TAG, "🚀 [NATIVE ACK START] Triggering immediate ACK to server for $callSid using identity=$identity...")
+                    if (identity.isNotEmpty()) {
+                        Thread {
+                            try {
+                                val url = java.net.URL("https://voice.superparty.ro/api/voice/push-ack-native")
+                                val conn = url.openConnection() as java.net.HttpURLConnection
+                                conn.requestMethod = "POST"
+                                conn.setRequestProperty("Content-Type", "application/json")
+                                conn.doOutput = true
+                                val payload = """{"callSid":"$callSid","identity":"$identity"}"""
+                                conn.outputStream.write(payload.toByteArray(Charsets.UTF_8))
+                                val sc = conn.responseCode
+                                val body = conn.inputStream.bufferedReader().use { it.readText() }
+                                Log.d(TAG, "✅ [NATIVE ACK RESULT] Sent Push-ACK cleanly to PBX! Status: $sc, Body: $body")
+                            } catch (e: Exception) {
+                                Log.e(TAG, "❌ [NATIVE ACK FAIL] Failed sending Push-ACK natively: ${e.message}")
+                            }
+                        }.start()
+                    }
+                }
+                
                 showFullScreenCallNotification(applicationContext, from, callSid)
             } else if (data["target_action"] == "CANCEL_RINGING_UI" || data["type"] == "CANCEL_RINGING_UI") {
                 val callSid = data["twi_call_sid"] ?: data["callSid"] ?: ""
@@ -272,23 +295,25 @@ class CustomVoiceFirebaseMessagingService : FirebaseMessagingService(), MessageL
                 val callSid = data["callSid"] ?: ""
                 val ackToken = data["ackToken"]
 
-                if (!ackToken.isNullOrEmpty() && callSid.isNotEmpty()) {
+                if (callSid.isNotEmpty()) {
                     val prefs = applicationContext.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
-                    val identity = prefs.getString("flutter.twilio_client_identity", "")
-                    if (!identity.isNullOrEmpty()) {
+                    val identity = prefs.getString("flutter.twilio_client_identity", "") ?: ""
+                    Log.d(TAG, "🚀 [NATIVE ACK START] Triggering immediate ACK to server for incoming_call $callSid using identity=$identity...")
+                    if (identity.isNotEmpty()) {
                         Thread {
                             try {
-                                val url = java.net.URL("https://voice.superparty.ro/api/voice/push-ack")
+                                val url = java.net.URL("https://voice.superparty.ro/api/voice/push-ack-native")
                                 val conn = url.openConnection() as java.net.HttpURLConnection
                                 conn.requestMethod = "POST"
                                 conn.setRequestProperty("Content-Type", "application/json")
                                 conn.doOutput = true
-                                val payload = """{"callSid":"$callSid","identity":"$identity","ackToken":"$ackToken"}"""
+                                val payload = """{"callSid":"$callSid","identity":"$identity"}"""
                                 conn.outputStream.write(payload.toByteArray(Charsets.UTF_8))
-                                conn.responseCode
-                                Log.d(TAG, "🚀 Native Push-ACK sent to PBX for $callSid!")
+                                val sc = conn.responseCode
+                                val body = conn.inputStream.bufferedReader().use { it.readText() }
+                                Log.d(TAG, "✅ [NATIVE ACK RESULT] Sent Push-ACK cleanly to PBX! Status: $sc, Body: $body")
                             } catch (e: Exception) {
-                                Log.e(TAG, "❌ Failed to send Push-ACK natively: ${e.message}")
+                                Log.e(TAG, "❌ [NATIVE ACK FAIL] Failed sending Push-ACK natively: ${e.message}")
                             }
                         }.start()
                     }

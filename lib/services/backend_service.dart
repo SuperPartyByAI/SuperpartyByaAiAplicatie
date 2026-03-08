@@ -9,7 +9,7 @@ import 'supabase_service.dart';
 class BackendService {
   static const String BASE_URL = 'https://wa.superparty.ro/api';  // WhatsApp Baileys backend (HTTPS)
   
-  static const String VOICE_BASE_URL = 'https://voice.superparty.ro/api';
+  static const String VOICE_BASE_URL = 'https://voice-dr.superparty.ro/api';
 
   static const String AI_MANAGER_URL = 'http://89.167.123.174:3002'; // Geofence & Logistics
 

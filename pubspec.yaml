@@ -67,6 +67,7 @@ dependencies:
   wakelock_plus: ^1.4.0
   web_socket_channel: ^3.0.3
   flutter_background_geolocation: ^5.0.5
+  app_settings: ^7.0.0
 
 dev_dependencies:
   flutter_test:
