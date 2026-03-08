@@ -34,7 +34,23 @@ class MainActivity : FlutterActivity() {
         private const val DIAG_CHANNEL  = "com.superpartybyai.app/diag"
 
         @Volatile
-        private var directOutboundCall: com.twilio.voice.Call? = null
+        var directOutboundCall: com.twilio.voice.Call? = null
+
+        @Volatile
+        var activeInboundCall: com.twilio.voice.Call? = null
+
+        @Volatile
+        var lastCallState: String? = null
+
+        @Volatile
+        private var staticCallMethodChannel: MethodChannel? = null
+
+        fun notifyFlutterCallState(method: String, callSid: String?) {
+            Handler(Looper.getMainLooper()).post {
+                val args = if (callSid != null) mapOf("sid" to callSid) else null
+                staticCallMethodChannel?.invokeMethod(method, args)
+            }
+        }
     }
 
     private var callMethodChannel: MethodChannel? = null
@@ -90,12 +106,38 @@ class MainActivity : FlutterActivity() {
             flutterEngine.dartExecutor.binaryMessenger,
             CALL_CHANNEL
         ).also { ch ->
+            staticCallMethodChannel = ch
             ch.setMethodCallHandler { call, result ->
                 when (call.method) {
                     "ping" -> result.success("pong")
                     "ready" -> {
                         Log.d(TAG, "Flutter signaled 'ready'. Dispatching pending actions immediately.")
                         isFlutterReady = true
+
+                        // ── ROBUST COLD-START FIX: Consume pending answer from SharedPreferences
+                        val prefs = applicationContext.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
+                        val robustSid = prefs.getString("robust_pending_answer_sid", null)
+                        
+                        if (robustSid != null) {
+                            Log.d(TAG, "🚀 Flutter became ready. Consuming robust_pending_answer_sid=$robustSid.")
+                            prefs.edit().remove("robust_pending_answer_sid").apply()
+                            
+                            val state = lastCallState
+                            if (state != null && activeInboundCall?.sid == robustSid) {
+                                Log.d(TAG, "Native Accept already executed. Propagating last state: $state")
+                                if (state == "connected") {
+                                    ch.invokeMethod("callConnected", mapOf("sid" to robustSid))
+                                } else if (state == "disconnected" || state == "failed") {
+                                    ch.invokeMethod("callEnded", null)
+                                }
+                                requestAudioFocusAndMode()
+                            } else {
+                                val from = prefs.getString("robust_pending_answer_from", "Superparty") ?: "Superparty"
+                                Log.w(TAG, "Fall back to answerCall flow for $robustSid (native accept not fired).")
+                                ch.invokeMethod("answerCall", mapOf("from" to from, "callSid" to robustSid))
+                            }
+                        }
+
                         dispatchPendingAction(ch)
                         result.success(true)
                     }

@@ -106,10 +106,54 @@ class IncomingCallActivity : Activity() {
                 stopRinging()
                 CustomVoiceFirebaseMessagingService.dismissCallNotification(applicationContext, callSid)
 
-                // ── FLUTTER WILL HANDLE ACCEPT ──
-                // Do not consume pendingCallInvite here. We send ACTION_ANSWER to MainActivity,
-                // which then calls Flutter's answerCall, which hits directAnswer and uses the invite.
-                Log.d(TAG, "Accept tapped — forwarding to Flutter via MainActivity")
+                // ── ROBUST COLD-START ANSWER (NATIVE FIRST) ──
+                Log.d(TAG, "ACTION_ANSWER_CALL received: Persisting pending answer robustly...")
+                val prefs = applicationContext.getSharedPreferences("FlutterSharedPreferences", Context.MODE_PRIVATE)
+                prefs.edit()
+                    .putString("robust_pending_answer_sid", callSid)
+                    .putString("robust_pending_answer_from", callerFrom)
+                    .putLong("robust_pending_answer_ts", System.currentTimeMillis())
+                    .apply()
+
+                val invite = CustomVoiceFirebaseMessagingService.pendingCallInvite
+                if (invite != null && invite.callSid == callSid) {
+                    Log.d(TAG, "🚀 COLD-START FIX: Twilio native invite exists! Native accept IMMEDIATELY triggered!")
+                    MainActivity.lastCallState = "connecting"
+                    val listener = object : com.twilio.voice.Call.Listener {
+                        override fun onConnectFailure(c: com.twilio.voice.Call, e: com.twilio.voice.CallException) {
+                            Log.e(TAG, "Native Accept onConnectFailure: ${e.message}")
+                            MainActivity.lastCallState = "failed"
+                        }
+                        override fun onRinging(c: com.twilio.voice.Call) {}
+                        override fun onConnected(c: com.twilio.voice.Call) {
+                            Log.d(TAG, "✅ Native Accept onConnected: ${c.sid}")
+                            MainActivity.lastCallState = "connected"
+                            // If Flutter is ready and channel exists
+                            MainActivity.notifyFlutterCallState("callConnected", c.sid)
+                        }
+                        override fun onReconnecting(c: com.twilio.voice.Call, e: com.twilio.voice.CallException) {}
+                        override fun onReconnected(c: com.twilio.voice.Call) {}
+                        override fun onDisconnected(c: com.twilio.voice.Call, e: com.twilio.voice.CallException?) {
+                            Log.d(TAG, "Native Accept onDisconnected")
+                            MainActivity.lastCallState = "disconnected"
+                            MainActivity.notifyFlutterCallState("callEnded", null)
+                        }
+                    }
+                    val call = CustomVoiceFirebaseMessagingService.acceptPendingCallInvite(applicationContext, listener)
+                    MainActivity.activeInboundCall = call
+                    if (call != null) {
+                        try {
+                            val audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
+                            audioManager.mode = AudioManager.MODE_IN_COMMUNICATION
+                            audioManager.isSpeakerphoneOn = false
+                            Log.d(TAG, "✅ Forced AudioManager MODE_IN_COMMUNICATION directly from Native Accept.")
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Failed setting audio mode natively: $e")
+                        }
+                    }
+                } else {
+                    Log.w(TAG, "⚠️ Twilio native invite NOT found in memory! Will rely on pending answer via SharedPreferences when Flutter is ready.")
+                }
 
                 // Navigate to active call screen via MainActivity
                 val mainIntent = Intent(applicationContext, MainActivity::class.java).apply {
