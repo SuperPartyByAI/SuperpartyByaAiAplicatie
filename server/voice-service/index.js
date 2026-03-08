@@ -303,7 +303,7 @@ const wave2Map = new Map();
 // ── REDIS-BACKED ACTIVE CALL STORE ──────────────────────────────────────────
 // Replaces in-memory activeCallsMap. Survives container restart.
 // Keys: active_call:<callSid>  TTL: 10 minutes
-const REDIS_URL = process.env.REDIS_URL || 'redis://127.0.0.1:6379';
+const REDIS_URL = process.env.REDIS_URL || 'redis://superparty-ai-redis:6379';
 const CALL_TTL_SEC = 600; // 10 min
 const redis = new Redis(REDIS_URL, { lazyConnect: true, maxRetriesPerRequest: 3 });
 redis.on('error', (e) => console.warn('[Redis] Error:', e.message));
@@ -644,6 +644,25 @@ app.post('/api/voice/push-ack', express.json(), (req, res) => {
   }
 });
 
+app.post('/api/voice/push-ack-native', express.json(), (req, res) => {
+  try {
+    const { callSid, identity } = req.body;
+    if (!callSid || !identity) return res.status(400).json({ error: 'missing_params' });
+
+    if (!pushAckMap.has(callSid)) {
+      console.log(`[PBX ACK NATIVE] Late/ignored ack for ${callSid} from ${identity}`);
+      return res.status(200).json({ ok: false, late: true });
+    }
+
+    pushAckMap.get(callSid).add(identity);
+    console.log(`[PBX ACK NATIVE] Received native push-ack for ${callSid} from ${identity}`);
+    res.json({ ok: true });
+  } catch (err) {
+    console.error('[PBX ACK NATIVE] unexpected error:', err?.message || err);
+    res.status(500).json({ error: 'internal' });
+  }
+});
+
 // Extracting Identity from Register
 app.post('/api/voice/registerDevice', requireSupabaseUser, async (req, res) => {
   const { userId, deviceId } = req.body;
@@ -665,6 +684,7 @@ app.post('/api/voice/registerDevice', requireSupabaseUser, async (req, res) => {
         device_id: deviceId,
         device_identity: identity,
         fcm_token: fcmToken || 'WS_ONLY',
+        push_credential_sid: process.env.TWILIO_PUSH_CREDENTIAL_SID || null,
         last_seen_at: new Date().toISOString()
       }, { onConflict: 'user_id, device_id' });
 
@@ -989,6 +1009,56 @@ app.post('/api/voice/incoming', requireTwilioSignature, async (req, res) => {
 // ─────────────────────────────────────────────────────────────
 // Idempotency for /api/voice/accept is now strictly enforced by the Supabase `call_accepts` table.
 // ─────────────────────────────────────────────────────────────
+
+app.post('/api/voice/accept-native', express.json(), async (req, res) => {
+  try {
+    console.log('[/api/voice/accept-native] incoming body:', req.body);
+    const { callSid, clientIdentity } = req.body;
+
+    if (!callSid || !clientIdentity) {
+      return res.status(400).json({ ok: false, error: 'missing params' });
+    }
+
+    // Rely on Supabase native constraint idempotency 
+    const { data, error } = await supabase
+      .from('call_accepts')
+      .insert({ call_sid: callSid, winner_identity: clientIdentity })
+      .select()
+      .single();
+
+    if (error) {
+      if (error.code === '23505') { // unique violation
+        console.log(`[PBX NATIVE ACCEPT] Race lost for callSid ${callSid} by ${clientIdentity}`);
+        return res.status(200).json({ ok: false, winner: false });
+      }
+      return res.status(500).json({ ok: false, error: 'DB insert failed' });
+    }
+
+    console.log(`[PBX NATIVE ACCEPT] 🔒 Race WON for callSid ${callSid} by ${clientIdentity}`);
+    
+    // Auto-join conference immediately
+    const confName = `conf_${callSid}`;
+    const twimlUrl = `${EXTERNAL_BASE_URL}/api/voice/twiml-dial-participant?conf=${confName}`;
+
+    if (!twilioClient) {
+      return res.status(503).json({ ok: false, error: 'twilio_not_configured' });
+    }
+
+    // Call device
+    const participantCall = await twilioClient.calls.create({
+      to: `client:${clientIdentity}`,
+      from: process.env.TWILIO_CALLER_ID || '+40373805828',
+      twiml: `<Response><Dial action="${EXTERNAL_BASE_URL}/api/voice/twiml-dial-action"><Conference beep="false" startConferenceOnEnter="true" endConferenceOnExit="true">${confName}</Conference></Dial></Response>`
+    });
+
+    console.log(`[PBX NATIVE ACCEPT] Bridging to ${clientIdentity} successful via Twilio leg ${participantCall.sid}`);
+    return res.json({ ok: true, winner: true, participantCallSid: participantCall.sid, conference: confName });
+
+  } catch (e) {
+    console.error('[/api/voice/accept-native] Error:', e.message);
+    return res.status(500).json({ ok: false, error: 'internal' });
+  }
+});
 
 app.post('/api/voice/accept', requireSupabaseUser, express.json(), async (req, res) => {
   try {

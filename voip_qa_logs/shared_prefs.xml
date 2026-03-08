@@ -1,0 +1,8 @@
+<?xml version='1.0' encoding='utf-8' standalone='yes' ?>
+<map>
+    <string name="flutter.fcm_device_token">[REDACTED]</string>
+    <string name="flutter.twilio_client_identity">user_f4433058-176e-4720-aa23-ed31a571a2be_dev_95944258-03f0-499e-bd6b-d0b2cbd766e1</string>
+    <string name="flutter.voip_device_id">95944258-03f0-499e-bd6b-d0b2cbd766e1</string>
+    <string name="flutter.sb-ilkphpidhuytucxlglqi-auth-token">[REDACTED]</string>
+    <string name="flutter.twilio_access_token">[REDACTED]</string>
+</map>

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:permission_handler/permission_handler.dart';
+import 'package:app_settings/app_settings.dart';
 import 'dart:io' show Platform;
 
 class LocationRequiredScreen extends StatelessWidget {
@@ -84,7 +85,7 @@ class LocationRequiredScreen extends StatelessWidget {
                   textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 onPressed: () {
-                  openAppSettings();
+                  AppSettings.openAppSettings(type: AppSettingsType.settings);
                 },
               ),
               const SizedBox(height: 12),
@@ -98,9 +99,8 @@ class LocationRequiredScreen extends StatelessWidget {
                   textStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                 ),
                 onPressed: () {
-                  // Pe unele telefoane `openAppSettings()` rezolvă și GPS activarea. 
-                  // În general `Permission.location.request()` poate ridica promptul de sistem.
-                  Permission.location.request();
+                  // Direct to Location source settings toggle (GPS hardware)
+                  AppSettings.openAppSettings(type: AppSettingsType.location);
                 },
               ),
               const Spacer(),

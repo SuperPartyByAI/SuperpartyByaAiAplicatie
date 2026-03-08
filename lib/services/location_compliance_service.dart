@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter_background_geolocation/flutter_background_geolocation.dart' as bg;
 import 'package:permission_handler/permission_handler.dart';
+import 'bg_gps_service.dart';
 
 class LocationComplianceResult {
   final bool isCompliant;
@@ -34,15 +35,20 @@ class LocationComplianceService {
     try {
       var bgState = await bg.BackgroundGeolocation.state;
       if (!bgState.enabled) {
-        // Attempt to turn it back on gracefully
-        await bg.BackgroundGeolocation.start();
+        // Attempt to turn it back on gracefully using the safe mutex
+        await BgGpsService.startTracking();
         var newState = await bg.BackgroundGeolocation.state;
         if (!newState.enabled) {
           reasons.add('Plugin-ul de fundal GPS (BackgroundGeolocation) este oprit și nu a putut fi pornit.');
         }
       }
     } catch (e) {
-      reasons.add('Eroare internă modul GPS: $e');
+      if (e.toString().contains('Waiting for previous start')) {
+         // Silently ignore because another start thread is operating already.
+         debugPrint('[LocationComplianceService] Background start is already in progress.');
+      } else {
+         reasons.add('Eroare internă modul GPS: $e');
+      }
     }
 
     bool isCompliant = reasons.isEmpty;
