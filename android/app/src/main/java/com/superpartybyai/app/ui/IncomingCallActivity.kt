@@ -40,7 +40,7 @@ class IncomingCallActivity : Activity() {
         override fun onReceive(context: Context?, intent: Intent?) {
             when (intent?.action) {
                 ACTION_ANSWER, ACTION_REJECT, "com.superpartybyai.app/CALL_CANCELLED" -> {
-                    Log.d(TAG, "Received broadcast ${intent.action} — closing")
+                    Log.d(TAG, "[ROUTE_Q_NATIVE_BROADCAST_CANCELLED] Received broadcast ${intent.action} — closing")
                     stopRinging()
                     finish()
                 }
@@ -50,7 +50,7 @@ class IncomingCallActivity : Activity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.d(TAG, "IncomingCallActivity onCreate")
+        Log.d(TAG, "[ROUTE_D_NATIVE_INCOMING_UI_START] IncomingCallActivity onCreate")
 
         // Show over lock screen
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O_MR1) {
@@ -102,7 +102,7 @@ class IncomingCallActivity : Activity() {
             setTextColor(Color.WHITE)
             textSize = 16f
             setOnClickListener {
-                Log.d(TAG, "Accept tapped! answering callSid=$callSid from=$callerFrom")
+                Log.d(TAG, "[ROUTE_E_NATIVE_ACCEPT_BUTTON] Accept tapped! answering callSid=$callSid from=$callerFrom")
                 stopRinging()
                 CustomVoiceFirebaseMessagingService.dismissCallNotification(applicationContext, callSid)
 
@@ -141,7 +141,7 @@ class IncomingCallActivity : Activity() {
             setTextColor(Color.WHITE)
             textSize = 16f
             setOnClickListener {
-                Log.d(TAG, "Reject tapped")
+                Log.d(TAG, "[ROUTE_F_NATIVE_REJECT_BUTTON] Reject tapped")
                 stopRinging()
                 CustomVoiceFirebaseMessagingService.dismissCallNotification(applicationContext)
                 val mainIntent = Intent(applicationContext, MainActivity::class.java).apply {

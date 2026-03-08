@@ -106,18 +106,22 @@ class VoipService {
         try {
           final data = jsonDecode(message);
           if (data['type'] == 'incoming_call') {
-            debugPrint('[VoIP WS] Foreground message received via WS: $data');
+            debugPrint('[ROUTE_G_FLUTTER_SOCKET_INCOMING] [VoIP WS] Foreground message received via WS: $data');
             // Show the exact same incoming UI as FCM Push 
             // (Note: we cast values to String to match expected map format from native FCM)
-            final Map<String, dynamic> pushPayload = {
-               'type': data['type']?.toString(),
-               'conf': data['conf']?.toString(),
-               'callSid': data['callSid']?.toString(),
-               'callerNumber': data['callerNumber']?.toString(),
-               'sig': data['sig']?.toString(),
-               'expires': data['expires']?.toString(),
-            };
-            await handleIncomingData(pushPayload);
+            if (!Platform.isAndroid) { // 🚫 Huawei/Android native is the single owner.
+              final Map<String, dynamic> pushPayload = {
+                 'type': data['type']?.toString(),
+                 'conf': data['conf']?.toString(),
+                 'callSid': data['callSid']?.toString(),
+                 'callerNumber': data['callerNumber']?.toString(),
+                 'sig': data['sig']?.toString(),
+                 'expires': data['expires']?.toString(),
+              };
+              await handleIncomingData(pushPayload);
+            } else {
+              debugPrint('[VoIP WS] Skipped Android Flutter UI trigger to prevent Double Flow');
+            }
           } else if (data['type'] == 'registered') {
             debugPrint('[VoIP WS] Successfully registered on WebSocket Server');
             // Reconcile immediately after WS registration to catch missed events
@@ -132,16 +136,18 @@ class VoipService {
                 unawaited(clearStaleIncomingUi());
               }
             } else if (!isRingingOrActive) {
-              debugPrint('[VoIP Reconcile] Late connect — triggering missed incoming from snapshot');
-              final call = activeCalls.first as Map<String, dynamic>;
-              unawaited(handleIncomingData({
-                'type': 'incoming_call',
-                'callSid': call['callSid']?.toString() ?? '',
-                'callerNumber': call['from']?.toString() ?? 'Unknown',
-                'conf': '',
-                'sig': '',
-                'expires': '${DateTime.now().add(const Duration(minutes: 2)).millisecondsSinceEpoch}',
-              }));
+              if (!Platform.isAndroid) {
+                debugPrint('[VoIP Reconcile] Late connect — triggering missed incoming from snapshot');
+                final call = activeCalls.first as Map<String, dynamic>;
+                unawaited(handleIncomingData({
+                  'type': 'incoming_call',
+                  'callSid': call['callSid']?.toString() ?? '',
+                  'callerNumber': call['from']?.toString() ?? 'Unknown',
+                  'conf': '',
+                  'sig': '',
+                  'expires': '${DateTime.now().add(const Duration(minutes: 2)).millisecondsSinceEpoch}',
+                }));
+              }
             }
           } else if (data['type'] == 'call_closed' || data['type'] == 'call_ended') {
             final wsSid = data['callSid']?.toString();
