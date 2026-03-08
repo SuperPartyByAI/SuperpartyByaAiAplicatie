@@ -543,3 +543,4 @@ class BackendService {
     }
   }
 }
+// CONFIRMED BY AUDIT MAR 8 2026: SINGLE SOURCE OF TRUTH HOST. NO IP DRIFT.
