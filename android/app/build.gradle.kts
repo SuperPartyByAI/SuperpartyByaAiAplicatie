@@ -34,6 +34,14 @@ android {
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode
         versionName = flutter.versionName
+
+        val localProperties = Properties()
+        val localPropertiesFile = rootProject.file("local.properties")
+        if (localPropertiesFile.exists()) {
+            localProperties.load(localPropertiesFile.inputStream())
+        }
+        val tsbgLicenseKey = localProperties.getProperty("TSBG_LICENSE") ?: ""
+        manifestPlaceholders["tsbgLicense"] = tsbgLicenseKey
     }
 
     val keystoreProperties = Properties()

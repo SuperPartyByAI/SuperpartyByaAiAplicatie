@@ -70,6 +70,9 @@
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
+
+        <!-- Transistorsoft flutter_background_geolocation License Key -->
+        <meta-data android:name="com.transistorsoft.locationmanager.license" android:value="${tsbgLicense}" />
         <!-- IncomingCallActivity — full-screen incoming call UI on lock screen -->
         <activity
             android:name=".ui.IncomingCallActivity"

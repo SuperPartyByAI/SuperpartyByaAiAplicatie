@@ -303,7 +303,7 @@ const wave2Map = new Map();
 // ── REDIS-BACKED ACTIVE CALL STORE ──────────────────────────────────────────
 // Replaces in-memory activeCallsMap. Survives container restart.
 // Keys: active_call:<callSid>  TTL: 10 minutes
-const REDIS_URL = process.env.REDIS_URL || 'redis://127.0.0.1:6379';
+const REDIS_URL = process.env.REDIS_URL || 'redis://superparty-ai-redis:6379';
 const CALL_TTL_SEC = 600; // 10 min
 const redis = new Redis(REDIS_URL, { lazyConnect: true, maxRetriesPerRequest: 3 });
 redis.on('error', (e) => console.warn('[Redis] Error:', e.message));

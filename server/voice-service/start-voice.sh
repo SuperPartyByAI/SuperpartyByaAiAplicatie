@@ -1,18 +1,13 @@
 #!/bin/bash
 # start-voice.sh — Pornire superparty-voice Docker container
-# ÎN PRODUCȚIE: rulează din /root pe VPS 91.98.16.90
+# ÎN PRODUCȚIE: rulează din /root pe VPS
 #
 # ⚠️  IMPORTANT: .env TREBUIE să conțină TWILIO_AUTH_TOKEN (nu TWILIO_TOKEN)
 #     și TWIML_APP_SID (nu TWILIO_TWIML_APP_SID).
-#     Dacă lipsesc, containerul returnează twilio_not_configured și Twilio
-#     redă mesajul audio de eroare standard.
-#
-# Incident 2026-03-07: ROOT CAUSE a fost exact env incomplet.
 #
 set -e
 
-ENV_FILE="${1:-/root/voice-build/.env}"
-IMAGE="superparty-voice:latest"
+ENV_FILE="${1:-/opt/superparty-ai/repo/server/voice-service/.env}"
 
 echo "[start-voice] Verificare .env: $ENV_FILE"
 if [ ! -f "$ENV_FILE" ]; then
@@ -42,19 +37,14 @@ fi
 
 echo "[start-voice] .env valid ✅"
 echo "[start-voice] Oprire container vechi..."
-docker stop superparty-voice 2>/dev/null || true
-docker rm superparty-voice 2>/dev/null || true
+cd /opt/superparty-ai/repo/server/voice-service
+docker compose down || true
 
-echo "[start-voice] Pornire container nou cu env-file complet..."
-docker run -d \
-  --name superparty-voice \
-  --restart always \
-  --env-file "$ENV_FILE" \
-  -p 3001:3001 \
-  "$IMAGE"
+echo "[start-voice] Pornire container nou cu env-file complet și rețea Redis din Compose..."
+docker compose up -d --force-recreate
 
 sleep 5
-echo "[start-voice] Health check..."
+echo "[start-voice] Health check intern..."
 HEALTH=$(curl -s http://localhost:3001/health)
 echo "$HEALTH"
 
