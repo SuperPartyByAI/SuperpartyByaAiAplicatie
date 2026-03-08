@@ -39,7 +39,7 @@ class IncomingCallActivity : Activity() {
     private val callActionReceiver = object : BroadcastReceiver() {
         override fun onReceive(context: Context?, intent: Intent?) {
             when (intent?.action) {
-                ACTION_ANSWER, ACTION_REJECT -> {
+                ACTION_ANSWER, ACTION_REJECT, "com.superpartybyai.app/CALL_CANCELLED" -> {
                     Log.d(TAG, "Received broadcast ${intent.action} — closing")
                     stopRinging()
                     finish()
@@ -175,13 +175,9 @@ class IncomingCallActivity : Activity() {
         val filter = IntentFilter().apply {
             addAction(ACTION_ANSWER)
             addAction(ACTION_REJECT)
+            addAction("com.superpartybyai.app/CALL_CANCELLED")
         }
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            registerReceiver(callActionReceiver, filter, RECEIVER_EXPORTED)
-        } else {
-            @Suppress("UnspecifiedRegisterReceiverFlag")
-            registerReceiver(callActionReceiver, filter)
-        }
+        androidx.localbroadcastmanager.content.LocalBroadcastManager.getInstance(this).registerReceiver(callActionReceiver, filter)
     }
 
     private fun startRinging() {
@@ -247,6 +243,6 @@ class IncomingCallActivity : Activity() {
     override fun onDestroy() {
         super.onDestroy()
         stopRinging()
-        runCatching { unregisterReceiver(callActionReceiver) }
+        runCatching { androidx.localbroadcastmanager.content.LocalBroadcastManager.getInstance(this).unregisterReceiver(callActionReceiver) }
     }
 }
