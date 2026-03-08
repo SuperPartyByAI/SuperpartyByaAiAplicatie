@@ -232,6 +232,10 @@ void _registerCallActionsHandler() {
 }
 
 Future<void> answerIncomingCall(String from, String callSid) async {
+  if (Platform.isAndroid && VoipService.isHuaweiOrHonor) {
+    debugPrint('[main] 🔕 ANSWER BLOCKED: Huawei Native UI handles answer directly.');
+    return;
+  }
   debugPrint('[main] 📞 answerCall received. from: $from, callSid: $callSid');
   VoipLogger.instance.logEvent('ACCEPT_TAPPED', extra: {'from': from, 'callSid': callSid});
   try {
