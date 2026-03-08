@@ -106,10 +106,36 @@ class IncomingCallActivity : Activity() {
                 stopRinging()
                 CustomVoiceFirebaseMessagingService.dismissCallNotification(applicationContext, callSid)
 
-                // ── FLUTTER WILL HANDLE ACCEPT ──
-                // Do not consume pendingCallInvite here. We send ACTION_ANSWER to MainActivity,
-                // which then calls Flutter's answerCall, which hits directAnswer and uses the invite.
-                Log.d(TAG, "Accept tapped — forwarding to Flutter via MainActivity")
+                val m = Build.MANUFACTURER.lowercase()
+                val isHuawei = m.contains("huawei") || m.contains("honor")
+                if (isHuawei) {
+                    Log.d(TAG, "HUAWEI_NATIVE_ONLY_MODE = ON")
+                    Log.d(TAG, "ROUTE_NATIVE_ACCEPT_OWNER")
+                    val listener = object : com.twilio.voice.Call.Listener {
+                        override fun onConnectFailure(c: com.twilio.voice.Call, e: com.twilio.voice.CallException) {
+                            Log.e(TAG, "Native onConnectFailure: ${e.message}")
+                            androidx.localbroadcastmanager.content.LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(Intent("com.superpartybyai.app/CALL_CANCELLED"))
+                        }
+                        override fun onRinging(c: com.twilio.voice.Call) {}
+                        override fun onConnected(c: com.twilio.voice.Call) {
+                            Log.d(TAG, "ROUTE_NATIVE_CONNECTED")
+                        }
+                        override fun onReconnecting(c: com.twilio.voice.Call, e: com.twilio.voice.CallException) {}
+                        override fun onReconnected(c: com.twilio.voice.Call) {}
+                        override fun onDisconnected(c: com.twilio.voice.Call, e: com.twilio.voice.CallException?) {
+                            Log.d(TAG, "ROUTE_NATIVE_CLOSED")
+                            androidx.localbroadcastmanager.content.LocalBroadcastManager.getInstance(applicationContext).sendBroadcast(Intent("com.superpartybyai.app/CALL_CANCELLED"))
+                        }
+                    }
+                    val acceptedCall = CustomVoiceFirebaseMessagingService.acceptPendingCallInvite(applicationContext, listener)
+                    if (acceptedCall != null) {
+                        Log.d(TAG, "✅ Native accept success for sid=${acceptedCall.sid}.")
+                    } else {
+                        Log.e(TAG, "❌ Native accept failed (no pending invite).")
+                    }
+                }
+
+                Log.d(TAG, "Accept tapped — forwarding to Flutter via MainActivity for UI sync only")
 
                 // Navigate to active call screen via MainActivity
                 val mainIntent = Intent(applicationContext, MainActivity::class.java).apply {
@@ -124,9 +150,6 @@ class IncomingCallActivity : Activity() {
                 }
                 startActivity(mainIntent)
                 
-                // ── DELAY FINISH ──
-                // Prevent Huawei from blocking the microphone (Call Recording Privacy)
-                // by keeping this Activity alive until MainActivity is fully foregrounded.
                 android.os.Handler(android.os.Looper.getMainLooper()).postDelayed({
                     finish()
                 }, 1500)
@@ -144,6 +167,19 @@ class IncomingCallActivity : Activity() {
                 Log.d(TAG, "Reject tapped")
                 stopRinging()
                 CustomVoiceFirebaseMessagingService.dismissCallNotification(applicationContext)
+
+                val m = Build.MANUFACTURER.lowercase()
+                val isHuawei = m.contains("huawei") || m.contains("honor")
+                if (isHuawei) {
+                    Log.d(TAG, "HUAWEI_NATIVE_ONLY_MODE = ON")
+                    Log.d(TAG, "ROUTE_NATIVE_HANGUP_OWNER")
+                    val invite = CustomVoiceFirebaseMessagingService.pendingCallInvite
+                    if (invite != null) {
+                        invite.reject(applicationContext)
+                        CustomVoiceFirebaseMessagingService.pendingCallInvite = null
+                    }
+                }
+
                 val mainIntent = Intent(applicationContext, MainActivity::class.java).apply {
                     action = ACTION_REJECT
                     putExtra("from", callerFrom)

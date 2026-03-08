@@ -183,12 +183,16 @@ void _registerCallActionsHandler() {
       case 'rejectCall':
         try {
           VoipService.clearCallAnswered();
-          // Send Hangup signal to PBX server synchronously BEFORE we tear down
-          // the native local audio context to ensure it transmits correctly.
           await VoipService.rejectCallFromServer('', callSid);
-
-          await TwilioVoice.instance.call.hangUp();
-          debugPrint('[main] rejectCall done and transmitted to Server.');
+          
+          if (Platform.isAndroid) {
+            debugPrint('[main] HUAWEI_NATIVE_ONLY_MODE = ON');
+            debugPrint('[main] ROUTE_FLUTTER_HANGUP_BLOCKED');
+            debugPrint('[main] Flutter UI sync layer: Native already rejected the invite.');
+          } else {
+            await TwilioVoice.instance.call.hangUp();
+            debugPrint('[main] rejectCall transacted to Twilio SDK.');
+          }
         } catch (e) {
           debugPrint('[main] rejectCall error: $e');
         }
@@ -268,24 +272,16 @@ Future<void> answerIncomingCall(String from, String callSid) async {
       await const MethodChannel(_kAudioChannel).invokeMethod('requestAudioFocusAndMode');
     } catch (_) {}
 
-    // 1️⃣ ATTEMPT NATIVE DIRECT ANSWER (Huawei Bypass)
-    debugPrint('[main] 📞 directAnswer started...');
-    bool directAccepted = false;
-    try {
-      directAccepted = await const MethodChannel('com.superpartybyai.app/call_actions').invokeMethod('directAnswer') ?? false;
-      debugPrint('[main] 📞 directAnswer result: $directAccepted');
-    } catch (e) {
-      debugPrint('[main] ❌ directAnswer exception: $e');
-    }
-    
-    if (directAccepted) {
-       debugPrint('[main] ✅ directAnswer SUCCESS! Returning early.');
-       debugPrint('[main] 🧹 cleanup invoked: no');
-       return; 
+    // 1️⃣ ALWAYS USE NATIVE DIRECT ANSWER ON ANDROID
+    if (Platform.isAndroid) {
+      debugPrint('[main] HUAWEI_NATIVE_ONLY_MODE = ON');
+      debugPrint('[main] ROUTE_FLUTTER_ANSWER_BLOCKED');
+      debugPrint('[main] Flutter is merely a UI sync layer on Android. Native handles the answer.');
+      return; 
     }
 
     // 2️⃣ NATIVE ANSWER ON EXISTING INVITE (Twilio SDK default answer)
-    Call? activeCallBefore = TwilioVoice.instance.call.activeCall;
+    ActiveCall? activeCallBefore = TwilioVoice.instance.call.activeCall;
     if (activeCallBefore == null) {
       debugPrint('[main] 📞 activeCall not present — trying a short wait for SDK...');
       for (int i = 0; i < 15; i++) {

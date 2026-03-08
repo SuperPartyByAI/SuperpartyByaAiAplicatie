@@ -92,7 +92,7 @@ class _IncomingCallScreenState extends State<IncomingCallScreen> {
       }
 
       // 2️⃣ NATIVE ANSWER ON EXISTING INVITE (Twilio SDK default answer)
-      Call? activeCallBefore = TwilioVoice.instance.call.activeCall;
+      ActiveCall? activeCallBefore = TwilioVoice.instance.call.activeCall;
       if (activeCallBefore == null) {
         debugPrint('[IncomingCallScreen] 📞 activeCall not present — trying a short wait for SDK...');
         for (int i = 0; i < 15; i++) {

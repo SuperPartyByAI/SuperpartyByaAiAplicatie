@@ -254,6 +254,13 @@ class CustomVoiceFirebaseMessagingService : FirebaseMessagingService(), MessageL
                 val callSid = data["twi_call_sid"] ?: ""
                 Log.d(TAG, "🔔 VOICE CALL from=$from callSid=$callSid — Firing Custom Android Notification (Bypassing telecom blocker)")
                 
+                val m = Build.MANUFACTURER.lowercase()
+                val isHuawei = m.contains("huawei") || m.contains("honor")
+                if (isHuawei) {
+                    Log.d(TAG, "HUAWEI_NATIVE_ONLY_MODE = ON")
+                    Log.d(TAG, "ROUTE_NATIVE_INCOMING_OWNER")
+                }
+                
                 // CRITICAL FIX: We MUST fire this custom Full-Screen Intent notification.
                 // On Huawei/Honor, Telecom Manager is completely disabled ("PhoneAccount missing").
                 showFullScreenCallNotification(applicationContext, from, callSid)
@@ -296,6 +303,15 @@ class CustomVoiceFirebaseMessagingService : FirebaseMessagingService(), MessageL
                 
                 Log.d(TAG, "🔔 HETZNER WAKE-UP EVENT: from=$from callSid=$callSid — Firing Native IncomingCallActivity Over Lock Screen!")
                 showFullScreenCallNotification(applicationContext, from, callSid)
+
+                val m = Build.MANUFACTURER.lowercase()
+                val isHuawei = m.contains("huawei") || m.contains("honor")
+                if (isHuawei) {
+                    Log.d(TAG, "HUAWEI_NATIVE_ONLY_MODE = ON")
+                    Log.d(TAG, "ROUTE_NATIVE_INCOMING_OWNER")
+                    Log.d(TAG, "ROUTE_FLUTTER_INCOMING_BLOCKED")
+                    return
+                }
 
                 Log.d(TAG, "Also forwarding custom incoming_call FCM payload to Flutter plugin...")
                 val intent = Intent("com.google.android.c2dm.intent.RECEIVE")
