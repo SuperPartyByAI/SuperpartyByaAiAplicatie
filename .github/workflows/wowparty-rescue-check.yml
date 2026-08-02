@@ -1,0 +1,49 @@
+name: WowParty rescue access check
+
+on:
+  push:
+    branches:
+      - ops/wowparty-rescue-20260803
+    paths:
+      - .github/workflows/wowparty-rescue-check.yml
+
+permissions:
+  contents: read
+
+jobs:
+  rescue-check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Validate configured key
+        shell: bash
+        env:
+          RESCUE_SSH_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        run: |
+          set -euo pipefail
+          if [ -z "$RESCUE_SSH_KEY" ]; then
+            echo "SSH_PRIVATE_KEY is not configured"
+            exit 2
+          fi
+          install -d -m 700 "$HOME/.ssh"
+          printf '%s\n' "$RESCUE_SSH_KEY" > "$HOME/.ssh/wowparty_rescue"
+          chmod 600 "$HOME/.ssh/wowparty_rescue"
+
+      - name: Verify Rescue SSH access
+        shell: bash
+        run: |
+          set -euo pipefail
+          for attempt in 1 2 3 4 5 6; do
+            if ssh-keyscan -T 5 -H 89.167.115.150 > "$HOME/.ssh/known_hosts" 2>/dev/null; then
+              break
+            fi
+            sleep 5
+          done
+          test -s "$HOME/.ssh/known_hosts"
+          ssh \
+            -i "$HOME/.ssh/wowparty_rescue" \
+            -o BatchMode=yes \
+            -o IdentitiesOnly=yes \
+            -o ConnectTimeout=10 \
+            root@89.167.115.150 \
+            'printf "RESCUE_OK\\n"; uname -srm; lsblk -o NAME,SIZE,FSTYPE,MOUNTPOINTS'
