@@ -1,0 +1,78 @@
+name: WowParty single-team authentication deploy
+
+on:
+  push:
+    branches:
+      - ops/wowparty-rescue-20260803
+    paths:
+      - .github/workflows/wowparty-auth-direct-deploy.yml
+      - ops/wowparty-auth/**
+
+permissions:
+  contents: read
+
+concurrency:
+  group: wowparty-auth-live
+  cancel-in-progress: false
+
+jobs:
+  deploy-auth-fix:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      DEPLOY_USER_SECRET: ${{ secrets.DEPLOY_USER }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Connect to the live server
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          test -n "$SSH_PRIVATE_KEY"
+          key_path="$RUNNER_TEMP/superparty_deploy_key"
+          printf '%s\n' "$SSH_PRIVATE_KEY" > "$key_path"
+          chmod 600 "$key_path"
+          printf 'KEY_PATH=%s\n' "$key_path" >> "$GITHUB_ENV"
+
+          deploy_host=89.167.115.150
+          candidates=()
+          if [[ "$DEPLOY_USER_SECRET" =~ ^[a-z_][a-z0-9_-]{0,31}$ ]]; then
+            candidates+=("$DEPLOY_USER_SECRET")
+          fi
+          candidates+=(root superparty ubuntu)
+
+          connected_user=''
+          for candidate in "${candidates[@]}"; do
+            if ssh -i "$key_path" -o BatchMode=yes -o IdentitiesOnly=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new "$candidate@$deploy_host" 'test -d /opt/superparty-portal' >/dev/null 2>&1; then
+              connected_user="$candidate"
+              break
+            fi
+          done
+          test -n "$connected_user"
+          printf 'DEPLOY_HOST=%s\n' "$deploy_host" >> "$GITHUB_ENV"
+          printf 'DEPLOY_USER=%s\n' "$connected_user" >> "$GITHUB_ENV"
+
+      - name: Back up, build, deploy, and verify
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          ssh_base=(-i "$KEY_PATH" -o BatchMode=yes -o IdentitiesOnly=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new)
+          remote="$DEPLOY_USER@$DEPLOY_HOST"
+          payload_dir="/tmp/wowparty-auth-$GITHUB_RUN_ID"
+          ssh "${ssh_base[@]}" "$remote" "mkdir -p '$payload_dir'"
+          scp "${ssh_base[@]}" \
+            ops/wowparty-auth/page.tsx \
+            ops/wowparty-auth/callback-route.ts \
+            ops/wowparty-auth/middleware.ts \
+            ops/wowparty-auth/select-brand-page.tsx \
+            ops/wowparty-auth/register-business-page.tsx \
+            ops/wowparty-auth/access-pending-page.tsx \
+            "$remote:$payload_dir/"
+
+          if [ "$DEPLOY_USER" = root ]; then
+            ssh "${ssh_base[@]}" "$remote" "WOWPARTY_AUTH_RUN='$GITHUB_RUN_ID' bash -s" < ops/wowparty-auth/deploy-auth.sh
+          else
+            ssh "${ssh_base[@]}" "$remote" "sudo -n WOWPARTY_AUTH_RUN='$GITHUB_RUN_ID' bash -s" < ops/wowparty-auth/deploy-auth.sh
+          fi
+
