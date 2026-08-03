@@ -31,7 +31,7 @@ jobs:
           chmod +x "$payload/deploy-from-rescue.sh"
           test "$(sha256sum "$payload/manicheck-v1-dist-text.tar.gz" | awk '{print $1}')" = "29608a881ea214c91d6f31e20f11130f722b52a7eed9d81b951296f42f107ff5"
           test "$(sha256sum "$payload/manicheck-v1-text-source.tar.gz" | awk '{print $1}')" = "29873515d784073cc27d9ed0efd565e6fab8b807cb6c2e7c046d5d08527642fb"
-          test "$(sha256sum "$payload/deploy-from-rescue.sh" | awk '{print $1}')" = "2c4979caded5a4974409d9ff22540b559fa8cfdcb07fd92bd6cd92e652ea43a6"
+          test "$(sha256sum "$payload/deploy-from-rescue.sh" | awk '{print $1}')" = "d720dbb72a16f733d947165129aa7ccac20fe57eedfc5d9ce035a8cb55b34266"
           test "$(sha256sum "$payload/MANICHECK_STORE_V1_MANIFEST.txt" | awk '{print $1}')" = "8536f74663c478042f6dc427323a1e1e95a0f9580d62dec8732ed78e775c4d40"
           tar -tzf "$payload/manicheck-v1-dist-text.tar.gz" >/dev/null
           tar -tzf "$payload/manicheck-v1-text-source.tar.gz" >/dev/null
