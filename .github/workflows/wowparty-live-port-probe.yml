@@ -1,0 +1,41 @@
+name: WowParty live SSH reachability probe
+
+on:
+  push:
+    branches:
+      - ops/wowparty-rescue-20260803
+    paths:
+      - .github/workflows/wowparty-live-port-probe.yml
+
+permissions:
+  contents: read
+
+jobs:
+  probe:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Probe the live server without credentials
+        shell: bash
+        run: |
+          set +e
+          echo "UTC=$(date -u +%FT%TZ)"
+          echo "DNS/IP target: 89.167.115.150"
+          echo "::group::TCP 22"
+          nc -vz -w 8 89.167.115.150 22
+          tcp_code=$?
+          echo "TCP22_EXIT=$tcp_code"
+          echo "::endgroup::"
+          echo "::group::SSH banner and host key"
+          timeout 12 ssh-keyscan -T 8 -t ed25519 89.167.115.150
+          scan_code=$?
+          echo "SSH_KEYSCAN_EXIT=$scan_code"
+          echo "::endgroup::"
+          echo "::group::Public portal"
+          curl -sS -I --max-time 12 https://app.superparty.ro/ | sed -n '1,12p'
+          portal_code=$?
+          echo "PORTAL_EXIT=$portal_code"
+          echo "::endgroup::"
+          if [ "$tcp_code" -ne 0 ] || [ "$scan_code" -ne 0 ]; then
+            exit 1
+          fi
