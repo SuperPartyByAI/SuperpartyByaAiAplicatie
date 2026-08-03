@@ -26,12 +26,14 @@ jobs:
           mkdir -p "$payload"
           cat ops/manicheck-rescue/payload/manicheck-v1-dist-text.tar.gz.b64.* | base64 -d > "$payload/manicheck-v1-dist-text.tar.gz"
           cat ops/manicheck-rescue/payload/manicheck-v1-text-source.tar.gz.b64.* | base64 -d > "$payload/manicheck-v1-text-source.tar.gz"
+          cat ops/manicheck-rescue/payload/og-image.png.b64.* | base64 -d > "$payload/og-image.png"
           cp ops/manicheck-rescue/deploy-from-rescue.sh "$payload/"
           cp ops/manicheck-rescue/MANICHECK_STORE_V1_MANIFEST.txt "$payload/"
           chmod +x "$payload/deploy-from-rescue.sh"
           test "$(sha256sum "$payload/manicheck-v1-dist-text.tar.gz" | awk '{print $1}')" = "29608a881ea214c91d6f31e20f11130f722b52a7eed9d81b951296f42f107ff5"
           test "$(sha256sum "$payload/manicheck-v1-text-source.tar.gz" | awk '{print $1}')" = "29873515d784073cc27d9ed0efd565e6fab8b807cb6c2e7c046d5d08527642fb"
-          test "$(sha256sum "$payload/deploy-from-rescue.sh" | awk '{print $1}')" = "d720dbb72a16f733d947165129aa7ccac20fe57eedfc5d9ce035a8cb55b34266"
+          test "$(sha256sum "$payload/og-image.png" | awk '{print $1}')" = "72e23903cf5c5a8ccf08cbc9622d2d69e5ae0d08b789bddd5f7f0dc906d52c83"
+          test "$(sha256sum "$payload/deploy-from-rescue.sh" | awk '{print $1}')" = "b79b3f6337128e0364f00b1774101c44f38d57786c22672128fd04912fcd9013"
           test "$(sha256sum "$payload/MANICHECK_STORE_V1_MANIFEST.txt" | awk '{print $1}')" = "8536f74663c478042f6dc427323a1e1e95a0f9580d62dec8732ed78e775c4d40"
           tar -tzf "$payload/manicheck-v1-dist-text.tar.gz" >/dev/null
           tar -tzf "$payload/manicheck-v1-text-source.tar.gz" >/dev/null
@@ -96,6 +98,7 @@ jobs:
           scp "${ssh_base[@]}" \
             "$PAYLOAD_DIR/manicheck-v1-dist-text.tar.gz" \
             "$PAYLOAD_DIR/manicheck-v1-text-source.tar.gz" \
+            "$PAYLOAD_DIR/og-image.png" \
             "$PAYLOAD_DIR/deploy-from-rescue.sh" \
             "$PAYLOAD_DIR/MANICHECK_STORE_V1_MANIFEST.txt" \
             root@89.167.115.150:/root/manicheck-rescue-deploy/
