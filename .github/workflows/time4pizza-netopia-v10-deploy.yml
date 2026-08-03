@@ -1,0 +1,225 @@
+name: Time4Pizza NETOPIA v10 guarded deploy
+
+on:
+  push:
+    branches:
+      - agent/time4pizza-netopia-v10-deploy-20260803
+    paths:
+      - .github/workflows/time4pizza-netopia-v10-deploy.yml
+
+permissions:
+  contents: read
+  statuses: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Configure existing SSH access
+        shell: bash
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          DEPLOY_USER: ${{ secrets.DEPLOY_USER }}
+          SERVER_HOST: 89.167.115.150
+        run: |
+          set -Eeuo pipefail
+          test -n "$SSH_PRIVATE_KEY" || { echo "SSH_PRIVATE_KEY is not configured"; exit 20; }
+          test -n "$DEPLOY_USER" || { echo "DEPLOY_USER is not configured"; exit 21; }
+          key_path="$RUNNER_TEMP/time4pizza_deploy_key"
+          known_hosts="$RUNNER_TEMP/time4pizza_known_hosts"
+          umask 077
+          printf '%s\n' "$SSH_PRIVATE_KEY" | sed 's/\r$//' > "$key_path"
+          chmod 600 "$key_path"
+          ssh-keyscan -T 10 -H "$SERVER_HOST" > "$known_hosts"
+          printf 'KEY_PATH=%s\nKNOWN_HOSTS=%s\nSERVER_HOST=%s\nDEPLOY_USER=%s\n' \
+            "$key_path" "$known_hosts" "$SERVER_HOST" "$DEPLOY_USER" >> "$GITHUB_ENV"
+          ssh -i "$key_path" \
+            -o BatchMode=yes \
+            -o IdentitiesOnly=yes \
+            -o ConnectTimeout=10 \
+            -o StrictHostKeyChecking=yes \
+            -o UserKnownHostsFile="$known_hosts" \
+            "$DEPLOY_USER@$SERVER_HOST" 'printf TIME4PIZZA_SSH_READY'
+
+      - name: Patch, preflight, deploy and verify
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          ssh -i "$KEY_PATH" \
+            -o BatchMode=yes \
+            -o IdentitiesOnly=yes \
+            -o ConnectTimeout=10 \
+            -o ServerAliveInterval=10 \
+            -o ServerAliveCountMax=3 \
+            -o StrictHostKeyChecking=yes \
+            -o UserKnownHostsFile="$KNOWN_HOSTS" \
+            "$DEPLOY_USER@$SERVER_HOST" \
+            'if [ "$(id -u)" -eq 0 ]; then bash -s; else sudo -n bash -s; fi' <<'REMOTE' | tee "$RUNNER_TEMP/time4pizza-netopia-v10.txt"
+          set -Eeuo pipefail
+
+          WORKSPACE="/opt/time4pizza-site"
+          SCRIPT="$WORKSPACE/scripts/deploy-netopia-v10.sh"
+          BACKUP="$WORKSPACE/scripts/deploy-netopia-v10.sh.bak-20260803T0330Z"
+          OLD_TARGET="$WORKSPACE/releases/time4pizza_c12r_20260731_191933_7668c42d"
+          NEW_TARGET="$WORKSPACE/releases/time4pizza_netopia_chatgpt_20260802_204915_v10"
+          OLD_LINE='NEW_TARGET="/opt/time4pizza-site/scripts/build-workspace-v10/out"'
+          NEW_LINE='NEW_TARGET="/opt/time4pizza-site/releases/time4pizza_netopia_chatgpt_20260802_204915_v10"'
+          SUCCESS=0
+
+          rollback_guard() {
+            code=$?
+            if [ "$SUCCESS" -ne 1 ]; then
+              active="$(readlink -f "$WORKSPACE/dist" 2>/dev/null || true)"
+              if [ "$active" = "$NEW_TARGET" ]; then
+                rollback_link="$WORKSPACE/dist.workflow-rollback.$$"
+                ln -s "$OLD_TARGET" "$rollback_link"
+                mv -Tf "$rollback_link" "$WORKSPACE/dist"
+                systemctl restart time4pizza-astro.service
+              fi
+              if [ -f "$BACKUP" ]; then
+                cp -a "$BACKUP" "$SCRIPT"
+              fi
+            fi
+            exit "$code"
+          }
+          trap rollback_guard EXIT
+
+          test -d "$WORKSPACE"
+          test -f "$SCRIPT"
+          test -f "$NEW_TARGET/server/entry.mjs"
+          test -f "$NEW_TARGET/server/pages/checkout.astro.mjs"
+          test -f "$NEW_TARGET/server/pages/api/orders.astro.mjs"
+          test -f "$NEW_TARGET/server/pages/api/woo-sync.astro.mjs"
+
+          active="$(readlink -f "$WORKSPACE/dist")"
+          old_count="$(grep -Fxc "$OLD_LINE" "$SCRIPT" || true)"
+          new_count="$(grep -Fxc "$NEW_LINE" "$SCRIPT" || true)"
+
+          if [ "$active" = "$NEW_TARGET" ] && [ "$old_count" -eq 0 ] && [ "$new_count" -eq 1 ]; then
+            echo "ALREADY_DEPLOYED"
+          else
+            test "$active" = "$OLD_TARGET"
+            test "$old_count" -eq 1
+            test "$new_count" -eq 0
+
+            if [ -e "$BACKUP" ]; then
+              test "$(grep -Fxc "$OLD_LINE" "$BACKUP" || true)" -eq 1
+            else
+              cp -a "$SCRIPT" "$BACKUP"
+            fi
+
+            python3 - "$SCRIPT" "$OLD_LINE" "$NEW_LINE" <<'PY'
+          from pathlib import Path
+          import sys
+          path = Path(sys.argv[1])
+          old = sys.argv[2]
+          new = sys.argv[3]
+          data = path.read_text(encoding="utf-8")
+          old_line = old + "\n"
+          if data.count(old_line) != 1:
+              raise SystemExit("EXPECTED_OLD_LINE_ONCE")
+          updated = data.replace(old_line, new + "\n", 1)
+          path.write_text(updated, encoding="utf-8")
+          PY
+
+            test "$(grep -Fxc "$OLD_LINE" "$SCRIPT" || true)" -eq 0
+            test "$(grep -Fxc "$NEW_LINE" "$SCRIPT" || true)" -eq 1
+
+            python3 - "$BACKUP" "$SCRIPT" "$OLD_LINE" "$NEW_LINE" <<'PY'
+          from pathlib import Path
+          import sys
+          backup = Path(sys.argv[1]).read_text(encoding="utf-8")
+          current = Path(sys.argv[2]).read_text(encoding="utf-8")
+          old = sys.argv[3] + "\n"
+          new = sys.argv[4] + "\n"
+          if backup.count(old) != 1 or backup.replace(old, new, 1) != current:
+              raise SystemExit("DIFF_NOT_EXACTLY_ONE_TARGET_LINE")
+          PY
+
+            echo "DEPLOY_SCRIPT_DIFF_BEGIN"
+            diff -u "$BACKUP" "$SCRIPT" || test "$?" -eq 1
+            echo "DEPLOY_SCRIPT_DIFF_END"
+            sha256sum "$BACKUP" "$SCRIPT"
+
+            node "$WORKSPACE/scripts/commerce-runtime-canary-v10.mjs"
+            bash "$SCRIPT"
+          fi
+
+          test "$(readlink -f "$WORKSPACE/dist")" = "$NEW_TARGET"
+          systemctl is-active --quiet time4pizza-astro.service
+
+          identity="$(curl -fsS --max-time 8 http://127.0.0.1:4324/build-identity)"
+          printf '%s\n' "$identity"
+          printf '%s' "$identity" | grep -q 'time4pizza-netopia-v10-e4f5f95edab9'
+          printf '%s' "$identity" | grep -q '"woocommerce_configured":true'
+          printf '%s' "$identity" | grep -q '"woo_webhook_secret_configured":true'
+
+          checkout_file="/tmp/time4pizza-checkout-workflow-$$.html"
+          curl -fsS --max-time 8 http://127.0.0.1:4324/checkout > "$checkout_file"
+          grep -q 'data-checkout-form' "$checkout_file"
+          grep -q 'NETOPIA' "$checkout_file"
+          if grep -q 'Comenzile online sunt momentan dezactivate' "$checkout_file"; then
+            exit 71
+          fi
+
+          test "$(curl -sS --max-time 8 -o /dev/null -w '%{http_code}' -X OPTIONS http://127.0.0.1:4324/api/orders)" = "204"
+
+          public_ok=0
+          for attempt in $(seq 1 20); do
+            public_identity="$(curl -fsS --max-time 8 https://www.time4pizza.ro/build-identity || true)"
+            public_checkout="$(curl -fsS --max-time 8 https://www.time4pizza.ro/checkout || true)"
+            if printf '%s' "$public_identity" | grep -q 'time4pizza-netopia-v10-e4f5f95edab9' \
+              && printf '%s' "$public_checkout" | grep -q 'data-checkout-form' \
+              && printf '%s' "$public_checkout" | grep -q 'NETOPIA' \
+              && ! printf '%s' "$public_checkout" | grep -q 'Comenzile online sunt momentan dezactivate'; then
+              public_ok=1
+              break
+            fi
+            sleep 1
+          done
+          test "$public_ok" -eq 1
+
+          echo "ACTIVE_TARGET=$(readlink -f "$WORKSPACE/dist")"
+          echo "SERVICE_STATUS=$(systemctl is-active time4pizza-astro.service)"
+          echo "TIME4PIZZA_NETOPIA_V10_DEPLOY_PASS"
+          SUCCESS=1
+          trap - EXIT
+          REMOTE
+
+      - name: Upload deployment evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: time4pizza-netopia-v10-evidence-${{ github.run_id }}
+          path: ${{ runner.temp }}/time4pizza-netopia-v10.txt
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Publish final deployment status
+        if: always()
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          JOB_STATUS: ${{ job.status }}
+        run: |
+          set -Eeuo pipefail
+          state=success
+          description='Time4Pizza NETOPIA v10 deployed and verified'
+          if [ "$JOB_STATUS" != "success" ]; then
+            state=failure
+            description='Time4Pizza NETOPIA v10 deploy failed or rolled back'
+          fi
+          payload="$(jq -n \
+            --arg state "$state" \
+            --arg context time4pizza/netopia-v10-deploy \
+            --arg description "$description" \
+            --arg target_url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
+            '{state:$state,context:$context,description:$description,target_url:$target_url}')"
+          curl --fail-with-body --silent --show-error \
+            -X POST \
+            -H 'Accept: application/vnd.github+json' \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H 'X-GitHub-Api-Version: 2022-11-28' \
+            "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" \
+            -d "$payload"
