@@ -1,4 +1,4 @@
-name: WowParty single-team authentication deploy
+name: WowParty minimal auth hotfix via Hetzner API
 
 on:
   push:
@@ -6,7 +6,7 @@ on:
       - ops/wowparty-rescue-20260803
     paths:
       - .github/workflows/wowparty-auth-direct-deploy.yml
-      - ops/wowparty-auth/**
+      - ops/wowparty-auth/deploy-auth.sh
 
 permissions:
   contents: read
@@ -21,8 +21,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 20
     env:
-      SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
-      DEPLOY_USER_SECRET: ${{ secrets.DEPLOY_USER }}
+      HCLOUD_TOKEN: ${{ secrets.HCLOUD_TOKEN }}
     steps:
       - uses: actions/checkout@v4
 
@@ -35,7 +34,7 @@ jobs:
           payload="$(jq -n \
             --arg state pending \
             --arg context wowparty/auth-live \
-            --arg description 'Single-team authentication deploy started' \
+            --arg description 'Hetzner API auth hotfix started' \
             --arg target_url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
             '{state:$state,context:$context,description:$description,target_url:$target_url}')"
           curl --fail-with-body --silent --show-error \
@@ -46,56 +45,69 @@ jobs:
             "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" \
             -d "$payload"
 
-      - name: Connect to the live server
+      - name: Deploy through Hetzner API access
         shell: bash
         run: |
           set -Eeuo pipefail
-          test -n "$SSH_PRIVATE_KEY"
-          key_path="$RUNNER_TEMP/superparty_deploy_key"
-          printf '%s\n' "$SSH_PRIVATE_KEY" > "$key_path"
-          chmod 600 "$key_path"
-          printf 'KEY_PATH=%s\n' "$key_path" >> "$GITHUB_ENV"
+          test -n "$HCLOUD_TOKEN"
 
-          deploy_host=89.167.115.150
-          candidates=()
-          if [[ "$DEPLOY_USER_SECRET" =~ ^[a-z_][a-z0-9_-]{0,31}$ ]]; then
-            candidates+=("$DEPLOY_USER_SECRET")
+          server_id=126425479
+          server_ip=89.167.115.150
+          api_base=https://api.hetzner.cloud/v1
+          auth_header="Authorization: Bearer $HCLOUD_TOKEN"
+
+          server_json="$(curl --fail-with-body --silent --show-error \
+            -H "$auth_header" \
+            "$api_base/servers/$server_id")"
+          SERVER_JSON="$server_json" SERVER_ID="$server_id" SERVER_IP="$server_ip" node -e '
+            const body = JSON.parse(process.env.SERVER_JSON || "{}");
+            const server = body.server || {};
+            const expectedId = Number(process.env.SERVER_ID);
+            const expectedIp = process.env.SERVER_IP;
+            if (server.id !== expectedId) process.exit(1);
+            if (server.public_net?.ipv4?.ip !== expectedIp) process.exit(2);
+            if (server.status !== "running") process.exit(3);
+          '
+
+          reset_json="$(curl --fail-with-body --silent --show-error \
+            -X POST \
+            -H "$auth_header" \
+            -H 'Content-Type: application/json' \
+            "$api_base/servers/$server_id/actions/reset_password")"
+          root_password="$(jq -er '.root_password' <<<"$reset_json")"
+          echo "::add-mask::$root_password"
+
+          if ! command -v sshpass >/dev/null 2>&1; then
+            sudo apt-get update -qq
+            sudo apt-get install -y -qq sshpass
           fi
-          candidates+=(root superparty ubuntu)
 
-          connected_user=''
-          for candidate in "${candidates[@]}"; do
-            if ssh -i "$key_path" -o BatchMode=yes -o IdentitiesOnly=yes -o ConnectTimeout=8 -o StrictHostKeyChecking=accept-new "$candidate@$deploy_host" 'test -d /opt/superparty-portal' >/dev/null 2>&1; then
-              connected_user="$candidate"
+          ssh_options=(
+            -o PreferredAuthentications=password
+            -o PubkeyAuthentication=no
+            -o ConnectTimeout=10
+            -o ServerAliveInterval=10
+            -o ServerAliveCountMax=3
+            -o StrictHostKeyChecking=accept-new
+          )
+
+          connected=0
+          for attempt in $(seq 1 12); do
+            if sshpass -p "$root_password" ssh "${ssh_options[@]}" root@"$server_ip" \
+              'test -d /opt/superparty-portal' >/dev/null 2>&1; then
+              connected=1
               break
             fi
+            sleep 3
           done
-          test -n "$connected_user"
-          printf 'DEPLOY_HOST=%s\n' "$deploy_host" >> "$GITHUB_ENV"
-          printf 'DEPLOY_USER=%s\n' "$connected_user" >> "$GITHUB_ENV"
-
-      - name: Back up, build, deploy, and verify
-        shell: bash
-        run: |
-          set -Eeuo pipefail
-          ssh_base=(-i "$KEY_PATH" -o BatchMode=yes -o IdentitiesOnly=yes -o ConnectTimeout=10 -o StrictHostKeyChecking=accept-new)
-          remote="$DEPLOY_USER@$DEPLOY_HOST"
-          payload_dir="/tmp/wowparty-auth-$GITHUB_RUN_ID"
-          ssh "${ssh_base[@]}" "$remote" "mkdir -p '$payload_dir'"
-          scp "${ssh_base[@]}" \
-            ops/wowparty-auth/page.tsx \
-            ops/wowparty-auth/callback-route.ts \
-            ops/wowparty-auth/middleware.ts \
-            ops/wowparty-auth/select-brand-page.tsx \
-            ops/wowparty-auth/register-business-page.tsx \
-            ops/wowparty-auth/access-pending-page.tsx \
-            "$remote:$payload_dir/"
-
-          if [ "$DEPLOY_USER" = root ]; then
-            ssh "${ssh_base[@]}" "$remote" "WOWPARTY_AUTH_RUN='$GITHUB_RUN_ID' bash -s" < ops/wowparty-auth/deploy-auth.sh
-          else
-            ssh "${ssh_base[@]}" "$remote" "sudo -n WOWPARTY_AUTH_RUN='$GITHUB_RUN_ID' bash -s" < ops/wowparty-auth/deploy-auth.sh
+          if [ "$connected" -ne 1 ]; then
+            echo 'Hetzner API reset succeeded, but live SSH password login is disabled'
+            exit 31
           fi
+
+          sshpass -p "$root_password" ssh "${ssh_options[@]}" root@"$server_ip" \
+            "WOWPARTY_HOTFIX_RUN='$GITHUB_RUN_ID' bash -s" \
+            < ops/wowparty-auth/deploy-auth.sh
 
       - name: Publish deploy result
         if: always()
@@ -106,10 +118,10 @@ jobs:
         run: |
           set -Eeuo pipefail
           state=failure
-          description='Single-team authentication deploy failed'
+          description='Hetzner API auth hotfix failed'
           if [ "$JOB_STATUS" = success ]; then
             state=success
-            description='Authentication loop fixed and live portal verified'
+            description='WowParty auth loop fixed and live portal verified'
           fi
           payload="$(jq -n \
             --arg state "$state" \
