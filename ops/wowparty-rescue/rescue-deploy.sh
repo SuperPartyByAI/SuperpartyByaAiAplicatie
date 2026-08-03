@@ -83,10 +83,34 @@ if ! grep -qxF "$ephemeral_key" "$LIVE_ROOT/root/.ssh/authorized_keys"; then
   printf '%s\n' "$ephemeral_key" >> "$LIVE_ROOT/root/.ssh/authorized_keys"
 fi
 
-known_agent="$LIVE_ROOT/opt/superparty/backend/src/agents/wowparty-agent.js"
-if [ -f "$known_agent" ]; then
-  agent_target="$known_agent"
-else
+agent_target=""
+worker_target=""
+configured_worker=""
+pm2_dump="$LIVE_ROOT/root/.pm2/dump.pm2"
+
+# Prefer the exact executable PM2 saved for the active worker. The parser emits
+# only its executable path; process environment values are never printed.
+if [ -f "$pm2_dump" ] && [ -x "$LIVE_ROOT/usr/bin/node" ]; then
+  configured_worker="$(
+    chroot "$LIVE_ROOT" /usr/bin/node -e '
+      const fs = require("fs");
+      const processes = JSON.parse(fs.readFileSync("/root/.pm2/dump.pm2", "utf8"));
+      const worker = processes.find((entry) => entry && entry.name === "wowparty-agent-worker");
+      const executable = worker && (worker.pm_exec_path || (worker.pm2_env && worker.pm2_env.pm_exec_path));
+      if (typeof executable === "string") process.stdout.write(executable);
+    ' 2>/dev/null || true
+  )"
+fi
+
+if [[ "$configured_worker" == /opt/* ]] && [ -f "$LIVE_ROOT$configured_worker" ]; then
+  configured_agent="$(dirname "$LIVE_ROOT$configured_worker")/wowparty-agent.js"
+  if [ -f "$configured_agent" ]; then
+    worker_target="$LIVE_ROOT$configured_worker"
+    agent_target="$configured_agent"
+  fi
+fi
+
+if [ -z "$agent_target" ]; then
   mapfile -t agent_candidates < <(
     find "$LIVE_ROOT/opt" -xdev -type f -name 'wowparty-agent.js' \
       -not -path '*/node_modules/*' \
@@ -97,18 +121,19 @@ else
       -not -path '*/archives/*' \
       -print
   )
-  if [ "${#agent_candidates[@]}" -ne 1 ]; then
-    log "Expected one live wowparty-agent.js, found ${#agent_candidates[@]}"
-    printf '%s\n' "${agent_candidates[@]:-none}"
+  paired_agents=()
+  for candidate in "${agent_candidates[@]}"; do
+    if [ -f "$(dirname "$candidate")/job-worker.js" ]; then
+      paired_agents+=("$candidate")
+    fi
+  done
+  if [ "${#paired_agents[@]}" -ne 1 ]; then
+    log "Expected one agent/worker pair, found ${#paired_agents[@]} (PM2 path: ${configured_worker:-unavailable})"
+    printf '%s\n' "${paired_agents[@]:-none}"
     exit 21
   fi
-  agent_target="${agent_candidates[0]}"
-fi
-
-worker_target="$(dirname "$agent_target")/job-worker.js"
-if [ ! -f "$worker_target" ]; then
-  log "job-worker.js is not beside the live agent: $worker_target"
-  exit 22
+  agent_target="${paired_agents[0]}"
+  worker_target="$(dirname "$agent_target")/job-worker.js"
 fi
 
 mapfile -t client_candidates < <(
