@@ -125,44 +125,11 @@ jobs:
           fi
 
           # A Rescue reboot stops the PM2 daemon. Restore the exact process
-          # list previously saved by the live server before filtering and
-          # restarting only the SuperParty/WowParty processes below.
+          # list previously saved by the live server, then touch only the
+          # dedicated WowParty agent worker below.
           pm2 ping >/dev/null 2>&1 || true
           pm2 resurrect
           sleep 5
-
-          echo 'PM2 processes before restart (sanitized)'
-          pm2 jlist | node -e '
-            let input = "";
-            process.stdin.on("data", (chunk) => input += chunk).on("end", () => {
-              for (const proc of JSON.parse(input)) {
-                const env = proc.pm2_env || {};
-                console.log(JSON.stringify({ id: proc.pm_id, name: proc.name, status: env.status, exec: env.pm_exec_path || null, cwd: env.pm_cwd || null }));
-              }
-            });
-          '
-
-          mapfile -t target_ids < <(
-            pm2 jlist | BACKEND_ROOT='/opt/superparty/backend' PORTAL_ROOT="$portal_root" node -e '
-              let input = "";
-              process.stdin.on("data", (chunk) => input += chunk).on("end", () => {
-                const backend = process.env.BACKEND_ROOT;
-                const portal = process.env.PORTAL_ROOT;
-                for (const proc of JSON.parse(input)) {
-                  const env = proc.pm2_env || {};
-                  const exec = env.pm_exec_path || "";
-                  const cwd = env.pm_cwd || "";
-                  if (proc.name !== "wowparty-agent-worker" && (exec.startsWith(backend) || cwd.startsWith(backend) || exec.startsWith(portal) || cwd.startsWith(portal))) {
-                    console.log(proc.pm_id);
-                  }
-                }
-              });
-            '
-          )
-
-          for process_id in "${target_ids[@]}"; do
-            pm2 restart "$process_id" --update-env
-          done
 
           if pm2 describe wowparty-agent-worker >/dev/null 2>&1; then
             WA_OUTBOUND_ENABLED=false pm2 restart wowparty-agent-worker --update-env
@@ -172,9 +139,23 @@ jobs:
           pm2 save
           sleep 10
 
-          worker_status="$(pm2 jlist | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{const p=JSON.parse(d).find(x=>x.name==='wowparty-agent-worker');process.stdout.write(p?.pm2_env?.status||'missing')})")"
-          echo "WOWPARTY_AGENT_WORKER_STATUS=$worker_status"
-          test "$worker_status" = online
+          worker_state="$(pm2 jlist | node -e '
+            let input = "";
+            process.stdin.on("data", chunk => input += chunk).on("end", () => {
+              const proc = JSON.parse(input).find(item => item.name === "wowparty-agent-worker");
+              const env = proc?.pm2_env || {};
+              process.stdout.write(JSON.stringify({
+                status: env.status || "missing",
+                outbound: String(env.WA_OUTBOUND_ENABLED ?? "missing"),
+                exec: env.pm_exec_path || null
+              }));
+            });
+          ')"
+          echo "WOWPARTY_AGENT_WORKER=$worker_state"
+          WORKER_STATE="$worker_state" node -e '
+            const state = JSON.parse(process.env.WORKER_STATE || "{}");
+            if (state.status !== "online" || state.outbound !== "false") process.exit(1);
+          '
 
           health_json=''
           for attempt in $(seq 1 30); do
@@ -182,7 +163,8 @@ jobs:
             echo "HEALTH_ATTEMPT=$attempt $health_json"
             if HEALTH_JSON="$health_json" node -e '
               const health = JSON.parse(process.env.HEALTH_JSON || "{}");
-              process.exit(health.portal === "online" && health.backend === "online" ? 0 : 1);
+              const backendOk = health.backend === "online" || health.backend === "ok";
+              process.exit(health.status === "ok" && health.portal === "online" && backendOk ? 0 : 1);
             ' 2>/dev/null; then
               break
             fi
@@ -190,23 +172,15 @@ jobs:
           done
           HEALTH_JSON="$health_json" node -e '
             const health = JSON.parse(process.env.HEALTH_JSON || "{}");
-            if (health.portal !== "online" || health.backend !== "online") process.exit(1);
+            const backendOk = health.backend === "online" || health.backend === "ok";
+            if (health.status !== "ok" || health.portal !== "online" || !backendOk) process.exit(1);
           '
 
           portal_code="$(curl -sS -o /dev/null -w '%{http_code}' --max-redirs 0 https://app.superparty.ro/wowparty/evenimente || true)"
           echo "WOWPARTY_EVENTS_HTTP=$portal_code"
           case "$portal_code" in 200|307) ;; *) exit 44;; esac
 
-          echo 'PM2 processes after restart (sanitized)'
-          pm2 jlist | node -e '
-            let input = "";
-            process.stdin.on("data", (chunk) => input += chunk).on("end", () => {
-              for (const proc of JSON.parse(input)) {
-                const env = proc.pm2_env || {};
-                console.log(JSON.stringify({ id: proc.pm_id, name: proc.name, status: env.status, restarts: env.restart_time || 0, exec: env.pm_exec_path || null, cwd: env.pm_cwd || null }));
-              }
-            });
-          '
+          echo 'WowParty worker and public health verified'
           LIVE_RESTART
 
       - name: Upload the live evidence
