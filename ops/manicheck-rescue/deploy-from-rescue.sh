@@ -34,7 +34,9 @@ on_exit() {
   exit "$code"
 }
 trap on_exit EXIT
+trap 'code=$?; log "ERROR exit=$code line=$LINENO command=$BASH_COMMAND"; exit "$code"' ERR
 
+log "Validating sealed payload"
 test -s "$PAYLOAD_DIR/manicheck-v1-dist-text.tar.gz"
 test -s "$PAYLOAD_DIR/manicheck-v1-text-source.tar.gz"
 test -s "$PAYLOAD_DIR/MANICHECK_STORE_V1_MANIFEST.txt"
@@ -62,11 +64,13 @@ if [ -z "$root_device" ]; then
   exit 20
 fi
 
+log "Live root identified: $root_device"
 mount "$root_device" "$LIVE_ROOT"
 site="$LIVE_ROOT/opt/manicheck-site"
 test -d "$site"
 test -d "$site/public/products/freze"
 test -s "$site/public/og-image.png"
+log "Existing MANICHECK assets verified"
 
 release_id="MANICHECK_STORE_V1_20260803_${RUN_TAG}"
 release="$site/releases/$release_id"
@@ -80,6 +84,7 @@ cp -a "$site/public/products/freze" "$release/source/public/products/"
 cp -a "$site/public/og-image.png" "$release/dist/og-image.png"
 cp -a "$site/public/og-image.png" "$release/source/public/og-image.png"
 cp "$PAYLOAD_DIR/MANICHECK_STORE_V1_MANIFEST.txt" "$release/evidence/"
+log "New release extracted: $release_id"
 
 test -s "$release/dist/index.html"
 test -s "$release/dist/robots.txt"
@@ -92,6 +97,7 @@ if grep -qi 'Agregator premium\|Comparăm modele' "$release/dist/index.html"; th
   log "Comparator copy found in the new index"
   exit 21
 fi
+log "New release content checks passed"
 
 mkdir -p "$site/releases/MANICHECK_ROLLBACK_${RUN_TAG}"
 if [ -L "$site/dist" ]; then
@@ -104,6 +110,7 @@ else
 fi
 
 ln -s "releases/$release_id/dist" "$site/dist"
+log "Atomic dist switch completed; previous dist preserved"
 cat > "$release/evidence/DEPLOY_REPORT.txt" <<REPORT
 RESULT=DEPLOYED
 RUN_TAG=$RUN_TAG
