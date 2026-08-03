@@ -124,6 +124,13 @@ jobs:
             exit 43
           fi
 
+          # A Rescue reboot stops the PM2 daemon. Restore the exact process
+          # list previously saved by the live server before filtering and
+          # restarting only the SuperParty/WowParty processes below.
+          pm2 ping >/dev/null 2>&1 || true
+          pm2 resurrect
+          sleep 5
+
           echo 'PM2 processes before restart (sanitized)'
           pm2 jlist | node -e '
             let input = "";
