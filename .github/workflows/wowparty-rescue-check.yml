@@ -66,6 +66,9 @@ jobs:
 
           connected=0
           for attempt in $(seq 1 180); do
+            # The live OS and the one-shot Rescue OS have different SSH host keys.
+            # Drop the previously observed key before each transition probe.
+            : > "$known_hosts"
             if ssh "${ssh_base[@]}" root@89.167.115.150 'test -f /etc/os-release' >/dev/null 2>&1; then
               connected=1
               break
@@ -96,6 +99,7 @@ jobs:
           : > "$known_hosts"
           live_connected=0
           for attempt in $(seq 1 180); do
+            : > "$known_hosts"
             if ssh "${ssh_base[@]}" root@89.167.115.150 'test -d /opt/superparty/backend' >/dev/null 2>&1; then
               live_connected=1
               break
