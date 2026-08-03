@@ -6,6 +6,7 @@ on:
       - ops/wowparty-rescue-20260803
     paths:
       - .github/workflows/wowparty-rescue-check.yml
+      - ops/wowparty-rescue/rescue-deploy.sh
 
 permissions:
   contents: read
