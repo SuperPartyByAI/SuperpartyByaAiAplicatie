@@ -1,0 +1,240 @@
+name: WowParty guarded live restart
+
+on:
+  push:
+    branches:
+      - ops/wowparty-rescue-20260803
+    paths:
+      - .github/workflows/wowparty-live-restart.yml
+
+permissions:
+  contents: read
+  statuses: write
+
+jobs:
+  restart-and-verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Load the guarded access helper
+        uses: actions/checkout@v4
+
+      - name: Generate an ephemeral Rescue key
+        shell: bash
+        run: |
+          set -euo pipefail
+          key_path="$RUNNER_TEMP/wowparty_live_key"
+          ssh-keygen -q -t ed25519 -N '' -f "$key_path" -C "wowparty-live-$GITHUB_RUN_ID"
+          key_body="$(awk '{print $2}' "$key_path.pub")"
+          printf 'KEY_PATH=%s\n' "$key_path" >> "$GITHUB_ENV"
+          payload="$(jq -n \
+            --arg state pending \
+            --arg context "wowparty/live-key/$key_body" \
+            --arg description 'Ephemeral live-restart public key ready' \
+            --arg target_url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
+            '{state:$state,context:$context,description:$description,target_url:$target_url}')"
+          curl --fail-with-body --silent --show-error \
+            -X POST \
+            -H 'Accept: application/vnd.github+json' \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H 'X-GitHub-Api-Version: 2022-11-28' \
+            "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" \
+            -d "$payload"
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - name: Add one-time live access from Rescue
+        shell: bash
+        run: |
+          set -euo pipefail
+          known_hosts="$RUNNER_TEMP/known_hosts"
+          ssh_base=(
+            -i "$KEY_PATH"
+            -o BatchMode=yes
+            -o IdentitiesOnly=yes
+            -o ConnectTimeout=8
+            -o ServerAliveInterval=10
+            -o ServerAliveCountMax=3
+            -o StrictHostKeyChecking=accept-new
+            -o UserKnownHostsFile="$known_hosts"
+          )
+
+          connected=0
+          for attempt in $(seq 1 120); do
+            : > "$known_hosts"
+            if ssh "${ssh_base[@]}" root@89.167.115.150 'test -f /etc/os-release' >/dev/null 2>&1; then
+              connected=1
+              break
+            fi
+            sleep 4
+          done
+          if [ "$connected" -ne 1 ]; then
+            echo 'Timed out waiting for Rescue access'
+            exit 30
+          fi
+
+          echo 'Rescue SSH access confirmed'
+          ssh "${ssh_base[@]}" root@89.167.115.150 'mkdir -p /root/wowparty-rescue-access'
+          cp "$KEY_PATH.pub" ops/wowparty-rescue/access/ephemeral.pub
+          scp "${ssh_base[@]}" \
+            ops/wowparty-rescue/access/ephemeral.pub \
+            ops/wowparty-rescue/access/rescue-access-only.sh \
+            root@89.167.115.150:/root/wowparty-rescue-access/
+          ssh "${ssh_base[@]}" root@89.167.115.150 \
+            "chmod +x /root/wowparty-rescue-access/rescue-access-only.sh && WOWPARTY_RUN_TAG='$GITHUB_RUN_ID' /root/wowparty-rescue-access/rescue-access-only.sh"
+
+          sleep 10
+          live_connected=0
+          for attempt in $(seq 1 120); do
+            : > "$known_hosts"
+            if ssh "${ssh_base[@]}" root@89.167.115.150 'test -d /opt/superparty/backend' >/dev/null 2>&1; then
+              live_connected=1
+              break
+            fi
+            sleep 4
+          done
+          if [ "$live_connected" -ne 1 ]; then
+            echo 'Timed out waiting for the live operating system'
+            exit 31
+          fi
+
+          echo 'Live operating system is back'
+          ssh "${ssh_base[@]}" root@89.167.115.150 'bash -s' <<'LIVE_RESTART' | tee "$RUNNER_TEMP/wowparty-live-restart.txt"
+          set -Eeuo pipefail
+          export WA_OUTBOUND_ENABLED=false
+
+          report="$(ls -1t /root/wowparty-rescue-deploy-*.txt 2>/dev/null | head -n 1 || true)"
+          if [ -z "$report" ]; then
+            echo 'No WowParty Rescue deploy report was found'
+            exit 40
+          fi
+          worker_file="$(sed -n 's/^WORKER_TARGET=//p' "$report" | head -n 1)"
+          portal_root="$(sed -n 's/^PORTAL_ROOT=//p' "$report" | head -n 1)"
+          case "$worker_file" in /opt/*/job-worker.js) ;; *) echo "Invalid worker path: $worker_file"; exit 41;; esac
+          case "$portal_root" in /opt/*) ;; *) echo "Invalid portal root: $portal_root"; exit 42;; esac
+          agent_file="$(dirname "$worker_file")/wowparty-agent.js"
+          test -f "$worker_file"
+          test -f "$agent_file"
+          test -f "$portal_root/package.json"
+          node --check "$agent_file"
+          node --check "$worker_file"
+
+          if ! command -v pm2 >/dev/null 2>&1; then
+            echo 'PM2 is not installed on the live system'
+            exit 43
+          fi
+
+          echo 'PM2 processes before restart (sanitized)'
+          pm2 jlist | node -e '
+            let input = "";
+            process.stdin.on("data", (chunk) => input += chunk).on("end", () => {
+              for (const proc of JSON.parse(input)) {
+                const env = proc.pm2_env || {};
+                console.log(JSON.stringify({ id: proc.pm_id, name: proc.name, status: env.status, exec: env.pm_exec_path || null, cwd: env.pm_cwd || null }));
+              }
+            });
+          '
+
+          mapfile -t target_ids < <(
+            pm2 jlist | BACKEND_ROOT='/opt/superparty/backend' PORTAL_ROOT="$portal_root" node -e '
+              let input = "";
+              process.stdin.on("data", (chunk) => input += chunk).on("end", () => {
+                const backend = process.env.BACKEND_ROOT;
+                const portal = process.env.PORTAL_ROOT;
+                for (const proc of JSON.parse(input)) {
+                  const env = proc.pm2_env || {};
+                  const exec = env.pm_exec_path || "";
+                  const cwd = env.pm_cwd || "";
+                  if (proc.name !== "wowparty-agent-worker" && (exec.startsWith(backend) || cwd.startsWith(backend) || exec.startsWith(portal) || cwd.startsWith(portal))) {
+                    console.log(proc.pm_id);
+                  }
+                }
+              });
+            '
+          )
+
+          for process_id in "${target_ids[@]}"; do
+            pm2 restart "$process_id" --update-env
+          done
+
+          if pm2 describe wowparty-agent-worker >/dev/null 2>&1; then
+            WA_OUTBOUND_ENABLED=false pm2 restart wowparty-agent-worker --update-env
+          else
+            WA_OUTBOUND_ENABLED=false pm2 start "$worker_file" --name wowparty-agent-worker --time
+          fi
+          pm2 save
+          sleep 10
+
+          worker_status="$(pm2 jlist | node -e "let d='';process.stdin.on('data',c=>d+=c).on('end',()=>{const p=JSON.parse(d).find(x=>x.name==='wowparty-agent-worker');process.stdout.write(p?.pm2_env?.status||'missing')})")"
+          echo "WOWPARTY_AGENT_WORKER_STATUS=$worker_status"
+          test "$worker_status" = online
+
+          health_json=''
+          for attempt in $(seq 1 30); do
+            health_json="$(curl -sS --max-time 6 https://app.superparty.ro/api/health || true)"
+            echo "HEALTH_ATTEMPT=$attempt $health_json"
+            if HEALTH_JSON="$health_json" node -e '
+              const health = JSON.parse(process.env.HEALTH_JSON || "{}");
+              process.exit(health.portal === "online" && health.backend === "online" ? 0 : 1);
+            ' 2>/dev/null; then
+              break
+            fi
+            sleep 2
+          done
+          HEALTH_JSON="$health_json" node -e '
+            const health = JSON.parse(process.env.HEALTH_JSON || "{}");
+            if (health.portal !== "online" || health.backend !== "online") process.exit(1);
+          '
+
+          portal_code="$(curl -sS -o /dev/null -w '%{http_code}' --max-redirs 0 https://app.superparty.ro/wowparty/evenimente || true)"
+          echo "WOWPARTY_EVENTS_HTTP=$portal_code"
+          case "$portal_code" in 200|307) ;; *) exit 44;; esac
+
+          echo 'PM2 processes after restart (sanitized)'
+          pm2 jlist | node -e '
+            let input = "";
+            process.stdin.on("data", (chunk) => input += chunk).on("end", () => {
+              for (const proc of JSON.parse(input)) {
+                const env = proc.pm2_env || {};
+                console.log(JSON.stringify({ id: proc.pm_id, name: proc.name, status: env.status, restarts: env.restart_time || 0, exec: env.pm_exec_path || null, cwd: env.pm_cwd || null }));
+              }
+            });
+          '
+          LIVE_RESTART
+
+      - name: Upload the live evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wowparty-live-restart-evidence-${{ github.run_id }}
+          path: ${{ runner.temp }}/wowparty-live-restart.txt
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Publish the final restart result
+        if: always()
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          JOB_STATUS: ${{ job.status }}
+        run: |
+          set -euo pipefail
+          state=success
+          description='WowParty live processes restarted and verified'
+          if [ "$JOB_STATUS" != success ]; then
+            state=failure
+            description='WowParty live restart or verification failed'
+          fi
+          payload="$(jq -n \
+            --arg state "$state" \
+            --arg context wowparty/live-restart \
+            --arg description "$description" \
+            --arg target_url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
+            '{state:$state,context:$context,description:$description,target_url:$target_url}')"
+          curl --fail-with-body --silent --show-error \
+            -X POST \
+            -H 'Accept: application/vnd.github+json' \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H 'X-GitHub-Api-Version: 2022-11-28' \
+            "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" \
+            -d "$payload"
