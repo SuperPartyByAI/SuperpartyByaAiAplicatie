@@ -17,10 +17,21 @@ concurrency:
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    # Execute on the Hetzner machine itself.  The host guard below makes the
+    # job fail closed if GitHub ever assigns another self-hosted runner.
+    runs-on: self-hosted
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
+
+      - name: Verify the direct MANICHECK host
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          test "$(hostname)" = 'wa-production-cpx41ubuntu-32gb-hell1-2'
+          test -d /opt/manicheck-site
+          test -f /etc/nginx/sites-enabled/manicheck.ro.conf -o -f /etc/nginx/sites-available/manicheck.ro.conf
+          sudo -n true
 
       - name: Reassemble and verify the sealed payload
         shell: bash
@@ -44,53 +55,20 @@ jobs:
           bash -n "$payload/deploy-direct-live.sh"
           printf 'PAYLOAD_DIR=%s\n' "$payload" >> "$GITHUB_ENV"
 
-      - name: Deploy directly over dual-stack SSH and verify public LIVE
+      - name: Deploy locally on Hetzner and verify public LIVE
         shell: bash
         run: |
           set -Eeuo pipefail
-          sudo apt-get update -qq
-          sudo apt-get install -y -qq sshpass >/dev/null
-          password="$(sed -n 's/^set password "\(.*\)"/\1/p' server/run_deploy_ssh.sh | head -n 1)"
-          test -n "$password"
-          echo "::add-mask::$password"
-          known_hosts="$RUNNER_TEMP/known_hosts"
-          ssh_base=(
-            -o PreferredAuthentications=password
-            -o PubkeyAuthentication=no
-            -o ConnectTimeout=8
-            -o ConnectionAttempts=1
-            -o StrictHostKeyChecking=accept-new
-            -o UserKnownHostsFile="$known_hosts"
-          )
-
-          selected_host=""
-          for host in '2a01:4f9:c014:15e2::1' '89.167.115.150'; do
-            : > "$known_hosts"
-            if sshpass -p "$password" ssh "${ssh_base[@]}" "root@$host" 'test -d /opt/manicheck-site' >/dev/null 2>&1; then
-              selected_host="$host"
-              break
-            fi
-          done
-          if [ -z "$selected_host" ]; then
-            echo 'Neither direct Hetzner address accepts SSH from GitHub Actions'
-            exit 30
-          fi
-
-          remote="root@$selected_host"
-          scp_remote="$remote:/root/manicheck-direct-deploy/"
-          if [[ "$selected_host" == *:* ]]; then
-            scp_remote="root@[$selected_host]:/root/manicheck-direct-deploy/"
-          fi
-          sshpass -p "$password" ssh "${ssh_base[@]}" "$remote" 'mkdir -p /root/manicheck-direct-deploy'
-          sshpass -p "$password" scp "${ssh_base[@]}" \
+          sudo install -d -m 700 /root/manicheck-direct-deploy
+          sudo install -m 600 \
             "$PAYLOAD_DIR/manicheck-v1-dist-text.tar.gz" \
             "$PAYLOAD_DIR/manicheck-v1-text-source.tar.gz" \
             "$PAYLOAD_DIR/og-image.png" \
-            "$PAYLOAD_DIR/deploy-direct-live.sh" \
             "$PAYLOAD_DIR/MANICHECK_STORE_V1_MANIFEST.txt" \
-            "$scp_remote"
-          sshpass -p "$password" ssh "${ssh_base[@]}" "$remote" \
-            "chmod +x /root/manicheck-direct-deploy/deploy-direct-live.sh && MANICHECK_RUN_TAG='$GITHUB_RUN_ID' /root/manicheck-direct-deploy/deploy-direct-live.sh" \
+            /root/manicheck-direct-deploy/
+          sudo install -m 700 "$PAYLOAD_DIR/deploy-direct-live.sh" /root/manicheck-direct-deploy/deploy-direct-live.sh
+          sudo env MANICHECK_RUN_TAG="$GITHUB_RUN_ID" \
+            /root/manicheck-direct-deploy/deploy-direct-live.sh \
             | tee "$RUNNER_TEMP/manicheck-deploy.txt"
 
           live_ok=0
