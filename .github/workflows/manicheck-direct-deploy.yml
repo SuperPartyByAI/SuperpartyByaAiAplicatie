@@ -19,7 +19,8 @@ jobs:
   deploy:
     # Execute on the Hetzner machine itself.  The host guard below makes the
     # job fail closed if GitHub ever assigns another self-hosted runner.
-    runs-on: self-hosted
+    if: ${{ false }}
+    runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
