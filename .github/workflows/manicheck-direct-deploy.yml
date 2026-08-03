@@ -1,0 +1,162 @@
+name: MANICHECK direct sealed deployment
+
+on:
+  push:
+    branches:
+      - codex/manicheck-direct-deploy-20260803
+    paths:
+      - .github/workflows/manicheck-direct-deploy.yml
+
+permissions:
+  contents: read
+  statuses: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Reassemble and verify the sealed payload
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          payload="$RUNNER_TEMP/manicheck-rescue-deploy"
+          mkdir -p "$payload"
+          cat ops/manicheck-rescue/payload/manicheck-v1-dist-text.tar.gz.b64.* | base64 -d > "$payload/manicheck-v1-dist-text.tar.gz"
+          cat ops/manicheck-rescue/payload/manicheck-v1-text-source.tar.gz.b64.* | base64 -d > "$payload/manicheck-v1-text-source.tar.gz"
+          cp ops/manicheck-rescue/deploy-from-rescue.sh "$payload/"
+          cp ops/manicheck-rescue/MANICHECK_STORE_V1_MANIFEST.txt "$payload/"
+          chmod +x "$payload/deploy-from-rescue.sh"
+          test "$(sha256sum "$payload/manicheck-v1-dist-text.tar.gz" | awk '{print $1}')" = "29608a881ea214c91d6f31e20f11130f722b52a7eed9d81b951296f42f107ff5"
+          test "$(sha256sum "$payload/manicheck-v1-text-source.tar.gz" | awk '{print $1}')" = "29873515d784073cc27d9ed0efd565e6fab8b807cb6c2e7c046d5d08527642fb"
+          test "$(sha256sum "$payload/deploy-from-rescue.sh" | awk '{print $1}')" = "2c4979caded5a4974409d9ff22540b559fa8cfdcb07fd92bd6cd92e652ea43a6"
+          test "$(sha256sum "$payload/MANICHECK_STORE_V1_MANIFEST.txt" | awk '{print $1}')" = "8536f74663c478042f6dc427323a1e1e95a0f9580d62dec8732ed78e775c4d40"
+          tar -tzf "$payload/manicheck-v1-dist-text.tar.gz" >/dev/null
+          tar -tzf "$payload/manicheck-v1-text-source.tar.gz" >/dev/null
+          bash -n "$payload/deploy-from-rescue.sh"
+          printf 'PAYLOAD_DIR=%s\n' "$payload" >> "$GITHUB_ENV"
+
+      - name: Generate an ephemeral Rescue key
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          set -Eeuo pipefail
+          key_path="$RUNNER_TEMP/manicheck_rescue_key"
+          ssh-keygen -q -t ed25519 -N '' -f "$key_path" -C "manicheck-deploy-$GITHUB_RUN_ID"
+          key_body="$(awk '{print $2}' "$key_path.pub")"
+          printf 'KEY_PATH=%s\n' "$key_path" >> "$GITHUB_ENV"
+          payload="$(jq -n \
+            --arg state pending \
+            --arg context "manicheck/rescue-key/$key_body" \
+            --arg description 'Ephemeral MANICHECK Rescue key ready' \
+            --arg target_url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
+            '{state:$state,context:$context,description:$description,target_url:$target_url}')"
+          curl --fail-with-body --silent --show-error \
+            -X POST \
+            -H 'Accept: application/vnd.github+json' \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H 'X-GitHub-Api-Version: 2022-11-28' \
+            "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" \
+            -d "$payload"
+
+      - name: Deploy from Rescue and verify public LIVE
+        shell: bash
+        run: |
+          set -Eeuo pipefail
+          known_hosts="$RUNNER_TEMP/known_hosts"
+          ssh_base=(
+            -i "$KEY_PATH"
+            -o BatchMode=yes
+            -o IdentitiesOnly=yes
+            -o ConnectTimeout=8
+            -o ServerAliveInterval=10
+            -o ServerAliveCountMax=3
+            -o StrictHostKeyChecking=accept-new
+            -o UserKnownHostsFile="$known_hosts"
+          )
+
+          connected=0
+          for attempt in $(seq 1 120); do
+            : > "$known_hosts"
+            if ssh "${ssh_base[@]}" root@89.167.115.150 'test -f /etc/os-release' >/dev/null 2>&1; then
+              connected=1
+              break
+            fi
+            sleep 5
+          done
+          if [ "$connected" -ne 1 ]; then
+            echo 'Timed out waiting for Hetzner Rescue access'
+            exit 30
+          fi
+
+          ssh "${ssh_base[@]}" root@89.167.115.150 'mkdir -p /root/manicheck-rescue-deploy'
+          scp "${ssh_base[@]}" \
+            "$PAYLOAD_DIR/manicheck-v1-dist-text.tar.gz" \
+            "$PAYLOAD_DIR/manicheck-v1-text-source.tar.gz" \
+            "$PAYLOAD_DIR/deploy-from-rescue.sh" \
+            "$PAYLOAD_DIR/MANICHECK_STORE_V1_MANIFEST.txt" \
+            root@89.167.115.150:/root/manicheck-rescue-deploy/
+          ssh "${ssh_base[@]}" root@89.167.115.150 \
+            "chmod +x /root/manicheck-rescue-deploy/deploy-from-rescue.sh && MANICHECK_RUN_TAG='$GITHUB_RUN_ID' /root/manicheck-rescue-deploy/deploy-from-rescue.sh" \
+            | tee "$RUNNER_TEMP/manicheck-deploy.txt"
+
+          live_ok=0
+          for attempt in $(seq 1 120); do
+            body="$(curl -fsS --max-time 10 "https://manicheck.ro/?deploy_qa=$GITHUB_RUN_ID" || true)"
+            if printf '%s' "$body" | grep -q 'Magazin online afiliat pentru manichiură' \
+              && printf '%s' "$body" | grep -q 'Produse</dt><dd[^>]*>20</dd>' \
+              && ! printf '%s' "$body" | grep -qi 'Agregator premium\|Comparăm modele'; then
+              live_ok=1
+              break
+            fi
+            sleep 5
+          done
+          if [ "$live_ok" -ne 1 ]; then
+            echo 'MANICHECK LIVE did not expose the verified V1 storefront in time'
+            exit 31
+          fi
+
+          curl -fsS --max-time 10 https://manicheck.ro/robots.txt | grep -q 'Allow: /'
+          curl -fsS --max-time 10 https://manicheck.ro/cos/ | grep -q 'Coșul meu'
+          curl -fsS --max-time 10 https://manicheck.ro/favorite/ | grep -q 'Favorite'
+          echo 'MANICHECK LIVE deployment verified' | tee -a "$RUNNER_TEMP/manicheck-deploy.txt"
+
+      - name: Upload deployment evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: manicheck-live-deployment-${{ github.run_id }}
+          path: ${{ runner.temp }}/manicheck-deploy.txt
+          if-no-files-found: ignore
+          retention-days: 7
+
+      - name: Publish final deployment status
+        if: always()
+        shell: bash
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          JOB_STATUS: ${{ job.status }}
+        run: |
+          set -Eeuo pipefail
+          state=success
+          description='MANICHECK V1 is live and verified'
+          if [ "$JOB_STATUS" != success ]; then
+            state=failure
+            description='MANICHECK direct deployment failed'
+          fi
+          payload="$(jq -n \
+            --arg state "$state" \
+            --arg context manicheck/live-deploy \
+            --arg description "$description" \
+            --arg target_url "$GITHUB_SERVER_URL/$GITHUB_REPOSITORY/actions/runs/$GITHUB_RUN_ID" \
+            '{state:$state,context:$context,description:$description,target_url:$target_url}')"
+          curl --fail-with-body --silent --show-error \
+            -X POST \
+            -H 'Accept: application/vnd.github+json' \
+            -H "Authorization: Bearer $GITHUB_TOKEN" \
+            -H 'X-GitHub-Api-Version: 2022-11-28' \
+            "$GITHUB_API_URL/repos/$GITHUB_REPOSITORY/statuses/$GITHUB_SHA" \
+            -d "$payload"
