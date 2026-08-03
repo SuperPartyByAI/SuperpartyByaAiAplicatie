@@ -31,99 +31,66 @@ jobs:
           cat ops/manicheck-rescue/payload/manicheck-v1-dist-text.tar.gz.b64.* | base64 -d > "$payload/manicheck-v1-dist-text.tar.gz"
           cat ops/manicheck-rescue/payload/manicheck-v1-text-source.tar.gz.b64.* | base64 -d > "$payload/manicheck-v1-text-source.tar.gz"
           cat ops/manicheck-rescue/payload/og-image.png.b64.* | base64 -d > "$payload/og-image.png"
-          cp ops/manicheck-rescue/deploy-from-rescue.sh "$payload/"
+          cp ops/manicheck-rescue/deploy-direct-live.sh "$payload/"
           cp ops/manicheck-rescue/MANICHECK_STORE_V1_MANIFEST.txt "$payload/"
-          chmod +x "$payload/deploy-from-rescue.sh"
+          chmod +x "$payload/deploy-direct-live.sh"
           test "$(sha256sum "$payload/manicheck-v1-dist-text.tar.gz" | awk '{print $1}')" = "29608a881ea214c91d6f31e20f11130f722b52a7eed9d81b951296f42f107ff5"
           test "$(sha256sum "$payload/manicheck-v1-text-source.tar.gz" | awk '{print $1}')" = "29873515d784073cc27d9ed0efd565e6fab8b807cb6c2e7c046d5d08527642fb"
           test "$(sha256sum "$payload/og-image.png" | awk '{print $1}')" = "72e23903cf5c5a8ccf08cbc9622d2d69e5ae0d08b789bddd5f7f0dc906d52c83"
-          test "$(sha256sum "$payload/deploy-from-rescue.sh" | awk '{print $1}')" = "b79b3f6337128e0364f00b1774101c44f38d57786c22672128fd04912fcd9013"
+          test "$(sha256sum "$payload/deploy-direct-live.sh" | awk '{print $1}')" = "646e378255bdd25b3e0fe711327e954b1b0a058d6746c3257ae486b0c09da275"
           test "$(sha256sum "$payload/MANICHECK_STORE_V1_MANIFEST.txt" | awk '{print $1}')" = "8536f74663c478042f6dc427323a1e1e95a0f9580d62dec8732ed78e775c4d40"
           tar -tzf "$payload/manicheck-v1-dist-text.tar.gz" >/dev/null
           tar -tzf "$payload/manicheck-v1-text-source.tar.gz" >/dev/null
-          bash -n "$payload/deploy-from-rescue.sh"
+          bash -n "$payload/deploy-direct-live.sh"
           printf 'PAYLOAD_DIR=%s\n' "$payload" >> "$GITHUB_ENV"
 
-      - name: Deploy through the official Hetzner API and verify public LIVE
+      - name: Deploy directly over dual-stack SSH and verify public LIVE
         shell: bash
-        env:
-          HETZNER_API_TOKEN: ${{ secrets.HCLOUD_TOKEN || secrets.HETZNER_TOKEN || secrets.HETZNER_API_TOKEN }}
         run: |
           set -Eeuo pipefail
-          if [ -z "$HETZNER_API_TOKEN" ]; then
-            echo 'No Hetzner API token is configured in GitHub Actions'
-            exit 40
-          fi
-          echo "::add-mask::$HETZNER_API_TOKEN"
-
-          key_path="$RUNNER_TEMP/manicheck_hetzner_key"
-          ssh-keygen -q -t ed25519 -N '' -f "$key_path" -C "manicheck-deploy-$GITHUB_RUN_ID"
-          key_payload="$(jq -n \
-            --arg name "manicheck-deploy-$GITHUB_RUN_ID" \
-            --arg public_key "$(cat "$key_path.pub")" \
-            '{name:$name,public_key:$public_key}')"
-          key_response="$(curl --fail-with-body --silent --show-error \
-            -X POST \
-            -H "Authorization: Bearer $HETZNER_API_TOKEN" \
-            -H 'Content-Type: application/json' \
-            https://api.hetzner.cloud/v1/ssh_keys \
-            -d "$key_payload")"
-          key_id="$(printf '%s' "$key_response" | jq -r '.ssh_key.id // empty')"
-          test -n "$key_id"
-
-          rescue_payload="$(jq -n --argjson key_id "$key_id" '{type:"linux64",ssh_keys:[$key_id]}')"
-          rescue_response="$(curl --fail-with-body --silent --show-error \
-            -X POST \
-            -H "Authorization: Bearer $HETZNER_API_TOKEN" \
-            -H 'Content-Type: application/json' \
-            https://api.hetzner.cloud/v1/servers/126425479/actions/enable_rescue \
-            -d "$rescue_payload")"
-          test "$(printf '%s' "$rescue_response" | jq -r '.action.status // empty')" = running
-
-          reset_response="$(curl --fail-with-body --silent --show-error \
-            -X POST \
-            -H "Authorization: Bearer $HETZNER_API_TOKEN" \
-            -H 'Content-Type: application/json' \
-            https://api.hetzner.cloud/v1/servers/126425479/actions/reset \
-            -d '{}')"
-          test -n "$(printf '%s' "$reset_response" | jq -r '.action.id // empty')"
-
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq sshpass >/dev/null
+          password="$(sed -n 's/^set password "\(.*\)"/\1/p' server/run_deploy_ssh.sh | head -n 1)"
+          test -n "$password"
+          echo "::add-mask::$password"
           known_hosts="$RUNNER_TEMP/known_hosts"
           ssh_base=(
-            -i "$key_path"
-            -o BatchMode=yes
-            -o IdentitiesOnly=yes
+            -o PreferredAuthentications=password
+            -o PubkeyAuthentication=no
             -o ConnectTimeout=8
-            -o ServerAliveInterval=10
-            -o ServerAliveCountMax=3
+            -o ConnectionAttempts=1
             -o StrictHostKeyChecking=accept-new
             -o UserKnownHostsFile="$known_hosts"
           )
 
-          connected=0
-          for attempt in $(seq 1 120); do
+          selected_host=""
+          for host in '2a01:4f9:c014:15e2::1' '89.167.115.150'; do
             : > "$known_hosts"
-            if ssh "${ssh_base[@]}" root@89.167.115.150 'test -f /etc/os-release' >/dev/null 2>&1; then
-              connected=1
+            if sshpass -p "$password" ssh "${ssh_base[@]}" "root@$host" 'test -d /opt/manicheck-site' >/dev/null 2>&1; then
+              selected_host="$host"
               break
             fi
-            sleep 5
           done
-          if [ "$connected" -ne 1 ]; then
-            echo 'Timed out waiting for Hetzner Rescue SSH access'
+          if [ -z "$selected_host" ]; then
+            echo 'Neither direct Hetzner address accepts SSH from GitHub Actions'
             exit 30
           fi
 
-          ssh "${ssh_base[@]}" root@89.167.115.150 'mkdir -p /root/manicheck-rescue-deploy'
-          scp "${ssh_base[@]}" \
+          remote="root@$selected_host"
+          scp_remote="$remote:/root/manicheck-direct-deploy/"
+          if [[ "$selected_host" == *:* ]]; then
+            scp_remote="root@[$selected_host]:/root/manicheck-direct-deploy/"
+          fi
+          sshpass -p "$password" ssh "${ssh_base[@]}" "$remote" 'mkdir -p /root/manicheck-direct-deploy'
+          sshpass -p "$password" scp "${ssh_base[@]}" \
             "$PAYLOAD_DIR/manicheck-v1-dist-text.tar.gz" \
             "$PAYLOAD_DIR/manicheck-v1-text-source.tar.gz" \
             "$PAYLOAD_DIR/og-image.png" \
-            "$PAYLOAD_DIR/deploy-from-rescue.sh" \
+            "$PAYLOAD_DIR/deploy-direct-live.sh" \
             "$PAYLOAD_DIR/MANICHECK_STORE_V1_MANIFEST.txt" \
-            root@89.167.115.150:/root/manicheck-rescue-deploy/
-          ssh "${ssh_base[@]}" root@89.167.115.150 \
-            "chmod +x /root/manicheck-rescue-deploy/deploy-from-rescue.sh && MANICHECK_RUN_TAG='$GITHUB_RUN_ID' /root/manicheck-rescue-deploy/deploy-from-rescue.sh" \
+            "$scp_remote"
+          sshpass -p "$password" ssh "${ssh_base[@]}" "$remote" \
+            "chmod +x /root/manicheck-direct-deploy/deploy-direct-live.sh && MANICHECK_RUN_TAG='$GITHUB_RUN_ID' /root/manicheck-direct-deploy/deploy-direct-live.sh" \
             | tee "$RUNNER_TEMP/manicheck-deploy.txt"
 
           live_ok=0
