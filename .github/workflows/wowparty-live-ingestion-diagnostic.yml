@@ -1,0 +1,203 @@
+name: WowParty live ingestion diagnostic (read-only)
+
+on:
+  push:
+    branches:
+      - ops/wowparty-rescue-20260803
+    paths:
+      - .github/workflows/wowparty-live-ingestion-diagnostic.yml
+
+permissions:
+  contents: read
+
+jobs:
+  diagnose:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 8
+    env:
+      SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+      SSH_PRIVATE_KEY_ALT: ${{ secrets.HETZNER_SSH_PRIVATE_KEY }}
+      DEPLOY_USER_SECRET: ${{ secrets.DEPLOY_USER }}
+      SERVER_IP: 89.167.115.150
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Probe public services
+        shell: bash
+        run: |
+          set +e
+          echo "UTC=$(date -u +%FT%TZ)"
+          curl -sS --max-time 10 https://app.superparty.ro/api/health || true
+          echo
+          for port in 22 3015; do
+            nc -vz -w 5 "$SERVER_IP" "$port" >/tmp/nc-$port.txt 2>&1
+            code=$?
+            echo "TCP_${port}_EXIT=$code"
+            sed -E 's/[0-9]{6,}/[REDACTED_NUMBER]/g' /tmp/nc-$port.txt
+          done
+          exit 0
+
+      - name: Select configured SSH key
+        id: key
+        shell: bash
+        run: |
+          set -euo pipefail
+          key=''
+          if [ -n "${SSH_PRIVATE_KEY:-}" ]; then
+            key="$SSH_PRIVATE_KEY"
+            echo 'SSH_KEY_SOURCE=SSH_PRIVATE_KEY'
+          elif [ -n "${SSH_PRIVATE_KEY_ALT:-}" ]; then
+            key="$SSH_PRIVATE_KEY_ALT"
+            echo 'SSH_KEY_SOURCE=HETZNER_SSH_PRIVATE_KEY'
+          else
+            echo 'SSH_KEY_PRESENT=NO'
+            exit 20
+          fi
+          key_path="$RUNNER_TEMP/wowparty_diag_key"
+          printf '%s\n' "$key" > "$key_path"
+          chmod 600 "$key_path"
+          echo "key_path=$key_path" >> "$GITHUB_OUTPUT"
+          echo 'SSH_KEY_PRESENT=YES'
+
+      - name: Diagnose live PM2 and wa-3015 without mutations
+        shell: bash
+        env:
+          KEY_PATH: ${{ steps.key.outputs.key_path }}
+        run: |
+          set -euo pipefail
+          candidates=()
+          if [[ "${DEPLOY_USER_SECRET:-}" =~ ^[a-z_][a-z0-9_-]{0,31}$ ]]; then
+            candidates+=("$DEPLOY_USER_SECRET")
+          fi
+          candidates+=(root superparty ubuntu)
+
+          ssh_opts=(
+            -i "$KEY_PATH"
+            -o BatchMode=yes
+            -o IdentitiesOnly=yes
+            -o ConnectTimeout=8
+            -o ServerAliveInterval=8
+            -o ServerAliveCountMax=2
+            -o StrictHostKeyChecking=accept-new
+          )
+
+          connected_user=''
+          for candidate in "${candidates[@]}"; do
+            if ssh "${ssh_opts[@]}" "$candidate@$SERVER_IP" 'test -d /opt/superparty/backend' >/dev/null 2>&1; then
+              connected_user="$candidate"
+              break
+            fi
+          done
+          if [ -z "$connected_user" ]; then
+            echo 'SSH_AUTHENTICATED=NO'
+            exit 21
+          fi
+          echo "SSH_AUTHENTICATED=YES USER=$connected_user"
+
+          ssh "${ssh_opts[@]}" "$connected_user@$SERVER_IP" 'bash -s' <<'REMOTE'
+          set -u
+          echo "REMOTE_UTC=$(date -u +%FT%TZ)"
+          echo "HOSTNAME=$(hostname)"
+          echo '--- PM2 SELECTED PROCESSES ---'
+          if ! command -v pm2 >/dev/null 2>&1; then
+            echo 'PM2_PRESENT=NO'
+            exit 30
+          fi
+          pm2 jlist | node <<'NODE'
+          let input='';
+          process.stdin.on('data', c => input += c).on('end', () => {
+            let rows=[];
+            try { rows=JSON.parse(input); } catch { console.log('PM2_JSON_PARSE=FAILED'); return; }
+            const wanted = new Set(['wa-3015','whatsapp-orchestrator','superparty-chat-worker','wowparty-agent-worker','superparty-portal-ai']);
+            const out = rows.filter(p => wanted.has(p.name)).map(p => {
+              const e=p.pm2_env||{};
+              return {
+                name:p.name,
+                status:e.status||'missing',
+                pid:p.pid||null,
+                restarts:e.restart_time||0,
+                unstable_restarts:e.unstable_restarts||0,
+                created_at:e.created_at||null,
+                exec:e.pm_exec_path||null,
+                cwd:e.pm_cwd||null,
+                out_log:e.pm_out_log_path||null,
+                err_log:e.pm_err_log_path||null
+              };
+            });
+            console.log(JSON.stringify(out, null, 2));
+          });
+NODE
+
+          echo '--- LISTENING PORTS ---'
+          ss -lntp 2>/dev/null | awk 'NR==1 || /:3015|:3010|:3000|:3001|:8080/' | sed -E 's/users:\(\([^)]*\)\)/users:(REDACTED)/g' || true
+
+          echo '--- LOCAL ENDPOINT PROBES ---'
+          for endpoint in \
+            http://127.0.0.1:3015/status \
+            http://127.0.0.1:3015/health \
+            http://127.0.0.1:3015/api/health \
+            http://127.0.0.1:3000/api/health \
+            http://127.0.0.1:3001/api/health; do
+            body="$(curl -sS --max-time 5 "$endpoint" 2>/dev/null || true)"
+            code="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 5 "$endpoint" 2>/dev/null || true)"
+            echo "ENDPOINT=$endpoint HTTP=$code"
+            BODY="$body" node <<'NODE'
+            const raw=process.env.BODY||'';
+            if (!raw) { console.log('BODY=EMPTY'); process.exit(0); }
+            try {
+              const d=JSON.parse(raw);
+              const sessions=Array.isArray(d.sessions) ? d.sessions : [];
+              const selected=sessions.find(s => ['wa_wow','wa-3015','wow'].includes(String(s.docId||s.session_key||s.id||'')));
+              const safe={
+                status:d.status ?? null,
+                mode:d.mode ?? null,
+                portal:d.portal ?? null,
+                backend:d.backend ?? null,
+                summary:d.summary ?? null,
+                selected:selected ? {
+                  id:selected.docId||selected.session_key||selected.id||null,
+                  status:selected.status||null,
+                  requiresQR:selected.requiresQR ?? selected.requires_qr ?? null,
+                  reconnectAttempts:selected.reconnectAttempts ?? selected.reconnect_attempts ?? null,
+                  pairingPhase:selected.pairingPhase ?? null
+                } : null
+              };
+              console.log(JSON.stringify(safe));
+            } catch {
+              console.log('BODY_NON_JSON length=' + raw.length);
+            }
+NODE
+          done
+
+          echo '--- WA-3015 SAFE ERROR SIGNALS ---'
+          pm2 jlist | node > /tmp/wa3015-logs.txt <<'NODE'
+          let input='';
+          process.stdin.on('data',c=>input+=c).on('end',()=>{
+            try {
+              const p=JSON.parse(input).find(x=>x.name==='wa-3015');
+              const e=p?.pm2_env||{};
+              for (const f of [e.pm_out_log_path,e.pm_err_log_path]) if (f) console.log(f);
+            } catch {}
+          });
+NODE
+          while IFS= read -r file; do
+            [ -f "$file" ] || continue
+            echo "LOG_FILE=$(basename "$file")"
+            tail -n 1200 "$file" 2>/dev/null \
+              | grep -Eai 'logged.?out|logout|connection.*close|disconnect|auth.*fail|creds.*fail|supabase.*error|insert.*error|upsert.*error|ECONN|ETIMEDOUT|ENOTFOUND|status.?code.?401|code.?401|code.?408|code.?428|code.?515|backend.*degrad' \
+              | tail -n 80 \
+              | sed -E \
+                  -e 's/[0-9]{6,}/[REDACTED_NUMBER]/g' \
+                  -e 's/[A-Za-z0-9+\/_=-]{40,}/[REDACTED_TOKEN]/g' \
+                  -e 's/[[:alnum:]._%+-]+@[[:alnum:].-]+/[REDACTED_ID]/g' || true
+          done < /tmp/wa3015-logs.txt
+
+          echo '--- SAFE FILE IDENTITY ---'
+          for file in /opt/superparty/backend/index.js /opt/superparty/backend/package.json; do
+            if [ -f "$file" ]; then
+              stat -c 'FILE=%n SIZE=%s MTIME=%y' "$file"
+              sha256sum "$file" | awk '{print "SHA256=" $1 " FILE=" $2}'
+            fi
+          done
+          echo 'READ_ONLY_DIAGNOSTIC_COMPLETE=YES'
+REMOTE
