@@ -126,7 +126,7 @@ jobs:
             });
             console.log(JSON.stringify(out, null, 2));
           });
-NODE
+          NODE
 
           echo '--- LISTENING PORTS ---'
           ss -lntp 2>/dev/null | awk 'NR==1 || /:3015|:3010|:3000|:3001|:8080/' | sed -E 's/users:\(\([^)]*\)\)/users:(REDACTED)/g' || true
@@ -166,7 +166,7 @@ NODE
             } catch {
               console.log('BODY_NON_JSON length=' + raw.length);
             }
-NODE
+            NODE
           done
 
           echo '--- WA-3015 SAFE ERROR SIGNALS ---'
@@ -179,7 +179,7 @@ NODE
               for (const f of [e.pm_out_log_path,e.pm_err_log_path]) if (f) console.log(f);
             } catch {}
           });
-NODE
+          NODE
           while IFS= read -r file; do
             [ -f "$file" ] || continue
             echo "LOG_FILE=$(basename "$file")"
@@ -200,4 +200,4 @@ NODE
             fi
           done
           echo 'READ_ONLY_DIAGNOSTIC_COMPLETE=YES'
-REMOTE
+          REMOTE
